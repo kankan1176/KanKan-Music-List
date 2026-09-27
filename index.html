@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KanKan~好きな曲を集めました~</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        /* =========================================
+           CSS変数によるテーマ管理
+        ========================================= */
+        
+        :root {
+            /* ダーク (デフォルト) */
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --panel-bg: #1e1e1e;
+            --border-color: #444;
+            --btn-bg: #2a2a2a;
+            --btn-hover: #444;
+            --primary: #007bff;
+            --primary-text: #fff;
+            --link-color: #66b2ff;
+            --th-bg: #2a2a2a;
+            --th-hover: #3a3a3a;
+            --th-text: #e0e0e0;
+        }
+
+        body.theme-white {
+            /* ホワイト */
+            --bg-color: #f8f9fa;
+            --text-color: #333333;
+            --panel-bg: #ffffff;
+            --border-color: #dee2e6;
+            --btn-bg: #e9ecef;
+            --btn-hover: #ced4da;
+            --primary: #0056b3;
+            --primary-text: #fff;
+            --link-color: #0056b3;
+            --th-bg: #e9ecef;
+            --th-hover: #d3d9df;
+            --th-text: #333333;
+        }
+
+        body.theme-eva01 {
+            /* 初号機 (EVA-01): パープル & 蛍光グリーン */
+            --bg-color: #2b1845;
+            --text-color: #e0e0e0;
+            --panel-bg: #3a225c;
+            --border-color: #7FFF00; 
+            --btn-bg: #523185;
+            --btn-hover: #6a40a8;
+            --primary: #7FFF00;
+            --primary-text: #121212;
+            --link-color: #9eff40;
+            --th-bg: #1c0e2e;
+            --th-hover: #2b1845;
+            --th-text: #7FFF00;
+        }
+
+        body.theme-eva02 {
+            /* 弐号機 (EVA-02): レッド & オレンジ */
+            --bg-color: #380202;
+            --text-color: #f5f5f5;
+            --panel-bg: #540303;
+            --border-color: #ff9900;
+            --btn-bg: #730606;
+            --btn-hover: #910a0a;
+            --primary: #ff9900;
+            --primary-text: #1a0000;
+            --link-color: #ffb84d;
+            --th-bg: #210101;
+            --th-hover: #380202;
+            --th-text: #ff9900;
+        }
+
+        body.theme-eva00 {
+            /* 零号機 (EVA-00): イエロー & ホワイト */
+            --bg-color: #f0f0f0;
+            --text-color: #333333;
+            --panel-bg: #ffffff;
+            --border-color: #e6b800;
+            --btn-bg: #fff5cc;
+            --btn-hover: #ffeb99;
+            --primary: #d4a000;
+            --primary-text: #ffffff;
+            --link-color: #b38600;
+            --th-bg: #ffcc00;
+            --th-hover: #e6b800;
+            --th-text: #333333;
+        }
+
+        body.theme-eva08 {
+            /* 八号機 (EVA-08): ピンク */
+            --bg-color: #fff0f5;
+            --text-color: #4a152e;
+            --panel-bg: #ffffff;
+            --border-color: #ff66b2;
+            --btn-bg: #ffe6f0;
+            --btn-hover: #ffcce0;
+            --primary: #ff3399;
+            --primary-text: #ffffff;
+            --link-color: #e60073;
+            --th-bg: #ff66b2;
+            --th-hover: #ff4d94;
+            --th-text: #ffffff;
+        }
+
+        /* =========================================
+           基本レイアウト
+        ========================================= */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .container { 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            width: 100%; 
+            max-width: 1300px; 
+            margin: 0 auto; 
+            padding: 20px 20px 0 20px; 
+            box-sizing: border-box; 
+            gap: 15px; 
+            overflow: hidden;
+        }
+        
+        .top-area { flex-shrink: 0; display: flex; flex-direction: column; gap: 15px; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
+        h1 { font-size: 24px; margin: 0; }
+        .header-buttons { display: flex; gap: 10px; }
+        
+        button { padding: 8px 16px; background-color: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 14px; white-space: nowrap; }
+        button:hover { background-color: var(--btn-hover); color: var(--text-color); }
+        button.primary-btn { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+        button.primary-btn:hover { background-color: var(--primary); opacity: 0.8; color: var(--primary-text); }
+        
+        .loading-area { padding: 50px; text-align: center; background-color: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-color); font-size: 18px; font-weight: bold; color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;}
+        .spinner { border: 4px solid var(--border-color); border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .controls { display: none; background-color: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .search-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
+        .search-box { flex-grow: 1; max-width: 500px; padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); }
+        .song-count { font-weight: bold; font-size: 14px; color: var(--primary); }
+        .setlist-header-btn { font-weight: bold; border-radius: 20px; padding: 10px 20px; }
+
+        .genre-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .genre-btn { padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+        .genre-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+
+        /* =========================================
+           テーブル
+        ========================================= */
+        #tableWrapper { flex-grow: 1; display: none; flex-direction: column; background-color: var(--panel-bg); border-top: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
+        .table-header-wrapper { flex-shrink: 0; background-color: var(--th-bg); padding-right: 10px; border-bottom: 1px solid var(--border-color); }
+        .table-body-wrapper { flex-grow: 1; overflow-y: scroll; background-color: var(--panel-bg); }
+        .table-body-wrapper::-webkit-scrollbar { width: 10px; }
+        .table-body-wrapper::-webkit-scrollbar-track { background: var(--bg-color); }
+        .table-body-wrapper::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
+        .data-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+
+        .col-action { width: 110px; }
+        .col-title { width: 30%; }
+        .col-artist { width: 25%; }
+        .col-genre { width: auto; }
+        .col-bpm { width: 70px; }
+        .col-code { width: 70px; }
+
+        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border-color); word-wrap: break-word; overflow-wrap: break-word; }
+        th { color: var(--th-text); font-weight: bold; font-size: 13px; white-space: nowrap; user-select: none; border-bottom: none; }
+        .nowrap-cell { white-space: nowrap; }
+        th.sortable { cursor: pointer; transition: background-color 0.2s; }
+        th.sortable:hover { background-color: var(--th-hover); }
+        .sort-icon { display: inline-block; width: 14px; text-align: center; color: inherit; font-size: 12px; opacity: 0.8;}
+
+        tr:hover { background-color: var(--btn-hover); }
+        .col-main { font-size: 14px; }
+        .col-sub { font-size: 12px; opacity: 0.9; }
+
+        .song-title-link { color: var(--link-color); text-decoration: underline; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .song-title-link:hover { opacity: 0.7; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* =========================================
+           モーダル・セットリスト
+        ========================================= */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal { background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .modal h2 { margin-top: 0; font-size: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; line-height: 1.4;}
+        .modal-close { float: right; cursor: pointer; font-size: 24px; font-weight: bold; line-height: 1; }
+        .setting-group { margin-bottom: 15px; }
+        .setting-group label { display: block; margin-bottom: 5px; font-size: 14px; }
+        select { width: 100%; padding: 8px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; }
+        
+        .detail-item { margin-bottom: 10px; font-size: 14px; line-height: 1.5; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;}
+        .detail-item:last-child { border-bottom: none; }
+        .detail-label { display: inline-block; width: 100px; font-weight: bold; opacity: 0.8;}
+
+        .setlist-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .setlist-info { display: flex; flex-direction: column; gap: 4px; }
+        .setlist-info-title { font-size: 15px; font-weight: bold; }
+        .setlist-info-artist { font-size: 13px; opacity: 0.9; }
+        .setlist-info-link { font-size: 13px; }
+        .remove-btn { background-color: #dc3545; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px;}
+        .remove-btn:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-area">
+        <div class="header">
+            <h1>KanKan~好きな曲を集めました~</h1>
+            <div class="header-buttons">
+                <button onclick="openModal('settingsModal')">⚙️ 設定 (テーマ色・使い方)</button>
+            </div>
+        </div>
+        <div class="controls" id="controls">
+            <div class="search-row">
+                <input type="text" id="searchInput" class="search-box" placeholder="曲名、アーティスト、アニメ名などで検索...">
+                <button class="primary-btn setlist-header-btn" onclick="openModal('setlistModal')">
+                    🎵 セットリスト (<span id="headerSetlistCount">0</span>)
+                </button>
+                <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
+            </div>
+            <div class="genre-filters" id="genreFilters"></div>
+        </div>
+    </div>
+
+    <!-- ローディング画面 -->
+    <div class="loading-area" id="loadingArea">
+        <div class="spinner"></div>
+        <div>スプレッドシートからデータを取得中...</div>
+    </div>
+
+    <div id="tableWrapper">
+        <div class="table-header-wrapper">
+            <table class="data-table">
+                <colgroup>
+                    <col class="col-action">
+                    <col class="col-title">
+                    <col class="col-artist">
+                    <col class="col-genre">
+                    <col class="col-bpm">
+                    <col class="col-code">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>セットリスト</th>
+                        <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
+                        <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
+                        <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
+                        <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
+                        <th>コード</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        
+        <div class="table-body-wrapper">
+            <table class="data-table">
+                <colgroup>
+                    <col class="col-action">
+                    <col class="col-title">
+                    <col class="col-artist">
+                    <col class="col-genre">
+                    <col class="col-bpm">
+                    <col class="col-code">
+                </colgroup>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal" onclick="closeModal(event, 'settingsModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
+        <h2>設定</h2>
+        
+        <div class="setting-group">
+            <label>🎨 UIカラーテーマ</label>
+            <select id="themeSelect" onchange="changeTheme()">
+                <option value="dark">ダーク (デフォルト)</option>
+                <option value="white">ホワイト</option>
+                <option value="eva01">初号機</option>
+                <option value="eva02">弐号機</option>
+                <option value="eva00">零号機</option>
+                <option value="eva08">八号機</option>
+            </select>
+        </div>
+
+        <div class="setting-group" style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
+            <h3 style="font-size: 16px; margin-top: 0; color: var(--primary);">💡 使い方ガイド</h3>
+            <ul style="font-size: 13px; line-height: 1.6; padding-left: 20px; margin: 0; color: var(--text-color);">
+                <li style="margin-bottom: 6px;"><strong>検索窓：</strong> 曲名、アーティスト、ジャンル、アニメ名など複数のキーワードをスペースで区切って入力すると、条件に合う曲を絞り込めます。</li>
+                <li style="margin-bottom: 6px;"><strong>詳細情報：</strong> リスト上の<strong>曲名（リンク文字）をクリック</strong>すると、作詞者や作曲者、タイアップなどの詳しい各種詳細情報が見られます。</li>
+                <li style="margin-bottom: 6px;"><strong>セットリスト：</strong> 各曲の「＋ 追加」ボタンを押すと一時保存され、上部のボタンから確認・削除ができます。</li>
+                <li><strong>※注意※</strong> ブラウザを更新（リロード）したりページを閉じると、セットリストの中身はリセットされます。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="songDetailsModal" onclick="closeModal(event, 'songDetailsModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'songDetailsModal')">&times;</span>
+        <h2 id="detailTitle">曲名</h2>
+        <div class="detail-item"><span class="detail-label">アーティスト</span><span id="detailArtist"></span></div>
+        <div class="detail-item"><span class="detail-label">作詞者</span><span id="detailLyricist"></span></div>
+        <div class="detail-item"><span class="detail-label">作曲者</span><span id="detailComposer"></span></div>
+        <div class="detail-item"><span class="detail-label">編曲者</span><span id="detailArranger"></span></div>
+        <div class="detail-item"><span class="detail-label">BPM</span><span id="detailBPM"></span></div>
+        <div class="detail-item"><span class="detail-label">ジャンル①</span><span id="detailGenre1"></span></div>
+        <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
+        <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
+        <div class="detail-item" id="detailCodeArea" style="display:none;"><span class="detail-label">コード</span><span id="detailCode"></span></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="setlistModal" onclick="closeModal(event, 'setlistModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'setlistModal')">&times;</span>
+        <h2>現在のセットリスト (<span id="setlistCount">0</span>曲)</h2>
+        <div id="setlistContainer"></div>
+    </div>
+</div>
+
+<script>
+    // スプレッドシートの公開CSV URL
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
+
+    let allData = [];
+    let setlistIds = new Set();
+    let currentSortKey = '';
+    let currentSortOrder = 1; 
+    let currentGenre = "すべて";
+    let genre1Key = 'ジャンル'; 
+
+    const tableBody = document.getElementById('tableBody');
+    const controls = document.getElementById('controls');
+    const tableWrapper = document.getElementById('tableWrapper');
+    const loadingArea = document.getElementById('loadingArea');
+    const searchInput = document.getElementById('searchInput');
+    const songCountDisplay = document.getElementById('songCountDisplay');
+    const genreFilters = document.getElementById('genreFilters');
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
+    
+    // テーマ切り替え
+    function changeTheme() { 
+        const theme = document.getElementById('themeSelect').value;
+        document.body.className = theme === 'dark' ? '' : `theme-${theme}`; 
+    }
+
+    function populateGenreButtons() {
+        genreFilters.innerHTML = '';
+        const g1Set = new Set();
+        allData.forEach(row => { if (row[genre1Key] && row[genre1Key].trim() !== '') g1Set.add(row[genre1Key]); });
+        const genres = ["すべて", ...Array.from(g1Set).sort()];
+        
+        genres.forEach(genre => {
+            const btn = document.createElement('button');
+            btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`;
+            btn.textContent = genre;
+            btn.onclick = () => {
+                document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentGenre = genre;
+                renderTable(); 
+            };
+            genreFilters.appendChild(btn);
+        });
+    }
+
+    // ページ読み込み時に自動でスプレッドシートからデータを取得
+    window.addEventListener('DOMContentLoaded', () => {
+        Papa.parse(SHEET_CSV_URL, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            encoding: "UTF-8",
+            complete: function(results) {
+                const rawData = results.data;
+                const headerIndex = rawData.findIndex(row => row.includes("曲名"));
+                
+                if (headerIndex === -1) { 
+                    loadingArea.innerHTML = "<span style='color:red;'>エラー: データ内に「曲名」が見つかりませんでした。</span>";
+                    return; 
+                }
+                
+                const headers = rawData[headerIndex];
+                genre1Key = headers.includes('ジャンル①') ? 'ジャンル①' : (headers.includes('ジャンル') ? 'ジャンル' : 'ジャンル①');
+
+                allData = rawData.slice(headerIndex + 1).map((row, idx) => {
+                    let obj = { _id: idx.toString() };
+                    headers.forEach((headerName, index) => { obj[headerName] = row[index] || ''; });
+                    return obj;
+                });
+
+                populateGenreButtons();
+                
+                loadingArea.style.display = 'none';
+                controls.style.display = 'block';
+                tableWrapper.style.display = 'flex'; 
+                renderTable();
+            },
+            error: function(error) {
+                loadingArea.innerHTML = "<span style='color:red;'>エラー: データの取得に失敗しました。URLを確認してください。</span>";
+                console.error("CSV fetch error:", error);
+            }
+        });
+    });
+
+    searchInput.addEventListener('input', renderTable);
+
+    function toggleSetlist(id) {
+        setlistIds.has(id) ? setlistIds.delete(id) : setlistIds.add(id);
+        renderTable(); 
+        updateSetlistUI();
+    }
+
+    function updateSetlistUI() {
+        const count = setlistIds.size;
+        document.getElementById('headerSetlistCount').textContent = count;
+        document.getElementById('setlistCount').textContent = count;
+        const container = document.getElementById('setlistContainer');
+        container.innerHTML = '';
+        
+        if (count === 0) {
+            container.innerHTML = '<p style="color:gray;">セットリストは空です。リストの「＋ 追加」ボタンから曲を追加してください。</p>';
+            return;
+        }
+
+        allData.forEach(row => {
+            if (setlistIds.has(row._id)) {
+                // コードWikiリンクの生成
+                let linkHtml = '-';
+                if (row['コードwiki']) {
+                    linkHtml = `<a href="${row['コードwiki']}" target="_blank">🎸 コードWikiを開く</a>`;
+                } else {
+                    linkHtml = `<span style="color:gray;">コード情報なし</span>`;
+                }
+
+                const div = document.createElement('div');
+                div.className = 'setlist-item';
+                div.innerHTML = `
+                    <div class="setlist-info">
+                        <div class="setlist-info-title">${row['曲名'] || '-'}</div>
+                        <div class="setlist-info-artist">👤 ${row['アーティスト'] || '-'}</div>
+                        <div class="setlist-info-link">${linkHtml}</div>
+                    </div>
+                    <button class="remove-btn" onclick="toggleSetlist('${row._id}')">削除</button>
+                `;
+                container.appendChild(div);
+            }
+        });
+    }
+
+    function handleSort(key) {
+        let actualKey = key === 'genre1' ? genre1Key : key;
+        if (currentSortKey === actualKey) {
+            currentSortOrder *= -1; 
+        } else {
+            currentSortKey = actualKey;
+            currentSortOrder = 1; 
+        }
+        updateSortIcons();
+        renderTable();
+    }
+
+    function updateSortIcons() {
+        const keys = ['曲名', 'アーティスト', 'genre1', 'BPM'];
+        keys.forEach(k => {
+            const iconEl = document.getElementById(`icon-${k}`);
+            if (iconEl) {
+                const actualKey = k === 'genre1' ? genre1Key : k;
+                iconEl.textContent = currentSortKey === actualKey ? (currentSortOrder === 1 ? '▲' : '▼') : '';
+            }
+        });
+    }
+
+    function showSongDetails(id) {
+        const song = allData.find(r => r._id === id);
+        if(!song) return;
+
+        document.getElementById('detailTitle').textContent = song['曲名'] || '不明な曲';
+        document.getElementById('detailArtist').textContent = song['アーティスト'] || '-';
+        document.getElementById('detailLyricist').textContent = song['作詞'] || '-';
+        document.getElementById('detailComposer').textContent = song['作曲'] || '-';
+        document.getElementById('detailArranger').textContent = song['編曲'] || '-';
+        document.getElementById('detailBPM').textContent = song['BPM'] || '-';
+        document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
+        document.getElementById('detailGenre2').textContent = song['ジャンル②'] || '-';
+        document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
+
+        const codeArea = document.getElementById('detailCodeArea');
+        if (song['コードwiki']) {
+            document.getElementById('detailCode').innerHTML = `<a href="${song['コードwiki']}" target="_blank">Wikiを開く</a>`;
+            codeArea.style.display = 'block';
+        } else {
+            codeArea.style.display = 'none';
+        }
+
+        openModal('songDetailsModal');
+    }
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
+
+        let filteredData = allData.filter(row => {
+            const matchGenreBtn = currentGenre === 'すべて' || (row[genre1Key] || '') === currentGenre;
+            const searchStr = `${row['曲名']} ${row['アーティスト']} ${row[genre1Key]} ${row['ジャンル②']} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
+            const matchSearch = keywords.every(kw => searchStr.includes(kw));
+            return matchGenreBtn && matchSearch;
+        });
+
+        if (currentSortKey) {
+            filteredData.sort((a, b) => {
+                let valA = a[currentSortKey] || '';
+                let valB = b[currentSortKey] || '';
+                
+                if (currentSortKey === 'BPM') {
+                    valA = Number(valA) || 0;
+                    valB = Number(valB) || 0;
+                } else {
+                    valA = String(valA).toLowerCase();
+                    valB = String(valB).toLowerCase();
+                }
+
+                if (valA < valB) return -1 * currentSortOrder;
+                if (valA > valB) return 1 * currentSortOrder;
+                return 0;
+            });
+        }
+
+        songCountDisplay.textContent = `表示中: ${filteredData.length} 曲`;
+
+        filteredData.forEach(row => {
+            const tr = document.createElement('tr');
+            
+            let displayGenre = row[genre1Key] || '-';
+            if (row['ジャンル②']) displayGenre += ` / ${row['ジャンル②']}`;
+            if (row['タイアップ情報']) displayGenre += ` / ${row['タイアップ情報']}`;
+
+            let linkHtml = '-';
+            if (row['コードwiki']) {
+                linkHtml = `<a href="${row['コードwiki']}" target="_blank">開く</a>`;
+            }
+
+            const inSetlist = setlistIds.has(row._id);
+            const actionBtnHtml = inSetlist 
+                ? `<button style="background:var(--primary); color:white; border-radius:4px; padding:6px 10px;" onclick="toggleSetlist('${row._id}')">✓ 追加済</button>`
+                : `<button style="border-radius:4px; padding:6px 10px;" onclick="toggleSetlist('${row._id}')">＋ 追加</button>`;
+
+            tr.innerHTML = `
+                <td class="col-action nowrap-cell">${actionBtnHtml}</td>
+                <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${row['曲名'] || '-'}</span></td>
+                <td class="col-artist col-main">${row['アーティスト'] || '-'}</td>
+                <td class="col-genre col-sub">${displayGenre}</td>
+                <td class="col-bpm col-sub nowrap-cell">${row['BPM'] || '-'}</td>
+                <td class="col-code col-sub nowrap-cell">${linkHtml}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+</script>
+
+</body>
+</html>
