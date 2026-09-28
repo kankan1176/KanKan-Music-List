@@ -12,6 +12,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 
+    <!-- ★新規：画像保存用ライブラリ (html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         /* =========================================
            CSS変数によるテーマ管理
@@ -198,7 +201,6 @@
                     <button class="btn-danger" onclick="leaveRoom()">🚪 退出</button>
                 </div>
             </div>
-            <!-- ★メンバー表示エリア -->
             <div class="room-members-area" id="roomMembersArea">
                 👥 参加中: <span id="roomMembersList">読み込み中...</span>
             </div>
@@ -210,7 +212,8 @@
                 <div class="status-buttons">
                     <button class="primary-btn" onclick="openModal('reservedModal')">📝 予約 (<span id="reservedCount">0</span>)</button>
                     <button class="primary-btn" style="background-color: #28a745; border-color: #28a745;" onclick="openModal('confirmedModal')">🎸 確定 (<span id="confirmedCount">0</span>)</button>
-                    <button class="primary-btn" style="background-color: #17a2b8; border-color: #17a2b8;" onclick="openModal('completedModal')">🏁 完了 (<span id="completedCount">0</span>)</button>
+                    <!-- ★完了ボタンの絵文字を変更 -->
+                    <button class="primary-btn" style="background-color: #17a2b8; border-color: #17a2b8;" onclick="openModal('completedModal')">✅ 完了 (<span id="completedCount">0</span>)</button>
                 </div>
                 <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
             </div>
@@ -254,7 +257,6 @@
         <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
         <h2>設定</h2>
         
-        <!-- ★名前の変更設定 -->
         <div class="setting-group" style="margin-bottom: 25px;">
             <label>👤 ユーザー名 (セッション用)</label>
             <div style="display:flex; gap:10px;">
@@ -312,13 +314,21 @@
     </div>
 </div>
 
-<!-- 完了モーダル（スクショ用） -->
+<!-- ★修正：画像保存特化の完了モーダル -->
 <div class="modal-overlay" id="completedModal" onclick="closeModal(event, 'completedModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'completedModal')">&times;</span>
-        <h2>🏁 完了セットリスト (<span id="modalCompletedCount">0</span>曲)</h2>
-        <p style="font-size:12px; color:gray; margin-top:-10px;">※この画面をスクショしてSNS等でシェアできます。</p>
-        <div id="completedContainer" style="padding: 10px; border: 2px dashed var(--border-color); border-radius: 8px;"></div>
+        
+        <!-- キャプチャ（画像保存）対象エリア -->
+        <div id="captureArea" style="background: var(--panel-bg); padding: 20px 15px; border-radius: 8px; color: var(--text-color);">
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 20px;">♬~~本日のセットリスト~~♬</h2>
+            <div id="completedContainer"></div>
+        </div>
+        
+        <!-- 画像保存ボタン -->
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="downloadSetlistImage()" style="background-color: #28a745; color: white; padding: 12px 24px; font-weight: bold; border-radius: 6px; font-size: 15px; border: none;">📸 画像として保存する</button>
+        </div>
     </div>
 </div>
 <!-- ============================================= -->
@@ -345,7 +355,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const currentRoomId = urlParams.get('room');
     let myName = ''; 
-    let mySessionId = ''; // 切断時の自動削除に使うID
+    let mySessionId = ''; 
 
     function initRoomUI() {
         const roomWrapper = document.getElementById('roomStatusWrapper');
@@ -366,11 +376,10 @@
             document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
             createBtn.style.display = 'none';
 
-            // ★メンバーのオンライン管理
             mySessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
             const myMemberRef = db.ref(`rooms/${currentRoomId}/members/${mySessionId}`);
             myMemberRef.set({ name: myName });
-            myMemberRef.onDisconnect().remove(); // ページを閉じたら自動で名前を消す
+            myMemberRef.onDisconnect().remove();
 
             db.ref(`rooms/${currentRoomId}/members`).on('value', snap => {
                 const members = snap.val() || {};
@@ -422,12 +431,43 @@
     }
 
     // =========================================
+    // ★新規：画像を保存する処理 (html2canvas使用)
+    // =========================================
+    function downloadSetlistImage() {
+        const target = document.getElementById('captureArea');
+        
+        // 保存時だけ「やり直す」ボタンを非表示にする
+        const hideElements = target.querySelectorAll('.hide-on-capture');
+        hideElements.forEach(el => el.style.display = 'none');
+        
+        // 現在の背景色を取得して適用
+        const bgColor = getComputedStyle(document.body).getPropertyValue('--panel-bg').trim();
+        
+        html2canvas(target, {
+            backgroundColor: bgColor,
+            scale: 2 // 高画質化
+        }).then(canvas => {
+            // 非表示を元に戻す
+            hideElements.forEach(el => el.style.display = '');
+            
+            // 画像としてダウンロード
+            const link = document.createElement('a');
+            link.download = '本日のセットリスト.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            hideElements.forEach(el => el.style.display = '');
+            alert('画像の保存に失敗しました。');
+        });
+    }
+
+    // =========================================
     // スプレッドシート読み込み・テーブル処理
     // =========================================
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
 
     let allData = [];
-    let roomQueue = {}; // { qId: { songId, status, addedBy, order } }
+    let roomQueue = {}; 
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
@@ -508,10 +548,9 @@
     searchInput.addEventListener('input', () => { clearTimeout(searchDebounceTimer); searchDebounceTimer = setTimeout(renderTable, 150); });
 
     // =========================================
-    // ★セッション曲管理機能（ステータス変更・ソート等）
+    // セッション曲管理機能
     // =========================================
     
-    // 曲をキューに追加（同じ曲を複数回追加できるように一意のIDを使用）
     function addToQueue(songId) {
         const qId = 'q_' + Date.now() + '_' + Math.floor(Math.random()*1000);
         const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now() };
@@ -572,9 +611,8 @@
         document.getElementById('completedCount').textContent = completedItems.length;
         document.getElementById('modalReservedCount').textContent = reservedItems.length;
         document.getElementById('modalConfirmedCount').textContent = confirmedItems.length;
-        document.getElementById('modalCompletedCount').textContent = completedItems.length;
 
-        // ★コードWikiリンクの生成関数
+        // ★コードWikiリンクの生成
         const getWikiLink = (songData) => {
             const wikiUrl = safeHref(songData['コードwiki']);
             return wikiUrl ? ` | <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--link-color); text-decoration:underline;">🎸 コードWiki</a>` : '';
@@ -632,42 +670,45 @@
             cCont.appendChild(div);
         });
 
-        // --- 3. 完了リスト（スクショ用・重複ナンバリング） ---
+        // --- 3. 完了リスト（スクショ特化・曲名とアーティストのみ・丸数字） ---
         const fCont = document.getElementById('completedContainer');
         fCont.innerHTML = '';
-        if(completedItems.length === 0) fCont.innerHTML = '<p style="color:gray;">完了した曲はありません。</p>';
         
-        const completedCountMap = {}; // 重複曲のカウント用
-        const circleNumbers = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+        if(completedItems.length === 0) {
+            fCont.innerHTML = '<p style="color:gray; text-align:center;">完了した曲はありません。</p>';
+        } else {
+            const completedCountMap = {}; 
+            const circleNumbers = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
 
-        completedItems.forEach((item, index) => {
-            const sId = item.songId;
-            completedCountMap[sId] = (completedCountMap[sId] || 0) + 1;
-            let displayTitle = escapeHtml(item.songData['曲名']);
-            
-            // 2回目以降なら丸数字をつける
-            if (completedCountMap[sId] > 1) {
-                const numStr = circleNumbers[completedCountMap[sId]] || `(${completedCountMap[sId]})`;
-                displayTitle += ` ${numStr}`;
-            }
+            completedItems.forEach((item, index) => {
+                const sId = item.songId;
+                completedCountMap[sId] = (completedCountMap[sId] || 0) + 1;
+                let displayTitle = escapeHtml(item.songData['曲名']);
+                
+                // 重複曲のナンバリング
+                if (completedCountMap[sId] > 1) {
+                    const numStr = circleNumbers[completedCountMap[sId]] || `(${completedCountMap[sId]})`;
+                    displayTitle += ` ${numStr}`;
+                }
 
-            const div = document.createElement('div');
-            div.className = 'queue-item';
-            div.style.borderBottom = (index === completedItems.length - 1) ? 'none' : '1px dashed var(--border-color)';
-            div.innerHTML = `
-                <div class="queue-info">
-                    <div class="queue-title">${index + 1}. ${displayTitle}</div>
-                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])} | 🙋 <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item.songData)}</div>
-                </div>
-                <div class="queue-controls">
-                    <div></div>
-                    <div class="queue-actions">
-                        <button class="btn-revert" style="opacity:0.5;" onclick="changeStatus('${item.qId}', 'confirmed')">やり直す</button>
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.padding = '12px 0';
+                div.style.borderBottom = (index === completedItems.length - 1) ? 'none' : '1px dashed var(--border-color)';
+                
+                div.innerHTML = `
+                    <div style="flex: 1; text-align: left; font-size: 16px; line-height: 1.4;">
+                        <span style="font-weight: bold;">${index + 1}. ${displayTitle}</span>
+                        <span style="margin-left: 8px; font-size: 13px; opacity: 0.8;">/ ${escapeHtml(item.songData['アーティスト'])}</span>
                     </div>
-                </div>
-            `;
-            fCont.appendChild(div);
-        });
+                    <!-- キャプチャ時のみ非表示になる「戻す」ボタン -->
+                    <button class="btn-revert hide-on-capture" style="padding: 4px 8px; font-size: 12px; opacity: 0.5; margin-left: 10px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="changeStatus('${item.qId}', 'confirmed')">戻す</button>
+                `;
+                fCont.appendChild(div);
+            });
+        }
     }
 
     // =========================================
@@ -735,10 +776,10 @@
             const rowWikiUrl = safeHref(row['コードwiki']);
             if (rowWikiUrl) { linkHtml = `<a href="${rowWikiUrl}" target="_blank" rel="noopener noreferrer">開く</a>`; }
 
-            // ★ 進行中のキュー（予約・確定）にこの曲があるかチェックする
             let activeQid = null;
             let activeStatus = null;
             for(let qId in roomQueue) {
+                // ★修正：「完了」になっている曲はキューにカウントせず、何度でも「＋追加」できるようにする
                 if(roomQueue[qId].songId === row._id && roomQueue[qId].status !== 'completed') {
                     activeQid = qId;
                     activeStatus = roomQueue[qId].status;
@@ -746,7 +787,6 @@
                 }
             }
             
-            // ★ 完了済みの曲であっても、activeQid（進行中）がなければ「＋ 追加」に戻る
             let actionBtnHtml = `<button style="border-radius:4px; padding:6px 10px;" onclick="addToQueue('${row._id}')">＋ 追加</button>`;
             
             if (activeQid) {
