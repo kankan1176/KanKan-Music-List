@@ -51,8 +51,12 @@
         button.primary-btn { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); font-weight: bold; }
         button.primary-btn:hover { background-color: var(--primary); opacity: 0.8; color: var(--primary-text); }
         
-        .room-status-bar { display: none; background-color: var(--primary); color: var(--primary-text); padding: 10px 15px; border-radius: 8px; align-items: center; justify-content: space-between; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .room-status-bar.active { display: flex; flex-wrap: wrap; gap: 10px; }
+        /* ルーム接続中のステータスバー */
+        .room-status-wrapper { display: none; background-color: var(--primary); color: var(--primary-text); padding: 10px 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); flex-direction: column; gap: 8px;}
+        .room-status-wrapper.active { display: flex; }
+        .room-status-bar { display: flex; align-items: center; justify-content: space-between; font-size: 14px; flex-wrap: wrap; gap: 10px;}
+        .room-members-area { font-size: 12px; background: rgba(0,0,0,0.15); padding: 6px 10px; border-radius: 4px; line-height: 1.4; word-break: break-all;}
+        
         .room-actions { display: flex; gap: 8px; }
         .room-actions button { background-color: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; font-size: 12px; }
         .room-actions button.btn-danger { background-color: #dc3545; color: white; border: none; }
@@ -63,7 +67,6 @@
         
         .controls { display: none; background-color: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
         
-        /* ★修正：3つのステータスボタンを綺麗に並べるレイアウト */
         .search-row { display: flex; flex-direction: column; align-items: stretch; gap: 12px;}
         .search-box { width: 100%; padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
         .status-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -116,15 +119,13 @@
         .modal h2 { margin-top: 0; font-size: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; line-height: 1.4;}
         .modal-close { float: right; cursor: pointer; font-size: 24px; font-weight: bold; line-height: 1; }
         .setting-group { margin-bottom: 15px; }
-        .setting-group label { display: block; margin-bottom: 5px; font-size: 14px; }
-        select { width: 100%; padding: 8px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; }
+        .setting-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight:bold;}
+        select, .setting-input { width: 100%; padding: 8px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;}
         
-        /* 楽曲詳細用 */
         .detail-item { margin-bottom: 10px; font-size: 14px; line-height: 1.5; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;}
         .detail-item:last-child { border-bottom: none; }
         .detail-label { display: inline-block; width: 100px; font-weight: bold; opacity: 0.8;}
 
-        /* キュー管理用デザイン */
         .queue-item { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
         .queue-info { display: flex; flex-direction: column; gap: 4px; }
         .queue-title { font-size: 15px; font-weight: bold; line-height: 1.3; }
@@ -189,18 +190,23 @@
             </div>
         </div>
         
-        <div class="room-status-bar" id="roomStatusBar">
-            <div id="roomStatusText"></div>
-            <div class="room-actions">
-                <button onclick="copyRoomLink()">🔗 URLをコピー</button>
-                <button class="btn-danger" onclick="leaveRoom()">🚪 退出</button>
+        <div class="room-status-wrapper" id="roomStatusWrapper">
+            <div class="room-status-bar">
+                <div id="roomStatusText"></div>
+                <div class="room-actions">
+                    <button onclick="copyRoomLink()">🔗 URLをコピー</button>
+                    <button class="btn-danger" onclick="leaveRoom()">🚪 退出</button>
+                </div>
+            </div>
+            <!-- ★メンバー表示エリア -->
+            <div class="room-members-area" id="roomMembersArea">
+                👥 参加中: <span id="roomMembersList">読み込み中...</span>
             </div>
         </div>
 
         <div class="controls" id="controls">
             <div class="search-row">
                 <input type="text" id="searchInput" class="search-box" placeholder="曲名、アーティスト、アニメ名などで検索...">
-                <!-- ★修正：ステータス別に3つのボタンを配置 -->
                 <div class="status-buttons">
                     <button class="primary-btn" onclick="openModal('reservedModal')">📝 予約 (<span id="reservedCount">0</span>)</button>
                     <button class="primary-btn" style="background-color: #28a745; border-color: #28a745;" onclick="openModal('confirmedModal')">🎸 確定 (<span id="confirmedCount">0</span>)</button>
@@ -247,6 +253,16 @@
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
         <h2>設定</h2>
+        
+        <!-- ★名前の変更設定 -->
+        <div class="setting-group" style="margin-bottom: 25px;">
+            <label>👤 ユーザー名 (セッション用)</label>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="usernameInput" class="setting-input" placeholder="名前を入力">
+                <button onclick="changeUsername()" style="flex-shrink:0;">変更</button>
+            </div>
+        </div>
+
         <div class="setting-group">
             <label>🎨 UIカラーテーマ</label>
             <select id="themeSelect" onchange="changeTheme()">
@@ -277,7 +293,7 @@
     </div>
 </div>
 
-<!-- ★新規：予約モーダル -->
+<!-- 予約モーダル -->
 <div class="modal-overlay" id="reservedModal" onclick="closeModal(event, 'reservedModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'reservedModal')">&times;</span>
@@ -286,7 +302,7 @@
     </div>
 </div>
 
-<!-- ★新規：確定モーダル -->
+<!-- 確定モーダル -->
 <div class="modal-overlay" id="confirmedModal" onclick="closeModal(event, 'confirmedModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'confirmedModal')">&times;</span>
@@ -296,7 +312,7 @@
     </div>
 </div>
 
-<!-- ★新規：完了モーダル（スクショ用） -->
+<!-- 完了モーダル（スクショ用） -->
 <div class="modal-overlay" id="completedModal" onclick="closeModal(event, 'completedModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'completedModal')">&times;</span>
@@ -328,28 +344,57 @@
     // =========================================
     const urlParams = new URLSearchParams(window.location.search);
     const currentRoomId = urlParams.get('room');
-    let myName = ''; // 自分の名前
+    let myName = ''; 
+    let mySessionId = ''; // 切断時の自動削除に使うID
 
     function initRoomUI() {
-        const roomBar = document.getElementById('roomStatusBar');
+        const roomWrapper = document.getElementById('roomStatusWrapper');
         const createBtn = document.getElementById('createRoomBtn');
         
+        myName = localStorage.getItem('kankan_username');
+        document.getElementById('usernameInput').value = myName || '';
+
         if (currentRoomId) {
-            // ★ユーザー名の取得（なければ入力させる）
-            myName = localStorage.getItem('kankan_username');
             if (!myName) {
                 myName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（例：Gt. カンカン）");
                 if (!myName) myName = "名無し";
                 localStorage.setItem('kankan_username', myName);
+                document.getElementById('usernameInput').value = myName;
             }
 
-            roomBar.classList.add('active');
+            roomWrapper.classList.add('active');
             document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
             createBtn.style.display = 'none';
+
+            // ★メンバーのオンライン管理
+            mySessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+            const myMemberRef = db.ref(`rooms/${currentRoomId}/members/${mySessionId}`);
+            myMemberRef.set({ name: myName });
+            myMemberRef.onDisconnect().remove(); // ページを閉じたら自動で名前を消す
+
+            db.ref(`rooms/${currentRoomId}/members`).on('value', snap => {
+                const members = snap.val() || {};
+                const names = Object.values(members).map(m => escapeHtml(m.name));
+                document.getElementById('roomMembersList').innerHTML = names.length > 0 ? names.join(' , ') : '読み込み中...';
+            });
+
         } else {
-            myName = "自分";
-            roomBar.classList.remove('active');
+            myName = myName || "自分";
+            roomWrapper.classList.remove('active');
             createBtn.style.display = 'inline-block';
+        }
+    }
+
+    function changeUsername() {
+        const newName = document.getElementById('usernameInput').value.trim();
+        if(newName) {
+            myName = newName;
+            localStorage.setItem('kankan_username', myName);
+            if(currentRoomId && mySessionId) {
+                db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({ name: myName });
+                document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
+            }
+            alert("名前を変更しました！");
         }
     }
 
@@ -382,7 +427,7 @@
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
 
     let allData = [];
-    let roomQueue = {}; // ★ { songId: { status, addedBy, order } }
+    let roomQueue = {}; // { qId: { songId, status, addedBy, order } }
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
@@ -435,15 +480,13 @@
         controls.style.display = 'block';
         tableWrapper.style.display = 'flex';
         
-        // ★Firebaseリスナーの設定
         if (currentRoomId) {
             db.ref('rooms/' + currentRoomId + '/queue').on('value', (snapshot) => {
                 roomQueue = snapshot.val() || {};
-                renderTable();
-                updateQueueUI();
+                renderTable(); updateQueueUI();
             });
         } else {
-            renderTable();
+            renderTable(); updateQueueUI();
         }
     }
 
@@ -467,65 +510,63 @@
     // =========================================
     // ★セッション曲管理機能（ステータス変更・ソート等）
     // =========================================
-    function addToQueue(id) {
-        const newOrder = Date.now();
-        const data = { status: 'reserved', addedBy: myName, order: newOrder };
+    
+    // 曲をキューに追加（同じ曲を複数回追加できるように一意のIDを使用）
+    function addToQueue(songId) {
+        const qId = 'q_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+        const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now() };
         if (currentRoomId) {
-            db.ref('rooms/' + currentRoomId + '/queue/' + id).set(data);
+            db.ref('rooms/' + currentRoomId + '/queue/' + qId).set(data);
         } else {
-            roomQueue[id] = data;
+            roomQueue[qId] = data;
             renderTable(); updateQueueUI();
         }
     }
 
-    function changeStatus(id, newStatus) {
-        const newOrder = Date.now(); // ステータス変更時に順番を一番下にする
+    function changeStatus(qId, newStatus) {
+        const newOrder = Date.now(); 
         if(currentRoomId) {
-            db.ref(`rooms/${currentRoomId}/queue/${id}`).update({status: newStatus, order: newOrder});
+            db.ref(`rooms/${currentRoomId}/queue/${qId}`).update({status: newStatus, order: newOrder});
         } else {
-            roomQueue[id].status = newStatus; roomQueue[id].order = newOrder;
+            roomQueue[qId].status = newStatus; roomQueue[qId].order = newOrder;
             renderTable(); updateQueueUI();
         }
     }
 
-    function removeQueue(id) {
-        if(currentRoomId) { db.ref(`rooms/${currentRoomId}/queue/${id}`).remove(); } 
-        else { delete roomQueue[id]; renderTable(); updateQueueUI(); }
+    function removeQueue(qId) {
+        if(currentRoomId) { db.ref(`rooms/${currentRoomId}/queue/${qId}`).remove(); } 
+        else { delete roomQueue[qId]; renderTable(); updateQueueUI(); }
     }
 
-    // 順番入れ替え処理
-    function swapOrder(id1, id2) {
-        const order1 = roomQueue[id1].order;
-        const order2 = roomQueue[id2].order;
+    function swapOrder(qId1, qId2) {
+        const order1 = roomQueue[qId1].order;
+        const order2 = roomQueue[qId2].order;
         if(currentRoomId) {
-            db.ref(`rooms/${currentRoomId}/queue/${id1}`).update({order: order2});
-            db.ref(`rooms/${currentRoomId}/queue/${id2}`).update({order: order1});
+            db.ref(`rooms/${currentRoomId}/queue/${qId1}`).update({order: order2});
+            db.ref(`rooms/${currentRoomId}/queue/${qId2}`).update({order: order1});
         } else {
-            roomQueue[id1].order = order2; roomQueue[id2].order = order1;
+            roomQueue[qId1].order = order2; roomQueue[qId2].order = order1;
             updateQueueUI();
         }
     }
 
-    // 3つのモーダルへデータを振り分けて描画する処理
     function updateQueueUI() {
         const reservedItems = [], confirmedItems = [], completedItems = [];
         
-        Object.keys(roomQueue).forEach(id => {
-            const data = roomQueue[id];
-            const songData = allData.find(r => r._id === id);
+        Object.keys(roomQueue).forEach(qId => {
+            const data = roomQueue[qId];
+            const songData = allData.find(r => r._id === data.songId);
             if(!songData) return;
-            const item = { id: id, ...data, songData: songData };
+            const item = { qId: qId, ...data, songData: songData };
             if(item.status === 'reserved') reservedItems.push(item);
             else if(item.status === 'confirmed') confirmedItems.push(item);
             else if(item.status === 'completed') completedItems.push(item);
         });
 
-        // それぞれ順番にソート
         reservedItems.sort((a,b) => a.order - b.order);
         confirmedItems.sort((a,b) => a.order - b.order);
         completedItems.sort((a,b) => a.order - b.order);
 
-        // バッジのカウント更新
         document.getElementById('reservedCount').textContent = reservedItems.length;
         document.getElementById('confirmedCount').textContent = confirmedItems.length;
         document.getElementById('completedCount').textContent = completedItems.length;
@@ -533,75 +574,95 @@
         document.getElementById('modalConfirmedCount').textContent = confirmedItems.length;
         document.getElementById('modalCompletedCount').textContent = completedItems.length;
 
-        // --- 1. 予約リストの描画 ---
+        // ★コードWikiリンクの生成関数
+        const getWikiLink = (songData) => {
+            const wikiUrl = safeHref(songData['コードwiki']);
+            return wikiUrl ? ` | <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--link-color); text-decoration:underline;">🎸 コードWiki</a>` : '';
+        };
+
+        // --- 1. 予約リスト ---
         const rCont = document.getElementById('reservedContainer');
         rCont.innerHTML = '';
         if(reservedItems.length === 0) rCont.innerHTML = '<p style="color:gray;">予約リストは空です。リストの「＋ 追加」から曲を追加してください。</p>';
         reservedItems.forEach((item, index) => {
-            const upBtn = index > 0 ? `<button class="btn-updown" onclick="swapOrder('${item.id}', '${reservedItems[index-1].id}')">▲</button>` : `<button class="btn-updown" style="visibility:hidden;">▲</button>`;
-            const downBtn = index < reservedItems.length - 1 ? `<button class="btn-updown" onclick="swapOrder('${item.id}', '${reservedItems[index+1].id}')">▼</button>` : `<button class="btn-updown" style="visibility:hidden;">▼</button>`;
+            const upBtn = index > 0 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${reservedItems[index-1].qId}')">▲</button>` : `<button class="btn-updown" style="visibility:hidden;">▲</button>`;
+            const downBtn = index < reservedItems.length - 1 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${reservedItems[index+1].qId}')">▼</button>` : `<button class="btn-updown" style="visibility:hidden;">▼</button>`;
             
             const div = document.createElement('div');
             div.className = 'queue-item';
             div.innerHTML = `
                 <div class="queue-info">
                     <div class="queue-title">${escapeHtml(item.songData['曲名'])}</div>
-                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])}<br>🙋 追加者: <b>${escapeHtml(item.addedBy)}</b></div>
+                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])}<br>🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item.songData)}</div>
                 </div>
                 <div class="queue-controls">
                     <div style="display:flex; gap:4px;">${upBtn}${downBtn}</div>
                     <div class="queue-actions">
-                        <button class="btn-remove" onclick="removeQueue('${item.id}')">取消</button>
-                        <button class="btn-confirm" onclick="changeStatus('${item.id}', 'confirmed')">演奏確定 ＞</button>
+                        <button class="btn-remove" onclick="removeQueue('${item.qId}')">取消</button>
+                        <button class="btn-confirm" onclick="changeStatus('${item.qId}', 'confirmed')">演奏確定 ＞</button>
                     </div>
                 </div>
             `;
             rCont.appendChild(div);
         });
 
-        // --- 2. 確定リストの描画 ---
+        // --- 2. 確定リスト ---
         const cCont = document.getElementById('confirmedContainer');
         cCont.innerHTML = '';
         if(confirmedItems.length === 0) cCont.innerHTML = '<p style="color:gray;">確定した曲はありません。</p>';
         confirmedItems.forEach((item, index) => {
-            const upBtn = index > 0 ? `<button class="btn-updown" onclick="swapOrder('${item.id}', '${confirmedItems[index-1].id}')">▲</button>` : `<button class="btn-updown" style="visibility:hidden;">▲</button>`;
-            const downBtn = index < confirmedItems.length - 1 ? `<button class="btn-updown" onclick="swapOrder('${item.id}', '${confirmedItems[index+1].id}')">▼</button>` : `<button class="btn-updown" style="visibility:hidden;">▼</button>`;
+            const upBtn = index > 0 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${confirmedItems[index-1].qId}')">▲</button>` : `<button class="btn-updown" style="visibility:hidden;">▲</button>`;
+            const downBtn = index < confirmedItems.length - 1 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${confirmedItems[index+1].qId}')">▼</button>` : `<button class="btn-updown" style="visibility:hidden;">▼</button>`;
 
             const div = document.createElement('div');
             div.className = 'queue-item';
             div.innerHTML = `
                 <div class="queue-info">
                     <div class="queue-title">${escapeHtml(item.songData['曲名'])}</div>
-                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])} | 🙋 <b>${escapeHtml(item.addedBy)}</b></div>
+                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])}<br>🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item.songData)}</div>
                 </div>
                 <div class="queue-controls">
                     <div style="display:flex; gap:4px;">${upBtn}${downBtn}</div>
                     <div class="queue-actions">
-                        <button class="btn-revert" onclick="changeStatus('${item.id}', 'reserved')">＜ 戻す</button>
-                        <button class="btn-complete" onclick="changeStatus('${item.id}', 'completed')">完了 ＞</button>
+                        <button class="btn-revert" onclick="changeStatus('${item.qId}', 'reserved')">＜ 戻す</button>
+                        <button class="btn-complete" onclick="changeStatus('${item.qId}', 'completed')">完了 ＞</button>
                     </div>
                 </div>
             `;
             cCont.appendChild(div);
         });
 
-        // --- 3. 完了リストの描画（スクショ用） ---
+        // --- 3. 完了リスト（スクショ用・重複ナンバリング） ---
         const fCont = document.getElementById('completedContainer');
         fCont.innerHTML = '';
         if(completedItems.length === 0) fCont.innerHTML = '<p style="color:gray;">完了した曲はありません。</p>';
+        
+        const completedCountMap = {}; // 重複曲のカウント用
+        const circleNumbers = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+
         completedItems.forEach((item, index) => {
+            const sId = item.songId;
+            completedCountMap[sId] = (completedCountMap[sId] || 0) + 1;
+            let displayTitle = escapeHtml(item.songData['曲名']);
+            
+            // 2回目以降なら丸数字をつける
+            if (completedCountMap[sId] > 1) {
+                const numStr = circleNumbers[completedCountMap[sId]] || `(${completedCountMap[sId]})`;
+                displayTitle += ` ${numStr}`;
+            }
+
             const div = document.createElement('div');
             div.className = 'queue-item';
             div.style.borderBottom = (index === completedItems.length - 1) ? 'none' : '1px dashed var(--border-color)';
             div.innerHTML = `
                 <div class="queue-info">
-                    <div class="queue-title">${index + 1}. ${escapeHtml(item.songData['曲名'])}</div>
-                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])} | 🙋 <b>${escapeHtml(item.addedBy)}</b></div>
+                    <div class="queue-title">${index + 1}. ${displayTitle}</div>
+                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])} | 🙋 <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item.songData)}</div>
                 </div>
                 <div class="queue-controls">
                     <div></div>
                     <div class="queue-actions">
-                        <button class="btn-revert" style="opacity:0.5;" onclick="changeStatus('${item.id}', 'confirmed')">やり直す</button>
+                        <button class="btn-revert" style="opacity:0.5;" onclick="changeStatus('${item.qId}', 'confirmed')">やり直す</button>
                     </div>
                 </div>
             `;
@@ -674,17 +735,25 @@
             const rowWikiUrl = safeHref(row['コードwiki']);
             if (rowWikiUrl) { linkHtml = `<a href="${rowWikiUrl}" target="_blank" rel="noopener noreferrer">開く</a>`; }
 
-            // ★状態に応じたボタンの出し分け
-            const inQueue = roomQueue[row._id];
+            // ★ 進行中のキュー（予約・確定）にこの曲があるかチェックする
+            let activeQid = null;
+            let activeStatus = null;
+            for(let qId in roomQueue) {
+                if(roomQueue[qId].songId === row._id && roomQueue[qId].status !== 'completed') {
+                    activeQid = qId;
+                    activeStatus = roomQueue[qId].status;
+                    break;
+                }
+            }
+            
+            // ★ 完了済みの曲であっても、activeQid（進行中）がなければ「＋ 追加」に戻る
             let actionBtnHtml = `<button style="border-radius:4px; padding:6px 10px;" onclick="addToQueue('${row._id}')">＋ 追加</button>`;
             
-            if (inQueue) {
-                if (inQueue.status === 'reserved') {
-                    actionBtnHtml = `<button style="background:var(--primary); color:white; border-radius:4px; padding:6px 10px;" onclick="removeQueue('${row._id}')">✓ 予約済</button>`;
-                } else if (inQueue.status === 'confirmed') {
+            if (activeQid) {
+                if (activeStatus === 'reserved') {
+                    actionBtnHtml = `<button style="background:var(--primary); color:white; border-radius:4px; padding:6px 10px;" onclick="removeQueue('${activeQid}')">✓ 予約済</button>`;
+                } else if (activeStatus === 'confirmed') {
                     actionBtnHtml = `<button style="background:#28a745; color:white; border-radius:4px; padding:6px 10px; opacity:0.8;" disabled>🎸 確定済</button>`;
-                } else if (inQueue.status === 'completed') {
-                    actionBtnHtml = `<button style="background:#17a2b8; color:white; border-radius:4px; padding:6px 10px; opacity:0.8;" disabled>🏁 完了済</button>`;
                 }
             }
 
