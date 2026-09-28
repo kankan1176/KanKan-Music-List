@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>KanKan~好きな曲を集めました~</title>
+    
+    <!-- PapaParse (CSV読み込み用) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- ★フェーズ2追加：Firebase SDK (互換バージョン) を読み込む -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
     <style>
         /* =========================================
            CSS変数によるテーマ管理
@@ -116,7 +123,7 @@
             margin: 0; 
             padding: 0; 
             height: 100vh; 
-            height: 100dvh; /* スマホのアドレスバー増減でガタつかないように */
+            height: 100dvh; 
             display: flex; 
             flex-direction: column; 
             overflow: hidden; 
@@ -173,7 +180,6 @@
         .table-body-wrapper::-webkit-scrollbar { width: 10px; height: 10px; }
         .table-body-wrapper::-webkit-scrollbar-track { background: var(--bg-color); }
         .table-body-wrapper::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
-        /* 画面が狭い時は列を潰さず横スクロールで見せる（min-widthが効くのはコンテナがこれより狭い時のみ） */
         .data-table { width: 100%; min-width: 560px; table-layout: fixed; border-collapse: collapse; }
 
         .col-action { width: 110px; }
@@ -232,7 +238,7 @@
 
             .controls { padding: 12px; }
             .search-row { gap: 8px; }
-            .search-box { min-width: 0; font-size: 16px; } /* 16px未満だとiOSで自動ズームするため維持 */
+            .search-box { min-width: 0; font-size: 16px; } 
             .setlist-header-btn { padding: 10px 14px; font-size: 13px; }
 
             .genre-filters { gap: 6px; margin-top: 10px; }
@@ -241,7 +247,7 @@
             .modal { padding: 16px; width: 92%; }
             .detail-label { width: 84px; font-size: 13px; }
 
-            /* ---- テーブルヘッダー：並び替え用のチップとして横並び表示 ---- */
+            /* テーブルヘッダー（スマホ用横並び） */
             .table-header-wrapper { overflow-x: visible; padding-right: 0; }
             .table-header-wrapper .data-table,
             .table-header-wrapper .data-table tbody,
@@ -261,13 +267,12 @@
                 padding: 8px 6px;
                 font-size: 12px;
             }
-            /* 「セットリスト」列・「コード」列の見出しはカード表示では不要なので隠す */
             .table-header-wrapper th:first-child,
             .table-header-wrapper th:last-child {
                 display: none;
             }
 
-            /* ---- テーブル本体：1行＝1カードの縦並びに変換 ---- */
+            /* テーブル本体（1行＝1カード） */
             .table-body-wrapper { overflow-x: visible; }
             .table-body-wrapper .data-table,
             .table-body-wrapper .data-table tbody {
@@ -276,7 +281,6 @@
                 min-width: 0 !important;
             }
             
-            /* ★修正：Flexboxを使って、曲名の左側にボタンが並ぶように変更 */
             #tableBody tr {
                 display: flex;
                 flex-wrap: wrap;
@@ -293,7 +297,6 @@
                 font-size: 13px;
             }
             
-            /* ボタン（左側） */
             #tableBody .col-action {
                 width: auto !important;
                 margin-right: 12px;
@@ -304,32 +307,23 @@
                 min-height: 34px; 
             }
             
-            /* 曲名（右側・残り幅を埋める） */
             #tableBody .col-title { 
                 flex: 1;
-                min-width: 0; /* 長い曲名でもはみ出さないための魔法 */
+                min-width: 0; 
                 font-size: 15px; 
-                padding-top: 7px !important; /* ボタンとの縦位置を少し調整 */
+                padding-top: 7px !important; 
             }
             
-            /* その他の項目（100%幅で下の行に押し出す） */
             #tableBody .col-artist,
             #tableBody .col-genre,
             #tableBody .col-bpm,
             #tableBody .col-code {
                 width: 100% !important;
             }
-            #tableBody .col-artist { 
-                margin-top: 4px; 
-                opacity: 0.9; 
-            }
+            #tableBody .col-artist { margin-top: 4px; opacity: 0.9; }
             #tableBody .col-genre,
             #tableBody .col-bpm,
-            #tableBody .col-code { 
-                font-size: 12px; 
-                opacity: 0.85; 
-            }
-
+            #tableBody .col-code { font-size: 12px; opacity: 0.85; }
             .remove-btn { min-height: 34px; padding: 8px 12px; }
         }
     </style>
@@ -456,6 +450,26 @@
 </div>
 
 <script>
+    // =========================================
+    // ★フェーズ2追加：Firebaseの初期化
+    // =========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
+      authDomain: "kankan-session-room.firebaseapp.com",
+      databaseURL: "https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kankan-session-room",
+      storageBucket: "kankan-session-room.firebasestorage.app",
+      messagingSenderId: "759342880820",
+      appId: "1:759342880820:web:9af0af755e35926a281261"
+    };
+    
+    // Firebaseアプリを起動し、データベースに接続できる状態にする
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    console.log("Firebaseへの接続準備が完了しました！");
+    // =========================================
+
     // スプレッドシートの公開CSV URL
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
 
@@ -476,7 +490,6 @@
     const tableHeaderWrapper = document.querySelector('.table-header-wrapper');
     const tableBodyWrapper = document.querySelector('.table-body-wrapper');
 
-    // スマホ等の狭い画面でテーブルを横スクロールした時に、ヘッダー行も一緒に動かす
     tableBodyWrapper.addEventListener('scroll', () => {
         tableHeaderWrapper.scrollLeft = tableBodyWrapper.scrollLeft;
     });
@@ -484,21 +497,18 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
 
-    // スプレッドシートの値をそのままHTMLに差し込まないためのエスケープ関数
     function escapeHtml(str) {
         return String(str ?? '').replace(/[&<>"']/g, (ch) => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[ch]));
     }
 
-    // href属性用：エスケープに加えて javascript: 等の危険なスキームを弾く
     function safeHref(url) {
         const trimmed = String(url ?? '').trim();
         if (!/^https?:\/\//i.test(trimmed)) return '';
         return escapeHtml(trimmed);
     }
     
-    // テーマ切り替え
     function changeTheme() { 
         const theme = document.getElementById('themeSelect').value;
         document.body.className = theme === 'dark' ? '' : `theme-${theme}`; 
@@ -524,7 +534,6 @@
         });
     }
 
-    // Papaの解析結果（行の配列）から曲名列を探してallDataを構築し、画面に反映する共通処理
     function loadRowsIntoApp(rawData) {
         const headerIndex = rawData.findIndex(row => row.includes("曲名"));
 
@@ -540,7 +549,6 @@
             genre1Key = 'ジャンル';
         } else {
             genre1Key = '';
-            console.warn('ジャンル列（ジャンル① / ジャンル）が見つかりませんでした。');
         }
 
         allData = rawData.slice(headerIndex + 1).map((row, idx) => {
@@ -568,7 +576,6 @@
         document.getElementById('retryBtn').onclick = () => location.reload();
     }
 
-    // ページ読み込み時に自動でスプレッドシートからデータを取得
     window.addEventListener('DOMContentLoaded', () => {
         Papa.parse(SHEET_CSV_URL, {
             download: true,
@@ -577,8 +584,7 @@
             encoding: "UTF-8",
             complete: function(results) { loadRowsIntoApp(results.data); },
             error: function(error) {
-                showCsvLoadError("エラー: データの取得に失敗しました。URLまたはネットワーク接続を確認してください。");
-                console.error("CSV fetch error:", error);
+                showCsvLoadError("エラー: データの取得に失敗しました。");
             }
         });
     });
