@@ -236,14 +236,15 @@
             
             .controls { padding: 12px; }
             .search-row { flex-direction: column; align-items: stretch; gap: 10px; }
-            .search-box { max-width: 100%; min-width: 0; font-size: 16px; } /* iOS自動ズーム防止 */
+            .search-box { max-width: 100%; min-width: 0; font-size: 16px; } 
             .setlist-header-btn { padding: 12px; font-size: 14px; }
             
             .genre-filters { gap: 6px; margin-top: 10px; }
             .genre-btn { padding: 8px 12px; font-size: 12px; }
 
-            /* 横長のテーブルを、スマホ向けの「カード型」に変形 */
-            .table-header-wrapper { display: none; } /* スマホでは表の上の見出しを消す */
+            /* 横長のテーブルをスマホ向け「カード型」に変形 */
+            .table-header-wrapper { display: none; } 
+            
             .data-table, .data-table tbody, .data-table tr, .data-table td { 
                 display: block; 
                 width: 100%; 
@@ -253,8 +254,7 @@
                 margin-bottom: 15px; 
                 border: 1px solid var(--border-color); 
                 border-radius: 8px; 
-                /* ★修正：右側にボタンを置くための専用スペース（120px）をカード全体に確保 */
-                padding: 15px 120px 15px 15px; 
+                padding: 15px; 
                 position: relative;
             }
             .data-table td { 
@@ -264,24 +264,35 @@
                 font-size: 14px;
             }
             
-            /* カード内の各項目の配置と装飾を調整 */
-            .col-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
-            .col-artist::before { content: "👤 "; opacity: 0.7;}
-            .col-genre::before { content: "🏷️ "; opacity: 0.7;}
-            .col-bpm::before { content: "🎵 BPM: "; opacity: 0.7;}
-            
-            /* 追加ボタンをカードの右上に固定 */
-            .col-action { 
-                position: absolute; 
-                top: 15px; 
-                right: 15px; 
-                width: auto; 
-                padding: 0;
+            /* 詳細度を限界まで上げて、確実にボタンを右上に固定する */
+            .data-table td.col-action { 
+                position: absolute !important; 
+                top: 15px !important; 
+                right: 15px !important; 
+                width: auto !important; 
+                padding: 0 !important; 
             }
+            
+            /* タイトルとアーティスト名がボタンに潜り込まないよう、右側に専用の余白を強制 */
+            .data-table td.col-title { 
+                padding-right: 90px !important; 
+                font-size: 18px; 
+                font-weight: bold; 
+                margin-bottom: 8px; 
+            }
+            .data-table td.col-artist { 
+                padding-right: 90px !important; 
+            }
+            
+            /* アイコン装飾 */
+            .data-table td.col-artist::before { content: "👤 "; opacity: 0.7;}
+            .data-table td.col-genre::before { content: "🏷️ "; opacity: 0.7;}
+            .data-table td.col-bpm::before { content: "🎵 BPM: "; opacity: 0.7;}
+            
             #tableBody button { padding: 8px 12px; min-height: 34px; }
             
             /* コードリンクを下部に区切って表示 */
-            .col-code { 
+            .data-table td.col-code { 
                 margin-top: 10px; 
                 padding-top: 10px; 
                 border-top: 1px dashed var(--border-color); 
