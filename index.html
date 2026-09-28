@@ -61,7 +61,7 @@
         button.primary-btn { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
         button.primary-btn:hover { background-color: var(--primary); opacity: 0.8; color: var(--primary-text); }
         
-        /* ★フェーズ3追加：ルーム接続中のステータスバー */
+        /* ルーム接続中のステータスバー */
         .room-status-bar {
             display: none;
             background-color: var(--primary);
@@ -218,13 +218,13 @@
         <div class="header">
             <h1>KanKan~好きな曲を集めました~</h1>
             <div class="header-buttons">
-                <!-- ★フェーズ3追加：ルーム作成ボタン -->
+                <!-- ルーム作成ボタン -->
                 <button id="createRoomBtn" onclick="createRoom()">🌐 セッションルームを作る</button>
                 <button onclick="openModal('settingsModal')">⚙️ 設定</button>
             </div>
         </div>
         
-        <!-- ★フェーズ3追加：ルーム接続中のステータス表示 -->
+        <!-- ルーム接続中のステータス表示 -->
         <div class="room-status-bar" id="roomStatusBar">
             <div id="roomStatusText"></div>
             <div class="room-actions">
@@ -345,53 +345,82 @@
     const db = firebase.database();
 
     // =========================================
-    // ★フェーズ3追加：ルーム状態の管理
+    // ルーム状態の管理
     // =========================================
-    // URLに「?room=XXXX」が含まれているかチェック
     const urlParams = new URLSearchParams(window.location.search);
-    const currentRoomId = urlParams.get('room'); // なければ null になる
+    const currentRoomId = urlParams.get('room');
 
     function initRoomUI() {
         const roomBar = document.getElementById('roomStatusBar');
         const createBtn = document.getElementById('createRoomBtn');
         
         if (currentRoomId) {
-            // ルームに参加している状態のUI
             roomBar.classList.add('active');
             document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中`;
             createBtn.style.display = 'none';
         } else {
-            // ひとりで閲覧している状態のUI
             roomBar.classList.remove('active');
             createBtn.style.display = 'inline-block';
         }
     }
 
-    // 「ルームを作る」ボタンを押したときの処理
     function createRoom() {
-        // ランダムな5文字の英数字を生成（例: A7B2X）
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let newRoomId = '';
         for(let i = 0; i < 5; i++) {
             newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        // 生成したIDをつけてページを再読み込み（ルームに入る）
         window.location.href = '?room=' + newRoomId;
     }
 
-    // 「退出」ボタンを押したときの処理
     function leaveRoom() {
-        // URLから「?room=...」を消してトップページに戻る
         window.location.href = window.location.pathname;
     }
 
-    // 「URLをコピー」ボタンを押したときの処理
+    // ★修正：セキュリティ制限に関わらず確実にコピーできる強化版
     function copyRoomLink() {
-        navigator.clipboard.writeText(window.location.href).then(() => {
-            alert('ルームのURLをコピーしました！LINEやDiscordでメンバーに共有してください。');
-        }).catch(err => {
-            alert('URLのコピーに失敗しました。ブラウザのURLバーから直接コピーしてください。');
-        });
+        const url = window.location.href;
+
+        // https環境などモダンなブラウザAPIが使える場合
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('ルームのURLをコピーしました！LINEやDiscordでメンバーに共有してください。');
+            }).catch(err => {
+                // エラーになった場合は旧式のアプローチへ
+                fallbackCopy(url);
+            });
+        } else {
+            // http環境や古いブラウザなど、APIがブロックされている場合
+            fallbackCopy(url);
+        }
+    }
+
+    // 古いブラウザやhttp環境用のフォールバックコピー機能
+    function fallbackCopy(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        
+        // 画面がスクロールしないように非表示領域に配置
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                alert('ルームのURLをコピーしました！LINEやDiscordでメンバーに共有してください。');
+            } else {
+                alert('お使いの環境では自動コピーができません。URLバーから直接コピーしてください。');
+            }
+        } catch (err) {
+            alert('お使いの環境では自動コピーができません。URLバーから直接コピーしてください。');
+        }
+        
+        document.body.removeChild(textArea);
     }
 
     // =========================================
@@ -469,7 +498,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        // ★フェーズ3追加：ページ読み込み時にルームUIを初期化
         initRoomUI();
 
         Papa.parse(SHEET_CSV_URL, {
