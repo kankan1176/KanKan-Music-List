@@ -223,32 +223,73 @@
         .remove-btn:hover { background-color: #c82333; }
 
         /* =========================================
-           スマホ幅向け調整（レイアウト・見た目はそのまま、
-           タップ領域や余白だけ見やすく最適化）
+           スマホ向けレスポンシブ設定（カード型デザイン）
         ========================================= */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .container { padding: 12px 12px 0 12px; gap: 10px; }
             h1 { font-size: 19px; }
-            .header-buttons button { padding: 8px 12px; font-size: 13px; }
-
+            
+            /* ヘッダーや検索窓を縦並びに整頓 */
+            .header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .header-buttons { width: 100%; }
+            .header-buttons button { width: 100%; padding: 12px; font-size: 14px; }
+            
             .controls { padding: 12px; }
-            .search-row { gap: 8px; }
-            .search-box { min-width: 0; font-size: 16px; } /* 16px未満だとiOSで自動ズームするため維持 */
-            .setlist-header-btn { padding: 10px 14px; font-size: 13px; }
-
+            .search-row { flex-direction: column; align-items: stretch; gap: 10px; }
+            .search-box { max-width: 100%; min-width: 0; font-size: 16px; } /* iOS自動ズーム防止 */
+            .setlist-header-btn { padding: 12px; font-size: 14px; }
+            
             .genre-filters { gap: 6px; margin-top: 10px; }
             .genre-btn { padding: 8px 12px; font-size: 12px; }
 
-            th, td { padding: 10px 10px; font-size: 13px; }
-            .col-main { font-size: 13px; }
-            .col-sub { font-size: 11px; }
+            /* 横長のテーブルを、スマホ向けの「カード型」に変形 */
+            .table-header-wrapper { display: none; } /* スマホでは表の上の見出しを消す */
+            .data-table, .data-table tbody, .data-table tr, .data-table td { 
+                display: block; 
+                width: 100%; 
+                box-sizing: border-box; 
+            }
+            .data-table tr { 
+                margin-bottom: 15px; 
+                border: 1px solid var(--border-color); 
+                border-radius: 8px; 
+                padding: 15px; 
+                position: relative;
+            }
+            .data-table td { 
+                padding: 4px 0; 
+                border-bottom: none; 
+                text-align: left;
+                font-size: 14px;
+            }
+            
+            /* カード内の各項目の配置と装飾を調整 */
+            .col-title { font-size: 18px; font-weight: bold; padding-right: 80px; margin-bottom: 8px; }
+            .col-artist::before { content: "👤 "; opacity: 0.7;}
+            .col-genre::before { content: "🏷️ "; opacity: 0.7;}
+            .col-bpm::before { content: "🎵 BPM: "; opacity: 0.7;}
+            
+            /* 追加ボタンをカードの右上に固定 */
+            .col-action { 
+                position: absolute; 
+                top: 15px; 
+                right: 15px; 
+                width: auto; 
+                padding: 0;
+            }
+            #tableBody button { padding: 8px 12px; min-height: 34px; }
+            
+            /* コードリンクを下部に区切って表示 */
+            .col-code { 
+                margin-top: 10px; 
+                padding-top: 10px; 
+                border-top: 1px dashed var(--border-color); 
+            }
 
-            /* ボタン類のタップ領域を確保 */
-            #tableBody button { padding: 8px 10px; min-height: 34px; }
-            .remove-btn { min-height: 34px; padding: 8px 12px; }
-
+            /* モーダル調整 */
             .modal { padding: 16px; width: 92%; }
             .detail-label { width: 84px; font-size: 13px; }
+            .remove-btn { min-height: 34px; padding: 8px 12px; }
         }
     </style>
 </head>
