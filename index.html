@@ -296,7 +296,7 @@
         <div class="setting-group" style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
             <h3 style="font-size: 16px; margin-top: 0; color: var(--primary);">💡 使い方ガイド</h3>
             <ul style="font-size: 13px; line-height: 1.6; padding-left: 20px; margin: 0; color: var(--text-color);">
-                <li style="margin-bottom: 6px;"><strong>セッションルーム：</strong> 「ルームを作る」ボタンを押すと専用URLが発行されます。そのURLを参加者に共有することで、全員で1つのセットリストをリアルタイムに共有・操作できるようになります（現在開発中）。</li>
+                <li style="margin-bottom: 6px;"><strong>セッションルーム：</strong> 「ルームを作る」ボタンを押すと専用URLが発行されます。そのURLを参加者に共有することで、全員で1つのセットリストをリアルタイムに共有・操作できるようになります。</li>
                 <li style="margin-bottom: 6px;"><strong>検索窓：</strong> 曲名、アーティスト、ジャンル、アニメ名など複数のキーワードをスペースで区切って入力すると、条件に合う曲を絞り込めます。</li>
                 <li style="margin-bottom: 6px;"><strong>詳細情報：</strong> リスト上の<strong>曲名（リンク文字）をクリック</strong>すると、詳しい詳細情報が見られます。</li>
             </ul>
@@ -377,49 +377,28 @@
         window.location.href = window.location.pathname;
     }
 
-    // ★修正：セキュリティ制限に関わらず確実にコピーできる強化版
     function copyRoomLink() {
         const url = window.location.href;
-
-        // https環境などモダンなブラウザAPIが使える場合
         if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(() => {
                 alert('ルームのURLをコピーしました！LINEやDiscordでメンバーに共有してください。');
-            }).catch(err => {
-                // エラーになった場合は旧式のアプローチへ
-                fallbackCopy(url);
-            });
+            }).catch(err => { fallbackCopy(url); });
         } else {
-            // http環境や古いブラウザなど、APIがブロックされている場合
             fallbackCopy(url);
         }
     }
 
-    // 古いブラウザやhttp環境用のフォールバックコピー機能
     function fallbackCopy(text) {
         const textArea = document.createElement("textarea");
         textArea.value = text;
-        
-        // 画面がスクロールしないように非表示領域に配置
-        textArea.style.top = "0";
-        textArea.style.left = "0";
-        textArea.style.position = "fixed";
-        
+        textArea.style.top = "0"; textArea.style.left = "0"; textArea.style.position = "fixed";
         document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
+        textArea.focus(); textArea.select();
         try {
             const successful = document.execCommand('copy');
-            if (successful) {
-                alert('ルームのURLをコピーしました！LINEやDiscordでメンバーに共有してください。');
-            } else {
-                alert('お使いの環境では自動コピーができません。URLバーから直接コピーしてください。');
-            }
-        } catch (err) {
-            alert('お使いの環境では自動コピーができません。URLバーから直接コピーしてください。');
-        }
-        
+            if (successful) { alert('ルームのURLをコピーしました！LINEやDiscordでメンバーに共有してください。'); } 
+            else { alert('お使いの環境では自動コピーができません。URLバーから直接コピーしてください。'); }
+        } catch (err) { alert('お使いの環境では自動コピーができません。URLバーから直接コピーしてください。'); }
         document.body.removeChild(textArea);
     }
 
@@ -469,6 +448,7 @@
         });
     }
 
+    // ★フェーズ4追加：データの読み込み完了後に、Firebaseとの同期リスナーを開始する処理
     function loadRowsIntoApp(rawData) {
         const headerIndex = rawData.findIndex(row => row.includes("曲名"));
         if (headerIndex === -1) { showCsvLoadError("エラー: データ内に「曲名」が見つかりませんでした。"); return; }
@@ -488,7 +468,26 @@
         loadingArea.style.display = 'none';
         controls.style.display = 'block';
         tableWrapper.style.display = 'flex';
-        renderTable();
+        
+        // ★ルームに参加している場合は、Firebaseのデータを監視して自動更新する
+        if (currentRoomId) {
+            const queueRef = db.ref('rooms/' + currentRoomId + '/queue');
+            // 'value'イベントは、誰かが追加・削除した時に自動で発火します
+            queueRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                setlistIds.clear(); // 手元のリストを一旦空にして
+                if (data) {
+                    // Firebase上のデータを全て手元にコピー
+                    Object.keys(data).forEach(songId => setlistIds.add(songId));
+                }
+                // 同期した結果をもとに画面を描画し直す
+                renderTable();
+                updateSetlistUI();
+            });
+        } else {
+            // ルームに参加していない（個人用）の場合は、そのまま描画する
+            renderTable();
+        }
     }
 
     function showCsvLoadError(message) {
@@ -510,9 +509,22 @@
     let searchDebounceTimer = null;
     searchInput.addEventListener('input', () => { clearTimeout(searchDebounceTimer); searchDebounceTimer = setTimeout(renderTable, 150); });
 
+    // ★フェーズ4追加：追加ボタンを押したときの挙動を変更
     function toggleSetlist(id) {
-        setlistIds.has(id) ? setlistIds.delete(id) : setlistIds.add(id);
-        renderTable(); updateSetlistUI();
+        if (currentRoomId) {
+            // 【ルーム共有モード】Firebaseに書き込む（自分では描画せず、リスナーの自動発火に任せる）
+            const songRef = db.ref('rooms/' + currentRoomId + '/queue/' + id);
+            if (setlistIds.has(id)) {
+                songRef.remove(); // 削除
+            } else {
+                songRef.set(true); // 追加
+            }
+        } else {
+            // 【個人モード】これまで通りブラウザの中だけで追加・削除する
+            setlistIds.has(id) ? setlistIds.delete(id) : setlistIds.add(id);
+            renderTable(); 
+            updateSetlistUI();
+        }
     }
 
     function updateSetlistUI() {
