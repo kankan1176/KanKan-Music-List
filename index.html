@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 
-    <!-- ★新規：画像保存用ライブラリ (html2canvas) -->
+    <!-- 画像保存用ライブラリ (html2canvas) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -212,7 +212,6 @@
                 <div class="status-buttons">
                     <button class="primary-btn" onclick="openModal('reservedModal')">📝 予約 (<span id="reservedCount">0</span>)</button>
                     <button class="primary-btn" style="background-color: #28a745; border-color: #28a745;" onclick="openModal('confirmedModal')">🎸 確定 (<span id="confirmedCount">0</span>)</button>
-                    <!-- ★完了ボタンの絵文字を変更 -->
                     <button class="primary-btn" style="background-color: #17a2b8; border-color: #17a2b8;" onclick="openModal('completedModal')">✅ 完了 (<span id="completedCount">0</span>)</button>
                 </div>
                 <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
@@ -276,6 +275,18 @@
                 <option value="eva08">八号機</option>
             </select>
         </div>
+
+        <!-- ★修正：使い方ガイドを復元・更新 -->
+        <div class="setting-group" style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
+            <h3 style="font-size: 16px; margin-top: 0; color: var(--primary);">💡 使い方ガイド</h3>
+            <ul style="font-size: 13px; line-height: 1.6; padding-left: 20px; margin: 0; color: var(--text-color);">
+                <li style="margin-bottom: 6px;"><strong>セッションルーム：</strong> 「ルームを作る」ボタンを押すと専用URLが発行されます。そのURLを参加者に共有することで、全員で1つのセットリストをリアルタイムに共有・操作できます。</li>
+                <li style="margin-bottom: 6px;"><strong>進行のやり方：</strong> 曲は「📝 予約」→「🎸 確定」→「✅ 完了」の順にボタンを押して進行させます。順番は▲▼ボタンで入れ替え可能です。</li>
+                <li style="margin-bottom: 6px;"><strong>画像保存：</strong> 「✅ 完了」画面の下部にあるボタンから、本日のセットリストを1枚の画像として保存・シェアできます。完了した曲は再度「＋追加」することも可能です。</li>
+                <li style="margin-bottom: 6px;"><strong>検索窓：</strong> 曲名、アーティスト、ジャンル、アニメ名など複数のキーワードをスペースで区切って入力すると、条件に合う曲を絞り込めます。</li>
+                <li><strong>詳細情報：</strong> リスト上の<strong>曲名（リンク文字）</strong>をクリックすると、作詞・作曲・コードWikiなどの詳しい情報が見られます。</li>
+            </ul>
+        </div>
     </div>
 </div>
 
@@ -314,7 +325,7 @@
     </div>
 </div>
 
-<!-- ★修正：画像保存特化の完了モーダル -->
+<!-- 完了モーダル -->
 <div class="modal-overlay" id="completedModal" onclick="closeModal(event, 'completedModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'completedModal')">&times;</span>
@@ -431,7 +442,7 @@
     }
 
     // =========================================
-    // ★新規：画像を保存する処理 (html2canvas使用)
+    // 画像を保存する処理 (html2canvas使用)
     // =========================================
     function downloadSetlistImage() {
         const target = document.getElementById('captureArea');
@@ -488,10 +499,21 @@
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
 
+    // ★修正：ジャンルボタンの並び順を指定のものに固定する
     function populateGenreButtons() {
-        genreFilters.innerHTML = ''; const g1Set = new Set();
+        genreFilters.innerHTML = ''; 
+        const g1Set = new Set();
         allData.forEach(row => { if (row[genre1Key] && row[genre1Key].trim() !== '') g1Set.add(row[genre1Key]); });
-        const genres = ["すべて", ...Array.from(g1Set).sort()];
+        
+        // 優先して並べるジャンル
+        const customOrder = ["すべて", "邦楽", "アニメ", "ボカロ", "洋楽"];
+        const genres = [...customOrder];
+        
+        // 上記以外のジャンルがCSVにあれば、その後ろにアルファベット/五十音順で追加する
+        Array.from(g1Set).sort().forEach(genre => {
+            if(!genres.includes(genre)) genres.push(genre);
+        });
+
         genres.forEach(genre => {
             const btn = document.createElement('button');
             btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`; btn.textContent = genre;
@@ -612,7 +634,6 @@
         document.getElementById('modalReservedCount').textContent = reservedItems.length;
         document.getElementById('modalConfirmedCount').textContent = confirmedItems.length;
 
-        // ★コードWikiリンクの生成
         const getWikiLink = (songData) => {
             const wikiUrl = safeHref(songData['コードwiki']);
             return wikiUrl ? ` | <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--link-color); text-decoration:underline;">🎸 コードWiki</a>` : '';
@@ -670,7 +691,7 @@
             cCont.appendChild(div);
         });
 
-        // --- 3. 完了リスト（スクショ特化・曲名とアーティストのみ・丸数字） ---
+        // --- 3. 完了リスト ---
         const fCont = document.getElementById('completedContainer');
         fCont.innerHTML = '';
         
@@ -685,7 +706,6 @@
                 completedCountMap[sId] = (completedCountMap[sId] || 0) + 1;
                 let displayTitle = escapeHtml(item.songData['曲名']);
                 
-                // 重複曲のナンバリング
                 if (completedCountMap[sId] > 1) {
                     const numStr = circleNumbers[completedCountMap[sId]] || `(${completedCountMap[sId]})`;
                     displayTitle += ` ${numStr}`;
@@ -703,7 +723,6 @@
                         <span style="font-weight: bold;">${index + 1}. ${displayTitle}</span>
                         <span style="margin-left: 8px; font-size: 13px; opacity: 0.8;">/ ${escapeHtml(item.songData['アーティスト'])}</span>
                     </div>
-                    <!-- キャプチャ時のみ非表示になる「戻す」ボタン -->
                     <button class="btn-revert hide-on-capture" style="padding: 4px 8px; font-size: 12px; opacity: 0.5; margin-left: 10px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="changeStatus('${item.qId}', 'confirmed')">戻す</button>
                 `;
                 fCont.appendChild(div);
@@ -779,7 +798,6 @@
             let activeQid = null;
             let activeStatus = null;
             for(let qId in roomQueue) {
-                // ★修正：「完了」になっている曲はキューにカウントせず、何度でも「＋追加」できるようにする
                 if(roomQueue[qId].songId === row._id && roomQueue[qId].status !== 'completed') {
                     activeQid = qId;
                     activeStatus = roomQueue[qId].status;
