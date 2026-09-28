@@ -223,84 +223,86 @@
         .remove-btn:hover { background-color: #c82333; }
 
         /* =========================================
-           スマホ向けレスポンシブ設定（カード型デザイン）
+           スマホ幅向け調整
+           狭い画面では表形式のまま列を圧縮すると、
+           「＋追加」ボタンなどが本文テキストと重なってしまうため、
+           1曲＝1カードの縦並びレイアウトに組み替える。
         ========================================= */
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             .container { padding: 12px 12px 0 12px; gap: 10px; }
             h1 { font-size: 19px; }
-            
-            /* ヘッダーや検索窓を縦並びに整頓 */
-            .header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .header-buttons { width: 100%; }
-            .header-buttons button { width: 100%; padding: 12px; font-size: 14px; }
-            
+            .header-buttons button { padding: 8px 12px; font-size: 13px; }
+
             .controls { padding: 12px; }
-            .search-row { flex-direction: column; align-items: stretch; gap: 10px; }
-            .search-box { max-width: 100%; min-width: 0; font-size: 16px; } 
-            .setlist-header-btn { padding: 12px; font-size: 14px; }
-            
+            .search-row { gap: 8px; }
+            .search-box { min-width: 0; font-size: 16px; } /* 16px未満だとiOSで自動ズームするため維持 */
+            .setlist-header-btn { padding: 10px 14px; font-size: 13px; }
+
             .genre-filters { gap: 6px; margin-top: 10px; }
             .genre-btn { padding: 8px 12px; font-size: 12px; }
 
-            /* 横長のテーブルをスマホ向け「カード型」に変形 */
-            .table-header-wrapper { display: none; } 
-            
-            .data-table, .data-table tbody, .data-table tr, .data-table td { 
-                display: block; 
-                width: 100%; 
-                box-sizing: border-box; 
-            }
-            .data-table tr { 
-                margin-bottom: 15px; 
-                border: 1px solid var(--border-color); 
-                border-radius: 8px; 
-                padding: 15px; 
-                position: relative;
-            }
-            .data-table td { 
-                padding: 4px 0; 
-                border-bottom: none; 
-                text-align: left;
-                font-size: 14px;
-            }
-            
-            /* 詳細度を限界まで上げて、確実にボタンを右上に固定する */
-            .data-table td.col-action { 
-                position: absolute !important; 
-                top: 15px !important; 
-                right: 15px !important; 
-                width: auto !important; 
-                padding: 0 !important; 
-            }
-            
-            /* タイトルとアーティスト名がボタンに潜り込まないよう、右側に専用の余白を強制 */
-            .data-table td.col-title { 
-                padding-right: 90px !important; 
-                font-size: 18px; 
-                font-weight: bold; 
-                margin-bottom: 8px; 
-            }
-            .data-table td.col-artist { 
-                padding-right: 90px !important; 
-            }
-            
-            /* アイコン装飾 */
-            .data-table td.col-artist::before { content: "👤 "; opacity: 0.7;}
-            .data-table td.col-genre::before { content: "🏷️ "; opacity: 0.7;}
-            .data-table td.col-bpm::before { content: "🎵 BPM: "; opacity: 0.7;}
-            
-            #tableBody button { padding: 8px 12px; min-height: 34px; }
-            
-            /* コードリンクを下部に区切って表示 */
-            .data-table td.col-code { 
-                margin-top: 10px; 
-                padding-top: 10px; 
-                border-top: 1px dashed var(--border-color); 
-            }
-
-            /* モーダル調整 */
             .modal { padding: 16px; width: 92%; }
             .detail-label { width: 84px; font-size: 13px; }
+
+            /* ---- テーブルヘッダー：並び替え用のチップとして横並び表示 ---- */
+            .table-header-wrapper { overflow-x: visible; padding-right: 0; }
+            .table-header-wrapper .data-table,
+            .table-header-wrapper .data-table tbody,
+            .table-header-wrapper .data-table tr {
+                display: flex;
+                flex-wrap: wrap;
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            .table-header-wrapper th {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 1 1 auto;
+                width: auto !important;
+                border-bottom: none;
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+            /* 「セットリスト」列・「コード」列の見出しはカード表示では不要なので隠す */
+            .table-header-wrapper th:first-child,
+            .table-header-wrapper th:last-child {
+                display: none;
+            }
+
+            /* ---- テーブル本体：1行＝1カードの縦並びに変換 ---- */
+            .table-body-wrapper { overflow-x: visible; }
+            .table-body-wrapper .data-table,
+            .table-body-wrapper .data-table tbody {
+                display: block;
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            #tableBody tr {
+                display: block;
+                width: 100%;
+                padding: 12px 4px;
+                border-bottom: 1px solid var(--border-color);
+            }
+            #tableBody td {
+                display: block;
+                width: 100% !important;
+                border-bottom: none !important;
+                padding: 3px 0 !important;
+                font-size: 13px;
+            }
+            /* 「＋追加」ボタンをカード右上に単独の行として配置し、本文と重ならないようにする */
+            #tableBody .col-action {
+                text-align: right;
+                margin-bottom: 6px;
+            }
+            #tableBody .col-action button { padding: 8px 12px; min-height: 34px; }
+            #tableBody .col-title { font-size: 15px; }
+            #tableBody .col-artist { opacity: 0.9; }
+            #tableBody .col-genre,
+            #tableBody .col-bpm,
+            #tableBody .col-code { font-size: 12px; opacity: 0.85; }
+
             .remove-btn { min-height: 34px; padding: 8px 12px; }
         }
     </style>
@@ -496,6 +498,54 @@
         });
     }
 
+    // Papaの解析結果（行の配列）から曲名列を探してallDataを構築し、画面に反映する共通処理
+    // (Googleスプレッドシートからの自動取得／CSVファイルの手動アップロードの両方で使う)
+    function loadRowsIntoApp(rawData) {
+        const headerIndex = rawData.findIndex(row => row.includes("曲名"));
+
+        if (headerIndex === -1) {
+            showCsvLoadError("エラー: データ内に「曲名」が見つかりませんでした。");
+            return;
+        }
+
+        const headers = rawData[headerIndex];
+        if (headers.includes('ジャンル①')) {
+            genre1Key = 'ジャンル①';
+        } else if (headers.includes('ジャンル')) {
+            genre1Key = 'ジャンル';
+        } else {
+            // どちらの列名も見つからない場合は存在しないキーにフォールバックせず、
+            // ジャンル関連表示は空扱いにする
+            genre1Key = '';
+            console.warn('ジャンル列（ジャンル① / ジャンル）が見つかりませんでした。');
+        }
+
+        allData = rawData.slice(headerIndex + 1).map((row, idx) => {
+            let obj = { _id: idx.toString() };
+            headers.forEach((headerName, index) => {
+                // 同名列が複数ある場合に値が上書きされて消えるのを防ぐ
+                if (Object.prototype.hasOwnProperty.call(obj, headerName) && obj[headerName]) return;
+                obj[headerName] = row[index] || '';
+            });
+            return obj;
+        });
+
+        populateGenreButtons();
+
+        loadingArea.style.display = 'none';
+        controls.style.display = 'block';
+        tableWrapper.style.display = 'flex';
+        renderTable();
+    }
+
+    function showCsvLoadError(message) {
+        loadingArea.style.display = 'flex';
+        controls.style.display = 'none';
+        tableWrapper.style.display = 'none';
+        loadingArea.innerHTML = `<span style='color:red;'>${escapeHtml(message)}</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>`;
+        document.getElementById('retryBtn').onclick = () => location.reload();
+    }
+
     // ページ読み込み時に自動でスプレッドシートからデータを取得
     window.addEventListener('DOMContentLoaded', () => {
         Papa.parse(SHEET_CSV_URL, {
@@ -503,47 +553,9 @@
             header: false,
             skipEmptyLines: true,
             encoding: "UTF-8",
-            complete: function(results) {
-                const rawData = results.data;
-                const headerIndex = rawData.findIndex(row => row.includes("曲名"));
-                
-                if (headerIndex === -1) { 
-                    loadingArea.innerHTML = "<span style='color:red;'>エラー: データ内に「曲名」が見つかりませんでした。</span>";
-                    return; 
-                }
-                
-                const headers = rawData[headerIndex];
-                if (headers.includes('ジャンル①')) {
-                    genre1Key = 'ジャンル①';
-                } else if (headers.includes('ジャンル')) {
-                    genre1Key = 'ジャンル';
-                } else {
-                    // どちらの列名も見つからない場合は存在しないキーにフォールバックせず、
-                    // ジャンル関連表示は空扱いにする
-                    genre1Key = '';
-                    console.warn('ジャンル列（ジャンル① / ジャンル）が見つかりませんでした。');
-                }
-
-                allData = rawData.slice(headerIndex + 1).map((row, idx) => {
-                    let obj = { _id: idx.toString() };
-                    headers.forEach((headerName, index) => {
-                        // 同名列が複数ある場合に値が上書きされて消えるのを防ぐ
-                        if (Object.prototype.hasOwnProperty.call(obj, headerName) && obj[headerName]) return;
-                        obj[headerName] = row[index] || '';
-                    });
-                    return obj;
-                });
-
-                populateGenreButtons();
-                
-                loadingArea.style.display = 'none';
-                controls.style.display = 'block';
-                tableWrapper.style.display = 'flex'; 
-                renderTable();
-            },
+            complete: function(results) { loadRowsIntoApp(results.data); },
             error: function(error) {
-                loadingArea.innerHTML = "<span style='color:red;'>エラー: データの取得に失敗しました。URLまたはネットワーク接続を確認してください。</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>";
-                document.getElementById('retryBtn').onclick = () => location.reload();
+                showCsvLoadError("エラー: データの取得に失敗しました。URLまたはネットワーク接続を確認してください。");
                 console.error("CSV fetch error:", error);
             }
         });
