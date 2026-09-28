@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>KanKan~好きな曲を集めました~</title>
     
+    <!-- ★ブックマーク用アイコンの設定 -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
     <!-- PapaParse (CSV読み込み用) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
@@ -147,7 +150,6 @@
         ========================================= */
         @media (max-width: 600px) {
             .container { padding: 12px 12px 0 12px; gap: 10px; }
-            /* スマホ時のロゴ・タイトルサイズ調整 */
             .logo-img { max-height: 35px !important; }
             h1 { font-size: 18px !important; }
 
@@ -188,9 +190,6 @@
 <div class="container">
     <div class="top-area">
         <div class="header">
-            <!-- ★オリジナルロゴ表示エリア -->
-            <!-- GitHubに「logo.png」という名前で画像をアップロードすると自動的に表示されます。 -->
-            <!-- ※テキストを消してロゴ画像だけにしたい場合は、すぐ下の <h1 ...>〜</h1> の行を削除してください。 -->
             <div style="display: flex; align-items: center; gap: 10px;">
                 <img src="logo.png" alt="" class="logo-img" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
                 <h1 style="margin: 0; font-size: 24px;">KanKan~好きな曲を集めました~</h1>
