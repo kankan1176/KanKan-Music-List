@@ -46,7 +46,6 @@
         .top-area { flex-shrink: 0; display: flex; flex-direction: column; gap: 15px; }
 
         .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
-        h1 { font-size: 24px; margin: 0; }
         .header-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
         
         button { padding: 8px 16px; background-color: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 14px; white-space: nowrap; }
@@ -148,7 +147,10 @@
         ========================================= */
         @media (max-width: 600px) {
             .container { padding: 12px 12px 0 12px; gap: 10px; }
-            h1 { font-size: 19px; }
+            /* スマホ時のロゴ・タイトルサイズ調整 */
+            .logo-img { max-height: 35px !important; }
+            h1 { font-size: 18px !important; }
+
             .header-buttons button { width: 100%; padding: 10px; font-size: 13px; }
 
             .controls { padding: 12px; }
@@ -186,7 +188,14 @@
 <div class="container">
     <div class="top-area">
         <div class="header">
-            <h1>KanKan~好きな曲を集めました~</h1>
+            <!-- ★オリジナルロゴ表示エリア -->
+            <!-- GitHubに「logo.png」という名前で画像をアップロードすると自動的に表示されます。 -->
+            <!-- ※テキストを消してロゴ画像だけにしたい場合は、すぐ下の <h1 ...>〜</h1> の行を削除してください。 -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="logo.png" alt="" class="logo-img" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+                <h1 style="margin: 0; font-size: 24px;">KanKan~好きな曲を集めました~</h1>
+            </div>
+
             <div class="header-buttons">
                 <button id="createRoomBtn" onclick="createRoom()">🌐 セッションルームを作る</button>
                 <button onclick="openModal('settingsModal')">⚙️ 設定</button>
@@ -276,7 +285,6 @@
             </select>
         </div>
 
-        <!-- ★修正：使い方ガイドを復元・更新 -->
         <div class="setting-group" style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
             <h3 style="font-size: 16px; margin-top: 0; color: var(--primary);">💡 使い方ガイド</h3>
             <ul style="font-size: 13px; line-height: 1.6; padding-left: 20px; margin: 0; color: var(--text-color);">
@@ -447,21 +455,16 @@
     function downloadSetlistImage() {
         const target = document.getElementById('captureArea');
         
-        // 保存時だけ「やり直す」ボタンを非表示にする
         const hideElements = target.querySelectorAll('.hide-on-capture');
         hideElements.forEach(el => el.style.display = 'none');
         
-        // 現在の背景色を取得して適用
         const bgColor = getComputedStyle(document.body).getPropertyValue('--panel-bg').trim();
         
         html2canvas(target, {
             backgroundColor: bgColor,
-            scale: 2 // 高画質化
+            scale: 2
         }).then(canvas => {
-            // 非表示を元に戻す
             hideElements.forEach(el => el.style.display = '');
-            
-            // 画像としてダウンロード
             const link = document.createElement('a');
             link.download = '本日のセットリスト.png';
             link.href = canvas.toDataURL('image/png');
@@ -499,17 +502,14 @@
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
 
-    // ★修正：ジャンルボタンの並び順を指定のものに固定する
     function populateGenreButtons() {
         genreFilters.innerHTML = ''; 
         const g1Set = new Set();
         allData.forEach(row => { if (row[genre1Key] && row[genre1Key].trim() !== '') g1Set.add(row[genre1Key]); });
         
-        // 優先して並べるジャンル
         const customOrder = ["すべて", "邦楽", "アニメ", "ボカロ", "洋楽"];
         const genres = [...customOrder];
         
-        // 上記以外のジャンルがCSVにあれば、その後ろにアルファベット/五十音順で追加する
         Array.from(g1Set).sort().forEach(genre => {
             if(!genres.includes(genre)) genres.push(genre);
         });
