@@ -224,9 +224,6 @@
 
         /* =========================================
            スマホ幅向け調整
-           狭い画面では表形式のまま列を圧縮すると、
-           「＋追加」ボタンなどが本文テキストと重なってしまうため、
-           1曲＝1カードの縦並びレイアウトに組み替える。
         ========================================= */
         @media (max-width: 600px) {
             .container { padding: 12px 12px 0 12px; gap: 10px; }
@@ -278,30 +275,60 @@
                 width: 100% !important;
                 min-width: 0 !important;
             }
+            
+            /* ★修正：Flexboxを使って、曲名の左側にボタンが並ぶように変更 */
             #tableBody tr {
-                display: block;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: flex-start;
                 width: 100%;
-                padding: 12px 4px;
+                padding: 15px 10px;
                 border-bottom: 1px solid var(--border-color);
+                box-sizing: border-box;
             }
             #tableBody td {
                 display: block;
-                width: 100% !important;
                 border-bottom: none !important;
-                padding: 3px 0 !important;
+                padding: 2px 0 !important;
                 font-size: 13px;
             }
-            /* 「＋追加」ボタンをカード右上に単独の行として配置し、本文と重ならないようにする */
+            
+            /* ボタン（左側） */
             #tableBody .col-action {
-                text-align: right;
-                margin-bottom: 6px;
+                width: auto !important;
+                margin-right: 12px;
+                text-align: left;
             }
-            #tableBody .col-action button { padding: 8px 12px; min-height: 34px; }
-            #tableBody .col-title { font-size: 15px; }
-            #tableBody .col-artist { opacity: 0.9; }
+            #tableBody .col-action button { 
+                padding: 8px 12px; 
+                min-height: 34px; 
+            }
+            
+            /* 曲名（右側・残り幅を埋める） */
+            #tableBody .col-title { 
+                flex: 1;
+                min-width: 0; /* 長い曲名でもはみ出さないための魔法 */
+                font-size: 15px; 
+                padding-top: 7px !important; /* ボタンとの縦位置を少し調整 */
+            }
+            
+            /* その他の項目（100%幅で下の行に押し出す） */
+            #tableBody .col-artist,
             #tableBody .col-genre,
             #tableBody .col-bpm,
-            #tableBody .col-code { font-size: 12px; opacity: 0.85; }
+            #tableBody .col-code {
+                width: 100% !important;
+            }
+            #tableBody .col-artist { 
+                margin-top: 4px; 
+                opacity: 0.9; 
+            }
+            #tableBody .col-genre,
+            #tableBody .col-bpm,
+            #tableBody .col-code { 
+                font-size: 12px; 
+                opacity: 0.85; 
+            }
 
             .remove-btn { min-height: 34px; padding: 8px 12px; }
         }
@@ -458,7 +485,6 @@
     function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
 
     // スプレッドシートの値をそのままHTMLに差し込まないためのエスケープ関数
-    // (曲名やURLに < > & " ' などが含まれていても表示崩れ・スクリプト実行を防ぐ)
     function escapeHtml(str) {
         return String(str ?? '').replace(/[&<>"']/g, (ch) => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -499,7 +525,6 @@
     }
 
     // Papaの解析結果（行の配列）から曲名列を探してallDataを構築し、画面に反映する共通処理
-    // (Googleスプレッドシートからの自動取得／CSVファイルの手動アップロードの両方で使う)
     function loadRowsIntoApp(rawData) {
         const headerIndex = rawData.findIndex(row => row.includes("曲名"));
 
@@ -514,8 +539,6 @@
         } else if (headers.includes('ジャンル')) {
             genre1Key = 'ジャンル';
         } else {
-            // どちらの列名も見つからない場合は存在しないキーにフォールバックせず、
-            // ジャンル関連表示は空扱いにする
             genre1Key = '';
             console.warn('ジャンル列（ジャンル① / ジャンル）が見つかりませんでした。');
         }
@@ -523,7 +546,6 @@
         allData = rawData.slice(headerIndex + 1).map((row, idx) => {
             let obj = { _id: idx.toString() };
             headers.forEach((headerName, index) => {
-                // 同名列が複数ある場合に値が上書きされて消えるのを防ぐ
                 if (Object.prototype.hasOwnProperty.call(obj, headerName) && obj[headerName]) return;
                 obj[headerName] = row[index] || '';
             });
@@ -561,7 +583,6 @@
         });
     });
 
-    // 入力のたびに毎回再描画すると曲数が多い場合にカクつくため、少し待ってから実行する
     let searchDebounceTimer = null;
     searchInput.addEventListener('input', () => {
         clearTimeout(searchDebounceTimer);
@@ -588,7 +609,6 @@
 
         allData.forEach(row => {
             if (setlistIds.has(row._id)) {
-                // コードWikiリンクの生成
                 let linkHtml = '-';
                 const wikiUrl = safeHref(row['コードwiki']);
                 if (wikiUrl) {
