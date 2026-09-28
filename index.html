@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>KanKan~好きな曲を集めました~</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
@@ -116,10 +116,14 @@
             margin: 0; 
             padding: 0; 
             height: 100vh; 
+            height: 100dvh; /* スマホのアドレスバー増減でガタつかないように */
             display: flex; 
             flex-direction: column; 
             overflow: hidden; 
             transition: background-color 0.3s, color 0.3s;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-sizing: border-box;
         }
         
         .container { 
@@ -164,12 +168,13 @@
            テーブル
         ========================================= */
         #tableWrapper { flex-grow: 1; display: none; flex-direction: column; background-color: var(--panel-bg); border-top: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
-        .table-header-wrapper { flex-shrink: 0; background-color: var(--th-bg); padding-right: 10px; border-bottom: 1px solid var(--border-color); }
-        .table-body-wrapper { flex-grow: 1; overflow-y: scroll; background-color: var(--panel-bg); }
-        .table-body-wrapper::-webkit-scrollbar { width: 10px; }
+        .table-header-wrapper { flex-shrink: 0; background-color: var(--th-bg); padding-right: 10px; border-bottom: 1px solid var(--border-color); overflow-x: hidden; }
+        .table-body-wrapper { flex-grow: 1; overflow-y: scroll; overflow-x: auto; background-color: var(--panel-bg); -webkit-overflow-scrolling: touch; }
+        .table-body-wrapper::-webkit-scrollbar { width: 10px; height: 10px; }
         .table-body-wrapper::-webkit-scrollbar-track { background: var(--bg-color); }
         .table-body-wrapper::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
-        .data-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+        /* 画面が狭い時は列を潰さず横スクロールで見せる（min-widthが効くのはコンテナがこれより狭い時のみ） */
+        .data-table { width: 100%; min-width: 560px; table-layout: fixed; border-collapse: collapse; }
 
         .col-action { width: 110px; }
         .col-title { width: 30%; }
@@ -216,6 +221,35 @@
         .setlist-info-link { font-size: 13px; }
         .remove-btn { background-color: #dc3545; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px;}
         .remove-btn:hover { background-color: #c82333; }
+
+        /* =========================================
+           スマホ幅向け調整（レイアウト・見た目はそのまま、
+           タップ領域や余白だけ見やすく最適化）
+        ========================================= */
+        @media (max-width: 600px) {
+            .container { padding: 12px 12px 0 12px; gap: 10px; }
+            h1 { font-size: 19px; }
+            .header-buttons button { padding: 8px 12px; font-size: 13px; }
+
+            .controls { padding: 12px; }
+            .search-row { gap: 8px; }
+            .search-box { min-width: 0; font-size: 16px; } /* 16px未満だとiOSで自動ズームするため維持 */
+            .setlist-header-btn { padding: 10px 14px; font-size: 13px; }
+
+            .genre-filters { gap: 6px; margin-top: 10px; }
+            .genre-btn { padding: 8px 12px; font-size: 12px; }
+
+            th, td { padding: 10px 10px; font-size: 13px; }
+            .col-main { font-size: 13px; }
+            .col-sub { font-size: 11px; }
+
+            /* ボタン類のタップ領域を確保 */
+            #tableBody button { padding: 8px 10px; min-height: 34px; }
+            .remove-btn { min-height: 34px; padding: 8px 12px; }
+
+            .modal { padding: 16px; width: 92%; }
+            .detail-label { width: 84px; font-size: 13px; }
+        }
     </style>
 </head>
 <body>
@@ -357,9 +391,31 @@
     const searchInput = document.getElementById('searchInput');
     const songCountDisplay = document.getElementById('songCountDisplay');
     const genreFilters = document.getElementById('genreFilters');
+    const tableHeaderWrapper = document.querySelector('.table-header-wrapper');
+    const tableBodyWrapper = document.querySelector('.table-body-wrapper');
+
+    // スマホ等の狭い画面でテーブルを横スクロールした時に、ヘッダー行も一緒に動かす
+    tableBodyWrapper.addEventListener('scroll', () => {
+        tableHeaderWrapper.scrollLeft = tableBodyWrapper.scrollLeft;
+    });
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
+
+    // スプレッドシートの値をそのままHTMLに差し込まないためのエスケープ関数
+    // (曲名やURLに < > & " ' などが含まれていても表示崩れ・スクリプト実行を防ぐ)
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, (ch) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[ch]));
+    }
+
+    // href属性用：エスケープに加えて javascript: 等の危険なスキームを弾く
+    function safeHref(url) {
+        const trimmed = String(url ?? '').trim();
+        if (!/^https?:\/\//i.test(trimmed)) return '';
+        return escapeHtml(trimmed);
+    }
     
     // テーマ切り替え
     function changeTheme() { 
@@ -404,11 +460,24 @@
                 }
                 
                 const headers = rawData[headerIndex];
-                genre1Key = headers.includes('ジャンル①') ? 'ジャンル①' : (headers.includes('ジャンル') ? 'ジャンル' : 'ジャンル①');
+                if (headers.includes('ジャンル①')) {
+                    genre1Key = 'ジャンル①';
+                } else if (headers.includes('ジャンル')) {
+                    genre1Key = 'ジャンル';
+                } else {
+                    // どちらの列名も見つからない場合は存在しないキーにフォールバックせず、
+                    // ジャンル関連表示は空扱いにする
+                    genre1Key = '';
+                    console.warn('ジャンル列（ジャンル① / ジャンル）が見つかりませんでした。');
+                }
 
                 allData = rawData.slice(headerIndex + 1).map((row, idx) => {
                     let obj = { _id: idx.toString() };
-                    headers.forEach((headerName, index) => { obj[headerName] = row[index] || ''; });
+                    headers.forEach((headerName, index) => {
+                        // 同名列が複数ある場合に値が上書きされて消えるのを防ぐ
+                        if (Object.prototype.hasOwnProperty.call(obj, headerName) && obj[headerName]) return;
+                        obj[headerName] = row[index] || '';
+                    });
                     return obj;
                 });
 
@@ -420,13 +489,19 @@
                 renderTable();
             },
             error: function(error) {
-                loadingArea.innerHTML = "<span style='color:red;'>エラー: データの取得に失敗しました。URLを確認してください。</span>";
+                loadingArea.innerHTML = "<span style='color:red;'>エラー: データの取得に失敗しました。URLまたはネットワーク接続を確認してください。</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>";
+                document.getElementById('retryBtn').onclick = () => location.reload();
                 console.error("CSV fetch error:", error);
             }
         });
     });
 
-    searchInput.addEventListener('input', renderTable);
+    // 入力のたびに毎回再描画すると曲数が多い場合にカクつくため、少し待ってから実行する
+    let searchDebounceTimer = null;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(renderTable, 150);
+    });
 
     function toggleSetlist(id) {
         setlistIds.has(id) ? setlistIds.delete(id) : setlistIds.add(id);
@@ -450,8 +525,9 @@
             if (setlistIds.has(row._id)) {
                 // コードWikiリンクの生成
                 let linkHtml = '-';
-                if (row['コードwiki']) {
-                    linkHtml = `<a href="${row['コードwiki']}" target="_blank">🎸 コードWikiを開く</a>`;
+                const wikiUrl = safeHref(row['コードwiki']);
+                if (wikiUrl) {
+                    linkHtml = `<a href="${wikiUrl}" target="_blank" rel="noopener noreferrer">🎸 コードWikiを開く</a>`;
                 } else {
                     linkHtml = `<span style="color:gray;">コード情報なし</span>`;
                 }
@@ -460,8 +536,8 @@
                 div.className = 'setlist-item';
                 div.innerHTML = `
                     <div class="setlist-info">
-                        <div class="setlist-info-title">${row['曲名'] || '-'}</div>
-                        <div class="setlist-info-artist">👤 ${row['アーティスト'] || '-'}</div>
+                        <div class="setlist-info-title">${escapeHtml(row['曲名'] || '-')}</div>
+                        <div class="setlist-info-artist">👤 ${escapeHtml(row['アーティスト'] || '-')}</div>
                         <div class="setlist-info-link">${linkHtml}</div>
                     </div>
                     <button class="remove-btn" onclick="toggleSetlist('${row._id}')">削除</button>
@@ -509,8 +585,9 @@
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
 
         const codeArea = document.getElementById('detailCodeArea');
-        if (song['コードwiki']) {
-            document.getElementById('detailCode').innerHTML = `<a href="${song['コードwiki']}" target="_blank">Wikiを開く</a>`;
+        const detailWikiUrl = safeHref(song['コードwiki']);
+        if (detailWikiUrl) {
+            document.getElementById('detailCode').innerHTML = `<a href="${detailWikiUrl}" target="_blank" rel="noopener noreferrer">Wikiを開く</a>`;
             codeArea.style.display = 'block';
         } else {
             codeArea.style.display = 'none';
@@ -554,13 +631,14 @@
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
             
-            let displayGenre = row[genre1Key] || '-';
-            if (row['ジャンル②']) displayGenre += ` / ${row['ジャンル②']}`;
-            if (row['タイアップ情報']) displayGenre += ` / ${row['タイアップ情報']}`;
+            let displayGenre = escapeHtml(row[genre1Key] || '-');
+            if (row['ジャンル②']) displayGenre += ` / ${escapeHtml(row['ジャンル②'])}`;
+            if (row['タイアップ情報']) displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
 
             let linkHtml = '-';
-            if (row['コードwiki']) {
-                linkHtml = `<a href="${row['コードwiki']}" target="_blank">開く</a>`;
+            const rowWikiUrl = safeHref(row['コードwiki']);
+            if (rowWikiUrl) {
+                linkHtml = `<a href="${rowWikiUrl}" target="_blank" rel="noopener noreferrer">開く</a>`;
             }
 
             const inSetlist = setlistIds.has(row._id);
@@ -570,10 +648,10 @@
 
             tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
-                <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${row['曲名'] || '-'}</span></td>
-                <td class="col-artist col-main">${row['アーティスト'] || '-'}</td>
+                <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                <td class="col-artist col-main">${escapeHtml(row['アーティスト'] || '-')}</td>
                 <td class="col-genre col-sub">${displayGenre}</td>
-                <td class="col-bpm col-sub nowrap-cell">${row['BPM'] || '-'}</td>
+                <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                 <td class="col-code col-sub nowrap-cell">${linkHtml}</td>
             `;
             tableBody.appendChild(tr);
