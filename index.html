@@ -247,7 +247,7 @@
                         <th>ステータス</th>
                         <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
                         <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
-                        <th class="sortable" onclick="handleSort('genreCol')">ジャンル <span class="sort-icon" id="icon-genreCol"></span></th>
+                        <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
                         <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
                         <th>コード</th>
                     </tr>
@@ -292,7 +292,7 @@
         <div class="setting-group" style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
             <h3 style="font-size: 16px; margin-top: 0; color: var(--primary);">💡 使い方ガイド</h3>
             <ul style="font-size: 13px; line-height: 1.6; padding-left: 20px; margin: 0; color: var(--text-color);">
-                <li style="margin-bottom: 6px;"><strong>CSVインポート：</strong> ヘッダーの「📁 CSVインポート」からお持ちの曲リスト（CSV）を読み込ませることで、このツールで利用できるようになります（H列のジャンルを自動認識してボタンを作成します）。</li>
+                <li style="margin-bottom: 6px;"><strong>CSVインポート：</strong> ヘッダーの「📁 CSVインポート」からお持ちの曲リスト（CSV）を読み込ませることで、このツールで利用できるようになります（H列のジャンルやジャンル②を自動認識してボタンを作成します）。</li>
                 <li style="margin-bottom: 6px;"><strong>セッションルーム：</strong> 「ルームを作る」ボタンを押すと専用URLが発行されます。そのURLを参加者に共有することで、全員で1つのセットリストをリアルタイムに共有・操作できます。</li>
                 <li style="margin-bottom: 6px;"><strong>進行のやり方：</strong> 曲は「📝 予約」→「🎸 確定」→「✅ 完了」の順にボタンを押して進行させます。順番は▲▼ボタンで入れ替え可能です。</li>
                 <li><strong>画像保存：</strong> 「✅ 完了」画面の下部にあるボタンから、本日のセットリストを1枚の画像として保存・シェアできます。</li>
@@ -440,7 +440,9 @@
         const url = window.location.href;
         if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(() => { alert('ルームのURLをコピーしました！メンバーに共有してください。'); }).catch(err => { fallbackCopy(url); });
-        } else { fallbackCopy(url); }
+        } else {
+            fallbackCopy(url);
+        }
     }
     function fallbackCopy(text) {
         const textArea = document.createElement("textarea"); textArea.value = text;
@@ -483,7 +485,8 @@
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
-    let genreColKey = ''; // ★H列（インデックス7）のヘッダー名、または動的キー
+    let genre1Key = 'ジャンル';       // メインのジャンル列名（H列など）
+    let genre2Key = 'ジャンル②';     // 2つ目のジャンル列名
 
     const tableBody = document.getElementById('tableBody');
     const controls = document.getElementById('controls');
@@ -524,12 +527,17 @@
         });
     }
 
+    // ★「ジャンル」と「ジャンル②」の両方の列からジャンルを収集してボタンを生成
     function populateGenreButtons() {
         genreFilters.innerHTML = ''; 
         const gSet = new Set();
+        
         allData.forEach(row => { 
-            if (genreColKey && row[genreColKey] && row[genreColKey].trim() !== '') {
-                gSet.add(row[genreColKey].trim()); 
+            if (genre1Key && row[genre1Key] && row[genre1Key].trim() !== '') {
+                gSet.add(row[genre1Key].trim()); 
+            }
+            if (genre2Key && row[genre2Key] && row[genre2Key].trim() !== '') {
+                gSet.add(row[genre2Key].trim()); 
             }
         });
         
@@ -558,16 +566,24 @@
         
         const headers = rawData[headerIndex];
         
-        // ★スプレッドシートのH列（0から数えてインデックス 7、つまり8番目の列）をジャンルとして特定する
-        // ※もしH列にデータがない場合や列が短い場合は、従来の「ジャンル」や「ジャンル①」の列を探してフォールバックします
+        // H列（インデックス7）があればそれをメインジャンルとする
         if (headers.length > 7 && headers[7] && headers[7].trim() !== '') {
-            genreColKey = headers[7].trim();
+            genre1Key = headers[7].trim();
         } else if (headers.includes('ジャンル①')) {
-            genreColKey = 'ジャンル①';
+            genre1Key = 'ジャンル①';
         } else if (headers.includes('ジャンル')) {
-            genreColKey = 'ジャンル';
+            genre1Key = 'ジャンル';
         } else {
-            genreColKey = headers[1] || ''; // 見つからない場合は2番目の列など
+            genre1Key = headers[1] || '';
+        }
+
+        // 2つ目のジャンル列の特定
+        if (headers.includes('ジャンル②')) {
+            genre2Key = 'ジャンル②';
+        } else if (headers.length > 8 && headers[8]) {
+            genre2Key = headers[8].trim();
+        } else {
+            genre2Key = '';
         }
 
         allData = rawData.slice(headerIndex + 1).map((row, idx) => {
@@ -766,16 +782,16 @@
     // その他UI処理
     // =========================================
     function handleSort(key) {
-        let actualKey = key === 'genreCol' ? genreColKey : key;
+        let actualKey = key === 'genre1' ? genre1Key : key;
         if (currentSortKey === actualKey) { currentSortOrder *= -1; } else { currentSortKey = actualKey; currentSortOrder = 1; }
         updateSortIcons(); renderTable();
     }
 
     function updateSortIcons() {
-        const keys = ['曲名', 'アーティスト', 'genreCol', 'BPM'];
+        const keys = ['曲名', 'アーティスト', 'genre1', 'BPM'];
         keys.forEach(k => {
             const iconEl = document.getElementById(`icon-${k}`);
-            if (iconEl) { const actualKey = k === 'genreCol' ? genreColKey : k; iconEl.textContent = currentSortKey === actualKey ? (currentSortOrder === 1 ? '▲' : '▼') : ''; }
+            if (iconEl) { const actualKey = k === 'genre1' ? genre1Key : k; iconEl.textContent = currentSortKey === actualKey ? (currentSortOrder === 1 ? '▲' : '▼') : ''; }
         });
     }
 
@@ -788,8 +804,8 @@
         document.getElementById('detailComposer').textContent = song['作曲'] || '-';
         document.getElementById('detailArranger').textContent = song['編曲'] || '-';
         document.getElementById('detailBPM').textContent = song['BPM'] || '-';
-        document.getElementById('detailGenre1').textContent = song[genreColKey] || '-';
-        document.getElementById('detailGenre2').textContent = song['ジャンル②'] || '-';
+        document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
+        document.getElementById('detailGenre2').textContent = song[genre2Key] || '-';
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
         const codeArea = document.getElementById('detailCodeArea');
         const detailWikiUrl = safeHref(song['コードwiki']);
@@ -803,9 +819,15 @@
     function renderTable() {
         tableBody.innerHTML = '';
         const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
+        
         let filteredData = allData.filter(row => {
-            const matchGenreBtn = currentGenre === 'すべて' || (row[genreColKey] || '').trim() === currentGenre;
-            const searchStr = `${row['曲名']} ${row['アーティスト']} ${row[genreColKey]} ${row['ジャンル②']} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
+            const g1 = (row[genre1Key] || '').trim();
+            const g2 = (row[genre2Key] || '').trim();
+            
+            // ★「すべて」または、ジャンル①・ジャンル②のどちらかに選択したジャンルが含まれていればヒット
+            const matchGenreBtn = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
+            
+            const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
             return matchGenreBtn && keywords.every(kw => searchStr.includes(kw));
         });
 
@@ -820,9 +842,16 @@
 
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
-            let displayGenre = escapeHtml(row[genreColKey] || '-');
-            if (row['ジャンル②']) displayGenre += ` / ${escapeHtml(row['ジャンル②'])}`;
-            if (row['タイアップ情報']) displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
+            
+            // ★テーブルのジャンル列に「ジャンル① / ジャンル②」のように2列分をまとめて綺麗に表示
+            let displayGenre = escapeHtml(row[genre1Key] || '-');
+            if (row[genre2Key] && row[genre2Key].trim() !== '') {
+                displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
+            }
+            if (row['タイアップ情報']) {
+                displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
+            }
+
             let linkHtml = '-';
             const rowWikiUrl = safeHref(row['コードwiki']);
             if (rowWikiUrl) { linkHtml = `<a href="${rowWikiUrl}" target="_blank" rel="noopener noreferrer">開く</a>`; }
