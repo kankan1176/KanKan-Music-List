@@ -196,10 +196,6 @@
             </div>
 
             <div class="header-buttons">
-                <!-- CSVインポートボタン -->
-                <button onclick="document.getElementById('csvFileInput').click()" style="background-color: #28a745; color: white; border: none;">📁 CSVインポート</button>
-                <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none;" onchange="handleFileImport(event)">
-
                 <button id="createRoomBtn" onclick="createRoom()">🌐 ルームを作る</button>
                 <button onclick="openModal('settingsModal')">⚙️ 設定</button>
             </div>
@@ -232,10 +228,10 @@
         </div>
     </div>
 
-    <!-- 初期ロード / 未読込時の案内画面 -->
+    <!-- ローディング画面 -->
     <div class="loading-area" id="loadingArea">
-        <div style="font-size: 18px; margin-bottom: 15px;">曲データ（CSV）が読み込まれていません</div>
-        <button onclick="document.getElementById('csvFileInput').click()" class="primary-btn" style="padding: 12px 24px; font-size: 16px;">📁 CSVファイルを選択してはじめる</button>
+        <div class="spinner"></div>
+        <div>スプレッドシートからデータを取得中...</div>
     </div>
 
     <div id="tableWrapper">
@@ -292,10 +288,11 @@
         <div class="setting-group" style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
             <h3 style="font-size: 16px; margin-top: 0; color: var(--primary);">💡 使い方ガイド</h3>
             <ul style="font-size: 13px; line-height: 1.6; padding-left: 20px; margin: 0; color: var(--text-color);">
-                <li style="margin-bottom: 6px;"><strong>CSVインポート：</strong> ヘッダーの「📁 CSVインポート」からお持ちの曲リスト（CSV）を読み込ませることで、このツールで利用できるようになります（H列のジャンルやジャンル②を自動認識してボタンを作成します）。</li>
                 <li style="margin-bottom: 6px;"><strong>セッションルーム：</strong> 「ルームを作る」ボタンを押すと専用URLが発行されます。そのURLを参加者に共有することで、全員で1つのセットリストをリアルタイムに共有・操作できます。</li>
                 <li style="margin-bottom: 6px;"><strong>進行のやり方：</strong> 曲は「📝 予約」→「🎸 確定」→「✅ 完了」の順にボタンを押して進行させます。順番は▲▼ボタンで入れ替え可能です。</li>
-                <li><strong>画像保存：</strong> 「✅ 完了」画面の下部にあるボタンから、本日のセットリストを1枚の画像として保存・シェアできます。</li>
+                <li style="margin-bottom: 6px;"><strong>画像保存：</strong> 「✅ 完了」画面の下部にあるボタンから、本日のセットリストを1枚の画像として保存・シェアできます。</li>
+                <li style="margin-bottom: 6px;"><strong>検索窓：</strong> 曲名、アーティスト、ジャンル、アニメ名など複数のキーワードをスペースで区切って入力すると、条件に合う曲を絞り込めます。</li>
+                <li><strong>詳細情報：</strong> リスト上の<strong>曲名（リンク文字）</strong>をクリックすると、詳しい情報が見られます。</li>
             </ul>
         </div>
     </div>
@@ -478,15 +475,17 @@
     }
 
     // =========================================
-    // CSVインポートおよびデータ処理
+    // スプレッドシート自動取得 & データ処理
     // =========================================
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
+
     let allData = [];
     let roomQueue = {}; 
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
-    let genre1Key = 'ジャンル';       // メインのジャンル列名（H列など）
-    let genre2Key = 'ジャンル②';     // 2つ目のジャンル列名
+    let genre1Key = 'ジャンル';   // メインのジャンル列
+    let genre2Key = 'ジャンル②'; // 2つ目のジャンル列
 
     const tableBody = document.getElementById('tableBody');
     const controls = document.getElementById('controls');
@@ -502,30 +501,6 @@
     function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
-
-    // CSVファイルの手動インポート処理
-    function handleFileImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        loadingArea.style.display = 'flex';
-        loadingArea.innerHTML = `<div class="spinner"></div><div>${escapeHtml(file.name)} を読み込み中...</div>`;
-        controls.style.display = 'none';
-        tableWrapper.style.display = 'none';
-
-        Papa.parse(file, {
-            header: false,
-            skipEmptyLines: true,
-            encoding: "UTF-8",
-            complete: function(results) {
-                loadRowsIntoApp(results.data);
-            },
-            error: function(err) {
-                loadingArea.innerHTML = "<span style='color:red;'>エラー: CSVファイルの読み込みに失敗しました。</span>";
-                console.error(err);
-            }
-        });
-    }
 
     // ★「ジャンル」と「ジャンル②」の両方の列からジャンルを収集してボタンを生成
     function populateGenreButtons() {
@@ -560,24 +535,23 @@
     function loadRowsIntoApp(rawData) {
         const headerIndex = rawData.findIndex(row => row.includes("曲名"));
         if (headerIndex === -1) { 
-            loadingArea.innerHTML = "<span style='color:red;'>エラー: データ内に「曲名」が見つかりませんでした。ヘッダー行を確認してください。</span><br><button onclick='location.reload()' style='margin-top:15px;'>🔄 やり直す</button>";
+            showCsvLoadError("エラー: データ内に「曲名」が見つかりませんでした。");
             return; 
         }
         
         const headers = rawData[headerIndex];
         
-        // H列（インデックス7）があればそれをメインジャンルとする
-        if (headers.length > 7 && headers[7] && headers[7].trim() !== '') {
-            genre1Key = headers[7].trim();
-        } else if (headers.includes('ジャンル①')) {
+        // ジャンル列の特定
+        if (headers.includes('ジャンル①')) {
             genre1Key = 'ジャンル①';
         } else if (headers.includes('ジャンル')) {
             genre1Key = 'ジャンル';
+        } else if (headers.length > 7 && headers[7]) {
+            genre1Key = headers[7].trim();
         } else {
-            genre1Key = headers[1] || '';
+            genre1Key = '';
         }
 
-        // 2つ目のジャンル列の特定
         if (headers.includes('ジャンル②')) {
             genre2Key = 'ジャンル②';
         } else if (headers.length > 8 && headers[8]) {
@@ -611,8 +585,30 @@
         }
     }
 
+    function showCsvLoadError(message) {
+        loadingArea.style.display = 'flex';
+        controls.style.display = 'none';
+        tableWrapper.style.display = 'none';
+        loadingArea.innerHTML = `<span style='color:red;'>${escapeHtml(message)}</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>`;
+        document.getElementById('retryBtn').onclick = () => location.reload();
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         initRoomUI();
+
+        // スプレッドシートのCSVを自動取得
+        Papa.parse(SHEET_CSV_URL, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            encoding: "UTF-8",
+            complete: function(results) { 
+                loadRowsIntoApp(results.data); 
+            },
+            error: function(error) {
+                showCsvLoadError("エラー: スプレッドシートからのデータ取得に失敗しました。URLや公開設定を確認してください。");
+            }
+        });
     });
 
     let searchDebounceTimer = null;
@@ -843,7 +839,7 @@
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
             
-            // ★テーブルのジャンル列に「ジャンル① / ジャンル②」のように2列分をまとめて綺麗に表示
+            // テーブル表示用（ジャンル① / ジャンル②）
             let displayGenre = escapeHtml(row[genre1Key] || '-');
             if (row[genre2Key] && row[genre2Key].trim() !== '') {
                 displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
