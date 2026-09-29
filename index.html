@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>KanKan~ただ好きな曲を集めたいだけ~</title>
+    <title>KanKan~ただ好きな曲集めたいだけ~</title>
     
     <!-- ブックマーク用アイコンの設定（PNG用） -->
     <link rel="icon" type="image/png" href="favicon.png">
@@ -192,10 +192,12 @@
         <div class="header">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <img src="logo2.png" alt="" class="logo-img" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
-                <h1 style="margin: 0; font-size: 24px;">KanKan~好きな曲セットリストツール~</h1>
+                <h1 style="margin: 0; font-size: 24px;">KanKan~ただ好きな曲集めたいだけ~</h1>
             </div>
 
             <div class="header-buttons">
+                <!-- ★ヘッダーに使い方ボタンを設置 -->
+                <button onclick="openManualModal()" style="background-color: #17a2b8; color: white; border: none;">📖 使い方ガイド</button>
                 <button id="createRoomBtn" onclick="createRoom()">🌐 ルームを作る</button>
                 <button onclick="openModal('settingsModal')">⚙️ 設定</button>
             </div>
@@ -260,6 +262,26 @@
 </div>
 
 <!-- ================= モーダル群 ================= -->
+
+<!-- ★新規：ステップ形式の詳しい使い方マニュアルモーダル -->
+<div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
+        <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
+        <h2 id="manualTitle" style="color: var(--primary);">📖 使い方ガイド (1/4)</h2>
+        
+        <div id="manualBody" style="font-size: 14px; line-height: 1.7; min-height: 200px; padding: 10px 0;">
+            <!-- ページ内容はJSで切り替え -->
+        </div>
+
+        <!-- ページネーション（前へ・次へボタン） -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <button id="prevManualBtn" onclick="changeManualPage(-1)" style="padding: 8px 16px;">◀ 前へ</button>
+            <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 4</span>
+            <button id="nextManualBtn" class="primary-btn" onclick="changeManualPage(1)" style="padding: 8px 16px;">次へ ▶</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="settingsModal" onclick="closeModal(event, 'settingsModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
@@ -283,17 +305,6 @@
                 <option value="eva00">零号機</option>
                 <option value="eva08">八号機</option>
             </select>
-        </div>
-
-        <div class="setting-group" style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
-            <h3 style="font-size: 16px; margin-top: 0; color: var(--primary);">💡 使い方ガイド</h3>
-            <ul style="font-size: 13px; line-height: 1.6; padding-left: 20px; margin: 0; color: var(--text-color);">
-                <li style="margin-bottom: 6px;"><strong>セッションルーム：</strong> 「ルームを作る」ボタンを押すと専用URLが発行されます。そのURLを参加者に共有することで、全員で1つのセットリストをリアルタイムに共有・操作できます。</li>
-                <li style="margin-bottom: 6px;"><strong>進行のやり方：</strong> 曲は「📝 予約」→「🎸 確定」→「✅ 完了」の順にボタンを押して進行させます。順番は▲▼ボタンで入れ替え可能です。</li>
-                <li style="margin-bottom: 6px;"><strong>画像保存：</strong> 「✅ 完了」画面の下部にあるボタンから、本日のセットリストを1枚の画像として保存・シェアできます。</li>
-                <li style="margin-bottom: 6px;"><strong>検索窓：</strong> 曲名、アーティスト、ジャンル、アニメ名など複数のキーワードをスペースで区切って入力すると、条件に合う曲を絞り込めます。</li>
-                <li><strong>詳細情報：</strong> リスト上の<strong>曲名（リンク文字）</strong>をクリックすると、詳しい情報が見られます。</li>
-            </ul>
         </div>
     </div>
 </div>
@@ -450,6 +461,86 @@
     }
 
     // =========================================
+    // ★マニュアル（使い方ガイド）のページ送り機能
+    // =========================================
+    let currentManualPage = 1;
+    const totalManualPages = 4;
+
+    const manualData = {
+        1: {
+            title: "📖 使い方ガイド (1/4) - アプリの概要と画面の見方",
+            content: `
+                <p><b>「セッション！セットリスト共有ツール」</b>へようこそ！このアプリは、バンドやセッションイベントで演奏する楽曲の管理、リアルタイムな予約、セットリストの作成・保存を行うためのツールです。</p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>メイン一覧：</strong> スプレッドシートから自動取得したすべての楽曲リストが表示されます。</li>
+                    <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「設定（名前の変更やカラーテーマ変更）」が行えます。</li>
+                    <li><strong>ジャンルボタン：</strong> 画面下のボタン（邦楽、アニメ、ボカロなど）を押すことで、ジャンル①・②を横断して素早く曲を絞り込めます。</li>
+                </ul>
+            `
+        },
+        2: {
+            title: "📖 使い方ガイド (2/4) - 曲の検索と詳細情報",
+            content: `
+                <p><b>目当ての曲を素早く見つけて詳細を確認する方法です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>キーワード検索：</strong> 検索ボックスに曲名、アーティスト名、アニメ名などをスペース区切りで入力すると、リアルタイムに候補が絞り込まれます。</li>
+                    <li style="margin-bottom: 8px;"><strong>ソート機能：</strong> 表のヘッダー（「曲名」「アーティスト」「ジャンル」「BPM」）をクリックすると、昇順・降順で並び替えることができます。</li>
+                    <li><strong>詳細ポップアップ：</strong> リスト上の<b>曲名をクリック</b>すると、作詞・作曲・編曲者やコードWikiへのリンクなど、詳細なデータを確認できます。</li>
+                </ul>
+            `
+        },
+        3: {
+            title: "📖 使い方ガイド (3/4) - セッションルームの使い方",
+            content: `
+                <p><b>メンバー全員とリアルタイムにセットリストを共有する機能です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>ルームの作成：</strong> 「🌐 ルームを作る」ボタンを押すと、専用のURLが発行されます。そのURLをLINEやSNSでメンバーに共有してください。</li>
+                    <li style="margin-bottom: 8px;"><strong>参加メンバーの確認：</strong> ルームに接続すると、画面上に現在接続しているメンバーの名前が一覧でリアルタイム表示されます。</li>
+                    <li><strong>名前の変更：</strong> メンバー一覧に表示される「自分の名前」は、右上「⚙️ 設定」からいつでも自由に変更可能です。</li>
+                </ul>
+            `
+        },
+        4: {
+            title: "📖 使い方ガイド (4/4) - 予約から完了・画像保存まで",
+            content: `
+                <p><b>当日のセッション進行とセットリストのシェア手順です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>3段階のステータス管理：</strong>
+                        <br>① <b>📝 予約：</b> リストの「＋追加」ボタンで予約リストに入ります（誰が追加したかもわかります）。▲▼ボタンで順番の入れ替えも可能！
+                        <br>② <b>🎸 確定：</b> 予約リストから「演奏確定」を押すと演奏リストに移動します。
+                        <br>③ <b>✅ 完了：</b> 演奏が終わったら「完了」へ！完了した曲は周回プレイ用に再び「＋追加」が可能になります。
+                    </li>
+                    <li><strong>セットリスト画像保存：</strong> 「✅ 完了」ボタンを押して完了リストを開き、下部の<b>「📸 画像として保存する」</b>ボタンを押すと、本日のセットリストが綺麗な1枚の画像としてスマホやPCに保存できます！</li>
+                </ul>
+            `
+        }
+    };
+
+    function openManualModal() {
+        currentManualPage = 1;
+        renderManualPage();
+        openModal('manualModal');
+    }
+
+    function changeManualPage(direction) {
+        currentManualPage += direction;
+        if (currentManualPage < 1) currentManualPage = 1;
+        if (currentManualPage > totalManualPages) currentManualPage = totalManualPages;
+        renderManualPage();
+    }
+
+    function renderManualPage() {
+        const pageData = manualData[currentManualPage];
+        document.getElementById('manualTitle').textContent = pageData.title;
+        document.getElementById('manualBody').innerHTML = pageData.content;
+        document.getElementById('manualPageIndicator').textContent = `${currentManualPage} / ${totalManualPages}`;
+
+        // ボタンの活性・非活性制御
+        document.getElementById('prevManualBtn').style.visibility = currentManualPage === 1 ? 'hidden' : 'visible';
+        document.getElementById('nextManualBtn').style.display = currentManualPage === totalManualPages ? 'none' : 'inline-block';
+    }
+
+    // =========================================
     // 画像を保存する処理 (html2canvas使用)
     // =========================================
     function downloadSetlistImage() {
@@ -484,8 +575,8 @@
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
-    let genre1Key = 'ジャンル';   // メインのジャンル列
-    let genre2Key = 'ジャンル②'; // 2つ目のジャンル列
+    let genre1Key = 'ジャンル'; 
+    let genre2Key = 'ジャンル②'; 
 
     const tableBody = document.getElementById('tableBody');
     const controls = document.getElementById('controls');
@@ -502,7 +593,6 @@
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
 
-    // ★「ジャンル」と「ジャンル②」の両方の列からジャンルを収集してボタンを生成
     function populateGenreButtons() {
         genreFilters.innerHTML = ''; 
         const gSet = new Set();
@@ -541,7 +631,6 @@
         
         const headers = rawData[headerIndex];
         
-        // ジャンル列の特定
         if (headers.includes('ジャンル①')) {
             genre1Key = 'ジャンル①';
         } else if (headers.includes('ジャンル')) {
@@ -596,7 +685,6 @@
     window.addEventListener('DOMContentLoaded', () => {
         initRoomUI();
 
-        // スプレッドシートのCSVを自動取得
         Papa.parse(SHEET_CSV_URL, {
             download: true,
             header: false,
@@ -820,7 +908,6 @@
             const g1 = (row[genre1Key] || '').trim();
             const g2 = (row[genre2Key] || '').trim();
             
-            // ★「すべて」または、ジャンル①・ジャンル②のどちらかに選択したジャンルが含まれていればヒット
             const matchGenreBtn = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
             
             const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
@@ -839,7 +926,6 @@
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
             
-            // テーブル表示用（ジャンル① / ジャンル②）
             let displayGenre = escapeHtml(row[genre1Key] || '-');
             if (row[genre2Key] && row[genre2Key].trim() !== '') {
                 displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
