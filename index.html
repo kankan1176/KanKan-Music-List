@@ -151,7 +151,7 @@
         @media (max-width: 600px) {
             .container { padding: 12px 12px 0 12px; gap: 10px; }
             .logo-img { max-height: 35px !important; }
-            h1 { font-size: 18px !important; }
+            h1 { font-size: 16px !important; }
 
             .header-buttons button { width: 100%; padding: 10px; font-size: 13px; }
 
@@ -192,11 +192,11 @@
         <div class="header">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <img src="logo2.png" alt="" class="logo-img" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
-                <h1 style="margin: 0; font-size: 24px;">KanKan~ただ好きな曲集めたいだけ~</h1>
+                <h1 style="margin: 0; font-size: 22px;">KanKan~ただ好きな曲集めたいだけ~</h1>
             </div>
 
             <div class="header-buttons">
-                <!-- ★ヘッダーに使い方ボタンを設置 -->
+                <!-- ヘッダーの使い方ボタン -->
                 <button onclick="openManualModal()" style="background-color: #17a2b8; color: white; border: none;">📖 使い方ガイド</button>
                 <button id="createRoomBtn" onclick="createRoom()">🌐 ルームを作る</button>
                 <button onclick="openModal('settingsModal')">⚙️ 設定</button>
@@ -263,17 +263,14 @@
 
 <!-- ================= モーダル群 ================= -->
 
-<!-- ★新規：ステップ形式の詳しい使い方マニュアルモーダル -->
+<!-- ステップ形式の詳しい使い方マニュアルモーダル -->
 <div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
     <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
         <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
         <h2 id="manualTitle" style="color: var(--primary);">📖 使い方ガイド (1/4)</h2>
         
-        <div id="manualBody" style="font-size: 14px; line-height: 1.7; min-height: 200px; padding: 10px 0;">
-            <!-- ページ内容はJSで切り替え -->
-        </div>
+        <div id="manualBody" style="font-size: 14px; line-height: 1.7; min-height: 200px; padding: 10px 0;"></div>
 
-        <!-- ページネーション（前へ・次へボタン） -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
             <button id="prevManualBtn" onclick="changeManualPage(-1)" style="padding: 8px 16px;">◀ 前へ</button>
             <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 4</span>
@@ -461,7 +458,7 @@
     }
 
     // =========================================
-    // ★マニュアル（使い方ガイド）のページ送り機能
+    // マニュアル（使い方ガイド）のページ送り機能
     // =========================================
     let currentManualPage = 1;
     const totalManualPages = 4;
@@ -470,11 +467,11 @@
         1: {
             title: "📖 使い方ガイド (1/4) - アプリの概要と画面の見方",
             content: `
-                <p><b>「セッション！セットリスト共有ツール」</b>へようこそ！このアプリは、バンドやセッションイベントで演奏する楽曲の管理、リアルタイムな予約、セットリストの作成・保存を行うためのツールです。</p>
+                <p><b>「KanKan~ただ好きな曲集めたいだけ~」</b>へようこそ！このアプリは、Googleスプレッドシートの楽曲データを自動読み込みし、リアルタイムな予約やセットリストの作成・保存を行うためのツールです。</p>
                 <ul style="padding-left: 20px; margin-top: 10px;">
                     <li style="margin-bottom: 8px;"><strong>メイン一覧：</strong> スプレッドシートから自動取得したすべての楽曲リストが表示されます。</li>
                     <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「設定（名前の変更やカラーテーマ変更）」が行えます。</li>
-                    <li><strong>ジャンルボタン：</strong> 画面下のボタン（邦楽、アニメ、ボカロなど）を押すことで、ジャンル①・②を横断して素早く曲を絞り込めます。</li>
+                    <li><strong>ジャンルボタン：</strong> 画面下のボタンを押すことで、ジャンル①・②を横断して素早く曲を絞り込めます。</li>
                 </ul>
             `
         },
@@ -535,7 +532,6 @@
         document.getElementById('manualBody').innerHTML = pageData.content;
         document.getElementById('manualPageIndicator').textContent = `${currentManualPage} / ${totalManualPages}`;
 
-        // ボタンの活性・非活性制御
         document.getElementById('prevManualBtn').style.visibility = currentManualPage === 1 ? 'hidden' : 'visible';
         document.getElementById('nextManualBtn').style.display = currentManualPage === totalManualPages ? 'none' : 'inline-block';
     }
