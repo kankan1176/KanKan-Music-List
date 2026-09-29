@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>KanKan~好きな曲を集めました~</title>
+    <title>セッション！セットリスト共有ツール</title>
     
     <!-- ブックマーク用アイコンの設定（PNG用） -->
     <link rel="icon" type="image/png" href="favicon.png">
@@ -190,14 +190,17 @@
 <div class="container">
     <div class="top-area">
         <div class="header">
-            <!-- ★ロゴ画像ファイルを logo2.png に変更 -->
             <div style="display: flex; align-items: center; gap: 10px;">
                 <img src="logo2.png" alt="" class="logo-img" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
-                <h1 style="margin: 0; font-size: 24px;">KanKan~好きな曲を集めました~</h1>
+                <h1 style="margin: 0; font-size: 24px;">セッション！セットリスト共有ツール</h1>
             </div>
 
             <div class="header-buttons">
-                <button id="createRoomBtn" onclick="createRoom()">🌐 セッションルームを作る</button>
+                <!-- CSVインポートボタン -->
+                <button onclick="document.getElementById('csvFileInput').click()" style="background-color: #28a745; color: white; border: none;">📁 CSVインポート</button>
+                <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none;" onchange="handleFileImport(event)">
+
+                <button id="createRoomBtn" onclick="createRoom()">🌐 ルームを作る</button>
                 <button onclick="openModal('settingsModal')">⚙️ 設定</button>
             </div>
         </div>
@@ -229,9 +232,10 @@
         </div>
     </div>
 
+    <!-- 初期ロード / 未読込時の案内画面 -->
     <div class="loading-area" id="loadingArea">
-        <div class="spinner"></div>
-        <div>データを取得中...</div>
+        <div style="font-size: 18px; margin-bottom: 15px;">曲データ（CSV）が読み込まれていません</div>
+        <button onclick="document.getElementById('csvFileInput').click()" class="primary-btn" style="padding: 12px 24px; font-size: 16px;">📁 CSVファイルを選択してはじめる</button>
     </div>
 
     <div id="tableWrapper">
@@ -243,7 +247,7 @@
                         <th>ステータス</th>
                         <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
                         <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
-                        <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
+                        <th class="sortable" onclick="handleSort('genreCol')">ジャンル <span class="sort-icon" id="icon-genreCol"></span></th>
                         <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
                         <th>コード</th>
                     </tr>
@@ -288,11 +292,10 @@
         <div class="setting-group" style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
             <h3 style="font-size: 16px; margin-top: 0; color: var(--primary);">💡 使い方ガイド</h3>
             <ul style="font-size: 13px; line-height: 1.6; padding-left: 20px; margin: 0; color: var(--text-color);">
+                <li style="margin-bottom: 6px;"><strong>CSVインポート：</strong> ヘッダーの「📁 CSVインポート」からお持ちの曲リスト（CSV）を読み込ませることで、このツールで利用できるようになります（H列のジャンルを自動認識してボタンを作成します）。</li>
                 <li style="margin-bottom: 6px;"><strong>セッションルーム：</strong> 「ルームを作る」ボタンを押すと専用URLが発行されます。そのURLを参加者に共有することで、全員で1つのセットリストをリアルタイムに共有・操作できます。</li>
                 <li style="margin-bottom: 6px;"><strong>進行のやり方：</strong> 曲は「📝 予約」→「🎸 確定」→「✅ 完了」の順にボタンを押して進行させます。順番は▲▼ボタンで入れ替え可能です。</li>
-                <li style="margin-bottom: 6px;"><strong>画像保存：</strong> 「✅ 完了」画面の下部にあるボタンから、本日のセットリストを1枚の画像として保存・シェアできます。完了した曲は再度「＋追加」することも可能です。</li>
-                <li style="margin-bottom: 6px;"><strong>検索窓：</strong> 曲名、アーティスト、ジャンル、アニメ名など複数のキーワードをスペースで区切って入力すると、条件に合う曲を絞り込めます。</li>
-                <li><strong>詳細情報：</strong> リスト上の<strong>曲名（リンク文字）</strong>をクリックすると、作詞・作曲・コードWikiなどの詳しい情報が見られます。</li>
+                <li><strong>画像保存：</strong> 「✅ 完了」画面の下部にあるボタンから、本日のセットリストを1枚の画像として保存・シェアできます。</li>
             </ul>
         </div>
     </div>
@@ -338,13 +341,11 @@
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'completedModal')">&times;</span>
         
-        <!-- キャプチャ（画像保存）対象エリア -->
         <div id="captureArea" style="background: var(--panel-bg); padding: 20px 15px; border-radius: 8px; color: var(--text-color);">
             <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 20px;">♬~~本日のセットリスト~~♬</h2>
             <div id="completedContainer"></div>
         </div>
         
-        <!-- 画像保存ボタン -->
         <div style="text-align: center; margin-top: 20px;">
             <button onclick="downloadSetlistImage()" style="background-color: #28a745; color: white; padding: 12px 24px; font-weight: bold; border-radius: 6px; font-size: 15px; border: none;">📸 画像として保存する</button>
         </div>
@@ -454,7 +455,6 @@
     // =========================================
     function downloadSetlistImage() {
         const target = document.getElementById('captureArea');
-        
         const hideElements = target.querySelectorAll('.hide-on-capture');
         hideElements.forEach(el => el.style.display = 'none');
         
@@ -476,16 +476,14 @@
     }
 
     // =========================================
-    // スプレッドシート読み込み・テーブル処理
+    // CSVインポートおよびデータ処理
     // =========================================
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
-
     let allData = [];
     let roomQueue = {}; 
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
-    let genre1Key = 'ジャンル'; 
+    let genreColKey = ''; // ★H列（インデックス7）のヘッダー名、または動的キー
 
     const tableBody = document.getElementById('tableBody');
     const controls = document.getElementById('controls');
@@ -502,31 +500,75 @@
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
 
+    // CSVファイルの手動インポート処理
+    function handleFileImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        loadingArea.style.display = 'flex';
+        loadingArea.innerHTML = `<div class="spinner"></div><div>${escapeHtml(file.name)} を読み込み中...</div>`;
+        controls.style.display = 'none';
+        tableWrapper.style.display = 'none';
+
+        Papa.parse(file, {
+            header: false,
+            skipEmptyLines: true,
+            encoding: "UTF-8",
+            complete: function(results) {
+                loadRowsIntoApp(results.data);
+            },
+            error: function(err) {
+                loadingArea.innerHTML = "<span style='color:red;'>エラー: CSVファイルの読み込みに失敗しました。</span>";
+                console.error(err);
+            }
+        });
+    }
+
     function populateGenreButtons() {
         genreFilters.innerHTML = ''; 
-        const g1Set = new Set();
-        allData.forEach(row => { if (row[genre1Key] && row[genre1Key].trim() !== '') g1Set.add(row[genre1Key]); });
-        
-        const customOrder = ["すべて", "邦楽", "アニメ", "ボカロ", "洋楽"];
-        const genres = [...customOrder];
-        
-        Array.from(g1Set).sort().forEach(genre => {
-            if(!genres.includes(genre)) genres.push(genre);
+        const gSet = new Set();
+        allData.forEach(row => { 
+            if (genreColKey && row[genreColKey] && row[genreColKey].trim() !== '') {
+                gSet.add(row[genreColKey].trim()); 
+            }
         });
+        
+        const genres = ["すべて", ...Array.from(gSet).sort()];
 
         genres.forEach(genre => {
             const btn = document.createElement('button');
-            btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`; btn.textContent = genre;
-            btn.onclick = () => { document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentGenre = genre; renderTable(); };
+            btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`; 
+            btn.textContent = genre;
+            btn.onclick = () => { 
+                document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active')); 
+                btn.classList.add('active'); 
+                currentGenre = genre; 
+                renderTable(); 
+            };
             genreFilters.appendChild(btn);
         });
     }
 
     function loadRowsIntoApp(rawData) {
         const headerIndex = rawData.findIndex(row => row.includes("曲名"));
-        if (headerIndex === -1) { showCsvLoadError("エラー: データ内に「曲名」が見つかりませんでした。"); return; }
+        if (headerIndex === -1) { 
+            loadingArea.innerHTML = "<span style='color:red;'>エラー: データ内に「曲名」が見つかりませんでした。ヘッダー行を確認してください。</span><br><button onclick='location.reload()' style='margin-top:15px;'>🔄 やり直す</button>";
+            return; 
+        }
+        
         const headers = rawData[headerIndex];
-        genre1Key = headers.includes('ジャンル①') ? 'ジャンル①' : headers.includes('ジャンル') ? 'ジャンル' : '';
+        
+        // ★スプレッドシートのH列（0から数えてインデックス 7、つまり8番目の列）をジャンルとして特定する
+        // ※もしH列にデータがない場合や列が短い場合は、従来の「ジャンル」や「ジャンル①」の列を探してフォールバックします
+        if (headers.length > 7 && headers[7] && headers[7].trim() !== '') {
+            genreColKey = headers[7].trim();
+        } else if (headers.includes('ジャンル①')) {
+            genreColKey = 'ジャンル①';
+        } else if (headers.includes('ジャンル')) {
+            genreColKey = 'ジャンル';
+        } else {
+            genreColKey = headers[1] || ''; // 見つからない場合は2番目の列など
+        }
 
         allData = rawData.slice(headerIndex + 1).map((row, idx) => {
             let obj = { _id: idx.toString() };
@@ -542,7 +584,8 @@
         controls.style.display = 'block';
         tableWrapper.style.display = 'flex';
         
-        if (currentRoomId) {
+        if (currentRoomId && !window._firebaseListenerInitialized) {
+            window._firebaseListenerInitialized = true;
             db.ref('rooms/' + currentRoomId + '/queue').on('value', (snapshot) => {
                 roomQueue = snapshot.val() || {};
                 renderTable(); updateQueueUI();
@@ -552,18 +595,8 @@
         }
     }
 
-    function showCsvLoadError(message) {
-        loadingArea.innerHTML = `<span style='color:red;'>${escapeHtml(message)}</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>`;
-        document.getElementById('retryBtn').onclick = () => location.reload();
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
         initRoomUI();
-        Papa.parse(SHEET_CSV_URL, {
-            download: true, header: false, skipEmptyLines: true, encoding: "UTF-8",
-            complete: function(results) { loadRowsIntoApp(results.data); },
-            error: function(error) { showCsvLoadError("エラー: データの取得に失敗しました。"); }
-        });
     });
 
     let searchDebounceTimer = null;
@@ -572,7 +605,6 @@
     // =========================================
     // セッション曲管理機能
     // =========================================
-    
     function addToQueue(songId) {
         const qId = 'q_' + Date.now() + '_' + Math.floor(Math.random()*1000);
         const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now() };
@@ -734,16 +766,16 @@
     // その他UI処理
     // =========================================
     function handleSort(key) {
-        let actualKey = key === 'genre1' ? genre1Key : key;
+        let actualKey = key === 'genreCol' ? genreColKey : key;
         if (currentSortKey === actualKey) { currentSortOrder *= -1; } else { currentSortKey = actualKey; currentSortOrder = 1; }
         updateSortIcons(); renderTable();
     }
 
     function updateSortIcons() {
-        const keys = ['曲名', 'アーティスト', 'genre1', 'BPM'];
+        const keys = ['曲名', 'アーティスト', 'genreCol', 'BPM'];
         keys.forEach(k => {
             const iconEl = document.getElementById(`icon-${k}`);
-            if (iconEl) { const actualKey = k === 'genre1' ? genre1Key : k; iconEl.textContent = currentSortKey === actualKey ? (currentSortOrder === 1 ? '▲' : '▼') : ''; }
+            if (iconEl) { const actualKey = k === 'genreCol' ? genreColKey : k; iconEl.textContent = currentSortKey === actualKey ? (currentSortOrder === 1 ? '▲' : '▼') : ''; }
         });
     }
 
@@ -756,7 +788,7 @@
         document.getElementById('detailComposer').textContent = song['作曲'] || '-';
         document.getElementById('detailArranger').textContent = song['編曲'] || '-';
         document.getElementById('detailBPM').textContent = song['BPM'] || '-';
-        document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
+        document.getElementById('detailGenre1').textContent = song[genreColKey] || '-';
         document.getElementById('detailGenre2').textContent = song['ジャンル②'] || '-';
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
         const codeArea = document.getElementById('detailCodeArea');
@@ -772,8 +804,8 @@
         tableBody.innerHTML = '';
         const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
         let filteredData = allData.filter(row => {
-            const matchGenreBtn = currentGenre === 'すべて' || (row[genre1Key] || '') === currentGenre;
-            const searchStr = `${row['曲名']} ${row['アーティスト']} ${row[genre1Key]} ${row['ジャンル②']} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
+            const matchGenreBtn = currentGenre === 'すべて' || (row[genreColKey] || '').trim() === currentGenre;
+            const searchStr = `${row['曲名']} ${row['アーティスト']} ${row[genreColKey]} ${row['ジャンル②']} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
             return matchGenreBtn && keywords.every(kw => searchStr.includes(kw));
         });
 
@@ -788,7 +820,7 @@
 
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
-            let displayGenre = escapeHtml(row[genre1Key] || '-');
+            let displayGenre = escapeHtml(row[genreColKey] || '-');
             if (row['ジャンル②']) displayGenre += ` / ${escapeHtml(row['ジャンル②'])}`;
             if (row['タイアップ情報']) displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
             let linkHtml = '-';
@@ -818,7 +850,7 @@
             tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                 <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
-                <td class="col-artist col-main">${escapeHtml(row['アーティスト'] || '-')}</td>
+                <td class="col-artist col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['アーティスト'] || '-')}</span></td>
                 <td class="col-genre col-sub">${displayGenre}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                 <td class="col-code col-sub nowrap-cell">${linkHtml}</td>
