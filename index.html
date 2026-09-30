@@ -235,7 +235,7 @@
                 <div class="genre-filters" id="genreFilters"></div>
             </div>
 
-            <!-- ★お気に入り度フィルター（F列対応） -->
+            <!-- お気に入り度フィルター（星が多い順） -->
             <div class="filter-section">
                 <div class="filter-label">⭐ お気に入り度</div>
                 <div class="fav-filters" id="favFilters"></div>
@@ -484,7 +484,7 @@
                 <ul style="padding-left: 20px; margin-top: 10px;">
                     <li style="margin-bottom: 8px;"><strong>メイン一覧：</strong> スプレッドシートから自動取得したすべての楽曲リストが表示されます。</li>
                     <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「設定（名前の変更やカラーテーマ変更）」が行えます。</li>
-                    <li><strong>フィルターボタン：</strong> 画面下のジャンルや「お気に入り度（★〜★★★★★）」ボタンを押すことで、素早く曲を絞り込めます。</li>
+                    <li><strong>フィルターボタン：</strong> 画面下のジャンルや「お気に入り度（★★★★★〜★）」ボタンを押すことで、素早く曲を絞り込めます。</li>
                 </ul>
             `
         },
@@ -584,10 +584,10 @@
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
-    let currentFav = "すべて";     // ★お気に入り度の選択状態
+    let currentFav = "すべて"; 
     let genre1Key = 'ジャンル'; 
     let genre2Key = 'ジャンル②'; 
-    let favKey = 'お気に入り度';    // ★F列（お気に入り度）の列キー
+    let favKey = 'お気に入り度'; 
 
     const tableBody = document.getElementById('tableBody');
     const controls = document.getElementById('controls');
@@ -596,7 +596,7 @@
     const searchInput = document.getElementById('searchInput');
     const songCountDisplay = document.getElementById('songCountDisplay');
     const genreFilters = document.getElementById('genreFilters');
-    const favFilters = document.getElementById('favFilters'); // ★お気に入り度ボタンエリア
+    const favFilters = document.getElementById('favFilters');
     
     document.querySelector('.table-body-wrapper').addEventListener('scroll', (e) => { document.querySelector('.table-header-wrapper').scrollLeft = e.target.scrollLeft; });
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -635,10 +635,10 @@
         });
     }
 
-    // ★お気に入り度ボタン生成（★、★★、★★★、★★★★、★★★★★）
+    // ★お気に入り度ボタン生成（★★★★★、★★★★、★★★、★★、★ の順番）
     function populateFavButtons() {
         favFilters.innerHTML = '';
-        const favOptions = ["すべて", "★", "★★", "★★★", "★★★★", "★★★★★"];
+        const favOptions = ["すべて", "★★★★★", "★★★★", "★★★", "★★", "★"];
 
         favOptions.forEach(fav => {
             const btn = document.createElement('button');
@@ -663,7 +663,6 @@
         
         const headers = rawData[headerIndex];
         
-        // ジャンル①の特定
         if (headers.includes('ジャンル①')) {
             genre1Key = 'ジャンル①';
         } else if (headers.includes('ジャンル')) {
@@ -674,7 +673,6 @@
             genre1Key = '';
         }
 
-        // ジャンル②の特定
         if (headers.includes('ジャンル②')) {
             genre2Key = 'ジャンル②';
         } else if (headers.length > 8 && headers[8]) {
@@ -683,7 +681,6 @@
             genre2Key = '';
         }
 
-        // ★F列（インデックス5、6番目の列）をお気に入り度として特定
         if (headers.includes('お気に入り度')) {
             favKey = 'お気に入り度';
         } else if (headers.length > 5 && headers[5] && headers[5].trim() !== '') {
@@ -702,7 +699,7 @@
         });
 
         populateGenreButtons();
-        populateFavButtons(); // ★お気に入り度ボタンを構築
+        populateFavButtons(); 
         loadingArea.style.display = 'none';
         controls.style.display = 'block';
         tableWrapper.style.display = 'flex';
@@ -934,7 +931,7 @@
         document.getElementById('detailBPM').textContent = song['BPM'] || '-';
         document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
         document.getElementById('detailGenre2').textContent = song[genre2Key] || '-';
-        document.getElementById('detailFav').textContent = song[favKey] || '-'; // ★詳細画面にお気に入り度表示
+        document.getElementById('detailFav').textContent = song[favKey] || '-';
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
         const codeArea = document.getElementById('detailCodeArea');
         const detailWikiUrl = safeHref(song['コードwiki']);
@@ -954,10 +951,7 @@
             const g2 = (row[genre2Key] || '').trim();
             const fVal = (row[favKey] || '').trim();
             
-            // ジャンル条件のチェック
             const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
-            
-            // ★お気に入り度条件のチェック
             const matchFav = currentFav === 'すべて' || fVal === currentFav;
             
             const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${fVal} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
@@ -981,7 +975,7 @@
                 displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
             }
             if (row[favKey] && row[favKey].trim() !== '') {
-                displayGenre += ` / ${escapeHtml(row[favKey])}`; // テーブル側にもお気に入り度を合わせて表示
+                displayGenre += ` / ${escapeHtml(row[favKey])}`;
             }
             if (row['タイアップ情報']) {
                 displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
