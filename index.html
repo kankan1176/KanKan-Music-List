@@ -70,7 +70,6 @@
         .spinner { border: 3px solid var(--border-color); border-top: 3px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-bottom: 10px;}
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* ★メニューエリアの縦幅・フォントをコンパクト化 */
         .controls { display: none; background-color: var(--panel-bg); padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
         
         .search-row { display: flex; flex-direction: column; align-items: stretch; gap: 8px;}
@@ -80,7 +79,8 @@
         .song-count { font-weight: bold; font-size: 13px; color: var(--primary); margin-top: 2px; }
 
         .filter-section { margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .filter-label { font-size: 11px; font-weight: bold; opacity: 0.8; width: 65px; flex-shrink: 0; }
+        /* ★ラベルの幅を広げ、折り返しを防ぐよう修正 */
+        .filter-label { font-size: 11px; font-weight: bold; opacity: 0.8; width: 85px; flex-shrink: 0; white-space: nowrap; }
         .genre-filters, .fav-filters { display: flex; gap: 5px; flex-wrap: wrap; flex-grow: 1; }
         .genre-btn, .fav-btn { padding: 4px 10px; border-radius: 14px; font-size: 12px; }
         .genre-btn.active, .fav-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
@@ -508,7 +508,7 @@
                 <ul style="padding-left: 20px; margin-top: 10px;">
                     <li style="margin-bottom: 8px;"><strong>ルームの作成：</strong> 「🌐 ルームを作る」ボタンを押すと、専用のURLが発行されます。そのURLをSYNCROOMチャット欄やDMでメンバーに共有してください。</li>
                     <li style="margin-bottom: 8px;"><strong>参加メンバーの確認：</strong> ルームに接続すると、画面上に現在接続しているメンバーの名前が一覧でリアルタイム表示されます。</li>
-                    <li><strong>名前の変更：</strong> メンバー一覧に表示される「自分の名前」は、右上「⚙️ 設定」からいつでも自由に変更可能です。</li>
+                    <li><strong>名前の変更：</strong> メンバー一覧に表示される「自分の名前」は、右上「⚙️️ 設定」からいつでも自由に変更可能です。</li>
                 </ul>
             `
         },
@@ -980,7 +980,7 @@
                 displayGenre += ` / ${escapeHtml(row[favKey])}`;
             }
             if (row['タイアップ情報']) {
-                displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`
+                displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
             }
 
             let linkHtml = '-';
