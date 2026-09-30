@@ -45,43 +45,44 @@
             transition: background-color 0.3s, color 0.3s;
             padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box;
         }
-        .container { flex-grow: 1; display: flex; flex-direction: column; width: 100%; max-width: 1300px; margin: 0 auto; padding: 20px 20px 0 20px; box-sizing: border-box; gap: 15px; overflow: hidden; }
-        .top-area { flex-shrink: 0; display: flex; flex-direction: column; gap: 15px; }
+        .container { flex-grow: 1; display: flex; flex-direction: column; width: 100%; max-width: 1300px; margin: 0 auto; padding: 10px 15px 0 15px; box-sizing: border-box; gap: 8px; overflow: hidden; }
+        .top-area { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
 
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
-        .header-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}
+        .header-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
         
-        button { padding: 8px 16px; background-color: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 14px; white-space: nowrap; }
+        button { padding: 6px 12px; background-color: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; white-space: nowrap; }
         button:hover { background-color: var(--btn-hover); color: var(--text-color); }
         button.primary-btn { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); font-weight: bold; }
         button.primary-btn:hover { background-color: var(--primary); opacity: 0.8; color: var(--primary-text); }
         
         /* ルーム接続中のステータスバー */
-        .room-status-wrapper { display: none; background-color: var(--primary); color: var(--primary-text); padding: 10px 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); flex-direction: column; gap: 8px;}
+        .room-status-wrapper { display: none; background-color: var(--primary); color: var(--primary-text); padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-direction: column; gap: 4px;}
         .room-status-wrapper.active { display: flex; }
-        .room-status-bar { display: flex; align-items: center; justify-content: space-between; font-size: 14px; flex-wrap: wrap; gap: 10px;}
-        .room-members-area { font-size: 12px; background: rgba(0,0,0,0.15); padding: 6px 10px; border-radius: 4px; line-height: 1.4; word-break: break-all;}
+        .room-status-bar { display: flex; align-items: center; justify-content: space-between; font-size: 13px; flex-wrap: wrap; gap: 8px;}
+        .room-members-area { font-size: 11px; background: rgba(0,0,0,0.15); padding: 4px 8px; border-radius: 4px; line-height: 1.3; word-break: break-all;}
         
-        .room-actions { display: flex; gap: 8px; }
-        .room-actions button { background-color: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; font-size: 12px; }
+        .room-actions { display: flex; gap: 6px; }
+        .room-actions button { background-color: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 4px 10px; font-size: 11px; }
         .room-actions button.btn-danger { background-color: #dc3545; color: white; border: none; }
 
-        .loading-area { padding: 50px; text-align: center; background-color: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-color); font-size: 18px; font-weight: bold; color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;}
-        .spinner { border: 4px solid var(--border-color); border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;}
+        .loading-area { padding: 30px; text-align: center; background-color: var(--panel-bg); border-radius: 6px; border: 1px solid var(--border-color); font-size: 16px; font-weight: bold; color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;}
+        .spinner { border: 3px solid var(--border-color); border-top: 3px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-bottom: 10px;}
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .controls { display: none; background-color: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        /* ★メニューエリアの縦幅・フォントをコンパクト化 */
+        .controls { display: none; background-color: var(--panel-bg); padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
         
-        .search-row { display: flex; flex-direction: column; align-items: stretch; gap: 12px;}
-        .search-box { width: 100%; padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
-        .status-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-        .status-buttons button { flex: 1; min-width: 90px; padding: 10px; border-radius: 8px; font-size: 14px; }
-        .song-count { font-weight: bold; font-size: 14px; color: var(--primary); margin-top: 5px; }
+        .search-row { display: flex; flex-direction: column; align-items: stretch; gap: 8px;}
+        .search-box { width: 100%; padding: 7px 10px; font-size: 14px; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
+        .status-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .status-buttons button { flex: 1; min-width: 80px; padding: 7px; border-radius: 6px; font-size: 13px; }
+        .song-count { font-weight: bold; font-size: 13px; color: var(--primary); margin-top: 2px; }
 
-        .filter-section { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-        .filter-label { font-size: 12px; font-weight: bold; opacity: 0.8; }
-        .genre-filters, .fav-filters { display: flex; gap: 8px; flex-wrap: wrap; }
-        .genre-btn, .fav-btn { padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+        .filter-section { margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .filter-label { font-size: 11px; font-weight: bold; opacity: 0.8; width: 65px; flex-shrink: 0; }
+        .genre-filters, .fav-filters { display: flex; gap: 5px; flex-wrap: wrap; flex-grow: 1; }
+        .genre-btn, .fav-btn { padding: 4px 10px; border-radius: 14px; font-size: 12px; }
         .genre-btn.active, .fav-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
 
         /* =========================================
@@ -95,23 +96,23 @@
         .table-body-wrapper::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
         .data-table { width: 100%; min-width: 560px; table-layout: fixed; border-collapse: collapse; }
 
-        .col-action { width: 110px; }
+        .col-action { width: 100px; }
         .col-title { width: 30%; }
         .col-artist { width: 25%; }
         .col-genre { width: auto; }
-        .col-bpm { width: 70px; }
-        .col-code { width: 70px; }
+        .col-bpm { width: 65px; }
+        .col-code { width: 65px; }
 
-        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border-color); word-wrap: break-word; overflow-wrap: break-word; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); word-wrap: break-word; overflow-wrap: break-word; }
         th { color: var(--th-text); font-weight: bold; font-size: 13px; white-space: nowrap; user-select: none; border-bottom: none; }
         .nowrap-cell { white-space: nowrap; }
         th.sortable { cursor: pointer; transition: background-color 0.2s; }
         th.sortable:hover { background-color: var(--th-hover); }
-        .sort-icon { display: inline-block; width: 14px; text-align: center; color: inherit; font-size: 12px; opacity: 0.8;}
+        .sort-icon { display: inline-block; width: 14px; text-align: center; color: inherit; font-size: 11px; opacity: 0.8;}
 
         tr:hover { background-color: var(--btn-hover); }
-        .col-main { font-size: 14px; }
-        .col-sub { font-size: 12px; opacity: 0.9; }
+        .col-main { font-size: 13px; }
+        .col-sub { font-size: 11px; opacity: 0.9; }
 
         .song-title-link { color: var(--link-color); text-decoration: underline; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .song-title-link:hover { opacity: 0.7; }
@@ -151,40 +152,41 @@
            スマホ幅向け調整
         ========================================= */
         @media (max-width: 600px) {
-            .container { padding: 12px 12px 0 12px; gap: 10px; }
-            .logo-img { max-height: 35px !important; }
-            h1 { font-size: 16px !important; }
+            .container { padding: 8px 8px 0 8px; gap: 6px; }
+            .logo-img { max-height: 30px !important; }
+            h1 { font-size: 15px !important; }
 
-            .header-buttons button { width: 100%; padding: 10px; font-size: 13px; }
+            .header-buttons button { padding: 6px 10px; font-size: 12px; }
 
-            .controls { padding: 12px; }
-            .status-buttons button { padding: 8px; font-size: 13px; }
+            .controls { padding: 8px; }
+            .status-buttons button { padding: 6px; font-size: 12px; }
 
             .filter-section { gap: 4px; }
-            .genre-filters, .fav-filters { gap: 5px; }
-            .genre-btn, .fav-btn { padding: 6px 10px; font-size: 12px; }
+            .filter-label { width: 100%; }
+            .genre-filters, .fav-filters { gap: 4px; }
+            .genre-btn, .fav-btn { padding: 3px 8px; font-size: 11px; }
 
             .modal { padding: 16px; width: 92%; }
             .detail-label { width: 84px; font-size: 13px; }
 
             .table-header-wrapper { overflow-x: visible; padding-right: 0; }
             .table-header-wrapper .data-table, .table-header-wrapper .data-table tbody, .table-header-wrapper .data-table tr { display: flex; flex-wrap: wrap; width: 100% !important; min-width: 0 !important; }
-            .table-header-wrapper th { display: inline-flex; align-items: center; justify-content: center; flex: 1 1 auto; width: auto !important; border-bottom: none; padding: 8px 6px; font-size: 12px; }
+            .table-header-wrapper th { display: inline-flex; align-items: center; justify-content: center; flex: 1 1 auto; width: auto !important; border-bottom: none; padding: 6px 4px; font-size: 11px; }
             .table-header-wrapper th:first-child, .table-header-wrapper th:last-child { display: none; }
 
             .table-body-wrapper { overflow-x: visible; }
             .table-body-wrapper .data-table, .table-body-wrapper .data-table tbody { display: block; width: 100% !important; min-width: 0 !important; }
             
-            #tableBody tr { display: flex; flex-wrap: wrap; align-items: flex-start; width: 100%; padding: 15px 10px; border-bottom: 1px solid var(--border-color); box-sizing: border-box; }
-            #tableBody td { display: block; border-bottom: none !important; padding: 2px 0 !important; font-size: 13px; }
+            #tableBody tr { display: flex; flex-wrap: wrap; align-items: flex-start; width: 100%; padding: 10px 8px; border-bottom: 1px solid var(--border-color); box-sizing: border-box; }
+            #tableBody td { display: block; border-bottom: none !important; padding: 2px 0 !important; font-size: 12px; }
             
-            #tableBody .col-action { width: auto !important; margin-right: 12px; text-align: left; }
-            #tableBody .col-action button { padding: 8px 12px; min-height: 34px; }
-            #tableBody .col-title { flex: 1; min-width: 0; font-size: 15px; padding-top: 7px !important; }
+            #tableBody .col-action { width: auto !important; margin-right: 10px; text-align: left; }
+            #tableBody .col-action button { padding: 6px 10px; min-height: 30px; font-size: 12px; }
+            #tableBody .col-title { flex: 1; min-width: 0; font-size: 14px; padding-top: 5px !important; }
             
             #tableBody .col-artist, #tableBody .col-genre, #tableBody .col-bpm, #tableBody .col-code { width: 100% !important; }
-            #tableBody .col-artist { margin-top: 4px; opacity: 0.9; }
-            #tableBody .col-genre, #tableBody .col-bpm, #tableBody .col-code { font-size: 12px; opacity: 0.85; }
+            #tableBody .col-artist { margin-top: 3px; opacity: 0.9; }
+            #tableBody .col-genre, #tableBody .col-bpm, #tableBody .col-code { font-size: 11px; opacity: 0.85; }
         }
     </style>
 </head>
@@ -193,9 +195,9 @@
 <div class="container">
     <div class="top-area">
         <div class="header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="logo2.png" alt="" class="logo-img" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
-                <h1 style="margin: 0; font-size: 22px;">KanKan~ただ好きな曲集めたいだけ~</h1>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="logo2.png" alt="" class="logo-img" style="max-height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+                <h1 style="margin: 0; font-size: 20px;">KanKan~ただ好きな曲集めたいだけ~</h1>
             </div>
 
             <div class="header-buttons">
@@ -235,9 +237,9 @@
                 <div class="genre-filters" id="genreFilters"></div>
             </div>
 
-            <!-- お気に入り度フィルター（星が多い順） -->
+            <!-- お気に入り度フィルター -->
             <div class="filter-section">
-                <div class="filter-label">⭐ お気に入り度</div>
+                <div class="filter-label">⭐ お気に入り</div>
                 <div class="fav-filters" id="favFilters"></div>
             </div>
         </div>
@@ -635,7 +637,7 @@
         });
     }
 
-    // ★お気に入り度ボタン生成（★★★★★、★★★★、★★★、★★、★ の順番）
+    // お気に入り度ボタン生成（★★★★★〜★）
     function populateFavButtons() {
         favFilters.innerHTML = '';
         const favOptions = ["すべて", "★★★★★", "★★★★", "★★★", "★★", "★"];
@@ -888,15 +890,15 @@
                 div.style.display = 'flex';
                 div.style.justifyContent = 'space-between';
                 div.style.alignItems = 'center';
-                div.style.padding = '12px 0';
+                div.style.padding = '10px 0';
                 div.style.borderBottom = (index === completedItems.length - 1) ? 'none' : '1px dashed var(--border-color)';
                 
                 div.innerHTML = `
-                    <div style="flex: 1; text-align: left; font-size: 16px; line-height: 1.4;">
+                    <div style="flex: 1; text-align: left; font-size: 14px; line-height: 1.4;">
                         <span style="font-weight: bold;">${index + 1}. ${displayTitle}</span>
-                        <span style="margin-left: 8px; font-size: 13px; opacity: 0.8;">/ ${escapeHtml(item.songData['アーティスト'])}</span>
+                        <span style="margin-left: 8px; font-size: 12px; opacity: 0.8;">/ ${escapeHtml(item.songData['アーティスト'])}</span>
                     </div>
-                    <button class="btn-revert hide-on-capture" style="padding: 4px 8px; font-size: 12px; opacity: 0.5; margin-left: 10px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="changeStatus('${item.qId}', 'confirmed')">戻す</button>
+                    <button class="btn-revert hide-on-capture" style="padding: 3px 6px; font-size: 11px; opacity: 0.5; margin-left: 10px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="changeStatus('${item.qId}', 'confirmed')">戻す</button>
                 `;
                 fCont.appendChild(div);
             });
@@ -978,7 +980,7 @@
                 displayGenre += ` / ${escapeHtml(row[favKey])}`;
             }
             if (row['タイアップ情報']) {
-                displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
+                displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`
             }
 
             let linkHtml = '-';
@@ -995,13 +997,13 @@
                 }
             }
             
-            let actionBtnHtml = `<button style="border-radius:4px; padding:6px 10px;" onclick="addToQueue('${row._id}')">＋ 追加</button>`;
+            let actionBtnHtml = `<button style="border-radius:4px; padding:4px 8px; font-size:12px;" onclick="addToQueue('${row._id}')">＋ 追加</button>`;
             
             if (activeQid) {
                 if (activeStatus === 'reserved') {
-                    actionBtnHtml = `<button style="background:var(--primary); color:white; border-radius:4px; padding:6px 10px;" onclick="removeQueue('${activeQid}')">✓ 予約済</button>`;
+                    actionBtnHtml = `<button style="background:var(--primary); color:white; border-radius:4px; padding:4px 8px; font-size:12px;" onclick="removeQueue('${activeQid}')">✓ 予約済</button>`;
                 } else if (activeStatus === 'confirmed') {
-                    actionBtnHtml = `<button style="background:#28a745; color:white; border-radius:4px; padding:6px 10px; opacity:0.8;" disabled>🎸 確定済</button>`;
+                    actionBtnHtml = `<button style="background:#28a745; color:white; border-radius:4px; padding:4px 8px; font-size:12px; opacity:0.8;" disabled>🎸 確定済</button>`;
                 }
             }
 
