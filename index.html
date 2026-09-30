@@ -78,9 +78,11 @@
         .status-buttons button { flex: 1; min-width: 90px; padding: 10px; border-radius: 8px; font-size: 14px; }
         .song-count { font-weight: bold; font-size: 14px; color: var(--primary); margin-top: 5px; }
 
-        .genre-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-        .genre-btn { padding: 6px 14px; border-radius: 20px; font-size: 13px; }
-        .genre-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+        .filter-section { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .filter-label { font-size: 12px; font-weight: bold; opacity: 0.8; }
+        .genre-filters, .fav-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .genre-btn, .fav-btn { padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+        .genre-btn.active, .fav-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
 
         /* =========================================
            テーブル
@@ -158,8 +160,9 @@
             .controls { padding: 12px; }
             .status-buttons button { padding: 8px; font-size: 13px; }
 
-            .genre-filters { gap: 6px; margin-top: 5px; }
-            .genre-btn { padding: 8px 12px; font-size: 12px; }
+            .filter-section { gap: 4px; }
+            .genre-filters, .fav-filters { gap: 5px; }
+            .genre-btn, .fav-btn { padding: 6px 10px; font-size: 12px; }
 
             .modal { padding: 16px; width: 92%; }
             .detail-label { width: 84px; font-size: 13px; }
@@ -196,7 +199,6 @@
             </div>
 
             <div class="header-buttons">
-                <!-- ヘッダーの使い方ボタン -->
                 <button onclick="openManualModal()" style="background-color: #17a2b8; color: white; border: none;">📖 使い方ガイド</button>
                 <button id="createRoomBtn" onclick="createRoom()">🌐 ルームを作る</button>
                 <button onclick="openModal('settingsModal')">⚙️ 設定</button>
@@ -226,7 +228,18 @@
                 </div>
                 <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
             </div>
-            <div class="genre-filters" id="genreFilters"></div>
+            
+            <!-- ジャンルフィルター -->
+            <div class="filter-section">
+                <div class="filter-label">🏷️ ジャンル</div>
+                <div class="genre-filters" id="genreFilters"></div>
+            </div>
+
+            <!-- ★お気に入り度フィルター（F列対応） -->
+            <div class="filter-section">
+                <div class="filter-label">⭐ お気に入り度</div>
+                <div class="fav-filters" id="favFilters"></div>
+            </div>
         </div>
     </div>
 
@@ -263,7 +276,6 @@
 
 <!-- ================= モーダル群 ================= -->
 
-<!-- ステップ形式の詳しい使い方マニュアルモーダル -->
 <div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
     <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
         <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
@@ -317,6 +329,7 @@
         <div class="detail-item"><span class="detail-label">BPM</span><span id="detailBPM"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル①</span><span id="detailGenre1"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
+        <div class="detail-item"><span class="detail-label">お気に入り度</span><span id="detailFav"></span></div>
         <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
         <div class="detail-item" id="detailCodeArea" style="display:none;"><span class="detail-label">コード</span><span id="detailCode"></span></div>
     </div>
@@ -471,7 +484,7 @@
                 <ul style="padding-left: 20px; margin-top: 10px;">
                     <li style="margin-bottom: 8px;"><strong>メイン一覧：</strong> スプレッドシートから自動取得したすべての楽曲リストが表示されます。</li>
                     <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「設定（名前の変更やカラーテーマ変更）」が行えます。</li>
-                    <li><strong>ジャンルボタン：</strong> 画面下のボタンを押すことで、ジャンルごとに素早く曲を絞り込めます。</li>
+                    <li><strong>フィルターボタン：</strong> 画面下のジャンルや「お気に入り度（★〜★★★★★）」ボタンを押すことで、素早く曲を絞り込めます。</li>
                 </ul>
             `
         },
@@ -571,8 +584,10 @@
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
+    let currentFav = "すべて";     // ★お気に入り度の選択状態
     let genre1Key = 'ジャンル'; 
     let genre2Key = 'ジャンル②'; 
+    let favKey = 'お気に入り度';    // ★F列（お気に入り度）の列キー
 
     const tableBody = document.getElementById('tableBody');
     const controls = document.getElementById('controls');
@@ -581,6 +596,7 @@
     const searchInput = document.getElementById('searchInput');
     const songCountDisplay = document.getElementById('songCountDisplay');
     const genreFilters = document.getElementById('genreFilters');
+    const favFilters = document.getElementById('favFilters'); // ★お気に入り度ボタンエリア
     
     document.querySelector('.table-body-wrapper').addEventListener('scroll', (e) => { document.querySelector('.table-header-wrapper').scrollLeft = e.target.scrollLeft; });
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -589,6 +605,7 @@
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
 
+    // ジャンルボタン生成
     function populateGenreButtons() {
         genreFilters.innerHTML = ''; 
         const gSet = new Set();
@@ -618,6 +635,25 @@
         });
     }
 
+    // ★お気に入り度ボタン生成（★、★★、★★★、★★★★、★★★★★）
+    function populateFavButtons() {
+        favFilters.innerHTML = '';
+        const favOptions = ["すべて", "★", "★★", "★★★", "★★★★", "★★★★★"];
+
+        favOptions.forEach(fav => {
+            const btn = document.createElement('button');
+            btn.className = `fav-btn ${fav === currentFav ? 'active' : ''}`;
+            btn.textContent = fav;
+            btn.onclick = () => {
+                document.querySelectorAll('.fav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFav = fav;
+                renderTable();
+            };
+            favFilters.appendChild(btn);
+        });
+    }
+
     function loadRowsIntoApp(rawData) {
         const headerIndex = rawData.findIndex(row => row.includes("曲名"));
         if (headerIndex === -1) { 
@@ -627,6 +663,7 @@
         
         const headers = rawData[headerIndex];
         
+        // ジャンル①の特定
         if (headers.includes('ジャンル①')) {
             genre1Key = 'ジャンル①';
         } else if (headers.includes('ジャンル')) {
@@ -637,12 +674,22 @@
             genre1Key = '';
         }
 
+        // ジャンル②の特定
         if (headers.includes('ジャンル②')) {
             genre2Key = 'ジャンル②';
         } else if (headers.length > 8 && headers[8]) {
             genre2Key = headers[8].trim();
         } else {
             genre2Key = '';
+        }
+
+        // ★F列（インデックス5、6番目の列）をお気に入り度として特定
+        if (headers.includes('お気に入り度')) {
+            favKey = 'お気に入り度';
+        } else if (headers.length > 5 && headers[5] && headers[5].trim() !== '') {
+            favKey = headers[5].trim();
+        } else {
+            favKey = headers[5] || '';
         }
 
         allData = rawData.slice(headerIndex + 1).map((row, idx) => {
@@ -655,6 +702,7 @@
         });
 
         populateGenreButtons();
+        populateFavButtons(); // ★お気に入り度ボタンを構築
         loadingArea.style.display = 'none';
         controls.style.display = 'block';
         tableWrapper.style.display = 'flex';
@@ -886,6 +934,7 @@
         document.getElementById('detailBPM').textContent = song['BPM'] || '-';
         document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
         document.getElementById('detailGenre2').textContent = song[genre2Key] || '-';
+        document.getElementById('detailFav').textContent = song[favKey] || '-'; // ★詳細画面にお気に入り度表示
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
         const codeArea = document.getElementById('detailCodeArea');
         const detailWikiUrl = safeHref(song['コードwiki']);
@@ -903,11 +952,16 @@
         let filteredData = allData.filter(row => {
             const g1 = (row[genre1Key] || '').trim();
             const g2 = (row[genre2Key] || '').trim();
+            const fVal = (row[favKey] || '').trim();
             
-            const matchGenreBtn = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
+            // ジャンル条件のチェック
+            const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
             
-            const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
-            return matchGenreBtn && keywords.every(kw => searchStr.includes(kw));
+            // ★お気に入り度条件のチェック
+            const matchFav = currentFav === 'すべて' || fVal === currentFav;
+            
+            const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${fVal} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
+            return matchGenre && matchFav && keywords.every(kw => searchStr.includes(kw));
         });
 
         if (currentSortKey) {
@@ -925,6 +979,9 @@
             let displayGenre = escapeHtml(row[genre1Key] || '-');
             if (row[genre2Key] && row[genre2Key].trim() !== '') {
                 displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
+            }
+            if (row[favKey] && row[favKey].trim() !== '') {
+                displayGenre += ` / ${escapeHtml(row[favKey])}`; // テーブル側にもお気に入り度を合わせて表示
             }
             if (row['タイアップ情報']) {
                 displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
