@@ -98,9 +98,9 @@
         ========================================= */
         #tableWrapper { flex-grow: 1; display: none; flex-direction: column; background-color: var(--panel-bg); border-top: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
         .table-header-wrapper { flex-shrink: 0; background-color: var(--th-bg); padding-right: 10px; border-bottom: 1px solid var(--border-color); overflow-x: hidden; }
-        .table-body-wrapper { flex-grow: 1; overflow-y: scroll; overflow-x: auto; background-color: var(--panel-bg); -webkit-overflow-scrolling: touch; }
+        .table-body-wrapper { flex-grow: 1; overflow-y: scroll; overflow-x: auto; background-color: var(--panel-bg); -webkit-overflow-scrolling: touch; box-sizing: border-box; }
         /* 各曲の区切り線にスクロール停止位置を揃える */
-        .table-body-wrapper { scroll-snap-type: y mandatory; }
+        .table-body-wrapper { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
         #tableBody tr { scroll-snap-align: start; }
         .table-body-wrapper::-webkit-scrollbar { width: 10px; height: 10px; }
         .table-body-wrapper::-webkit-scrollbar-track { background: var(--bg-color); }
@@ -691,15 +691,47 @@ h2 {
     const tableBody = document.getElementById('tableBody');
     const controls = document.getElementById('controls');
     const tableWrapper = document.getElementById('tableWrapper');
+    const tableBodyWrapper = document.querySelector('.table-body-wrapper');
+    const tableHeaderWrapper = document.querySelector('.table-header-wrapper');
     const loadingArea = document.getElementById('loadingArea');
     const searchInput = document.getElementById('searchInput');
     const songCountDisplay = document.getElementById('songCountDisplay');
     const genreFilters = document.getElementById('genreFilters');
     const favFilters = document.getElementById('favFilters');
     
-    document.querySelector('.table-body-wrapper').addEventListener('scroll', (e) => { document.querySelector('.table-header-wrapper').scrollLeft = e.target.scrollLeft; });
+    tableBodyWrapper.addEventListener('scroll', (e) => { tableHeaderWrapper.scrollLeft = e.target.scrollLeft; });
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
+    function adjustTableBodyHeight() {
+        if (!tableBodyWrapper || !tableHeaderWrapper) return;
+
+        if (window.innerWidth <= 600) {
+            tableBodyWrapper.style.height = '';
+            tableBodyWrapper.style.flexGrow = '1';
+            return;
+        }
+
+        const rows = tableBody.querySelectorAll('tr');
+        if (!rows.length) {
+            tableBodyWrapper.style.height = '';
+            tableBodyWrapper.style.flexGrow = '1';
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            const firstRowHeight = Math.round(rows[0].getBoundingClientRect().height);
+            if (!firstRowHeight) return;
+
+            const availableHeight = Math.floor(tableWrapper.clientHeight - tableHeaderWrapper.offsetHeight);
+            if (availableHeight <= 0) return;
+
+            const visibleRows = Math.max(1, Math.floor(availableHeight / firstRowHeight));
+            const snappedHeight = visibleRows * firstRowHeight;
+
+            tableBodyWrapper.style.flexGrow = '0';
+            tableBodyWrapper.style.height = `${snappedHeight}px`;
+        });
+    }
     function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
@@ -1114,7 +1146,11 @@ h2 {
             `;
             tableBody.appendChild(tr);
         });
+
+        adjustTableBodyHeight();
     }
+
+    window.addEventListener('resize', adjustTableBodyHeight);
 </script>
 
 </body>
