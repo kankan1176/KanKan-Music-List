@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KanKan Setlist for OBS</title>
+    
+    <!-- Firebase SDK (互換バージョン) -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-color: rgba(18, 18, 18, 0.85);
+            --panel-bg: rgba(30, 30, 30, 0.95);
+            --text-color: #ffffff;
+            --primary: #007bff;
+            --border-color: #444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: transparent; /* OBSで背景を透明にするため */
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .obs-container {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            font-size: 22px;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #obsCompletedContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .obs-song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+            font-size: 16px;
+        }
+
+        .obs-song-title {
+            font-weight: bold;
+        }
+
+        .obs-song-artist {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-left: 10px;
+        }
+
+        .empty-notice {
+            text-align: center;
+            color: #aaa;
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="obs-container">
+    <h2>🎸 本日のセットリスト 🎸</h2>
+    <div id="obsCompletedContainer">
+        <div class="empty-notice">まだ完了した曲はありません...</div>
+    </div>
+</div>
+
+<!-- PapaParse CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<script>
+    // Firebase 初期化
+    const firebaseConfig = {
+      apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
+      authDomain: "kankan-session-room.firebaseapp.com",
+      databaseURL: "https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kankan-session-room",
+      storageBucket: "kankan-session-room.firebasestorage.app",
+      messagingSenderId: "759342880820",
+      appId: "1:759342880820:web:9af0af755e35926a281261"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('room');
+    let allSongsCache = [];
+
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
+
+    Papa.parse(SHEET_CSV_URL, {
+        download: true,
+        header: false,
+        skipEmptyLines: true,
+        encoding: "UTF-8",
+        complete: function(results) {
+            const rawData = results.data;
+            const headerIndex = rawData.findIndex(row => row.includes("曲名"));
+            if (headerIndex !== -1) {
+                const headers = rawData[headerIndex];
+                allSongsCache = rawData.slice(headerIndex + 1).map((row, idx) => {
+                    let obj = { _id: idx.toString() };
+                    headers.forEach((h, i) => { obj[h] = row[i] || ''; });
+                    return obj;
+                });
+            }
+            if (roomId) {
+                initObsRealtimeSync();
+            } else {
+                document.getElementById('obsCompletedContainer').innerHTML = '<div class="empty-notice">⚠️ URLに ?room=ルームID が指定されていません</div>';
+            }
+        }
+    });
+
+    function initObsRealtimeSync() {
+        db.ref('rooms/' + roomId + '/queue').on('value', (snapshot) => {
+            const queue = snapshot.val() || {};
+            const completedItems = [];
+
+            Object.keys(queue).forEach(qId => {
+                const item = queue[qId];
+                if (item.status === 'completed') {
+                    const songData = allSongsCache.find(r => r._id === item.songId);
+                    if (songData) {
+                        completedItems.push({ ...item, songData });
+                    }
+                }
+            });
+
+            completedItems.sort((a, b) => a.order - b.order);
+            renderObsList(completedItems);
+        });
+    }
+
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    function renderObsList(items) {
+        const container = document.getElementById('obsCompletedContainer');
+        container.innerHTML = '';
+
+        if (items.length === 0) {
+            container.innerHTML = '<div class="empty-notice">まだ完了した曲はありません...</div>';
+            return;
+        }
+
+        const countMap = {};
+        const circleNumbers = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+
+        items.forEach((item, index) => {
+            const sId = item.songId;
+            countMap[sId] = (countMap[sId] || 0) + 1;
+            let displayTitle = escapeHtml(item.songData['曲名']);
+            if (countMap[sId] > 1) {
+                displayTitle += ` ${circleNumbers[countMap[sId]] || `(${countMap[sId]})`}`;
+            }
+
+            const div = document.createElement('div');
+            div.className = 'obs-song-item';
+            div.innerHTML = `
+                <div>
+                    <span style="font-weight:bold; color:var(--primary); margin-right:8px;">${index + 1}.</span>
+                    <span class="obs-song-title">${displayTitle}</span>
+                    <span class="obs-song-artist">/ ${escapeHtml(item.songData['アーティスト'])}</span>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+</script>
+
+</body>
+</html>
