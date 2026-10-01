@@ -112,7 +112,7 @@
 
         .col-action { width: 100px; }
         .col-key { width: 145px; }
-        .no-chordwiki-label { font-size: 11px; opacity: 0.75; white-space: nowrap; }
+        .no-chordwiki-label { display: block; width: 100%; text-align: center; font-size: 11px; opacity: 0.75; white-space: nowrap; }
         .col-title { width: 27%; }
         .col-artist { width: 25%; }
         .col-genre { width: auto; }
@@ -1357,7 +1357,7 @@ h2 {
                     <button type="button" aria-label="Keyを半音下げる" onclick="changeTableKey('${row._id}', -1)" ${currentKey <= -5 ? 'disabled' : ''}>◀</button>
                     <span class="table-key-value" aria-live="polite">${displayKey(currentKey)}</span>
                     <button type="button" aria-label="Keyを半音上げる" onclick="changeTableKey('${row._id}', 1)" ${currentKey >= 6 ? 'disabled' : ''}>▶</button>
-                </div>` : '<span class="no-chordwiki-label" title="コードWikiが未登録です">コードWiki無し</span>';
+                </div>` : '<span class="no-chordwiki-label" title="コードwikiが未登録です">コードwiki無し</span>';
             const artistName = String(row['アーティスト'] || '').trim();
             const artistLinkHtml = artistName ? `<a class="song-title-link" href="${artistWikipediaUrl(artistName)}" target="_blank" rel="noopener noreferrer" title="Wikipediaで${escapeHtml(artistName)}を検索">${escapeHtml(artistName)}</a>` : '-';
             tr.innerHTML = `
