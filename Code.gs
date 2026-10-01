@@ -4,8 +4,8 @@
  * 「ウェブアプリとしてデプロイ」: 実行ユーザー = 自分 / アクセス = 全員。
  * 公開POSTを許す仕組みのため、シートのバックアップと定期的な確認を推奨します。
  */
-const SPREADSHEET_ID = 'PASTE_EDITABLE_SPREADSHEET_ID_HERE';
-const SHEET_NAME = 'PASTE_SONG_SHEET_TAB_NAME_HERE';
+const SPREADSHEET_ID = '1YMACN6m-5tE3TSY4jNxVRdQieDCTwh7Zhted-z8zTl4';
+const SHEET_NAME = '全曲';
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
