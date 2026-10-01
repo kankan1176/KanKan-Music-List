@@ -433,7 +433,7 @@ h2 {
         <form id="addSongForm" onsubmit="submitNewSong(event)">
             <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
             <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
-            <div class="setting-group"><label for="newCodeUrl">コードサイト URL *</label><input class="setting-input" id="newCodeUrl" name="codeUrl" type="url" placeholder="https://..." maxlength="500" required></div>
+            <div class="setting-group"><label for="newCodeUrl">ChordWiki 原曲URL *</label><input class="setting-input" id="newCodeUrl" name="codeUrl" type="url" placeholder="https://ja.chordwiki.org/wiki/..." maxlength="500" required><p id="newCodeUrlCheck" role="status" aria-live="polite" style="font-size:12px;line-height:1.4;margin:5px 0 0;"></p></div>
             <div class="setting-group"><label for="newBpm">BPM（任意）</label><input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK"></div>
             <div class="setting-group"><label for="newGenre1">ジャンル *</label><select id="newGenre1" name="genre1" required></select></div>
             <div class="setting-group"><label for="newGenre2">ジャンル②（任意）</label><select id="newGenre2" name="genre2"></select></div>
@@ -881,21 +881,40 @@ h2 {
         if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) personalKeys = parsed;
     } catch (error) { console.warn('保存済みKeyの読み込みに失敗:', error); }
 
-    function chordWikiTitle(rawUrl) {
+    // ChordWikiの原曲URLを共通解析。/wiki/の生の+は空白、%2Bは文字としての+。
+    // 既存マスターの wiki.cgi?c=view 形式も読める。タグ・検索・外部サイトは対象外。
+    function parseChordWikiUrl(rawUrl, requireOriginal = false) {
         try {
-            const url = new URL(String(rawUrl || '').trim());
-            if (url.protocol !== 'https:' || url.hostname !== 'ja.chordwiki.org') return null;
+            const input = String(rawUrl ?? '').trim();
+            if (!input || input.length > 500) return null;
+            const url = new URL(input);
+            if (url.protocol !== 'https:' || url.hostname !== 'ja.chordwiki.org' ||
+                url.username || url.password || url.port || url.hash) return null;
+            let title = '';
+            let originalUrl = input;
             if (url.pathname.startsWith('/wiki/')) {
-                // /wiki/ 内の + はページ名の一部として保持する。
-                // 例: ギラギラ+(Ado) → t=ギラギラ%2B(Ado)（空白へ変換しない）。
-                const title = decodeURIComponent(url.pathname.slice('/wiki/'.length));
-                return title || null;
+                if (url.search && requireOriginal) return null; // 既存の追跡パラメータ付きURLは読取互換だけ維持
+                const rawTitle = url.pathname.slice('/wiki/'.length);
+                if (!rawTitle || rawTitle.includes('/')) return null;
+                title = decodeURIComponent(rawTitle.replace(/\+/g, ' '));
+            } else if (url.pathname === '/wiki.cgi' && url.searchParams.get('c') === 'view') {
+                title = url.searchParams.get('t') || '';
+                const baseKey = url.searchParams.get('key');
+                if (requireOriginal && baseKey !== null && baseKey !== '0') return null;
+            } else {
+                return null;
             }
-            if (url.pathname === '/wiki.cgi' && url.searchParams.get('c') === 'view') {
-                return url.searchParams.get('t') || null;
-            }
-        } catch (error) { /* 対応外URL */ }
-        return null;
+            if (!title.trim() || /[\x00-\x1f\x7f]/.test(title)) return null;
+            return { title, originalUrl };
+        } catch (error) { return null; }
+    }
+    function chordWikiTitle(rawUrl) {
+        return parseChordWikiUrl(rawUrl)?.title || null;
+    }
+    function validateNewChordWikiUrl(rawUrl) {
+        const parsed = parseChordWikiUrl(rawUrl, true);
+        if (!parsed) return 'ChordWikiの原曲楽曲ページURLを入力してください（タグ・検索ページ・移調済みURLは登録できません）。';
+        return '';
     }
     function personalSongKey(song) {
         const wikiTitle = chordWikiTitle(song['コードwiki']);
@@ -907,11 +926,11 @@ h2 {
         return Number.isInteger(val) && val >= -5 && val <= 6 ? val : 0;
     }
     function chordWikiUrlForKey(rawUrl, key) {
-        const title = chordWikiTitle(rawUrl);
-        if (!title) return '';
-        if (key === 0) return String(rawUrl).trim();
-        if (!Number.isInteger(key) || key < -5 || key > 6) return '';
-        const query = new URLSearchParams({c:'view', t:title, key:String(key), symbol:''});
+        const page = parseChordWikiUrl(rawUrl);
+        if (!page || !Number.isInteger(key) || key < -5 || key > 6) return '';
+        if (key === 0) return page.originalUrl;
+        // URLSearchParamsは空白を+、文字の+を%2Bに区別してエンコードする。
+        const query = new URLSearchParams({ c: 'view', t: page.title, key: String(key), symbol: '' });
         return `https://ja.chordwiki.org/wiki.cgi?${query.toString()}`;
     }
     function personalChordWikiUrl(song) {
@@ -1025,13 +1044,29 @@ h2 {
             first.add(new Option(value, value));
             second.add(new Option(value, value));
         });
+        newCodeUrlInput.setCustomValidity('');
+        newCodeUrlInput.dispatchEvent(new Event('input'));
         document.getElementById('addSongFeedback').textContent = options.length ? '' : 'ジャンル選択肢を取得できません。ページを再読み込みしてください。';
         openModal('addSongModal');
     }
 
+    // 入力中も形式を確認。サーバー側でも同じ条件で検証する。
+    const newCodeUrlInput = document.getElementById('newCodeUrl');
+    newCodeUrlInput.addEventListener('input', () => {
+        const value = newCodeUrlInput.value.trim();
+        const message = value ? validateNewChordWikiUrl(value) : '';
+        const status = document.getElementById('newCodeUrlCheck');
+        status.textContent = message || (value ? '✓ Key変更に対応するURL形式です。' : '');
+        status.style.color = message ? '#dc3545' : '#28a745';
+        newCodeUrlInput.setCustomValidity(message);
+    });
+
     async function submitNewSong(event) {
         event.preventDefault();
         const form = document.getElementById('addSongForm');
+        const urlError = validateNewChordWikiUrl(newCodeUrlInput.value);
+        newCodeUrlInput.setCustomValidity(urlError);
+        document.getElementById('newCodeUrlCheck').textContent = urlError;
         if (!form.reportValidity()) return;
         const feedback = document.getElementById('addSongFeedback');
         const submit = document.getElementById('addSongSubmit');
@@ -1055,6 +1090,8 @@ h2 {
                 body: JSON.stringify(data)
             });
             form.reset();
+            newCodeUrlInput.setCustomValidity('');
+            document.getElementById('newCodeUrlCheck').textContent = '';
             feedback.textContent = '送信しました。登録結果は直接確認できないため、しばらくしてページを再読み込みし、楽曲が追加されたか確認してください（公開CSVの更新には時間がかかる場合があります）。表示されない場合は管理者にお問い合わせください。';
         } catch (error) {
             feedback.textContent = '送信できませんでした。通信環境や設定をご確認のうえ、再度お試しください。';
