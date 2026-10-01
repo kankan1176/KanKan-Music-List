@@ -23,18 +23,20 @@
             --item-hover: rgba(255, 255, 255, 0.1);
         }
 
+        /* OBSで高さを変えても崩れないよう全体を柔軟な比率に設定 */
         html, body {
             width: 100%;
             height: 100%;
             margin: 0;
             padding: 8px;
             box-sizing: border-box;
-            background: transparent !important;
+            background: transparent !important; /* OBSで背景透過 */
             color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
             overflow: hidden;
         }
 
+        /* 外枠コンテナ：高さを100%フィットさせて追従 */
         .obs-container {
             width: 100%;
             height: 100%;
@@ -48,6 +50,7 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
         }
 
+        /* ヘッダーエリア（固定高） */
         .obs-header {
             flex-shrink: 0;
             display: flex;
@@ -79,17 +82,20 @@
             border-radius: 12px;
         }
 
-        /* 縦長設定（幅500×高さ1000など）に最適な1列フレックスレイアウト */
+        /* セットリスト領域：幅800pxを活かして2列グリッドで15曲以上を綺麗に配置 */
         #obsCompletedContainer {
             flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            grid-auto-rows: max-content;
+            align-content: start;
+            gap: 6px 12px;
             overflow-y: auto;
-            padding-right: 2px;
+            padding-right: 4px;
             box-sizing: border-box;
         }
 
+        /* OBS上で目障りなスクロールバーを非表示にしつつスクロール可能に保持 */
         #obsCompletedContainer::-webkit-scrollbar {
             display: none;
         }
@@ -98,28 +104,28 @@
             scrollbar-width: none;
         }
 
+        /* 各楽曲アイテム：高さをスリム化して多数の曲を一覧表示 */
         .obs-song-item {
             display: flex;
             align-items: center;
             background: var(--item-bg);
-            padding: 6px 10px;
+            padding: 5px 8px;
             border-radius: 5px;
             border-left: 3px solid var(--primary);
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.3;
             box-sizing: border-box;
             min-width: 0;
             backdrop-filter: blur(2px);
-            flex-shrink: 0;
         }
 
         .obs-song-num {
             font-weight: bold;
             color: var(--primary-light);
-            font-size: 13px;
-            margin-right: 8px;
+            font-size: 12px;
+            margin-right: 6px;
             flex-shrink: 0;
-            width: 24px;
+            width: 22px;
             text-align: right;
         }
 
@@ -142,9 +148,9 @@
         }
 
         .obs-song-artist {
-            font-size: 12px;
+            font-size: 11px;
             opacity: 0.75;
-            margin-left: 8px;
+            margin-left: 6px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -152,9 +158,10 @@
         }
 
         .empty-notice {
+            grid-column: 1 / -1;
             text-align: center;
             color: #bbb;
-            padding: 40px 10px;
+            padding: 30px 10px;
             font-size: 14px;
             font-style: italic;
         }
@@ -173,6 +180,7 @@
 </div>
 
 <script>
+    // Firebase 設定
     const firebaseConfig = {
       apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
       authDomain: "kankan-session-room.firebaseapp.com",
@@ -191,6 +199,7 @@
 
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
 
+    // スプレッドシートから楽曲情報を取得
     Papa.parse(SHEET_CSV_URL, {
         download: true,
         header: false,
@@ -235,6 +244,7 @@
                 }
             });
 
+            // 完了順（演奏順）に並び替え
             completedItems.sort((a, b) => a.order - b.order);
             renderObsList(completedItems);
         });
