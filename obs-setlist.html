@@ -210,8 +210,24 @@
             const headerIndex = rawData.findIndex(row => row.includes("曲名"));
             if (headerIndex !== -1) {
                 const headers = rawData[headerIndex];
-                allSongsCache = rawData.slice(headerIndex + 1).map((row, idx) => {
-                    let obj = { _id: idx.toString() };
+                const idColumn = headers.findIndex(name => String(name).trim() === '楽曲ID');
+                if (idColumn < 0) {
+                    document.getElementById('obsCompletedContainer').innerHTML = '<div class="empty-notice">⚠️ 公開CSVに「楽曲ID」列がありません</div>';
+                    return;
+                }
+                const rows = rawData.slice(headerIndex + 1).filter(row => row.some(cell => String(cell || '').trim()));
+                const seen = new Set();
+                if (rows.some(row => {
+                    const id = String(row[idColumn] || '').trim();
+                    if (!id || seen.has(id)) return true;
+                    seen.add(id);
+                    return false;
+                })) {
+                    document.getElementById('obsCompletedContainer').innerHTML = '<div class="empty-notice">⚠️ 楽曲IDに空欄または重複があります</div>';
+                    return;
+                }
+                allSongsCache = rows.map((row, idx) => {
+                    const obj = { _id: String(row[idColumn]).trim(), _legacyId: idx.toString() };
                     headers.forEach((h, i) => { obj[h] = row[i] || ''; });
                     return obj;
                 });
@@ -237,7 +253,7 @@
             Object.keys(queue).forEach(qId => {
                 const item = queue[qId];
                 if (item.status === 'completed') {
-                    const songData = allSongsCache.find(r => r._id === item.songId);
+                    const songData = allSongsCache.find(r => r._id === String(item.songId)) || (/^\d+$/.test(String(item.songId)) ? allSongsCache.find(r => r._legacyId === String(item.songId)) : null);
                     if (songData) {
                         completedItems.push({ ...item, songData });
                     }
