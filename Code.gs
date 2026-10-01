@@ -151,6 +151,29 @@
           #tableBody .col-key { margin-left:auto; }
           #tableBody .col-bpm { width:auto !important; margin-right:4px; }
         }
+        /* マイリスト専用の6列編集レイアウト */
+        body.my-list-mode .data-table { min-width:900px; }
+        body.my-list-mode .col-title { width:23%; }
+        body.my-list-mode .col-artist { width:21%; }
+        body.my-list-mode .col-key { width:125px; }
+        body.my-list-mode .col-part { width:auto; }
+        body.my-list-mode .col-liked,body.my-list-mode .col-delete { width:53px; text-align:center; }
+        .my-part-icons { display:flex; justify-content:center; gap:2px; white-space:nowrap; }
+        .my-part-icons button { border:1px solid transparent; background:transparent; padding:3px 2px; font-size:18px; opacity:.34; border-radius:5px; }
+        .my-part-icons button.active { border-color:var(--primary); background:var(--btn-bg); opacity:1; }
+        .my-part-icons button:hover { opacity:1; background:var(--btn-hover); }
+        .my-delete { color:#ef6868; font-size:16px; padding:3px 7px; background:transparent; }
+        .my-artist-cell { display:flex; align-items:center; gap:5px; }
+        .my-artist-cell .artist-filter-button { min-width:0; overflow-wrap:anywhere; }
+        body.my-list-mode .col-artist { opacity:1 !important; }
+        @media(max-width:600px) {
+          body.my-list-mode #tableBody tr { gap:5px; }
+          body.my-list-mode #tableBody .col-title { flex:1 0 100%; }
+          body.my-list-mode #tableBody .col-artist { width:100% !important; }
+          body.my-list-mode #tableBody .col-part { width:100% !important; margin-left:0; }
+          body.my-list-mode .my-part-icons { justify-content:flex-start; }
+          body.my-list-mode .table-header-wrapper th { display:none; }
+        }
         .no-chordwiki-label { display: block; width: 100%; text-align: center; font-size: 11px; opacity: 0.75; white-space: nowrap; }
         .col-title { width: 27%; }
         .col-artist { width: 25%; }
@@ -498,6 +521,23 @@ h2 {
             </div>
         </div>
 
+        <div class="setting-group" id="defaultPartSetting" style="display:none;">
+            <label for="defaultPartSelect">🎼 アカウントの基本担当パート</label>
+            <div style="display:flex;gap:8px;">
+                <select id="defaultPartSelect" class="setting-input" style="font-size:16px;font-family:inherit;flex:1;">
+                    <option value="">未設定</option>
+                    <option value="🎤">🎤 ボーカル</option>
+                    <option value="🎸">🎸 ギター・ベース</option>
+                    <option value="🥁">🥁 ドラム・パーカッション</option>
+                    <option value="🎹">🎹 キーボード・シンセ</option>
+                    <option value="🎺">🎺 木管・金管</option>
+                    <option value="🎻">🎻 バイオリン・チェロなど</option>
+                    <option value="🪈">🪈 リコーダー・尺八など</option>
+                </select>
+                <button type="button" onclick="saveDefaultPart()">保存</button>
+            </div>
+            <p style="font-size:11px;opacity:.75;">今後新たに登録する曲へ自動適用します。登録済みの曲は変更しません。</p>
+        </div>
         <div class="setting-group">
             <label>🎨 UIカラーテーマ</label>
             <select id="themeSelect" onchange="changeTheme()">
@@ -598,6 +638,42 @@ h2 {
     const PARTS = ['', '🎤', '🎸', '🥁', '🎹', '🎺', '🎻', '🪈'];
     const PART_NAMES = { '':'未登録','🎤':'ボーカル','🎸':'ギター・ベース','🥁':'ドラム・パーカッション','🎹':'鍵盤・シンセ','🎺':'木管・金管','🎻':'弦楽器','🪈':'笛・和管楽器' };
     let myListMode = false;
+    let defaultPart = '';
+    const tableHeaderTable = document.querySelector('.table-header-wrapper .data-table');
+    const tableBodyTable = document.querySelector('.table-body-wrapper .data-table');
+    const masterHeaderMarkup = tableHeaderTable.innerHTML;
+    const masterBodyColumns = tableBodyTable.querySelector('colgroup').outerHTML;
+    const myListColumns = '<colgroup><col class="col-title"><col class="col-artist"><col class="col-key"><col class="col-part"><col class="col-liked"><col class="col-delete"></colgroup>';
+    const myListHeader = myListColumns + `<thead><tr>
+        <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
+        <th class="sortable col-artist" onclick="handleSort('アーティスト')">アーティスト（🌟） <span class="sort-icon" id="icon-アーティスト"></span></th>
+        <th class="col-key">Key</th><th class="col-part">担当パート</th>
+        <th class="col-liked" title="好きな曲">💖</th><th class="col-delete">削除</th>
+    </tr></thead>`;
+    let renderedMyListLayout = null;
+    function ensureListLayout() {
+        if (renderedMyListLayout === myListMode) return;
+        tableHeaderTable.innerHTML = myListMode ? myListHeader : masterHeaderMarkup;
+        tableBodyTable.querySelector('colgroup').outerHTML = myListMode ? myListColumns : masterBodyColumns;
+        renderedMyListLayout = myListMode;
+        if (typeof updateSortIcons === 'function') updateSortIcons();
+    }
+    async function saveDefaultPart() {
+        const user = signedInUser;
+        if (!user) { alert('先にGoogleログインしてください。'); return; }
+        const part = document.getElementById('defaultPartSelect').value;
+        if (!PARTS.includes(part)) return;
+        try {
+            await db.ref(`users/${user.uid}/preferences/defaultPart`).set(part);
+            if (auth.currentUser?.uid !== user.uid) return;
+            defaultPart = part;
+            alert('基本担当パートを保存しました。次に登録する曲から適用します。');
+        } catch(error) {
+            console.error('担当パートの保存に失敗:',error);
+            document.getElementById('defaultPartSelect').value = defaultPart;
+            alert('保存できませんでした。Firebaseのアクセス権限を確認してください。');
+        }
+    }
     let personalSongs = {};
     let favoriteArtists = {};
     let pendingSongs = {};
@@ -616,7 +692,7 @@ h2 {
     }
     function isInMyList(song) {
         const p = effectivePersonalSong(song._id);
-        return !!(p.part || p.liked || favoriteArtistValue(String(song['アーティスト'] || '').trim()));
+        return !p.excluded && !!(p.part || p.liked || favoriteArtistValue(String(song['アーティスト'] || '').trim()));
     }
     function updateMyListBar() {
         const count = Object.keys(pendingSongs).length + Object.keys(pendingArtists).length;
@@ -626,19 +702,24 @@ h2 {
     async function loadMyListForUser(user) {
         const version = ++myListLoadVersion;
         myListMode = false;
-        personalSongs = {}; favoriteArtists = {}; pendingSongs = {}; pendingArtists = {};
+        personalSongs = {}; favoriteArtists = {}; pendingSongs = {}; pendingArtists = {}; defaultPart='';
+        document.getElementById('defaultPartSelect').value='';
         document.body.classList.remove('my-list-mode');
         document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
         updateMyListBar();
+        document.getElementById('defaultPartSetting').style.display=user?'block':'none';
         if (!user) { if (typeof renderTable === 'function' && allData.length) renderTable(); return; }
         try {
-            const [songsSnapshot, artistsSnapshot] = await Promise.all([
+            const [songsSnapshot, artistsSnapshot, partSnapshot] = await Promise.all([
                 db.ref(`users/${user.uid}/songs`).once('value'),
-                db.ref(`users/${user.uid}/favoriteArtists`).once('value')
+                db.ref(`users/${user.uid}/favoriteArtists`).once('value'),
+                db.ref(`users/${user.uid}/preferences/defaultPart`).once('value')
             ]);
             if (version !== myListLoadVersion || auth.currentUser?.uid !== user.uid) return;
             personalSongs = songsSnapshot.val() || {};
             favoriteArtists = artistsSnapshot.val() || {};
+            defaultPart = PARTS.includes(partSnapshot.val()) ? partSnapshot.val() : '';
+            document.getElementById('defaultPartSelect').value = defaultPart;
             if (allData.length) renderTable();
         } catch (error) {
             console.error('マイリストの読み込みに失敗:',error);
@@ -655,7 +736,11 @@ h2 {
     }
     function stagePersonalSong(id, patch) {
         if (!signedInUser) return;
-        const next = Object.assign({}, effectivePersonalSong(id), patch);
+        const old = effectivePersonalSong(id);
+        const next = Object.assign({}, old, patch);
+        if (!Object.prototype.hasOwnProperty.call(patch,'part') && !old.part && !old.liked && !old.excluded && defaultPart) next.part=defaultPart;
+        if (Object.prototype.hasOwnProperty.call(patch,'part') && patch.part && !PARTS.includes(patch.part)) return;
+        if (!patch.excluded) next.excluded=false;
         if (next.key === undefined) next.key=0;
         pendingSongs[id] = next;
         updateMyListBar();
@@ -668,7 +753,8 @@ h2 {
     }
     function setPersonalPart(songId, part) {
         if (!PARTS.includes(part)) return;
-        stagePersonalSong(songId,{part});
+        const current=effectivePersonalSong(songId).part || '';
+        stagePersonalSong(songId,{part:myListMode && current===part?'':part});
     }
     function setPersonalLiked(songId) {
         const p = effectivePersonalSong(songId);
@@ -695,6 +781,18 @@ h2 {
         const artistButton=`<button type="button" class="personal-toggle ${favoriteArtistValue(artist)?'selected':''}" title="好きなアーティスト" aria-pressed="${favoriteArtistValue(artist)}" onclick="setFavoriteArtist('${song._id}')">🌟</button>`;
         return {part,liked,artist:artistButton};
     }
+    function myListPartButtons(song) {
+        const p=effectivePersonalSong(song._id);
+        return `<div class="my-part-icons" aria-label="担当パートを選択">${PARTS.filter(Boolean).map(icon=>
+            `<button type="button" class="${p.part===icon?'active':''}" title="${PART_NAMES[icon]}（もう一度押すと解除）" aria-pressed="${p.part===icon}" onclick="setPersonalPart('${song._id}','${icon}')">${icon}</button>`
+        ).join('')}</div>`;
+    }
+    function removeFromMyList(songId) {
+        if (!signedInUser || !myListMode) return;
+        const song=allData.find(row=>row._id===songId);
+        if (!song || !confirm(`「${song['曲名']}」をマイリストから削除しますか？\n全曲マスターやアーティストのお気に入り登録は変更しません。\n削除は「まとめて登録」で確定します。`)) return;
+        stagePersonalSong(songId,{part:'',liked:false,key:0,excluded:true});
+    }
     function renderDetailPersonalControls(song) {
         const wrapper=document.getElementById('detailPersonalEdit');
         wrapper.style.display=signedInUser ? 'block':'none';
@@ -712,6 +810,7 @@ h2 {
         ids.forEach(id=>{
             const item=pendingSongs[id];
             const entry={part:PARTS.includes(item.part)?item.part:'',liked:!!item.liked,key:Number.isInteger(item.key) && item.key>=-5 && item.key<=6?item.key:0};
+            if (item.excluded) entry.excluded=true;
             changes[`users/${user.uid}/songs/${id}`]=entry;
         });
         artists.forEach(id=>{ changes[`users/${user.uid}/favoriteArtists/${id}`]=pendingArtists[id] || null; });
@@ -1624,6 +1723,7 @@ h2 {
     }
 
     function renderTable() {
+        ensureListLayout();
         tableBody.innerHTML = '';
         const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
         
@@ -1692,7 +1792,15 @@ h2 {
             const personalUi = signedInUser ? personalControlsHtml(row) : {
                 part:'<span style="opacity:.4">－</span>', liked:'', artist:''
             };
-            tr.innerHTML = `
+            if (myListMode) {
+                tr.innerHTML = `
+                    <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                    <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}${personalUi.artist}</div></td>
+                    <td class="col-key nowrap-cell">${keyPickerHtml}</td>
+                    <td class="col-part nowrap-cell">${myListPartButtons(row)}</td>
+                    <td class="col-liked nowrap-cell">${personalUi.liked}</td>
+                    <td class="col-delete nowrap-cell"><button type="button" class="my-delete" title="マイリストから削除" aria-label="${escapeHtml(row['曲名'])}をマイリストから削除" onclick="removeFromMyList('${row._id}')">✕</button></td>`;
+            } else tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                 <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
                 <td class="col-artist col-main">${artistLinkHtml}</td>
