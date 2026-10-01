@@ -4,8 +4,8 @@
  * 「ウェブアプリとしてデプロイ」: 実行ユーザー = 自分 / アクセス = 全員。
  * 公開POSTを許す仕組みのため、シートのバックアップと定期的な確認を推奨します。
  */
-const SPREADSHEET_ID = '1YMACN6m-5tE3TSY4jNxVRdQieDCTwh7Zhted-z8zTl4';
-const SHEET_NAME = '全曲';
+const SPREADSHEET_ID = 'PASTE_EDITABLE_SPREADSHEET_ID_HERE';
+const SHEET_NAME = 'PASTE_SONG_SHEET_TAB_NAME_HERE';
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -52,7 +52,10 @@ function doPost(e) {
     if (values.slice(headerIndex + 1).some(row => normalized(row[col('artist')]) === normalized(artist) && normalized(row[col('title')]) === normalized(title))) {
       return reply_('duplicate');
     }
+    const songIdColumn = headers.findIndex(h => h === '楽曲ID');
+    if (songIdColumn < 0) throw Error('楽曲ID column missing');
     const row = new Array(sheet.getLastColumn()).fill('');
+    row[songIdColumn] = Utilities.getUuid();
     row[col('artist')] = artist;
     row[col('title')] = title;
     row[col('codeUrl')] = codeUrl;
@@ -80,4 +83,42 @@ function clean_(value, max) {
 function reply_(status) {
   return ContentService.createTextOutput(JSON.stringify({ status }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/** 一度だけ手動実行。空欄の楽曲IDにだけUUIDを発行。既存の値は変えません。 */
+function assignMissingSongIds() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+    if (!sheet) throw Error('tab not found');
+    const values = sheet.getDataRange().getDisplayValues();
+    const headerIndex = values.findIndex(row => row.includes('曲名'));
+    if (headerIndex < 0) throw Error('header not found');
+    const headers = values[headerIndex].map(h => String(h).trim());
+    const idColumn = headers.indexOf('楽曲ID');
+    const titleColumn = headers.indexOf('曲名');
+    if (idColumn < 0) throw Error('楽曲ID column missing');
+    const used = new Set();
+    // 重複IDは自動変更しません。既存の個人データと紐づく可能性があるためエラーにします。
+    values.slice(headerIndex + 1).forEach(row => {
+      const id = String(row[idColumn] || '').trim();
+      if (id && used.has(id)) throw Error('duplicate 楽曲ID: ' + id);
+      if (id) used.add(id);
+    });
+    let added = 0;
+    for (let i = headerIndex + 1; i < values.length; i++) {
+      if (!String(values[i][titleColumn] || '').trim()) continue;
+      if (!String(values[i][idColumn] || '').trim()) {
+        let id;
+        do { id = Utilities.getUuid(); } while (used.has(id));
+        sheet.getRange(i + 1, idColumn + 1).setValue(id);
+        used.add(id);
+        added++;
+      }
+    }
+    console.log('新規発行した楽曲ID: ' + added + '件');
+  } finally {
+    lock.releaseLock();
+  }
 }
