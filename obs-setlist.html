@@ -2,185 +2,427 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KanKan Setlist for OBS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>KanKan~ただ好きな曲集めたいだけ~</title>
+    
+    <!-- ブックマーク用アイコンの設定（PNG用） -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <!-- PapaParse (CSV読み込み用) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <!-- Firebase SDK (互換バージョン) -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
-    <!-- PapaParse CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- 画像保存用ライブラリ (html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
+        /* =========================================
+           CSS変数によるテーマ管理
+        ========================================= */
         :root {
-            --bg-color: rgba(18, 18, 18, 0.88);
-            --panel-bg: rgba(26, 26, 26, 0.92);
-            --text-color: #ffffff;
-            --primary: #007bff;
-            --primary-light: #4da3ff;
-            --border-color: rgba(0, 123, 255, 0.4);
-            --item-bg: rgba(255, 255, 255, 0.06);
-            --item-hover: rgba(255, 255, 255, 0.1);
+            --bg-color: #121212; --text-color: #e0e0e0; --panel-bg: #1e1e1e;
+            --border-color: #444; --btn-bg: #2a2a2a; --btn-hover: #444;
+            --primary: #007bff; --primary-text: #fff; --link-color: #66b2ff;
+            --th-bg: #2a2a2a; --th-hover: #3a3a3a; --th-text: #e0e0e0;
         }
+        body.theme-white { --bg-color: #f8f9fa; --text-color: #333333; --panel-bg: #ffffff; --border-color: #dee2e6; --btn-bg: #e9ecef; --btn-hover: #ced4da; --primary: #0056b3; --primary-text: #fff; --link-color: #0056b3; --th-bg: #e9ecef; --th-hover: #d3d9df; --th-text: #333333; }
+        body.theme-eva01 { --bg-color: #2b1845; --text-color: #e0e0e0; --panel-bg: #3a225c; --border-color: #7FFF00; --btn-bg: #523185; --btn-hover: #6a40a8; --primary: #7FFF00; --primary-text: #121212; --link-color: #9eff40; --th-bg: #1c0e2e; --th-hover: #2b1845; --th-text: #7FFF00; }
+        body.theme-eva02 { --bg-color: #380202; --text-color: #f5f5f5; --panel-bg: #540303; --border-color: #ff9900; --btn-bg: #730606; --btn-hover: #910a0a; --primary: #ff9900; --primary-text: #1a0000; --link-color: #ffb84d; --th-bg: #210101; --th-hover: #380202; --th-text: #ff9900; }
+        body.theme-eva00 { --bg-color: #f0f0f0; --text-color: #333333; --panel-bg: #ffffff; --border-color: #e6b800; --btn-bg: #fff5cc; --btn-hover: #ffeb99; --primary: #d4a000; --primary-text: #ffffff; --link-color: #b38600; --th-bg: #ffcc00; --th-hover: #e6b800; --th-text: #333333; }
+        body.theme-eva08 { --bg-color: #fff0f5; --text-color: #4a152e; --panel-bg: #ffffff; --border-color: #ff66b2; --btn-bg: #ffe6f0; --btn-hover: #ffcce0; --primary: #ff3399; --primary-text: #ffffff; --link-color: #e60073; --th-bg: #ff66b2; --th-hover: #ff4d94; --th-text: #ffffff; }
 
-        /* OBSで高さを変えても崩れないよう全体を柔軟な比率に設定 */
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 8px;
-            box-sizing: border-box;
-            background: transparent !important; /* OBSで背景透過 */
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-            overflow: hidden;
+        /* =========================================
+           基本レイアウト
+        ========================================= */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            background: var(--bg-color); color: var(--text-color); 
+            margin: 0; padding: 0; height: 100vh; height: 100dvh; 
+            display: flex; flex-direction: column; overflow: hidden; 
+            transition: background-color 0.3s, color 0.3s;
+            padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box;
         }
+        .container { flex-grow: 1; display: flex; flex-direction: column; width: 100%; max-width: 1300px; margin: 0 auto; padding: 10px 15px 0 15px; box-sizing: border-box; gap: 8px; overflow: hidden; }
+        .top-area { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
 
-        /* 外枠コンテナ：高さを100%フィットさせて追従 */
-        .obs-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--panel-bg);
-            border: 2px solid var(--primary);
-            border-radius: 10px;
-            padding: 10px 14px;
-            box-sizing: border-box;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}
+        .header-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        
+        button { padding: 6px 12px; background-color: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; white-space: nowrap; }
+        button:hover { background-color: var(--btn-hover); color: var(--text-color); }
+        button.primary-btn { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); font-weight: bold; }
+        button.primary-btn:hover { background-color: var(--primary); opacity: 0.8; color: var(--primary-text); }
+        
+        /* ルーム接続中のステータスバー */
+        .room-status-wrapper { display: none; background-color: var(--primary); color: var(--primary-text); padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-direction: column; gap: 4px;}
+        .room-status-wrapper.active { display: flex; }
+        .room-status-bar { display: flex; align-items: center; justify-content: space-between; font-size: 13px; flex-wrap: wrap; gap: 8px;}
+        .room-members-area { font-size: 11px; background: rgba(0,0,0,0.15); padding: 4px 8px; border-radius: 4px; line-height: 1.3; word-break: break-all;}
+        
+        .room-actions { display: flex; gap: 6px; }
+        .room-actions button { background-color: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 4px 10px; font-size: 11px; }
+        .room-actions button.btn-danger { background-color: #dc3545; color: white; border: none; }
 
-        /* ヘッダーエリア（固定高） */
-        .obs-header {
-            flex-shrink: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 6px;
-            margin-bottom: 8px;
-        }
+        .loading-area { padding: 30px; text-align: center; background-color: var(--panel-bg); border-radius: 6px; border: 1px solid var(--border-color); font-size: 16px; font-weight: bold; color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;}
+        .spinner { border: 3px solid var(--border-color); border-top: 3px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-bottom: 10px;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .controls { display: none; background-color: var(--panel-bg); padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        
+        .search-row { display: flex; flex-direction: column; align-items: stretch; gap: 8px;}
+        .search-box { width: 100%; padding: 7px 10px; font-size: 14px; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
+        .status-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .status-buttons button { flex: 1; min-width: 80px; padding: 7px; border-radius: 6px; font-size: 13px; }
+        .song-count { font-weight: bold; font-size: 13px; color: var(--primary); margin-top: 2px; }
 
-        .obs-title {
-            margin: 0;
-            font-size: 17px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .filter-section { margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .filter-label { font-size: 11px; font-weight: bold; opacity: 0.8; width: 85px; flex-shrink: 0; white-space: nowrap; }
+        .genre-filters, .fav-filters { display: flex; gap: 5px; flex-wrap: wrap; flex-grow: 1; }
+        .genre-btn, .fav-btn { padding: 4px 10px; border-radius: 14px; font-size: 12px; }
+        .genre-btn.active, .fav-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
 
-        .obs-counter {
-            font-size: 13px;
-            font-weight: bold;
-            background: var(--primary);
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 12px;
-        }
+        /* =========================================
+           テーブル
+        ========================================= */
+        #tableWrapper { flex-grow: 1; display: none; flex-direction: column; background-color: var(--panel-bg); border-top: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
+        .table-header-wrapper { flex-shrink: 0; background-color: var(--th-bg); padding-right: 10px; border-bottom: 1px solid var(--border-color); overflow-x: hidden; }
+        .table-body-wrapper { flex-grow: 1; overflow-y: scroll; overflow-x: auto; background-color: var(--panel-bg); -webkit-overflow-scrolling: touch; }
+        .table-body-wrapper::-webkit-scrollbar { width: 10px; height: 10px; }
+        .table-body-wrapper::-webkit-scrollbar-track { background: var(--bg-color); }
+        .table-body-wrapper::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
+        .data-table { width: 100%; min-width: 560px; table-layout: fixed; border-collapse: collapse; }
 
-        /* セットリスト領域：幅800pxを活かして2列グリッドで15曲以上を綺麗に配置 */
-        #obsCompletedContainer {
-            flex-grow: 1;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-            grid-auto-rows: max-content;
-            align-content: start;
-            gap: 6px 12px;
-            overflow-y: auto;
-            padding-right: 4px;
-            box-sizing: border-box;
-        }
+        .col-action { width: 100px; }
+        .col-title { width: 30%; }
+        .col-artist { width: 25%; }
+        .col-genre { width: auto; }
+        .col-bpm { width: 65px; }
+        .col-code { width: 65px; }
 
-        /* OBS上で目障りなスクロールバーを非表示にしつつスクロール可能に保持 */
-        #obsCompletedContainer::-webkit-scrollbar {
-            display: none;
-        }
-        #obsCompletedContainer {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); word-wrap: break-word; overflow-wrap: break-word; }
+        th { color: var(--th-text); font-weight: bold; font-size: 13px; white-space: nowrap; user-select: none; border-bottom: none; }
+        .nowrap-cell { white-space: nowrap; }
+        th.sortable { cursor: pointer; transition: background-color 0.2s; }
+        th.sortable:hover { background-color: var(--th-hover); }
+        .sort-icon { display: inline-block; width: 14px; text-align: center; color: inherit; font-size: 11px; opacity: 0.8;}
 
-        /* 各楽曲アイテム：高さをスリム化して多数の曲を一覧表示 */
-        .obs-song-item {
-            display: flex;
-            align-items: center;
-            background: var(--item-bg);
-            padding: 5px 8px;
-            border-radius: 5px;
-            border-left: 3px solid var(--primary);
-            font-size: 13px;
-            line-height: 1.3;
-            box-sizing: border-box;
-            min-width: 0;
-            backdrop-filter: blur(2px);
-        }
+        tr:hover { background-color: var(--btn-hover); }
+        .col-main { font-size: 13px; }
+        .col-sub { font-size: 11px; opacity: 0.9; }
 
-        .obs-song-num {
-            font-weight: bold;
-            color: var(--primary-light);
-            font-size: 12px;
-            margin-right: 6px;
-            flex-shrink: 0;
-            width: 22px;
-            text-align: right;
-        }
+        .song-title-link { color: var(--link-color); text-decoration: underline; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .song-title-link:hover { opacity: 0.7; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
 
-        .obs-song-info {
-            display: flex;
-            align-items: baseline;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex-grow: 1;
-            min-width: 0;
-        }
+        /* =========================================
+           モーダル・キュー（予約リスト）
+        ========================================= */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal { background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .modal h2 { margin-top: 0; font-size: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; line-height: 1.4;}
+        .modal-close { float: right; cursor: pointer; font-size: 24px; font-weight: bold; line-height: 1; }
+        .setting-group { margin-bottom: 15px; }
+        .setting-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight:bold;}
+        select, .setting-input, textarea.setting-input { width: 100%; padding: 8px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; font-family: monospace; font-size: 12px; }
+        
+        .detail-item { margin-bottom: 10px; font-size: 14px; line-height: 1.5; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;}
+        .detail-item:last-child { border-bottom: none; }
+        .detail-label { display: inline-block; width: 100px; font-weight: bold; opacity: 0.8;}
 
-        .obs-song-title {
-            font-weight: bold;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .queue-item { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .queue-info { display: flex; flex-direction: column; gap: 4px; }
+        .queue-title { font-size: 15px; font-weight: bold; line-height: 1.3; }
+        .queue-meta { font-size: 12px; opacity: 0.8; }
+        .queue-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+        .queue-actions button { padding: 6px 12px; font-size: 12px; border-radius: 4px; margin-left: 5px; border: none; cursor: pointer; color: white; font-weight: bold;}
+        
+        .btn-updown { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 4px 12px; font-size: 14px; border-radius: 4px; cursor: pointer;}
+        .btn-updown:hover { background: var(--btn-hover); }
+        .btn-confirm { background-color: #28a745; }
+        .btn-complete { background-color: #17a2b8; }
+        .btn-remove { background-color: #dc3545; }
+        .btn-revert { background-color: #6c757d; }
 
-        .obs-song-artist {
-            font-size: 11px;
-            opacity: 0.75;
-            margin-left: 6px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex-shrink: 1;
-        }
+        /* =========================================
+           スマホ幅向け調整
+        ========================================= */
+        @media (max-width: 600px) {
+            .container { padding: 8px 8px 0 8px; gap: 6px; }
+            .logo-img { max-height: 30px !important; }
+            h1 { font-size: 15px !important; }
 
-        .empty-notice {
-            grid-column: 1 / -1;
-            text-align: center;
-            color: #bbb;
-            padding: 30px 10px;
-            font-size: 14px;
-            font-style: italic;
+            .header-buttons button { padding: 6px 10px; font-size: 12px; }
+
+            .controls { padding: 8px; }
+            .status-buttons button { padding: 6px; font-size: 12px; }
+
+            .filter-section { gap: 4px; }
+            .filter-label { width: 100%; }
+            .genre-filters, .fav-filters { gap: 4px; }
+            .genre-btn, .fav-btn { padding: 3px 8px; font-size: 11px; }
+
+            .modal { padding: 16px; width: 92%; }
+            .detail-label { width: 84px; font-size: 13px; }
+
+            .table-header-wrapper { overflow-x: visible; padding-right: 0; }
+            .table-header-wrapper .data-table, .table-header-wrapper .data-table tbody, .table-header-wrapper .data-table tr { display: flex; flex-wrap: wrap; width: 100% !important; min-width: 0 !important; }
+            .table-header-wrapper th { display: inline-flex; align-items: center; justify-content: center; flex: 1 1 auto; width: auto !important; border-bottom: none; padding: 6px 4px; font-size: 11px; }
+            .table-header-wrapper th:first-child, .table-header-wrapper th:last-child { display: none; }
+
+            .table-body-wrapper { overflow-x: visible; }
+            .table-body-wrapper .data-table, .table-body-wrapper .data-table tbody { display: block; width: 100% !important; min-width: 0 !important; }
+            
+            #tableBody tr { display: flex; flex-wrap: wrap; align-items: flex-start; width: 100%; padding: 10px 8px; border-bottom: 1px solid var(--border-color); box-sizing: border-box; }
+            #tableBody td { display: block; border-bottom: none !important; padding: 2px 0 !important; font-size: 12px; }
+            
+            #tableBody .col-action { width: auto !important; margin-right: 10px; text-align: left; }
+            #tableBody .col-action button { padding: 6px 10px; min-height: 30px; font-size: 12px; }
+            #tableBody .col-title { flex: 1; min-width: 0; font-size: 14px; padding-top: 5px !important; }
+            
+            #tableBody .col-artist, #tableBody .col-genre, #tableBody .col-bpm, #tableBody .col-code { width: 100% !important; }
+            #tableBody .col-artist { margin-top: 3px; opacity: 0.9; }
+            #tableBody .col-genre, #tableBody .col-bpm, #tableBody .col-code { font-size: 11px; opacity: 0.85; }
         }
     </style>
 </head>
 <body>
 
-<div class="obs-container">
-    <div class="obs-header">
-        <h2 class="obs-title">🎸 本日のセットリスト</h2>
-        <span class="obs-counter" id="songCounter">0 曲</span>
+<div class="container">
+    <div class="top-area">
+        <div class="header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="logo2.png" alt="" class="logo-img" style="max-height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+                <h1 style="margin: 0; font-size: 20px;">KanKan~ただ好きな曲集めたいだけ~</h1>
+            </div>
+
+            <div class="header-buttons">
+                <button onclick="openManualModal()" style="background-color: #17a2b8; color: white; border: none;">📖 使い方ガイド</button>
+                <button id="createRoomBtn" onclick="createRoom()">🌐 ルームを作る</button>
+                <!-- ★追加：OBSカスタムCSSボタン -->
+                <button onclick="openObsModal()" style="background-color: #6f42c1; color: white; border: none;">📺 OBSカスタムCSS</button>
+                <button onclick="openModal('settingsModal')">⚙️ 設定</button>
+            </div>
+        </div>
+        
+        <div class="room-status-wrapper" id="roomStatusWrapper">
+            <div class="room-status-bar">
+                <div id="roomStatusText"></div>
+                <div class="room-actions">
+                    <button onclick="copyRoomLink()">🔗 URLをコピー</button>
+                    <button class="btn-danger" onclick="leaveRoom()">🚪 退出</button>
+                </div>
+            </div>
+            <div class="room-members-area" id="roomMembersArea">
+                👥 参加中: <span id="roomMembersList">読み込み中...</span>
+            </div>
+        </div>
+
+        <div class="controls" id="controls">
+            <div class="search-row">
+                <input type="text" id="searchInput" class="search-box" placeholder="曲名、アーティスト、アニメ名などで検索...">
+                <div class="status-buttons">
+                    <button class="primary-btn" onclick="openModal('reservedModal')">📝 予約 (<span id="reservedCount">0</span>)</button>
+                    <button class="primary-btn" style="background-color: #28a745; border-color: #28a745;" onclick="openModal('confirmedModal')">🎸 確定 (<span id="confirmedCount">0</span>)</button>
+                    <button class="primary-btn" style="background-color: #17a2b8; border-color: #17a2b8;" onclick="openModal('completedModal')">✅ 完了 (<span id="completedCount">0</span>)</button>
+                </div>
+                <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-label">🏷️ ジャンル</div>
+                <div class="genre-filters" id="genreFilters"></div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-label">⭐ お気に入り</div>
+                <div class="fav-filters" id="favFilters"></div>
+            </div>
+        </div>
     </div>
-    <div id="obsCompletedContainer">
-        <div class="empty-notice">データを読み込み中...</div>
+
+    <!-- ローディング画面 -->
+    <div class="loading-area" id="loadingArea">
+        <div class="spinner"></div>
+        <div>スプレッドシートからデータを取得中...</div>
+    </div>
+
+    <div id="tableWrapper">
+        <div class="table-header-wrapper">
+            <table class="data-table">
+                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-code"></colgroup>
+                <thead>
+                    <tr>
+                        <th>ステータス</th>
+                        <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
+                        <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
+                        <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
+                        <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
+                        <th>コード</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="table-body-wrapper">
+            <table class="data-table">
+                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-code"></colgroup>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
+<!-- ================= モーダル群 ================= -->
+
+<!-- ★追加：OBSカスタムCSS＆URL案内用モーダル -->
+<div class="modal-overlay" id="obsModal" onclick="closeModal(event, 'obsModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width: 600px;">
+        <span class="modal-close" onclick="closeModal(null, 'obsModal')">&times;</span>
+        <h2 style="color: var(--primary);">📺 OBS配信用セットリスト表示設定</h2>
+        
+        <div style="font-size: 13px; line-height: 1.6; margin-bottom: 15px;">
+            <p style="margin: 0 0 8px 0;">OBSのソースに「ブラウザ」を追加し、以下のURLを入力することで、このルームの完了したセットリストをリアルタイムに配信画面に映すことができます！</p>
+            <div style="background: rgba(255, 255, 255, 0.06); padding: 8px 12px; border-radius: 6px; border-left: 3px solid var(--primary); font-size: 12px;">
+                💡 <b>OBSおすすめサイズ設定：</b> 幅 <b>500</b> / 高さ <b>1000</b>（縦長配置で15曲以上すっきりと綺麗に収まります）
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label>1. ブラウザソース用 URL (<a href="#" onclick="copyObsUrl(event)" style="color:var(--link-color);">📋 URLをコピー</a>)</label>
+            <input type="text" id="obsUrlInput" class="setting-input" readonly style="font-weight: bold;">
+            <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">※現在のルームID（<span id="currentRoomIdSpan"></span>）が自動適用されています。</div>
+        </div>
+
+        <div class="setting-group" style="margin-top: 20px;">
+            <label>2. OBSカスタムCSSコード (<button onclick="copyObsCss()" style="padding: 2px 8px; font-size: 11px; border-radius: 4px;">📋 CSSをコピー</button>)</label>
+            <textarea id="obsCssTextarea" class="setting-input" rows="8" readonly>/* OBS用 カスタムCSSサンプル */
+body {
+    background-color: transparent !important;
+    color: #ffffff;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 10px;
+}
+.obs-container {
+    background: rgba(30, 30, 30, 0.85);
+    border: 2px solid #007bff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+h2 {
+    text-align: center;
+    font-size: 18px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    margin-top: 0;
+}</textarea>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
+        <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
+        <h2 id="manualTitle" style="color: var(--primary);">📖 使い方ガイド (1/4)</h2>
+        
+        <div id="manualBody" style="font-size: 14px; line-height: 1.7; min-height: 200px; padding: 10px 0;"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <button id="prevManualBtn" onclick="changeManualPage(-1)" style="padding: 8px 16px;">◀ 前へ</button>
+            <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 4</span>
+            <button id="nextManualBtn" class="primary-btn" onclick="changeManualPage(1)" style="padding: 8px 16px;">次へ ▶</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal" onclick="closeModal(event, 'settingsModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
+        <h2>設定</h2>
+        
+        <div class="setting-group" style="margin-bottom: 25px;">
+            <label>👤 ユーザー名 (セッション用)</label>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="usernameInput" class="setting-input" placeholder="名前を入力">
+                <button onclick="changeUsername()" style="flex-shrink:0;">変更</button>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label>🎨 UIカラーテーマ</label>
+            <select id="themeSelect" onchange="changeTheme()">
+                <option value="dark">ダーク (ダーク)</option>
+                <option value="white">ホワイト</option>
+                <option value="eva01">初号機</option>
+                <option value="eva02">弐号機</option>
+                <option value="eva00">零号機</option>
+                <option value="eva08">八号機</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="songDetailsModal" onclick="closeModal(event, 'songDetailsModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'songDetailsModal')">&times;</span>
+        <h2 id="detailTitle">曲名</h2>
+        <div class="detail-item"><span class="detail-label">アーティスト</span><span id="detailArtist"></span></div>
+        <div class="detail-item"><span class="detail-label">作詞者</span><span id="detailLyricist"></span></div>
+        <div class="detail-item"><span class="detail-label">作曲者</span><span id="detailComposer"></span></div>
+        <div class="detail-item"><span class="detail-label">編曲者</span><span id="detailArranger"></span></div>
+        <div class="detail-item"><span class="detail-label">BPM</span><span id="detailBPM"></span></div>
+        <div class="detail-item"><span class="detail-label">ジャンル①</span><span id="detailGenre1"></span></div>
+        <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
+        <div class="detail-item"><span class="detail-label">お気に入り度</span><span id="detailFav"></span></div>
+        <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
+        <div class="detail-item" id="detailCodeArea" style="display:none;"><span class="detail-label">コード</span><span id="detailCode"></span></div>
+    </div>
+</div>
+
+<!-- 予約モーダル -->
+<div class="modal-overlay" id="reservedModal" onclick="closeModal(event, 'reservedModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'reservedModal')">&times;</span>
+        <h2>📝 予約一覧 (<span id="modalReservedCount">0</span>曲)</h2>
+        <div id="reservedContainer"></div>
+    </div>
+</div>
+
+<!-- 確定モーダル -->
+<div class="modal-overlay" id="confirmedModal" onclick="closeModal(event, 'confirmedModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'confirmedModal')">&times;</span>
+        <h2>🎸 演奏リスト (<span id="modalConfirmedCount">0</span>曲)</h2>
+        <p style="font-size:12px; color:gray; margin-top:-10px;">今から演奏する確定済みの曲です。</p>
+        <div id="confirmedContainer"></div>
+    </div>
+</div>
+
+<!-- 完了モーダル -->
+<div class="modal-overlay" id="completedModal" onclick="closeModal(event, 'completedModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'completedModal')">&times;</span>
+        
+        <div id="captureArea" style="background: var(--panel-bg); padding: 20px 15px; border-radius: 8px; color: var(--text-color);">
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 20px;">♬~~本日のセットリスト~~♬</h2>
+            <div id="completedContainer"></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="downloadSetlistImage()" style="background-color: #28a745; color: white; padding: 12px 24px; font-weight: bold; border-radius: 6px; font-size: 15px; border: none;">📸 画像として保存する</button>
+        </div>
+    </div>
+</div>
+<!-- ============================================= -->
+
 <script>
-    // Firebase 設定
+    // =========================================
+    // Firebase 初期化
+    // =========================================
     const firebaseConfig = {
       apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
       authDomain: "kankan-session-room.firebaseapp.com",
@@ -193,99 +435,670 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // =========================================
+    // ルーム状態とユーザー名の管理
+    // =========================================
     const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('room');
-    let allSongsCache = [];
+    const currentRoomId = urlParams.get('room');
+    let myName = ''; 
+    let mySessionId = ''; 
 
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
+    function initRoomUI() {
+        const roomWrapper = document.getElementById('roomStatusWrapper');
+        const createBtn = document.getElementById('createRoomBtn');
+        
+        myName = localStorage.getItem('kankan_username');
+        document.getElementById('usernameInput').value = myName || '';
 
-    // スプレッドシートから楽曲情報を取得
-    Papa.parse(SHEET_CSV_URL, {
-        download: true,
-        header: false,
-        skipEmptyLines: true,
-        encoding: "UTF-8",
-        complete: function(results) {
-            const rawData = results.data;
-            const headerIndex = rawData.findIndex(row => row.includes("曲名"));
-            if (headerIndex !== -1) {
-                const headers = rawData[headerIndex];
-                allSongsCache = rawData.slice(headerIndex + 1).map((row, idx) => {
-                    let obj = { _id: idx.toString() };
-                    headers.forEach((h, i) => { obj[h] = row[i] || ''; });
-                    return obj;
-                });
+        if (currentRoomId) {
+            if (!myName) {
+                myName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（例：Gt. カンカン）");
+                if (!myName) myName = "名無し";
+                localStorage.setItem('kankan_username', myName);
+                document.getElementById('usernameInput').value = myName;
             }
-            if (roomId) {
-                initObsRealtimeSync();
-            } else {
-                document.getElementById('obsCompletedContainer').innerHTML = 
-                    '<div class="empty-notice">⚠️ URLに ?room=ルームID が指定されていません</div>';
-            }
-        },
-        error: function() {
-            document.getElementById('obsCompletedContainer').innerHTML = 
-                '<div class="empty-notice">⚠️ スプレッドシートの取得に失敗しました</div>';
-        }
-    });
 
-    function initObsRealtimeSync() {
-        db.ref('rooms/' + roomId + '/queue').on('value', (snapshot) => {
-            const queue = snapshot.val() || {};
-            const completedItems = [];
+            roomWrapper.classList.add('active');
+            document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
+            createBtn.style.display = 'none';
 
-            Object.keys(queue).forEach(qId => {
-                const item = queue[qId];
-                if (item.status === 'completed') {
-                    const songData = allSongsCache.find(r => r._id === item.songId);
-                    if (songData) {
-                        completedItems.push({ ...item, songData });
-                    }
-                }
+            mySessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+            const myMemberRef = db.ref(`rooms/${currentRoomId}/members/${mySessionId}`);
+            myMemberRef.set({ name: myName });
+            myMemberRef.onDisconnect().remove();
+
+            db.ref(`rooms/${currentRoomId}/members`).on('value', snap => {
+                const members = snap.val() || {};
+                const names = Object.values(members).map(m => escapeHtml(m.name));
+                document.getElementById('roomMembersList').innerHTML = names.length > 0 ? names.join(' , ') : '読み込み中...';
             });
 
-            // 完了順（演奏順）に並び替え
-            completedItems.sort((a, b) => a.order - b.order);
-            renderObsList(completedItems);
+        } else {
+            myName = myName || "自分";
+            roomWrapper.classList.remove('active');
+            createBtn.style.display = 'inline-block';
+        }
+    }
+
+    function changeUsername() {
+        const newName = document.getElementById('usernameInput').value.trim();
+        if(newName) {
+            myName = newName;
+            localStorage.setItem('kankan_username', myName);
+            if(currentRoomId && mySessionId) {
+                db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({ name: myName });
+                document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
+            }
+            alert("名前を変更しました！");
+        }
+    }
+
+    function createRoom() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let newRoomId = '';
+        for(let i = 0; i < 5; i++) newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
+        window.location.href = '?room=' + newRoomId;
+    }
+
+    function leaveRoom() { window.location.href = window.location.pathname; }
+
+    function copyRoomLink() {
+        const url = window.location.href;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => { alert('ルームのURLをコピーしました！メンバーに共有してください。'); }).catch(err => { fallbackCopy(url); });
+        } else {
+            fallbackCopy(url);
+        }
+    }
+    function fallbackCopy(text) {
+        const textArea = document.createElement("textarea"); textArea.value = text;
+        textArea.style.top = "0"; textArea.style.left = "0"; textArea.style.position = "fixed"; document.body.appendChild(textArea);
+        textArea.focus(); textArea.select();
+        try { document.execCommand('copy') ? alert('ルームのURLをコピーしました！') : alert('自動コピーできません。URLを直接コピーしてください。'); } catch (err) {}
+        document.body.removeChild(textArea);
+    }
+
+    // =========================================
+    // OBSカスタムCSS関連の処理
+    // =========================================
+    function openObsModal() {
+        // 現在のベースURLから obs-setlist.html のURLを推測して生成
+        const loc = window.location;
+        const basePath = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+        const roomIdParam = currentRoomId ? `?room=${currentRoomId}` : `?room=ここにルームIDを入力`;
+        const obsUrl = `${loc.protocol}//${loc.host}${basePath}obs-setlist.html${roomIdParam}`;
+        
+        document.getElementById('obsUrlInput').value = obsUrl;
+        openModal('obsModal');
+    }
+
+    function copyObsUrl(e) {
+        e.preventDefault();
+        const urlInput = document.getElementById('obsUrlInput');
+        urlInput.select();
+        try {
+            document.execCommand('copy');
+            alert('OBS配信用URLをコピーしました！');
+        } catch (err) {
+            alert('コピーに失敗しました。');
+        }
+    }
+
+    function copyObsCss() {
+        const cssTextarea = document.getElementById('obsCssTextarea');
+        cssTextarea.select();
+        try {
+            document.execCommand('copy');
+            alert('OBSカスタムCSSコードをコピーしました！');
+        } catch (err) {
+            alert('コピーに失敗しました。');
+        }
+    }
+
+    // =========================================
+    // マニュアル（使い方ガイド）のページ送り機能
+    // =========================================
+    let currentManualPage = 1;
+    const totalManualPages = 4;
+
+    const manualData = {
+        1: {
+            title: "📖 使い方ガイド (1/4) - アプリの概要と画面の見方",
+            content: `
+                <p><b>「KanKan~ただ好きな曲集めたいだけ~」</b>へようこそ！このアプリは、GoogleスプレッドシートのKanKanリストを自動読み込みし、リアルタイムな予約やセットリストの作成・保存を行うためのツールです。</p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>メイン一覧：</strong> スプレッドシートから自動取得したすべての楽曲リストが表示されます。</li>
+                    <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「OBSカスタムCSS」、「設定」が行えます。</li>
+                    <li><strong>フィルターボタン：</strong> 画面下のジャンルや「お気に入り度（★★★★★〜★）」ボタンを押すことで、素早く曲を絞り込めます。</li>
+                </ul>
+            `
+        },
+        2: {
+            title: "📖 使い方ガイド (2/4) - 曲の検索と詳細情報",
+            content: `
+                <p><b>目当ての曲を素早く見つけて詳細を確認する方法です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>キーワード検索：</strong> 検索ボックスに曲名、アーティスト名、アニメ作品名、作詞・作曲・編曲者などをスペース区切りで入力すると、リアルタイムに候補が絞り込まれます。</li>
+                    <li style="margin-bottom: 8px;"><strong>ソート機能：</strong> 表のヘッダー（「曲名」「アーティスト」「ジャンル」「BPM」）をクリックすると、昇順・降順で並び替えることができます。</li>
+                    <li><strong>詳細ポップアップ：</strong> リスト上の<b>曲名をクリック</b>すると、作詞・作曲・編曲者やコードWikiへのリンクなど、詳細なデータを確認できます。</li>
+                </ul>
+            `
+        },
+        3: {
+            title: "📖 使い方ガイド (3/4) - セッションルームの使い方",
+            content: `
+                <p><b>メンバー全員とリアルタイムにセットリストを共有する機能です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>ルームの作成：</strong> 「🌐 ルームを作る」ボタンを押すと、専用のURLが発行されます。そのURLをSYNCROOMチャット欄やDMでメンバーに共有してください。</li>
+                    <li style="margin-bottom: 8px;"><strong>参加メンバーの確認：</strong> ルームに接続すると、画面上に現在接続しているメンバーの名前が一覧でリアルタイム表示されます。</li>
+                    <li><strong>名前の変更：</strong> メンバー一覧に表示される「自分の名前」は、右上「⚙ 設定」からいつでも自由に変更可能です。</li>
+                </ul>
+            `
+        },
+        4: {
+            title: "📖 使い方ガイド (4/4) - 予約から完了・画像保存まで",
+            content: `
+                <p><b>当日のセッション進行とセットリストのシェア手順です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>3段階のステータス管理：</strong>
+                        <br>① <b>📝 予約：</b> リストの「＋追加」ボタンで予約リストに入ります。▲▼ボタンで順番の入れ替えも可能！
+                        <br>② <b>🎸 確定：</b> 予約リストから「演奏確定」を押すと演奏リストに移動します。
+                        <br>③ <b>✅ 完了：</b> 演奏が終わったら「完了」へ！配信にセットリストを映したい場合は「OBSカスタムCSS」ボタンから専用URLをご活用ください。
+                    </li>
+                    <li><strong>セットリスト画像保存：</strong> 「✅ 完了」ボタンの下部にある<b>「📸 画像として保存する」</b>ボタンから、本日のセットリストを1枚の画像として保存できます！</li>
+                </ul>
+            `
+        }
+    };
+
+    function openManualModal() {
+        currentManualPage = 1;
+        renderManualPage();
+        openModal('manualModal');
+    }
+
+    function changeManualPage(direction) {
+        currentManualPage += direction;
+        if (currentManualPage < 1) currentManualPage = 1;
+        if (currentManualPage > totalManualPages) currentManualPage = totalManualPages;
+        renderManualPage();
+    }
+
+    function renderManualPage() {
+        const pageData = manualData[currentManualPage];
+        document.getElementById('manualTitle').textContent = pageData.title;
+        document.getElementById('manualBody').innerHTML = pageData.content;
+        document.getElementById('manualPageIndicator').textContent = `${currentManualPage} / ${totalManualPages}`;
+
+        document.getElementById('prevManualBtn').style.visibility = currentManualPage === 1 ? 'hidden' : 'visible';
+        document.getElementById('nextManualBtn').style.display = currentManualPage === totalManualPages ? 'none' : 'inline-block';
+    }
+
+    // =========================================
+    // 画像を保存する処理 (html2canvas使用)
+    // =========================================
+    function downloadSetlistImage() {
+        const target = document.getElementById('captureArea');
+        const hideElements = target.querySelectorAll('.hide-on-capture');
+        hideElements.forEach(el => el.style.display = 'none');
+        
+        const bgColor = getComputedStyle(document.body).getPropertyValue('--panel-bg').trim();
+        
+        html2canvas(target, {
+            backgroundColor: bgColor,
+            scale: 2
+        }).then(canvas => {
+            hideElements.forEach(el => el.style.display = '');
+            const link = document.createElement('a');
+            link.download = '本日のセットリスト.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            hideElements.forEach(el => el.style.display = '');
+            alert('画像の保存に失敗しました。');
         });
     }
 
-    function escapeHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    // =========================================
+    // スプレッドシート自動取得 & データ処理
+    // =========================================
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
+
+    let allData = [];
+    let roomQueue = {}; 
+    let currentSortKey = '';
+    let currentSortOrder = 1; 
+    let currentGenre = "すべて";
+    let currentFav = "すべて"; 
+    let genre1Key = 'ジャンル'; 
+    let genre2Key = 'ジャンル②'; 
+    let favKey = 'お気に入り度'; 
+
+    const tableBody = document.getElementById('tableBody');
+    const controls = document.getElementById('controls');
+    const tableWrapper = document.getElementById('tableWrapper');
+    const loadingArea = document.getElementById('loadingArea');
+    const searchInput = document.getElementById('searchInput');
+    const songCountDisplay = document.getElementById('songCountDisplay');
+    const genreFilters = document.getElementById('genreFilters');
+    const favFilters = document.getElementById('favFilters');
+    
+    document.querySelector('.table-body-wrapper').addEventListener('scroll', (e) => { document.querySelector('.table-header-wrapper').scrollLeft = e.target.scrollLeft; });
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
+    function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
+    function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
+    function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
+
+    // ジャンルボタン生成
+    function populateGenreButtons() {
+        genreFilters.innerHTML = ''; 
+        const gSet = new Set();
+        
+        allData.forEach(row => { 
+            if (genre1Key && row[genre1Key] && row[genre1Key].trim() !== '') {
+                gSet.add(row[genre1Key].trim()); 
+            }
+            if (genre2Key && row[genre2Key] && row[genre2Key].trim() !== '') {
+                gSet.add(row[genre2Key].trim()); 
+            }
+        });
+        
+        const genres = ["すべて", ...Array.from(gSet).sort()];
+
+        genres.forEach(genre => {
+            const btn = document.createElement('button');
+            btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`; 
+            btn.textContent = genre;
+            btn.onclick = () => { 
+                document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active')); 
+                btn.classList.add('active'); 
+                currentGenre = genre; 
+                renderTable(); 
+            };
+            genreFilters.appendChild(btn);
+        });
     }
 
-    function renderObsList(items) {
-        const container = document.getElementById('obsCompletedContainer');
-        const counter = document.getElementById('songCounter');
-        container.innerHTML = '';
-        counter.textContent = `${items.length} 曲`;
+    // お気に入り度ボタン生成（★★★★★〜★）
+    function populateFavButtons() {
+        favFilters.innerHTML = '';
+        const favOptions = ["すべて", "★★★★★", "★★★★", "★★★", "★★", "★"];
 
-        if (items.length === 0) {
-            container.innerHTML = '<div class="empty-notice">まだ完了した曲はありません...</div>';
-            return;
+        favOptions.forEach(fav => {
+            const btn = document.createElement('button');
+            btn.className = `fav-btn ${fav === currentFav ? 'active' : ''}`;
+            btn.textContent = fav;
+            btn.onclick = () => {
+                document.querySelectorAll('.fav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFav = fav;
+                renderTable();
+            };
+            favFilters.appendChild(btn);
+        });
+    }
+
+    function loadRowsIntoApp(rawData) {
+        const headerIndex = rawData.findIndex(row => row.includes("曲名"));
+        if (headerIndex === -1) { 
+            showCsvLoadError("エラー: データ内に「曲名」が見つかりませんでした。");
+            return; 
+        }
+        
+        const headers = rawData[headerIndex];
+        
+        if (headers.includes('ジャンル①')) {
+            genre1Key = 'ジャンル①';
+        } else if (headers.includes('ジャンル')) {
+            genre1Key = 'ジャンル';
+        } else if (headers.length > 7 && headers[7]) {
+            genre1Key = headers[7].trim();
+        } else {
+            genre1Key = '';
         }
 
-        const countMap = {};
-        const circleNumbers = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+        if (headers.includes('ジャンル②')) {
+            genre2Key = 'ジャンル②';
+        } else if (headers.length > 8 && headers[8]) {
+            genre2Key = headers[8].trim();
+        } else {
+            genre2Key = '';
+        }
 
-        items.forEach((item, index) => {
-            const sId = item.songId;
-            countMap[sId] = (countMap[sId] || 0) + 1;
-            let displayTitle = escapeHtml(item.songData['曲名']);
-            if (countMap[sId] > 1) {
-                displayTitle += ` ${circleNumbers[countMap[sId]] || `(${countMap[sId]})`}`;
+        if (headers.includes('お気に入り度')) {
+            favKey = 'お気に入り度';
+        } else if (headers.length > 5 && headers[5] && headers[5].trim() !== '') {
+            favKey = headers[5].trim();
+        } else {
+            favKey = headers[5] || '';
+        }
+
+        allData = rawData.slice(headerIndex + 1).map((row, idx) => {
+            let obj = { _id: idx.toString() };
+            headers.forEach((headerName, index) => {
+                if (Object.prototype.hasOwnProperty.call(obj, headerName) && obj[headerName]) return;
+                obj[headerName] = row[index] || '';
+            });
+            return obj;
+        });
+
+        populateGenreButtons();
+        populateFavButtons(); 
+        loadingArea.style.display = 'none';
+        controls.style.display = 'block';
+        tableWrapper.style.display = 'flex';
+        
+        if (currentRoomId && !window._firebaseListenerInitialized) {
+            window._firebaseListenerInitialized = true;
+            db.ref('rooms/' + currentRoomId + '/queue').on('value', (snapshot) => {
+                roomQueue = snapshot.val() || {};
+                renderTable(); updateQueueUI();
+            });
+        } else {
+            renderTable(); updateQueueUI();
+        }
+    }
+
+    function showCsvLoadError(message) {
+        loadingArea.style.display = 'flex';
+        controls.style.display = 'none';
+        tableWrapper.style.display = 'none';
+        loadingArea.innerHTML = `<span style='color:red;'>${escapeHtml(message)}</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>`;
+        document.getElementById('retryBtn').onclick = () => location.reload();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initRoomUI();
+
+        Papa.parse(SHEET_CSV_URL, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            encoding: "UTF-8",
+            complete: function(results) { 
+                loadRowsIntoApp(results.data); 
+            },
+            error: function(error) {
+                showCsvLoadError("エラー: スプレッドシートからのデータ取得に失敗しました。URLや公開設定を確認してください。");
             }
+        });
+    });
 
+    let searchDebounceTimer = null;
+    searchInput.addEventListener('input', () => { clearTimeout(searchDebounceTimer); searchDebounceTimer = setTimeout(renderTable, 150); });
+
+    // =========================================
+    // セッション曲管理機能
+    // =========================================
+    function addToQueue(songId) {
+        const qId = 'q_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+        const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now() };
+        if (currentRoomId) {
+            db.ref('rooms/' + currentRoomId + '/queue/' + qId).set(data);
+        } else {
+            roomQueue[qId] = data;
+            renderTable(); updateQueueUI();
+        }
+    }
+
+    function changeStatus(qId, newStatus) {
+        const newOrder = Date.now(); 
+        if(currentRoomId) {
+            db.ref(`rooms/${currentRoomId}/queue/${qId}`).update({status: newStatus, order: newOrder});
+        } else {
+            roomQueue[qId].status = newStatus; roomQueue[qId].order = newOrder;
+            renderTable(); updateQueueUI();
+        }
+    }
+
+    function removeQueue(qId) {
+        if(currentRoomId) { db.ref(`rooms/${currentRoomId}/queue/${qId}`).remove(); } 
+        else { delete roomQueue[qId]; renderTable(); updateQueueUI(); }
+    }
+
+    function swapOrder(qId1, qId2) {
+        const order1 = roomQueue[qId1].order;
+        const order2 = roomQueue[qId2].order;
+        if(currentRoomId) {
+            db.ref(`rooms/${currentRoomId}/queue/${qId1}`).update({order: order2});
+            db.ref(`rooms/${currentRoomId}/queue/${qId2}`).update({order: order1});
+        } else {
+            roomQueue[qId1].order = order2; roomQueue[qId1].order = order1;
+            updateQueueUI();
+        }
+    }
+
+    function updateQueueUI() {
+        const reservedItems = [], confirmedItems = [], completedItems = [];
+        
+        Object.keys(roomQueue).forEach(qId => {
+            const data = roomQueue[qId];
+            const songData = allData.find(r => r._id === data.songId);
+            if(!songData) return;
+            const item = { qId: qId, ...data, songData: songData };
+            if(item.status === 'reserved') reservedItems.push(item);
+            else if(item.status === 'confirmed') confirmedItems.push(item);
+            else if(item.status === 'completed') completedItems.push(item);
+        });
+
+        reservedItems.sort((a,b) => a.order - b.order);
+        confirmedItems.sort((a,b) => a.order - b.order);
+        completedItems.sort((a,b) => a.order - b.order);
+
+        document.getElementById('reservedCount').textContent = reservedItems.length;
+        document.getElementById('confirmedCount').textContent = confirmedItems.length;
+        document.getElementById('completedCount').textContent = completedItems.length;
+        document.getElementById('modalReservedCount').textContent = reservedItems.length;
+        document.getElementById('modalConfirmedCount').textContent = confirmedItems.length;
+
+        const getWikiLink = (songData) => {
+            const wikiUrl = safeHref(songData['コードwiki']);
+            return wikiUrl ? ` | <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--link-color); text-decoration:underline;">🎸 コードWiki</a>` : '';
+        };
+
+        // --- 1. 予約リスト ---
+        const rCont = document.getElementById('reservedContainer');
+        rCont.innerHTML = '';
+        if(reservedItems.length === 0) rCont.innerHTML = '<p style="color:gray;">予約リストは空です。リストの「＋ 追加」から曲を追加してください。</p>';
+        reservedItems.forEach((item, index) => {
+            const upBtn = index > 0 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${reservedItems[index-1].qId}')">▲</button>` : `<button class="btn-updown" style="visibility:hidden;">▲</button>`;
+            const downBtn = index < reservedItems.length - 1 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${reservedItems[index+1].qId}')">▼</button>` : `<button class="btn-updown" style="visibility:hidden;">▼</button>`;
+            
             const div = document.createElement('div');
-            div.className = 'obs-song-item';
+            div.className = 'queue-item';
             div.innerHTML = `
-                <span class="obs-song-num">${index + 1}.</span>
-                <div class="obs-song-info">
-                    <span class="obs-song-title">${displayTitle}</span>
-                    <span class="obs-song-artist">/ ${escapeHtml(item.songData['アーティスト'])}</span>
+                <div class="queue-info">
+                    <div class="queue-title">${escapeHtml(item.songData['曲名'])}</div>
+                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])}<br>🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item.songData)}</div>
+                </div>
+                <div class="queue-controls">
+                    <div style="display:flex; gap:4px;">${upBtn}${downBtn}</div>
+                    <div class="queue-actions">
+                        <button class="btn-remove" onclick="removeQueue('${item.qId}')">取消</button>
+                        <button class="btn-confirm" onclick="changeStatus('${item.qId}', 'confirmed')">演奏確定 ＞</button>
+                    </div>
                 </div>
             `;
-            container.appendChild(div);
+            rCont.appendChild(div);
+        });
+
+        // --- 2. 確定リスト ---
+        const cCont = document.getElementById('confirmedContainer');
+        cCont.innerHTML = '';
+        if(confirmedItems.length === 0) cCont.innerHTML = '<p style="color:gray;">確定した曲はありません。</p>';
+        confirmedItems.forEach((item, index) => {
+            const upBtn = index > 0 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${confirmedItems[index-1].qId}')">▲</button>` : `<button class="btn-updown" style="visibility:hidden;">▲</button>`;
+            const downBtn = index < confirmedItems.length - 1 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${confirmedItems[index+1].qId}')">▼</button>` : `<button class="btn-updown" style="visibility:hidden;">▼</button>`;
+
+            const div = document.createElement('div');
+            div.className = 'queue-item';
+            div.innerHTML = `
+                <div class="queue-info">
+                    <div class="queue-title">${escapeHtml(item.songData['曲名'])}</div>
+                    <div class="queue-meta">👤 ${escapeHtml(item.songData['アーティスト'])}<br>🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item.songData)}</div>
+                </div>
+                <div class="queue-controls">
+                    <div style="display:flex; gap:4px;">${upBtn}${downBtn}</div>
+                    <div class="queue-actions">
+                        <button class="btn-revert" onclick="changeStatus('${item.qId}', 'reserved')">＜ 戻す</button>
+                        <button class="btn-complete" onclick="changeStatus('${item.qId}', 'completed')">完了 ＞</button>
+                    </div>
+                </div>
+            `;
+            cCont.appendChild(div);
+        });
+
+        // --- 3. 完了リスト ---
+        const fCont = document.getElementById('completedContainer');
+        fCont.innerHTML = '';
+        
+        if(completedItems.length === 0) {
+            fCont.innerHTML = '<p style="color:gray; text-align:center;">完了した曲はありません。</p>';
+        } else {
+            const completedCountMap = {}; 
+            const circleNumbers = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+
+            completedItems.forEach((item, index) => {
+                const sId = item.songId;
+                completedCountMap[sId] = (completedCountMap[sId] || 0) + 1;
+                let displayTitle = escapeHtml(item.songData['曲名']);
+                
+                if (completedCountMap[sId] > 1) {
+                    const numStr = circleNumbers[completedCountMap[sId]] || `(${completedCountMap[sId]})`;
+                    displayTitle += ` ${numStr}`;
+                }
+
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.padding = '10px 0';
+                div.style.borderBottom = (index === completedItems.length - 1) ? 'none' : '1px dashed var(--border-color)';
+                
+                div.innerHTML = `
+                    <div style="flex: 1; text-align: left; font-size: 14px; line-height: 1.4;">
+                        <span style="font-weight: bold;">${index + 1}. ${displayTitle}</span>
+                        <span style="margin-left: 8px; font-size: 12px; opacity: 0.8;">/ ${escapeHtml(item.songData['アーティスト'])}</span>
+                    </div>
+                    <button class="btn-revert hide-on-capture" style="padding: 3px 6px; font-size: 11px; opacity: 0.5; margin-left: 10px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="changeStatus('${item.qId}', 'confirmed')">戻す</button>
+                `;
+                fCont.appendChild(div);
+            });
+        }
+    }
+
+    // =========================================
+    // その他UI処理
+    // =========================================
+    function handleSort(key) {
+        let actualKey = key === 'genre1' ? genre1Key : key;
+        if (currentSortKey === actualKey) { currentSortOrder *= -1; } else { currentSortKey = actualKey; currentSortOrder = 1; }
+        updateSortIcons(); renderTable();
+    }
+
+    function updateSortIcons() {
+        const keys = ['曲名', 'アーティスト', 'genre1', 'BPM'];
+        keys.forEach(k => {
+            const iconEl = document.getElementById(`icon-${k}`);
+            if (iconEl) { const actualKey = k === 'genre1' ? genre1Key : k; iconEl.textContent = currentSortKey === actualKey ? (currentSortOrder === 1 ? '▲' : '▼') : ''; }
+        });
+    }
+
+    function showSongDetails(id) {
+        const song = allData.find(r => r._id === id);
+        if(!song) return;
+        document.getElementById('detailTitle').textContent = song['曲名'] || '不明な曲';
+        document.getElementById('detailArtist').textContent = song['アーティスト'] || '-';
+        document.getElementById('detailLyricist').textContent = song['作詞'] || '-';
+        document.getElementById('detailComposer').textContent = song['作曲'] || '-';
+        document.getElementById('detailArranger').textContent = song['編曲'] || '-';
+        document.getElementById('detailBPM').textContent = song['BPM'] || '-';
+        document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
+        document.getElementById('detailGenre2').textContent = song[genre2Key] || '-';
+        document.getElementById('detailFav').textContent = song[favKey] || '-';
+        document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
+        const codeArea = document.getElementById('detailCodeArea');
+        const detailWikiUrl = safeHref(song['コードwiki']);
+        if (detailWikiUrl) {
+            document.getElementById('detailCode').innerHTML = `<a href="${detailWikiUrl}" target="_blank" rel="noopener noreferrer">Wikiを開く</a>`;
+            codeArea.style.display = 'block';
+        } else { codeArea.style.display = 'none'; }
+        openModal('songDetailsModal');
+    }
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
+        
+        let filteredData = allData.filter(row => {
+            const g1 = (row[genre1Key] || '').trim();
+            const g2 = (row[genre2Key] || '').trim();
+            const fVal = (row[favKey] || '').trim();
+            
+            const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
+            const matchFav = currentFav === 'すべて' || fVal === currentFav;
+            
+            const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${fVal} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
+            return matchGenre && matchFav && keywords.every(kw => searchStr.includes(kw));
+        });
+
+        if (currentSortKey) {
+            filteredData.sort((a, b) => {
+                let valA = a[currentSortKey] || ''; let valB = b[currentSortKey] || '';
+                if (currentSortKey === 'BPM') { valA = Number(valA) || 0; valB = Number(valB) || 0; } else { valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase(); }
+                if (valA < valB) return -1 * currentSortOrder; if (valA > valB) return 1 * currentSortOrder; return 0;
+            });
+        }
+        songCountDisplay.textContent = `表示中: ${filteredData.length} 曲`;
+
+        filteredData.forEach(row => {
+            const tr = document.createElement('tr');
+            
+            let displayGenre = escapeHtml(row[genre1Key] || '-');
+            if (row[genre2Key] && row[genre2Key].trim() !== '') {
+                displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
+            }
+            if (row[favKey] && row[favKey].trim() !== '') {
+                displayGenre += ` / ${escapeHtml(row[favKey])}`;
+            }
+            if (row['タイアップ情報']) {
+                displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
+            }
+
+            let linkHtml = '-';
+            const rowWikiUrl = safeHref(row['コードwiki']);
+            if (rowWikiUrl) { linkHtml = `<a href="${rowWikiUrl}" target="_blank" rel="noopener noreferrer">開く</a>`; }
+
+            let activeQid = null;
+            let activeStatus = null;
+            for(let qId in roomQueue) {
+                if(roomQueue[qId].songId === row._id && roomQueue[qId].status !== 'completed') {
+                    activeQid = qId;
+                    activeStatus = roomQueue[qId].status;
+                    break;
+                }
+            }
+            
+            let actionBtnHtml = `<button style="border-radius:4px; padding:4px 8px; font-size:12px;" onclick="addToQueue('${row._id}')">＋ 追加</button>`;
+            
+            if (activeQid) {
+                if (activeStatus === 'reserved') {
+                    actionBtnHtml = `<button style="background:var(--primary); color:white; border-radius:4px; padding:4px 8px; font-size:12px;" onclick="removeQueue('${activeQid}')">✓ 予約済</button>`;
+                } else if (activeStatus === 'confirmed') {
+                    actionBtnHtml = `<button style="background:#28a745; color:white; border-radius:4px; padding:4px 8px; font-size:12px; opacity:0.8;" disabled>🎸 確定済</button>`;
+                }
+            }
+
+            tr.innerHTML = `
+                <td class="col-action nowrap-cell">${actionBtnHtml}</td>
+                <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                <td class="col-artist col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['アーティスト'] || '-')}</span></td>
+                <td class="col-genre col-sub">${displayGenre}</td>
+                <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
+                <td class="col-code col-sub nowrap-cell">${linkHtml}</td>
+            `;
+            tableBody.appendChild(tr);
         });
     }
 </script>
