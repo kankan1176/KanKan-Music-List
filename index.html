@@ -99,6 +99,20 @@
         .genre-btn { padding: 4px 10px; border-radius: 14px; font-size: 12px; }
         .genre-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
 
+        .artist-filter-button {
+            border: 0; padding: 0; background: none; border-radius: 0;
+            color: var(--link-color); text-decoration: underline;
+            font: inherit; font-weight: bold; cursor: pointer;
+            white-space: normal; text-align: left;
+        }
+        .artist-filter-button:hover { opacity: 0.75; background: none; color: var(--link-color); }
+        .artist-filter-indicator {
+            align-items: center; gap: 8px; flex-wrap: wrap;
+            color: var(--text-color); font-size: 12px;
+        }
+        .artist-filter-indicator:not([hidden]) { display: flex; }
+        .artist-filter-indicator button { padding: 3px 8px; font-size: 11px; }
+
         /* =========================================
            テーブル
         ========================================= */
@@ -289,6 +303,10 @@
                     <button class="primary-btn" style="background-color: #17a2b8; border-color: #17a2b8;" onclick="openModal('completedModal')">✅ 完了 (<span id="completedCount">0</span>)</button>
                 </div>
                 <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
+                <div id="artistFilterIndicator" class="artist-filter-indicator" hidden>
+                    <span>🎤 アーティスト：<strong id="artistFilterName"></strong></span>
+                    <button type="button" onclick="setArtistFilter('')" aria-label="アーティストの絞り込みを解除">✕ 絞り込み解除</button>
+                </div>
             </div>
             
             <div class="filter-section">
@@ -794,13 +812,28 @@ h2 {
     const searchInput = document.getElementById('searchInput');
     const songCountDisplay = document.getElementById('songCountDisplay');
     const genreFilters = document.getElementById('genreFilters');
+    let selectedArtist = '';
+    const artistFilterIndicator = document.getElementById('artistFilterIndicator');
+    const artistFilterName = document.getElementById('artistFilterName');
+
+    function setArtistFilter(name) {
+        selectedArtist = String(name ?? '').trim();
+        artistFilterName.textContent = selectedArtist;
+        artistFilterIndicator.hidden = !selectedArtist;
+        tableBodyWrapper.scrollTop = 0;
+        renderTable();
+    }
+
+    tableBody.addEventListener('click', event => {
+        const artistButton = event.target.closest('.artist-filter-button');
+        if (artistButton) setArtistFilter(artistButton.dataset.artist);
+    });
     
     tableBodyWrapper.addEventListener('scroll', (e) => { tableHeaderWrapper.scrollLeft = e.target.scrollLeft; });
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
     function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
-    function artistWikipediaUrl(name) { return 'https://ja.wikipedia.org/w/index.php?search=' + encodeURIComponent(String(name ?? '').trim()); }
     // ログイン実装前の暫定保存。IDは行番号ではなくChordWikiの曲URLとアーティストから作る。
     const PERSONAL_KEYS_STORAGE = 'shareliscore_personal_chordwiki_keys_v1';
     let personalKeys = {};
@@ -1307,7 +1340,8 @@ h2 {
             const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
             
             const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
-            return matchGenre && keywords.every(kw => searchStr.includes(kw));
+            const matchArtist = !selectedArtist || String(row['アーティスト'] || '').trim() === selectedArtist;
+            return matchGenre && matchArtist && keywords.every(kw => searchStr.includes(kw));
         });
 
         if (currentSortKey) {
@@ -1357,9 +1391,9 @@ h2 {
                     <button type="button" aria-label="Keyを半音下げる" onclick="changeTableKey('${row._id}', -1)" ${currentKey <= -5 ? 'disabled' : ''}>◀</button>
                     <span class="table-key-value" aria-live="polite">${displayKey(currentKey)}</span>
                     <button type="button" aria-label="Keyを半音上げる" onclick="changeTableKey('${row._id}', 1)" ${currentKey >= 6 ? 'disabled' : ''}>▶</button>
-                </div>` : '<span class="no-chordwiki-label" title="コードwikiが未登録です">コードwiki無し</span>';
+                </div>` : '<span class="no-chordwiki-label" title="コードWikiが未登録です">コードWiki無し</span>';
             const artistName = String(row['アーティスト'] || '').trim();
-            const artistLinkHtml = artistName ? `<a class="song-title-link" href="${artistWikipediaUrl(artistName)}" target="_blank" rel="noopener noreferrer" title="Wikipediaで${escapeHtml(artistName)}を検索">${escapeHtml(artistName)}</a>` : '-';
+            const artistLinkHtml = artistName ? `<button type="button" class="artist-filter-button" data-artist="${escapeHtml(artistName)}" title="${escapeHtml(artistName)}の曲だけを表示">${escapeHtml(artistName)}</button>` : '-';
             tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                 <td class="col-key nowrap-cell">${keyPickerHtml}</td>
