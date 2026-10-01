@@ -78,6 +78,13 @@
         .status-buttons button { flex: 1; min-width: 80px; padding: 7px; border-radius: 6px; font-size: 13px; }
         .song-count { font-weight: bold; font-size: 13px; color: var(--primary); margin-top: 2px; }
 
+        /* ルーム未参加時は予約・確定・完了ボタンおよびテーブルのステータス列を非表示 */
+        body:not(.in-room) .status-buttons,
+        body:not(.in-room) .col-action {
+            display: none !important;
+            width: 0 !important;
+        }
+
         .filter-section { margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .filter-label { font-size: 11px; font-weight: bold; opacity: 0.8; width: 85px; flex-shrink: 0; white-space: nowrap; }
         .genre-filters, .fav-filters { display: flex; gap: 5px; flex-wrap: wrap; flex-grow: 1; }
@@ -202,8 +209,8 @@
             <div class="header-buttons">
                 <button onclick="openManualModal()" style="background-color: #17a2b8; color: white; border: none;">📖 使い方ガイド</button>
                 <button id="createRoomBtn" onclick="createRoom()">🌐 ルームを作る</button>
-                <!-- ★追加：ルーム作成時のみ表示されるOBSカスタムCSSボタン -->
-                <button id="obsCustomCssBtn" onclick="openObsModal()" style="display: none; background-color: #6f42c1; color: white; border: none;">📺 OBSカスタムCSS</button>
+                <!-- ★追加：OBSカスタムCSSボタン -->
+                <button onclick="openObsModal()" style="background-color: #6f42c1; color: white; border: none;">📺 OBSカスタムCSS</button>
                 <button onclick="openModal('settingsModal')">⚙️ 設定</button>
             </div>
         </div>
@@ -232,13 +239,11 @@
                 <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
             </div>
             
-            <!-- ジャンルフィルター -->
             <div class="filter-section">
                 <div class="filter-label">🏷️ ジャンル</div>
                 <div class="genre-filters" id="genreFilters"></div>
             </div>
 
-            <!-- お気に入り度フィルター -->
             <div class="filter-section">
                 <div class="filter-label">⭐ お気に入り</div>
                 <div class="fav-filters" id="favFilters"></div>
@@ -258,7 +263,7 @@
                 <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-code"></colgroup>
                 <thead>
                     <tr>
-                        <th>ステータス</th>
+                        <th class="col-action">ステータス</th>
                         <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
                         <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
                         <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
@@ -286,7 +291,10 @@
         <h2 style="color: var(--primary);">📺 OBS配信用セットリスト表示設定</h2>
         
         <div style="font-size: 13px; line-height: 1.6; margin-bottom: 15px;">
-            <p>OBSのソースに「ブラウザソース」を追加し、以下のURLを入力することで、このルームの完了したセットリストをリアルタイムに配信画面に映すことができます！</p>
+            <p style="margin: 0 0 8px 0;">OBSのソースに「ブラウザ」を追加し、以下のURLを入力することで、このルームの完了したセットリストをリアルタイムに配信画面に映すことができます！</p>
+            <div style="background: rgba(255, 255, 255, 0.06); padding: 8px 12px; border-radius: 6px; border-left: 3px solid var(--primary); font-size: 12px;">
+                💡 <b>OBSおすすめサイズ設定：</b> 幅 <b>500</b> / 高さ <b>1000</b>（縦長配置で15曲以上すっきりと綺麗に収まります）
+            </div>
         </div>
 
         <div class="setting-group">
@@ -296,7 +304,7 @@
         </div>
 
         <div class="setting-group" style="margin-top: 20px;">
-            <label>2. OBSカスタムCSSコード (<button onclick="copyObsCss()" style="padding: 2px 8px; font-size: 11px; background:var(--primary); color:white; border:none; border-radius:3px;">📋 CSSをコピー</button>)</label>
+            <label>2. OBSカスタムCSSコード (<button onclick="copyObsCss()" style="padding: 2px 8px; font-size: 11px; border-radius: 4px;">📋 CSSをコピー</button>)</label>
             <textarea id="obsCssTextarea" class="setting-input" rows="8" readonly>/* OBS用 カスタムCSSサンプル */
 body {
     background-color: transparent !important;
@@ -354,7 +362,7 @@ h2 {
         <div class="setting-group">
             <label>🎨 UIカラーテーマ</label>
             <select id="themeSelect" onchange="changeTheme()">
-                <option value="dark">ダーク (デフォルト)</option>
+                <option value="dark">ダーク (ダーク)</option>
                 <option value="white">ホワイト</option>
                 <option value="eva01">初号機</option>
                 <option value="eva02">弐号機</option>
@@ -445,12 +453,12 @@ h2 {
     function initRoomUI() {
         const roomWrapper = document.getElementById('roomStatusWrapper');
         const createBtn = document.getElementById('createRoomBtn');
-        const obsBtn = document.getElementById('obsCustomCssBtn'); // ★OBSボタン
         
         myName = localStorage.getItem('kankan_username');
         document.getElementById('usernameInput').value = myName || '';
 
         if (currentRoomId) {
+            document.body.classList.add('in-room');
             if (!myName) {
                 myName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（例：Gt. カンカン）");
                 if (!myName) myName = "名無し";
@@ -461,7 +469,6 @@ h2 {
             roomWrapper.classList.add('active');
             document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
             createBtn.style.display = 'none';
-            if(obsBtn) obsBtn.style.display = 'inline-block'; // ★ルーム作成時のみOBSボタンを表示
 
             mySessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
             const myMemberRef = db.ref(`rooms/${currentRoomId}/members/${mySessionId}`);
@@ -475,10 +482,10 @@ h2 {
             });
 
         } else {
+            document.body.classList.remove('in-room');
             myName = myName || "自分";
             roomWrapper.classList.remove('active');
             createBtn.style.display = 'inline-block';
-            if(obsBtn) obsBtn.style.display = 'none'; // ★未作成時は非表示
         }
     }
 
@@ -524,13 +531,13 @@ h2 {
     // OBSカスタムCSS関連の処理
     // =========================================
     function openObsModal() {
-        if (!currentRoomId) return;
+        // 現在のベースURLから obs-setlist.html のURLを推測して生成
         const loc = window.location;
         const basePath = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
-        const obsUrl = `${loc.protocol}//${loc.host}${basePath}obs-setlist.html?room=${currentRoomId}`;
+        const roomIdParam = currentRoomId ? `?room=${currentRoomId}` : `?room=ここにルームIDを入力`;
+        const obsUrl = `${loc.protocol}//${loc.host}${basePath}obs-setlist.html${roomIdParam}`;
         
         document.getElementById('obsUrlInput').value = obsUrl;
-        document.getElementById('currentRoomIdSpan').textContent = currentRoomId;
         openModal('obsModal');
     }
 
@@ -570,7 +577,7 @@ h2 {
                 <p><b>「KanKan~ただ好きな曲集めたいだけ~」</b>へようこそ！このアプリは、GoogleスプレッドシートのKanKanリストを自動読み込みし、リアルタイムな予約やセットリストの作成・保存を行うためのツールです。</p>
                 <ul style="padding-left: 20px; margin-top: 10px;">
                     <li style="margin-bottom: 8px;"><strong>メイン一覧：</strong> スプレッドシートから自動取得したすべての楽曲リストが表示されます。</li>
-                    <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「設定（名前の変更やカラーテーマ変更）」が行えます。</li>
+                    <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「OBSカスタムCSS」、「設定」が行えます。</li>
                     <li><strong>フィルターボタン：</strong> 画面下のジャンルや「お気に入り度（★★★★★〜★）」ボタンを押すことで、素早く曲を絞り込めます。</li>
                 </ul>
             `
@@ -603,11 +610,11 @@ h2 {
                 <p><b>当日のセッション進行とセットリストのシェア手順です。</b></p>
                 <ul style="padding-left: 20px; margin-top: 10px;">
                     <li style="margin-bottom: 8px;"><strong>3段階のステータス管理：</strong>
-                        <br>① <b>📝 予約：</b> リストの「＋追加」ボタンで予約リストに入ります（誰が追加したかもわかります）。▲▼ボタンで順番の入れ替えも可能！
+                        <br>① <b>📝 予約：</b> リストの「＋追加」ボタンで予約リストに入ります。▲▼ボタンで順番の入れ替えも可能！
                         <br>② <b>🎸 確定：</b> 予約リストから「演奏確定」を押すと演奏リストに移動します。
-                        <br>③ <b>✅ 完了：</b> 演奏が終わったら「完了」へ！完了した曲は再び「＋追加」が可能になります。
+                        <br>③ <b>✅ 完了：</b> 演奏が終わったら「完了」へ！配信にセットリストを映したい場合は「OBSカスタムCSS」ボタンから専用URLをご活用ください。
                     </li>
-                    <li><strong>セットリスト画像保存：</strong> 「✅ 完了」ボタンを押して完了リストを開き、下部の<b>「📸 画像として保存する」</b>ボタンを押すと、本日のセットリストが綺麗な1枚の画像としてスマホやPCに保存できます！</li>
+                    <li><strong>セットリスト画像保存：</strong> 「✅ 完了」ボタンの下部にある<b>「📸 画像として保存する」</b>ボタンから、本日のセットリストを1枚の画像として保存できます！</li>
                 </ul>
             `
         }
@@ -866,7 +873,7 @@ h2 {
             db.ref(`rooms/${currentRoomId}/queue/${qId1}`).update({order: order2});
             db.ref(`rooms/${currentRoomId}/queue/${qId2}`).update({order: order1});
         } else {
-            roomQueue[qId1].order = order2; roomQueue[qId2].order = order1;
+            roomQueue[qId1].order = order2; roomQueue[qId1].order = order1;
             updateQueueUI();
         }
     }
@@ -1107,4 +1114,3 @@ h2 {
 
 </body>
 </html>
-```eof
