@@ -1,169 +1,1714 @@
-/**
- * スプレッドシート側の「拡張機能 > Apps Script」に貼り付けてください。
- * 編集可能な元スプレッドシートの ID と、対象タブ名を必ず設定します。
- * 「ウェブアプリとしてデプロイ」: 実行ユーザー = 自分 / アクセス = 全員。
- * 公開POSTを許す仕組みのため、シートのバックアップと定期的な確認を推奨します。
- */
-const SPREADSHEET_ID = '1YMACN6m-5tE3TSY4jNxVRdQieDCTwh7Zhted-z8zTl4';
-const SHEET_NAME = '全曲';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>シェアリスコア-Share List Score-</title>
+    
+    <!-- ブックマーク用アイコンの設定（PNG用） -->
+    <link rel="icon" type="image/png" sizes="512x512" href="favicon.png?v=20261002-2">
+    
+    <!-- PapaParse (CSV読み込み用) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- Firebase SDK (互換バージョン) -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 
-/** 新規投稿では原曲のChordWiki楽曲ページだけを受け付ける（Apps Script V8互換）。 */
-function isOriginalChordWikiUrl_(value) {
-  const input = String(value || '').trim();
-  if (!input || input.length > 500 || /[\s\x00-\x1f\x7f]/.test(input)) return false;
-  // クエリのない /wiki/個別ページ。タグ・検索・外部ドメインを許可しない。
-  const direct = input.match(/^https:\/\/ja\.chordwiki\.org\/wiki\/([^/?#]+)$/i);
-  if (direct) {
-    try {
-      const title = decodeURIComponent(direct[1].replace(/\+/g, ' '));
-      return !!title.trim() && !/[\x00-\x1f\x7f/]/.test(title);
-    } catch (error) { return false; }
-  }
-  // 原曲キーが省略か0の c=view URLは許可。それ以外の wiki.cgi は拒否。
-  const cgi = input.match(/^https:\/\/ja\.chordwiki\.org\/wiki\.cgi\?([^#]+)$/i);
-  if (!cgi) return false;
-  const params = {};
-  try {
-    cgi[1].split('&').forEach(pair => {
-      const i = pair.indexOf('=');
-      const key = decodeURIComponent((i < 0 ? pair : pair.slice(0, i)).replace(/\+/g, ' '));
-      const val = decodeURIComponent((i < 0 ? '' : pair.slice(i + 1)).replace(/\+/g, ' '));
-      if (Object.prototype.hasOwnProperty.call(params, key)) throw Error('duplicate query');
-      params[key] = val;
-    });
-  } catch (error) { return false; }
-  return params.c === 'view' && !!String(params.t || '').trim() &&
-    !/[\x00-\x1f\x7f]/.test(params.t) && (params.key === undefined || params.key === '0');
+    <!-- 画像保存用ライブラリ (html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* =========================================
+           CSS変数によるテーマ管理
+        ========================================= */
+        :root {
+            --bg-color: #121212; --text-color: #e0e0e0; --panel-bg: #1e1e1e;
+            --border-color: #444; --btn-bg: #2a2a2a; --btn-hover: #444;
+            --primary: #007bff; --primary-text: #fff; --link-color: #66b2ff;
+            --th-bg: #2a2a2a; --th-hover: #3a3a3a; --th-text: #e0e0e0;
+        }
+        body.theme-white { --bg-color: #f8f9fa; --text-color: #333333; --panel-bg: #ffffff; --border-color: #dee2e6; --btn-bg: #e9ecef; --btn-hover: #ced4da; --primary: #0056b3; --primary-text: #fff; --link-color: #0056b3; --th-bg: #e9ecef; --th-hover: #d3d9df; --th-text: #333333; }
+        body.theme-eva01 { --bg-color: #2b1845; --text-color: #e0e0e0; --panel-bg: #3a225c; --border-color: #7FFF00; --btn-bg: #523185; --btn-hover: #6a40a8; --primary: #7FFF00; --primary-text: #121212; --link-color: #9eff40; --th-bg: #1c0e2e; --th-hover: #2b1845; --th-text: #7FFF00; }
+        body.theme-eva02 { --bg-color: #380202; --text-color: #f5f5f5; --panel-bg: #540303; --border-color: #ff9900; --btn-bg: #730606; --btn-hover: #910a0a; --primary: #ff9900; --primary-text: #1a0000; --link-color: #ffb84d; --th-bg: #210101; --th-hover: #380202; --th-text: #ff9900; }
+        body.theme-eva00 { --bg-color: #f0f0f0; --text-color: #333333; --panel-bg: #ffffff; --border-color: #e6b800; --btn-bg: #fff5cc; --btn-hover: #ffeb99; --primary: #d4a000; --primary-text: #ffffff; --link-color: #b38600; --th-bg: #ffcc00; --th-hover: #e6b800; --th-text: #333333; }
+        body.theme-eva08 { --bg-color: #fff0f5; --text-color: #4a152e; --panel-bg: #ffffff; --border-color: #ff66b2; --btn-bg: #ffe6f0; --btn-hover: #ffcce0; --primary: #ff3399; --primary-text: #ffffff; --link-color: #e60073; --th-bg: #ff66b2; --th-hover: #ff4d94; --th-text: #ffffff; }
+
+        /* =========================================
+           基本レイアウト
+        ========================================= */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            background: var(--bg-color); color: var(--text-color); 
+            margin: 0; padding: 0; height: 100vh; height: 100dvh; 
+            display: flex; flex-direction: column; overflow: hidden; 
+            transition: background-color 0.3s, color 0.3s;
+            padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box;
+        }
+        /* ★最下行とブラウザ下端（タスクバー側）の間に12pxの余白を確保 */
+        .container { flex-grow: 1; display: flex; flex-direction: column; width: 100%; max-width: 1300px; margin: 0 auto; padding: 10px 15px 12px 15px; box-sizing: border-box; gap: 8px; overflow: hidden; }
+        .top-area { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}
+        .header-buttons { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        /* Googleアイコンと文字を常に中央揃えにする（ログイン状態切替後も維持） */
+        #googleLoginBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; vertical-align: middle; }
+        #googleLoginBtn svg { width: 16px; height: 16px; flex: 0 0 16px; display: block; }
+        #loginStatus { align-self: center; }
+        #loginStatus.logged-in { background-color: #ffffff; color: #212529; border: 1px solid #dedede; border-radius: 6px; padding: 7px 10px; font-weight: 600; box-sizing: border-box; }
+        
+        button { padding: 6px 12px; background-color: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; white-space: nowrap; }
+        button:hover { background-color: var(--btn-hover); color: var(--text-color); }
+        button.primary-btn { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); font-weight: bold; }
+        button.primary-btn:hover { background-color: var(--primary); opacity: 0.8; color: var(--primary-text); }
+        
+        /* ルーム接続中のステータスバー */
+        .room-status-wrapper { display: none; background-color: var(--primary); color: var(--primary-text); padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-direction: column; gap: 4px;}
+        .room-status-wrapper.active { display: flex; }
+        .room-status-bar { display: flex; align-items: center; justify-content: space-between; font-size: 13px; flex-wrap: wrap; gap: 8px;}
+        .room-members-area { font-size: 11px; background: rgba(0,0,0,0.15); padding: 4px 8px; border-radius: 4px; line-height: 1.3; word-break: break-all;}
+        
+        .room-actions { display: flex; gap: 6px; }
+        .room-actions button { background-color: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 4px 10px; font-size: 11px; }
+        .room-actions button.btn-danger { background-color: #dc3545; color: white; border: none; }
+
+        .loading-area { padding: 30px; text-align: center; background-color: var(--panel-bg); border-radius: 6px; border: 1px solid var(--border-color); font-size: 16px; font-weight: bold; color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;}
+        .spinner { border: 3px solid var(--border-color); border-top: 3px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-bottom: 10px;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .controls { display: none; background-color: var(--panel-bg); padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        
+        .search-row { display: flex; flex-direction: column; align-items: stretch; gap: 8px;}
+        .search-box { width: 100%; padding: 7px 10px; font-size: 14px; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
+        .status-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .status-buttons button { flex: 1; min-width: 80px; padding: 7px; border-radius: 6px; font-size: 13px; }
+        .song-count { font-weight: bold; font-size: 13px; color: var(--primary); margin-top: 2px; }
+
+        /* ルーム未参加時は予約・確定・完了ボタン、OBSカスタムCSSボタンおよびテーブルのステータス列を非表示 */
+        body:not(.in-room) .status-buttons,
+        body:not(.in-room) #obsCustomCssBtn,
+        body:not(.in-room) .col-action {
+            display: none !important;
+            width: 0 !important;
+        }
+
+        .filter-section { margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .filter-label { font-size: 11px; font-weight: bold; opacity: 0.8; width: 85px; flex-shrink: 0; white-space: nowrap; }
+        .genre-filters { display: flex; gap: 5px; flex-wrap: wrap; flex-grow: 1; }
+        .genre-btn { padding: 4px 10px; border-radius: 14px; font-size: 12px; }
+        .genre-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+
+        .artist-filter-button {
+            border: 0; padding: 0; background: none; border-radius: 0;
+            color: var(--link-color); text-decoration: underline;
+            font: inherit; font-weight: bold; cursor: pointer;
+            white-space: normal; text-align: left;
+        }
+        .artist-filter-button:hover { opacity: 0.75; background: none; color: var(--link-color); }
+        .artist-filter-indicator {
+            align-items: center; gap: 8px; flex-wrap: wrap;
+            color: var(--text-color); font-size: 12px;
+        }
+        .artist-filter-indicator:not([hidden]) { display: flex; }
+        .artist-filter-indicator button { padding: 3px 8px; font-size: 11px; }
+
+        /* =========================================
+           テーブル
+        ========================================= */
+        #tableWrapper { flex-grow: 1; display: none; flex-direction: column; background-color: var(--panel-bg); border-top: 2px solid var(--primary); border-radius: 4px; overflow: hidden; }
+        .table-header-wrapper { flex-shrink: 0; background-color: var(--th-bg); padding-right: 10px; border-bottom: 1px solid var(--border-color); overflow-x: hidden; }
+        .table-body-wrapper { flex-grow: 1; overflow-y: scroll; overflow-x: auto; background-color: var(--panel-bg); -webkit-overflow-scrolling: touch; box-sizing: border-box; }
+        .table-body-wrapper::-webkit-scrollbar { width: 10px; height: 10px; }
+        .table-body-wrapper::-webkit-scrollbar-track { background: var(--bg-color); }
+        .table-body-wrapper::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
+        .data-table { width: 100%; min-width: 560px; table-layout: fixed; border-collapse: collapse; }
+
+        .col-action { width: 100px; }
+        .col-key { width: 145px; }
+
+        /* マイリスト: 一覧の高さを増やさないコンパクトな編集UI */
+        .data-table { min-width: 1030px; }
+        .col-action { width: 92px; }
+        .col-title { width: 24%; }
+        .col-artist { width: 19%; }
+        .col-genre { width: auto; }
+        .col-bpm { width: 58px; }
+        .col-key { width: 128px; }
+        .col-part { width: 59px; }
+        .col-liked,.col-star { width: 42px; text-align:center; }
+        .personal-toggle { border:1px solid transparent; background:transparent; font-size:19px; padding:2px 3px; opacity:.36; }
+        .personal-toggle.selected { opacity:1; border-color:var(--primary); background:var(--btn-bg); }
+        .personal-toggle:hover { opacity:1; background:var(--btn-hover); }
+        .part-select { width:48px; padding:5px 1px; font-size:17px; text-align:center; font-family:inherit; cursor:pointer; }
+        #myListSaveBar { display:none; flex-shrink:0; align-items:center; justify-content:space-between; gap:9px; padding:7px 10px; background:var(--panel-bg); border:1px solid var(--primary); border-radius:6px; font-size:12px; }
+        #myListSaveBar.active { display:flex; }
+        #myListSaveBar button { background:var(--primary); color:var(--primary-text); font-weight:bold; }
+        .my-list-mode #songCountDisplay { color:var(--primary); }
+        .data-table .col-part select { min-width:0; }
+        @media (max-width:600px) {
+          #tableBody .col-part, #tableBody .col-liked, #tableBody .col-star { width:auto !important; margin-left:5px; }
+          #tableBody .col-key { margin-left:auto; }
+          #tableBody .col-bpm { width:auto !important; margin-right:4px; }
+        }
+        .no-chordwiki-label { display: block; width: 100%; text-align: center; font-size: 11px; opacity: 0.75; white-space: nowrap; }
+        .col-title { width: 27%; }
+        .col-artist { width: 25%; }
+        .col-genre { width: auto; }
+        .col-bpm { width: 65px; }
+        .table-key-picker { display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; }
+        .table-key-picker button { padding:4px 6px; min-width:26px; min-height:27px; font-size:12px; line-height:1; }
+        .table-key-picker button:disabled { opacity:0.3; cursor:not-allowed; }
+        .table-key-value { min-width:29px; text-align:center; font-size:12px; font-weight:bold; font-variant-numeric:tabular-nums; }
+        /* 9列用の最終幅指定 */
+        .col-action { width:92px; } .col-title { width:24%; } .col-artist { width:19%; }
+        .col-bpm { width:58px; } .col-key { width:128px; }
+
+        #detailKeyLink { display:block; width:100%; box-sizing:border-box; margin-top:12px; padding:11px 12px; background:var(--primary); color:var(--primary-text); border:1px solid var(--primary); border-radius:6px; text-align:center; text-decoration:none; font-size:15px; font-weight:bold; }
+        #detailKeyLink:hover { opacity:0.86; text-decoration:none; }
+
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); word-wrap: break-word; overflow-wrap: break-word; }
+        th { color: var(--th-text); font-weight: bold; font-size: 13px; white-space: nowrap; user-select: none; border-bottom: none; }
+        .nowrap-cell { white-space: nowrap; }
+        th.sortable { cursor: pointer; transition: background-color 0.2s; }
+        th.sortable:hover { background-color: var(--th-hover); }
+        .sort-icon { display: inline-block; width: 14px; text-align: center; color: inherit; font-size: 11px; opacity: 0.8;}
+
+        tr:hover { background-color: var(--btn-hover); }
+        .col-main { font-size: 13px; }
+        .col-sub { font-size: 11px; opacity: 0.9; }
+
+        .song-title-link { color: var(--link-color); text-decoration: underline; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .song-title-link:hover { opacity: 0.7; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* =========================================
+           モーダル・キュー（予約リスト）
+        ========================================= */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal { background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .modal h2 { margin-top: 0; font-size: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; line-height: 1.4;}
+        .modal-close { float: right; cursor: pointer; font-size: 24px; font-weight: bold; line-height: 1; }
+        .setting-group { margin-bottom: 15px; }
+        .setting-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight:bold;}
+        select, .setting-input, textarea.setting-input { width: 100%; padding: 8px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; font-family: monospace; font-size: 12px; }
+        
+        /* ChordWiki 曲別Keyの選択ボタン */
+        .key-picker { display:flex; align-items:center; justify-content:center; gap:12px; }
+        .key-picker button { width:42px; height:38px; padding:0; font-size:19px; font-weight:bold; }
+        .key-picker button:disabled { opacity:0.35; cursor:not-allowed; }
+        .key-current { min-width:125px; text-align:center; font-size:17px; font-weight:bold; font-variant-numeric:tabular-nums; }
+        .detail-item { margin-bottom: 10px; font-size: 14px; line-height: 1.5; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;}
+        .detail-item:last-child { border-bottom: none; }
+        .detail-label { display: inline-block; width: 100px; font-weight: bold; opacity: 0.8;}
+
+        .queue-item { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .queue-info { display: flex; flex-direction: column; gap: 4px; }
+        .queue-title { font-size: 15px; font-weight: bold; line-height: 1.3; }
+        .queue-meta { font-size: 12px; opacity: 0.8; }
+        .queue-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+        .queue-actions button { padding: 6px 12px; font-size: 12px; border-radius: 4px; margin-left: 5px; border: none; cursor: pointer; color: white; font-weight: bold;}
+        
+
+        /* 予約・演奏リストの見出しも読みやすく */
+        #reservedModal h2, #confirmedModal h2 { font-size: 20px; }
+
+        /* 予約・演奏リストのコンパクト表示 */
+        #reservedContainer .queue-item, #confirmedContainer .queue-item { flex-direction: row; align-items: center; gap: 9px; padding: 7px 0; }
+        .queue-order-buttons { display: flex; flex-direction: column; flex-shrink: 0; gap: 3px; }
+        .queue-order-buttons .btn-updown { width: 29px; height: 25px; padding: 0; font-size: 13px; line-height: 1; }
+        #reservedContainer .queue-info, #confirmedContainer .queue-info { flex: 1; min-width: 0; gap: 3px; }
+        #reservedContainer .queue-title, #confirmedContainer .queue-title { font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
+        .queue-artist { font-weight: normal; opacity: 0.85; }
+        #reservedContainer .queue-meta, #confirmedContainer .queue-meta { font-size: 12px; line-height: 1.4; }
+        #reservedContainer .queue-actions, #confirmedContainer .queue-actions { display: flex; flex-shrink: 0; gap: 4px; align-items: center; }
+        #reservedContainer .queue-actions button, #confirmedContainer .queue-actions button { margin-left: 0; padding: 6px 8px; font-size: 13px; }
+        @media (max-width: 420px) {
+            #reservedContainer .queue-item, #confirmedContainer .queue-item { gap: 5px; }
+            #reservedContainer .queue-actions, #confirmedContainer .queue-actions { flex-direction: column; align-items: stretch; }
+        }
+
+        .btn-updown { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 4px 12px; font-size: 14px; border-radius: 4px; cursor: pointer;}
+        .btn-updown:hover { background: var(--btn-hover); }
+        .btn-confirm { background-color: #28a745; }
+        .btn-complete { background-color: #17a2b8; }
+        .btn-remove { background-color: #dc3545; }
+        .btn-revert { background-color: #6c757d; }
+
+        /* =========================================
+           スマホ幅向け調整
+        ========================================= */
+        @media (max-width: 600px) {
+            .container { padding: 8px 8px 0 8px; gap: 6px; }
+            .logo-img { max-height: 30px !important; }
+            h1 { font-size: 15px !important; }
+
+            .header-buttons button { padding: 6px 10px; font-size: 12px; }
+
+            .controls { padding: 8px; }
+            .status-buttons button { padding: 6px; font-size: 12px; }
+
+            .filter-section { gap: 4px; }
+            .filter-label { width: 100%; }
+            .genre-filters { gap: 4px; }
+            .genre-btn { padding: 3px 8px; font-size: 11px; }
+
+            .modal { padding: 16px; width: 92%; }
+            .detail-label { width: 84px; font-size: 13px; }
+
+            .table-header-wrapper { overflow-x: visible; padding-right: 0; }
+            .table-header-wrapper .data-table, .table-header-wrapper .data-table tbody, .table-header-wrapper .data-table tr { display: flex; flex-wrap: wrap; width: 100% !important; min-width: 0 !important; }
+            .table-header-wrapper th { display: inline-flex; align-items: center; justify-content: center; flex: 1 1 auto; width: auto !important; border-bottom: none; padding: 6px 4px; font-size: 11px; }
+            .table-header-wrapper th:first-child, .table-header-wrapper th:last-child { display: none; }
+
+            .table-body-wrapper { overflow-x: visible; }
+            .table-body-wrapper .data-table, .table-body-wrapper .data-table tbody { display: block; width: 100% !important; min-width: 0 !important; }
+            
+            #tableBody tr { display: flex; flex-wrap: wrap; align-items: flex-start; width: 100%; padding: 10px 8px; border-bottom: 1px solid var(--border-color); box-sizing: border-box; }
+            #tableBody td { display: block; border-bottom: none !important; padding: 2px 0 !important; font-size: 12px; }
+            
+            #tableBody .col-action { width: auto !important; margin-right: 10px; text-align: left; }
+            #tableBody .col-action button { padding: 6px 10px; min-height: 30px; font-size: 12px; }
+            #tableBody .col-title { flex: 1; min-width: 0; font-size: 14px; padding-top: 5px !important; }
+            
+            #tableBody .col-key { width:auto !important; margin-right:8px; }
+            #tableBody .col-artist, #tableBody .col-genre, #tableBody .col-bpm { width: 100% !important; }
+            #tableBody .col-artist { margin-top: 3px; opacity: 0.9; }
+            #tableBody .col-genre, #tableBody .col-bpm { font-size: 11px; opacity: 0.85; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-area">
+        <div class="header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="logo2.png" alt="" class="logo-img" style="max-height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+                <h1 style="margin: 0; font-size: 20px;">シェアリスコア-Share List Score-</h1>
+            </div>
+
+            <div class="header-buttons">
+                <button id="googleLoginBtn" onclick="loginWithGoogle()" style="background:#fff;color:#333;border:1px solid #bbb;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path fill="#4285F4" d="M21.35 12.24c0-.71-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.26z"/>
+                        <path fill="#34A853" d="M12 21.75c2.64 0 4.85-.88 6.46-2.39l-3.14-2.45c-.87.58-1.98.93-3.32.93-2.55 0-4.71-1.72-5.49-4.04H3.28v2.55A9.75 9.75 0 0 0 12 21.75z"/>
+                        <path fill="#FBBC05" d="M6.51 13.8a5.86 5.86 0 0 1 0-3.6V7.65H3.28a9.75 9.75 0 0 0 0 8.7l3.23-2.55z"/>
+                        <path fill="#EA4335" d="M12 6.16c1.44 0 2.73.49 3.75 1.48l2.81-2.81A9.37 9.37 0 0 0 12 2.25a9.75 9.75 0 0 0-8.72 5.4l3.23 2.55C7.29 7.88 9.45 6.16 12 6.16z"/>
+                    </svg>
+                    <span>Googleでログイン</span>
+                </button>
+                <button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
+                <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
+                <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;background:var(--primary);color:var(--primary-text);border-color:var(--primary);">📁 マイリスト</button>
+                <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
+                <button onclick="openAddSongModal()" style="background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 楽曲追加</button>
+                <button onclick="openManualModal()" style="background-color:#ffc107;color:#212529;border:1px solid #ffc107;">📖 使い方ガイド</button>
+                <!-- ルーム参加時のみ表示。ルームを作るボタンと同じ位置の補助機能 -->
+                <button id="obsCustomCssBtn" onclick="openObsModal()" style="background-color:#6f42c1;color:white;border:none;">📺 OBSカスタムCSS</button>
+                <button onclick="openModal('settingsModal')" style="background-color:#6c757d;color:#fff;border:1px solid #6c757d;">⚙️ 設定</button>
+            </div>
+        </div>
+        
+        <div class="room-status-wrapper" id="roomStatusWrapper">
+            <div class="room-status-bar">
+                <div id="roomStatusText"></div>
+                <div class="room-actions">
+                    <button onclick="copyRoomLink()">🔗 URLをコピー</button>
+                    <button class="btn-danger" onclick="leaveRoom()">🚪 退出</button>
+                </div>
+            </div>
+            <div class="room-members-area" id="roomMembersArea">
+                👥 参加中: <span id="roomMembersList">読み込み中...</span>
+            </div>
+        </div>
+
+        <div class="controls" id="controls">
+            <div class="search-row">
+                <input type="text" id="searchInput" class="search-box" placeholder="曲名、アーティスト、アニメ名などで検索...">
+                <div class="status-buttons">
+                    <button class="primary-btn" onclick="openModal('reservedModal')">📝 予約 (<span id="reservedCount">0</span>)</button>
+                    <button class="primary-btn" style="background-color: #28a745; border-color: #28a745;" onclick="openModal('confirmedModal')">🎸 確定 (<span id="confirmedCount">0</span>)</button>
+                    <button class="primary-btn" style="background-color: #17a2b8; border-color: #17a2b8;" onclick="openModal('completedModal')">✅ 完了 (<span id="completedCount">0</span>)</button>
+                </div>
+                <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
+                <div id="artistFilterIndicator" class="artist-filter-indicator" hidden>
+                    <span>🎤 アーティスト：<strong id="artistFilterName"></strong></span>
+                    <button type="button" onclick="setArtistFilter('')" aria-label="アーティストの絞り込みを解除">✕ 絞り込み解除</button>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-label">🏷️ ジャンル</div>
+                <div class="genre-filters" id="genreFilters"></div>
+            </div>
+
+        </div>
+        <div id="myListSaveBar" role="status" aria-live="polite">
+            <span id="myListPendingCount">未保存の変更があります</span>
+            <button type="button" id="saveMyListButton" onclick="saveMyListChanges()">まとめて登録</button>
+        </div>
+    </div>
+
+    <!-- ローディング画面 -->
+    <div class="loading-area" id="loadingArea">
+        <div class="spinner"></div>
+        <div>スプレッドシートからデータを取得中...</div>
+    </div>
+
+    <div id="tableWrapper">
+        <div class="table-header-wrapper">
+            <table class="data-table">
+                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-part"><col class="col-liked"><col class="col-star"></colgroup>
+                <thead>
+                    <tr>
+                        <th class="col-action">ステータス</th>
+                        <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
+                        <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
+                        <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
+                        <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
+                        <th class="col-key">Key</th>
+                        <th class="col-part" title="担当パート">🎤</th>
+                        <th class="col-liked" title="好きな曲">💖</th>
+                        <th class="col-star" title="好きなアーティスト">🌟</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="table-body-wrapper">
+            <table class="data-table">
+                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-part"><col class="col-liked"><col class="col-star"></colgroup>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ================= モーダル群 ================= -->
+
+<!-- アーティスト絞り込み確認 -->
+<div class="modal-overlay" id="artistConfirmModal" onclick="closeModal(event, 'artistConfirmModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width: 360px;">
+        <h2>🎤 アーティスト検索</h2>
+        <p style="font-size: 14px; line-height: 1.6;"><strong id="confirmArtistName"></strong> の曲に絞りますか？</p>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+            <button type="button" onclick="closeModal(null, 'artistConfirmModal')">いいえ</button>
+            <button type="button" class="primary-btn" onclick="confirmArtistFilter()">はい</button>
+        </div>
+    </div>
+</div>
+
+<!-- ★追加：OBSカスタムCSS＆URL案内用モーダル -->
+<div class="modal-overlay" id="obsModal" onclick="closeModal(event, 'obsModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width: 600px;">
+        <span class="modal-close" onclick="closeModal(null, 'obsModal')">&times;</span>
+        <h2 style="color: var(--primary);">📺 OBS配信用セットリスト表示設定</h2>
+        
+        <div style="font-size: 13px; line-height: 1.6; margin-bottom: 15px;">
+            <p style="margin: 0 0 8px 0;">OBSのソースに「ブラウザ」を追加し、以下のURLを入力することで、このルームの完了したセットリストをリアルタイムに配信画面に映すことができます！</p>
+            <div style="background: rgba(255, 255, 255, 0.06); padding: 8px 12px; border-radius: 6px; border-left: 3px solid var(--primary); font-size: 12px;">
+                💡 <b>OBSおすすめサイズ設定：</b> 幅 <b>500</b> / 高さ <b>1000</b>（縦長配置で15曲以上すっきりと綺麗に収まります）
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label>1. ブラウザソース用 URL (<a href="#" onclick="copyObsUrl(event)" style="color:var(--link-color);">📋 URLをコピー</a>)</label>
+            <input type="text" id="obsUrlInput" class="setting-input" readonly style="font-weight: bold;">
+            <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">※現在のルームID（<span id="currentRoomIdSpan"></span>）が自動適用されています。</div>
+        </div>
+
+        <div class="setting-group" style="margin-top: 20px;">
+            <label>2. OBSカスタムCSSコード (<a href="#" onclick="copyObsCss(); return false;" style="color:var(--link-color);">📋 CSSをコピー</a>)</label>
+            <textarea id="obsCssTextarea" class="setting-input" rows="8" readonly>/* OBS用 カスタムCSSサンプル */
+body {
+    background-color: transparent !important;
+    color: #ffffff;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 10px;
 }
-
-/** タブ名が未指定なら見出しから特定。曖昧な場合は書き込まない。 */
-function getSongSheet_() {
-  const book = SpreadsheetApp.openById(SPREADSHEET_ID);
-  if (SHEET_NAME) {
-    const sheet = book.getSheetByName(SHEET_NAME);
-    if (!sheet) throw Error('tab not found');
-    return sheet;
-  }
-  const matches = book.getSheets().filter(sheet => {
-    const rows = sheet.getDataRange().getDisplayValues();
-    return rows.some(row => row.includes('曲名') && row.includes('楽曲ID'));
-  });
-  if (matches.length !== 1) throw Error('song sheet not uniquely identified: ' + matches.length);
-  return matches[0];
+.obs-container {
+    background: rgba(30, 30, 30, 0.85);
+    border: 2px solid #007bff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
+h2 {
+    text-align: center;
+    font-size: 18px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    margin-top: 0;
+}</textarea>
+        </div>
+    </div>
+</div>
 
-function doPost(e) {
-  const lock = LockService.getScriptLock();
-  try {
-    const data = JSON.parse((e.postData && e.postData.contents) || '{}');
-    // 自動入力 bot 向けのハニーポット
-    if (data.website) return reply_('rejected');
-    const artist = clean_(data.artist, 150);
-    const title = clean_(data.title, 150);
-    const codeUrl = String(data.codeUrl || '').trim();
-    const genre1 = clean_(data.genre1, 80);
-    const genre2 = clean_(data.genre2, 80);
-    const bpmValue = String(data.bpm || '').trim();
-    if (!artist || !title || !genre1 || !isOriginalChordWikiUrl_(codeUrl)) throw Error('invalid input or unsupported ChordWiki URL');
-    if (genre2 && genre1 === genre2) throw Error('duplicate genres');
-    if (bpmValue && (!/^\d+$/.test(bpmValue) || +bpmValue < 1 || +bpmValue > 400)) throw Error('invalid bpm');
+<div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
+        <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
+        <h2 id="manualTitle" style="color: var(--primary);">📖 使い方ガイド (1/4)</h2>
+        
+        <div id="manualBody" style="font-size: 14px; line-height: 1.7; min-height: 200px; padding: 10px 0;"></div>
 
-    lock.waitLock(10000);
-    const sheet = getSongSheet_();
-    if (!sheet) throw Error('tab not found');
-    // index.html と同様に「曲名」を含む行をヘッダーとみなします。
-    const values = sheet.getDataRange().getDisplayValues();
-    const headerIndex = values.findIndex(row => row.includes('曲名'));
-    if (headerIndex < 0) throw Error('header not found');
-    const headers = values[headerIndex].map(s => String(s).trim());
-    const names = {
-      artist: ['アーティスト'], title: ['曲名'], codeUrl: ['コードwiki', 'コードWiki'],
-      bpm: ['BPM'], genre1: ['ジャンル①', 'ジャンル'], genre2: ['ジャンル②']
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <button id="prevManualBtn" onclick="changeManualPage(-1)" style="padding: 8px 16px;">◀ 前へ</button>
+            <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 4</span>
+            <button id="nextManualBtn" class="primary-btn" onclick="changeManualPage(1)" style="padding: 8px 16px;">次へ ▶</button>
+        </div>
+    </div>
+</div>
+
+<!-- 楽曲追加フォーム：スプレッドシートへの書込は Apps Script 側で実行 -->
+<div class="modal-overlay" id="addSongModal" onclick="closeModal(event, 'addSongModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:520px;">
+        <span class="modal-close" onclick="closeModal(null, 'addSongModal')">&times;</span>
+        <h2>➕ 楽曲を追加</h2>
+        <p style="font-size:12px;line-height:1.5;opacity:.8;">入力した情報を共有楽曲リストに登録します。公開される情報のみ入力してください。</p>
+        <form id="addSongForm" onsubmit="submitNewSong(event)">
+            <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
+            <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
+            <div class="setting-group"><label for="newCodeUrl">ChordWiki 原曲URL *</label><input class="setting-input" id="newCodeUrl" name="codeUrl" type="url" placeholder="https://ja.chordwiki.org/wiki/..." maxlength="500" required><p id="newCodeUrlCheck" role="status" aria-live="polite" style="font-size:12px;line-height:1.4;margin:5px 0 0;"></p></div>
+            <div class="setting-group"><label for="newBpm">BPM（任意）</label><input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK"></div>
+            <div class="setting-group"><label for="newGenre1">ジャンル *</label><select id="newGenre1" name="genre1" required></select></div>
+            <div class="setting-group"><label for="newGenre2">ジャンル②（任意）</label><select id="newGenre2" name="genre2"></select></div>
+            <!-- Bot対策のハニーポット。通常は非表示 -->
+            <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;"><label for="newWebsite">Website</label><input id="newWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+            <p id="addSongFeedback" role="status" aria-live="polite" style="font-size:12px;line-height:1.5;min-height:18px;"></p>
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+                <button type="button" onclick="closeModal(null,'addSongModal')">キャンセル</button>
+                <button type="submit" id="addSongSubmit" class="primary-btn">スプレッドシートに登録</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal" onclick="closeModal(event, 'settingsModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
+        <h2>設定</h2>
+        
+        <div class="setting-group" style="margin-bottom: 25px;">
+            <label>👤 ユーザー名 (セッション用)</label>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="usernameInput" class="setting-input" placeholder="名前を入力">
+                <button onclick="changeUsername()" style="flex-shrink:0;">変更</button>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label>🎨 UIカラーテーマ</label>
+            <select id="themeSelect" onchange="changeTheme()">
+                <option value="dark">ダーク (ダーク)</option>
+                <option value="white">ホワイト</option>
+                <option value="eva01">初号機</option>
+                <option value="eva02">弐号機</option>
+                <option value="eva00">零号機</option>
+                <option value="eva08">八号機</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="songDetailsModal" onclick="closeModal(event, 'songDetailsModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'songDetailsModal')">&times;</span>
+        <h2 id="detailTitle">曲名</h2>
+        <div class="detail-item"><span class="detail-label">アーティスト</span><span id="detailArtist"></span></div>
+        <div class="detail-item"><span class="detail-label">作詞者</span><span id="detailLyricist"></span></div>
+        <div class="detail-item"><span class="detail-label">作曲者</span><span id="detailComposer"></span></div>
+        <div class="detail-item"><span class="detail-label">編曲者</span><span id="detailArranger"></span></div>
+        <div class="detail-item"><span class="detail-label">BPM</span><span id="detailBPM"></span></div>
+        <div class="detail-item"><span class="detail-label">ジャンル①</span><span id="detailGenre1"></span></div>
+        <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
+        <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
+        <div class="detail-item" id="detailKeyArea" style="display:none;">
+            <label style="display:block; font-weight:bold; margin-bottom:7px;">🎹 自分用Key（原曲を0として半音単位）</label>
+            <div class="key-picker" id="detailKeyPicker"></div>
+            <div id="detailKeyStatus" style="font-size:12px; opacity:0.85; margin-top:7px;" aria-live="polite"></div>
+            <a id="detailKeyLink" target="_blank" rel="noopener noreferrer">🎸 選択したKeyでChordWikiを開く ↗</a>
+            <div style="font-size:11px; opacity:0.7; margin-top:6px;">自分用Keyの変更です。元のスプレッドシートのURLは変更しません。</div>
+        </div>
+        <div id="detailPersonalEdit" class="detail-item" style="display:none;">
+            <label style="display:block;font-weight:bold;margin-bottom:7px;">マイリスト登録（本人のみ）</label>
+            <div id="detailPersonalControls" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"></div>
+            <button type="button" class="primary-btn" onclick="saveMyListChanges()" style="margin-top:8px;">登録・変更を保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 予約モーダル -->
+<div class="modal-overlay" id="reservedModal" onclick="closeModal(event, 'reservedModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'reservedModal')">&times;</span>
+        <h2>📝 予約一覧 (<span id="modalReservedCount">0</span>曲)</h2>
+        <div id="reservedContainer"></div>
+    </div>
+</div>
+
+<!-- 確定モーダル -->
+<div class="modal-overlay" id="confirmedModal" onclick="closeModal(event, 'confirmedModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'confirmedModal')">&times;</span>
+        <h2>🎸 演奏リスト (<span id="modalConfirmedCount">0</span>曲)</h2>
+        <p style="font-size:12px; color:gray; margin-top:-10px;">今から演奏する確定済みの曲です。</p>
+        <div id="confirmedContainer"></div>
+    </div>
+</div>
+
+<!-- 完了モーダル -->
+<div class="modal-overlay" id="completedModal" onclick="closeModal(event, 'completedModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'completedModal')">&times;</span>
+        
+        <div id="captureArea" style="background: var(--panel-bg); padding: 20px 15px; border-radius: 8px; color: var(--text-color);">
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 20px;">♬~~本日のセットリスト~~♬</h2>
+            <div id="completedContainer"></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="downloadSetlistImage()" style="background-color: #28a745; color: white; padding: 12px 24px; font-weight: bold; border-radius: 6px; font-size: 15px; border: none;">📸 画像として保存する</button>
+        </div>
+    </div>
+</div>
+<!-- ============================================= -->
+
+<script>
+    // =========================================
+    // Firebase 初期化
+    // =========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
+      authDomain: "kankan-session-room.firebaseapp.com",
+      databaseURL: "https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kankan-session-room",
+      storageBucket: "kankan-session-room.firebasestorage.app",
+      messagingSenderId: "759342880820",
+      appId: "1:759342880820:web:9af0af755e35926a281261"
     };
-    const col = key => headers.findIndex(h => names[key].includes(h));
-    if (Object.keys(names).some(key => col(key) < 0)) throw Error('required header missing');
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // 既存のジャンルと一致するものだけ受け付け、任意のジャンル注入を防ぎます。
-    const allowed = new Set();
-    values.slice(headerIndex + 1).forEach(row => {
-      [col('genre1'), col('genre2')].forEach(i => {
-        if (String(row[i] || '').trim()) allowed.add(String(row[i]).trim());
-      });
-    });
-    if (!allowed.has(genre1) || (genre2 && !allowed.has(genre2))) throw Error('unknown genre');
-
-    // 重複送信（同一アーティスト・曲名）を抑止。
-    const normalized = x => String(x || '').trim().toLocaleLowerCase();
-    if (values.slice(headerIndex + 1).some(row => normalized(row[col('artist')]) === normalized(artist) && normalized(row[col('title')]) === normalized(title))) {
-      return reply_('duplicate');
+    // Googleログイン：ゲスト閲覧も可能。UIDは個人データ実装時の識別子として利用します。
+    const auth = firebase.auth();
+    let signedInUser = null;
+    // 個人マイリスト: マスターのUUIDを参照し、編集は登録ボタンまで保留する。
+    const PARTS = ['', '🎤', '🎸', '🥁', '🎹', '🎺', '🎻', '🪈'];
+    const PART_NAMES = { '':'未登録','🎤':'ボーカル','🎸':'ギター・ベース','🥁':'ドラム・パーカッション','🎹':'鍵盤・シンセ','🎺':'木管・金管','🎻':'弦楽器','🪈':'笛・和管楽器' };
+    let myListMode = false;
+    let personalSongs = {};
+    let favoriteArtists = {};
+    let pendingSongs = {};
+    let pendingArtists = {};
+    let myListLoadVersion = 0;
+    let currentDetailSongId = null;
+    function artistDbKey(name) {
+        return 'a_' + Array.from(new TextEncoder().encode(name)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
-    const songIdColumn = headers.findIndex(h => h === '楽曲ID');
-    if (songIdColumn < 0) throw Error('楽曲ID column missing');
-    const row = new Array(sheet.getLastColumn()).fill('');
-    row[songIdColumn] = Utilities.getUuid();
-    row[col('artist')] = artist;
-    row[col('title')] = title;
-    row[col('codeUrl')] = codeUrl;
-    row[col('bpm')] = bpmValue ? Number(bpmValue) : '';
-    row[col('genre1')] = genre1;
-    row[col('genre2')] = genre2;
-    const nextRow = sheet.getLastRow() + 1;
-    // 値として登録し、セル内の = から始まる入力が数式に変換されないよう保護します。
-    const range = sheet.getRange(nextRow, 1, 1, row.length);
-    range.setNumberFormat('@');
-    range.setValues([row]);
-    SpreadsheetApp.flush();
-    return reply_('ok');
-  } catch (err) {
-    console.error(err);
-    return reply_('error');
-  } finally {
-    if (lock.hasLock()) lock.releaseLock();
-  }
-}
-
-function clean_(value, max) {
-  return String(value == null ? '' : value).trim().slice(0, max);
-}
-function reply_(status) {
-  return ContentService.createTextOutput(JSON.stringify({ status }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-/** 一度だけ手動実行。空欄の楽曲IDにだけUUIDを発行。既存の値は変えません。 */
-function assignMissingSongIds() {
-  const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
-  try {
-    const sheet = getSongSheet_();
-    if (!sheet) throw Error('tab not found');
-    const values = sheet.getDataRange().getDisplayValues();
-    const headerIndex = values.findIndex(row => row.includes('曲名'));
-    if (headerIndex < 0) throw Error('header not found');
-    const headers = values[headerIndex].map(h => String(h).trim());
-    const idColumn = headers.indexOf('楽曲ID');
-    const titleColumn = headers.indexOf('曲名');
-    if (idColumn < 0) throw Error('楽曲ID column missing');
-    const used = new Set();
-    // 重複IDは自動変更しません。既存の個人データと紐づく可能性があるためエラーにします。
-    values.slice(headerIndex + 1).forEach(row => {
-      const id = String(row[idColumn] || '').trim();
-      if (id && used.has(id)) throw Error('duplicate 楽曲ID: ' + id);
-      if (id) used.add(id);
-    });
-    let added = 0;
-    for (let i = headerIndex + 1; i < values.length; i++) {
-      if (!String(values[i][titleColumn] || '').trim()) continue;
-      if (!String(values[i][idColumn] || '').trim()) {
-        let id;
-        do { id = Utilities.getUuid(); } while (used.has(id));
-        sheet.getRange(i + 1, idColumn + 1).setValue(id);
-        used.add(id);
-        added++;
-      }
+    function effectivePersonalSong(songId) {
+        return Object.assign({}, personalSongs[songId] || {}, pendingSongs[songId] || {});
     }
-    console.log('新規発行した楽曲ID: ' + added + '件');
-  } finally {
-    lock.releaseLock();
-  }
-}
+    function favoriteArtistValue(name) {
+        const key = artistDbKey(name);
+        return Object.prototype.hasOwnProperty.call(pendingArtists,key) ? pendingArtists[key] : !!favoriteArtists[key];
+    }
+    function isInMyList(song) {
+        const p = effectivePersonalSong(song._id);
+        return !!(p.part || p.liked || favoriteArtistValue(String(song['アーティスト'] || '').trim()));
+    }
+    function updateMyListBar() {
+        const count = Object.keys(pendingSongs).length + Object.keys(pendingArtists).length;
+        document.getElementById('myListSaveBar').classList.toggle('active', !!signedInUser && count>0);
+        document.getElementById('myListPendingCount').textContent = `未保存：${count} 件`;
+    }
+    async function loadMyListForUser(user) {
+        const version = ++myListLoadVersion;
+        myListMode = false;
+        personalSongs = {}; favoriteArtists = {}; pendingSongs = {}; pendingArtists = {};
+        document.body.classList.remove('my-list-mode');
+        document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
+        updateMyListBar();
+        if (!user) { if (typeof renderTable === 'function' && allData.length) renderTable(); return; }
+        try {
+            const [songsSnapshot, artistsSnapshot] = await Promise.all([
+                db.ref(`users/${user.uid}/songs`).once('value'),
+                db.ref(`users/${user.uid}/favoriteArtists`).once('value')
+            ]);
+            if (version !== myListLoadVersion || auth.currentUser?.uid !== user.uid) return;
+            personalSongs = songsSnapshot.val() || {};
+            favoriteArtists = artistsSnapshot.val() || {};
+            if (allData.length) renderTable();
+        } catch (error) {
+            console.error('マイリストの読み込みに失敗:',error);
+            if (version === myListLoadVersion) alert('マイリストを読み込めませんでした。Firebaseの users への権限を確認してください。');
+        }
+    }
+    function toggleMyList() {
+        if (!signedInUser) return;
+        myListMode = !myListMode;
+        document.body.classList.toggle('my-list-mode',myListMode);
+        document.getElementById('myListSwitchBtn').textContent = myListMode ? '📚 全曲一覧' : '📁 マイリスト';
+        tableBodyWrapper.scrollTop = 0;
+        renderTable();
+    }
+    function stagePersonalSong(id, patch) {
+        if (!signedInUser) return;
+        const next = Object.assign({}, effectivePersonalSong(id), patch);
+        if (next.key === undefined) next.key=0;
+        pendingSongs[id] = next;
+        updateMyListBar();
+        const top = tableBodyWrapper.scrollTop;
+        renderTable(); tableBodyWrapper.scrollTop = top;
+        if (currentDetailSongId === id) {
+            const song=allData.find(row=>row._id===id);
+            if (song) renderDetailPersonalControls(song);
+        }
+    }
+    function setPersonalPart(songId, part) {
+        if (!PARTS.includes(part)) return;
+        stagePersonalSong(songId,{part});
+    }
+    function setPersonalLiked(songId) {
+        const p = effectivePersonalSong(songId);
+        stagePersonalSong(songId,{liked:!p.liked});
+    }
+    function setFavoriteArtist(songId) {
+        if (!signedInUser) return;
+        const song=allData.find(row=>row._id===songId);
+        if (!song) return;
+        const artist=String(song['アーティスト'] || '').trim();
+        if (!artist) return;
+        const key=artistDbKey(artist);
+        pendingArtists[key] = !favoriteArtistValue(artist);
+        updateMyListBar();
+        const top=tableBodyWrapper.scrollTop;
+        renderTable(); tableBodyWrapper.scrollTop=top;
+        if (currentDetailSongId===songId) renderDetailPersonalControls(song);
+    }
+    function personalControlsHtml(song) {
+        const p=effectivePersonalSong(song._id);
+        const artist=String(song['アーティスト'] || '').trim();
+        const part=`<select class="part-select" aria-label="担当パート" title="担当パートを選択" onchange="setPersonalPart('${song._id}',this.value)">${PARTS.map(icon=>`<option value="${icon}" ${p.part===icon?'selected':''} title="${PART_NAMES[icon]}">${icon||'－'}</option>`).join('')}</select>`;
+        const liked=`<button type="button" class="personal-toggle ${p.liked?'selected':''}" title="好きな曲" aria-pressed="${!!p.liked}" onclick="setPersonalLiked('${song._id}')">💖</button>`;
+        const artistButton=`<button type="button" class="personal-toggle ${favoriteArtistValue(artist)?'selected':''}" title="好きなアーティスト" aria-pressed="${favoriteArtistValue(artist)}" onclick="setFavoriteArtist('${song._id}')">🌟</button>`;
+        return {part,liked,artist:artistButton};
+    }
+    function renderDetailPersonalControls(song) {
+        const wrapper=document.getElementById('detailPersonalEdit');
+        wrapper.style.display=signedInUser ? 'block':'none';
+        if (!signedInUser) return;
+        const controls=personalControlsHtml(song);
+        document.getElementById('detailPersonalControls').innerHTML=controls.part+controls.liked+controls.artist;
+    }
+    async function saveMyListChanges() {
+        const user=signedInUser;
+        if (!user) {alert('Googleログインが必要です。');return;}
+        const ids=Object.keys(pendingSongs), artists=Object.keys(pendingArtists);
+        if (!ids.length && !artists.length) return;
+        const btn=document.getElementById('saveMyListButton'); btn.disabled=true;
+        const changes={};
+        ids.forEach(id=>{
+            const item=pendingSongs[id];
+            const entry={part:PARTS.includes(item.part)?item.part:'',liked:!!item.liked,key:Number.isInteger(item.key) && item.key>=-5 && item.key<=6?item.key:0};
+            changes[`users/${user.uid}/songs/${id}`]=entry;
+        });
+        artists.forEach(id=>{ changes[`users/${user.uid}/favoriteArtists/${id}`]=pendingArtists[id] || null; });
+        try {
+            await db.ref().update(changes);
+            if (auth.currentUser?.uid !== user.uid) return;
+            ids.forEach(id=>{personalSongs[id]=changes[`users/${user.uid}/songs/${id}`];delete pendingSongs[id];});
+            artists.forEach(id=>{if(pendingArtists[id])favoriteArtists[id]=true;else delete favoriteArtists[id];delete pendingArtists[id];});
+            updateMyListBar();renderTable();
+            const song=allData.find(row=>row._id===currentDetailSongId);
+            if (song) renderDetailPersonalControls(song);
+            alert('マイリストに登録しました。');
+        } catch(error) {
+            console.error('マイリスト登録失敗:',error);
+            alert('登録に失敗しました。Firebaseの本人用アクセス権限を確認してください。選択内容は画面に残っています。');
+        } finally {btn.disabled=false;}
+    }
+    let themeLoadVersion = 0;
+    async function loginWithGoogle() {
+        try {
+            await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+        } catch (error) {
+            console.error('Googleログイン失敗:', error);
+            if (error.code !== 'auth/popup-closed-by-user') {
+                alert('Googleログインできませんでした：' + (error.message || error.code));
+            }
+        }
+    }
+    async function logoutGoogle() {
+        try { await auth.signOut(); }
+        catch (error) { console.error(error); alert('ログアウトできませんでした。'); }
+    }
+    auth.onAuthStateChanged(async user => {
+        signedInUser = user;
+        const version = ++themeLoadVersion;
+        document.getElementById('loginStatus').textContent = user ? (user.displayName || user.email || 'ログイン中') : 'ゲスト利用中';
+        document.getElementById('loginStatus').title = user ? (user.email || '') : '';
+        document.getElementById('loginStatus').classList.toggle('logged-in', !!user);
+        document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
+        document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
+        document.getElementById('myListSwitchBtn').style.display = user ? 'inline-block' : 'none';
+        document.getElementById('detailPersonalEdit').style.display = 'none';
+        currentDetailSongId = null;
+        await loadMyListForUser(user);
+
+        if (!user) {
+            applyTheme(localStorage.getItem(GUEST_THEME_STORAGE) || 'dark');
+            return;
+        }
+        try {
+            const snapshot = await db.ref(`users/${user.uid}/preferences/theme`).once('value');
+            if (version !== themeLoadVersion || auth.currentUser?.uid !== user.uid) return;
+            applyTheme(snapshot.val() || 'dark');
+        } catch (error) {
+            console.error('UIカラーの読込に失敗:', error);
+            if (version === themeLoadVersion && auth.currentUser?.uid === user.uid) {
+                applyTheme('dark');
+                alert('保存済みのUIカラーを読み込めませんでした。Firebaseのアクセス権限をご確認ください。');
+            }
+        }
+    });
+
+
+    // =========================================
+    // ルーム状態とユーザー名の管理
+    // =========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentRoomId = urlParams.get('room');
+    let myName = ''; 
+    let mySessionId = ''; 
+
+    function initRoomUI() {
+        const roomWrapper = document.getElementById('roomStatusWrapper');
+        const createBtn = document.getElementById('createRoomBtn');
+        
+        myName = localStorage.getItem('kankan_username');
+        document.getElementById('usernameInput').value = myName || '';
+
+        if (currentRoomId) {
+            document.body.classList.add('in-room');
+            if (!myName) {
+                myName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（例：Gt. カンカン）");
+                if (!myName) myName = "名無し";
+                localStorage.setItem('kankan_username', myName);
+                document.getElementById('usernameInput').value = myName;
+            }
+
+            roomWrapper.classList.add('active');
+            document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
+            createBtn.style.display = 'none';
+
+            mySessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+            const myMemberRef = db.ref(`rooms/${currentRoomId}/members/${mySessionId}`);
+            myMemberRef.set({ name: myName });
+            myMemberRef.onDisconnect().remove();
+
+            db.ref(`rooms/${currentRoomId}/members`).on('value', snap => {
+                const members = snap.val() || {};
+                const names = Object.values(members).map(m => escapeHtml(m.name));
+                document.getElementById('roomMembersList').innerHTML = names.length > 0 ? names.join(' , ') : '読み込み中...';
+            });
+
+        } else {
+            document.body.classList.remove('in-room');
+            myName = myName || "自分";
+            roomWrapper.classList.remove('active');
+            createBtn.style.display = 'inline-block';
+        }
+    }
+
+    function changeUsername() {
+        const newName = document.getElementById('usernameInput').value.trim();
+        if(newName) {
+            myName = newName;
+            localStorage.setItem('kankan_username', myName);
+            if(currentRoomId && mySessionId) {
+                db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({ name: myName });
+                document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
+            }
+            alert("名前を変更しました！");
+        }
+    }
+
+    function createRoom() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let newRoomId = '';
+        for(let i = 0; i < 5; i++) newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
+        window.location.href = '?room=' + newRoomId;
+    }
+
+    function leaveRoom() { window.location.href = window.location.pathname; }
+
+    function copyRoomLink() {
+        const url = window.location.href;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => { alert('ルームのURLをコピーしました！メンバーに共有してください。'); }).catch(err => { fallbackCopy(url); });
+        } else {
+            fallbackCopy(url);
+        }
+    }
+    function fallbackCopy(text) {
+        const textArea = document.createElement("textarea"); textArea.value = text;
+        textArea.style.top = "0"; textArea.style.left = "0"; textArea.style.position = "fixed"; document.body.appendChild(textArea);
+        textArea.focus(); textArea.select();
+        try { document.execCommand('copy') ? alert('ルームのURLをコピーしました！') : alert('自動コピーできません。URLを直接コピーしてください。'); } catch (err) {}
+        document.body.removeChild(textArea);
+    }
+
+    // =========================================
+    // OBSカスタムCSS関連の処理
+    // =========================================
+    function openObsModal() {
+        // 現在のベースURLから obs-setlist.html のURLを推測して生成
+        const loc = window.location;
+        const basePath = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+        const roomIdParam = currentRoomId ? `?room=${currentRoomId}` : `?room=ここにルームIDを入力`;
+        const obsUrl = `${loc.protocol}//${loc.host}${basePath}obs.html${roomIdParam}`;
+        
+        document.getElementById('obsUrlInput').value = obsUrl;
+        openModal('obsModal');
+    }
+
+    function copyObsUrl(e) {
+        e.preventDefault();
+        const urlInput = document.getElementById('obsUrlInput');
+        urlInput.select();
+        try {
+            document.execCommand('copy');
+            alert('OBS配信用URLをコピーしました！');
+        } catch (err) {
+            alert('コピーに失敗しました。');
+        }
+    }
+
+    function copyObsCss() {
+        const cssTextarea = document.getElementById('obsCssTextarea');
+        cssTextarea.select();
+        try {
+            document.execCommand('copy');
+            alert('OBSカスタムCSSコードをコピーしました！');
+        } catch (err) {
+            alert('コピーに失敗しました。');
+        }
+    }
+
+    // =========================================
+    // マニュアル（使い方ガイド）のページ送り機能
+    // =========================================
+    let currentManualPage = 1;
+    const totalManualPages = 4;
+
+    const manualData = {
+        1: {
+            title: "📖 使い方ガイド (1/4) - アプリの概要と画面の見方",
+            content: `
+                <p><b>「シェアリスコア-Share List Score-」</b>へようこそ！このアプリは、GoogleスプレッドシートのKanKanリストを自動読み込みし、リアルタイムな予約やセットリストの作成・保存を行うためのツールです。</p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>メイン一覧：</strong> スプレッドシートから自動取得したすべての楽曲リストが表示されます。</li>
+                    <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「OBSカスタムCSS」、「設定」が行えます。</li>
+                    <li><strong>フィルターボタン：</strong> 画面下のジャンルのボタンを押すことで、素早く曲を絞り込めます。</li>
+                </ul>
+            `
+        },
+        2: {
+            title: "📖 使い方ガイド (2/4) - 曲の検索と詳細情報",
+            content: `
+                <p><b>目当ての曲を素早く見つけて詳細を確認する方法です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>キーワード検索：</strong> 検索ボックスに曲名、アーティスト名、アニメ作品名、作詞・作曲・編曲者などをスペース区切りで入力すると、リアルタイムに候補が絞り込まれます。</li>
+                    <li style="margin-bottom: 8px;"><strong>ソート機能：</strong> 表のヘッダー（「曲名」「アーティスト」「ジャンル」「BPM」）をクリックすると、昇順・降順で並び替えることができます。</li>
+                    <li><strong>詳細ポップアップ：</strong> リスト上の<b>曲名をクリック</b>すると、作詞・作曲・編曲者やコードWikiへのリンクなど、詳細なデータを確認できます。</li>
+                </ul>
+            `
+        },
+        3: {
+            title: "📖 使い方ガイド (3/4) - セッションルームの使い方",
+            content: `
+                <p><b>メンバー全員とリアルタイムにセットリストを共有する機能です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>ルームの作成：</strong> 「🌐 ルームを作る」ボタンを押すと、専用のURLが発行されます。そのURLをSYNCROOMチャット欄やDMでメンバーに共有してください。</li>
+                    <li style="margin-bottom: 8px;"><strong>参加メンバーの確認：</strong> ルームに接続すると、画面上に現在接続しているメンバーの名前が一覧でリアルタイム表示されます。</li>
+                    <li><strong>名前の変更：</strong> メンバー一覧に表示される「自分の名前」は、右上「⚙ 設定」からいつでも自由に変更可能です。</li>
+                </ul>
+            `
+        },
+        4: {
+            title: "📖 使い方ガイド (4/4) - 予約から完了・画像保存まで",
+            content: `
+                <p><b>当日のセッション進行とセットリストのシェア手順です。</b></p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;"><strong>3段階のステータス管理：</strong>
+                        <br>① <b>📝 予約：</b> リストの「＋追加」ボタンで予約リストに入ります。▲▼ボタンで順番の入れ替えも可能！
+                        <br>② <b>🎸 確定：</b> 予約リストから「演奏確定」を押すと演奏リストに移動します。
+                        <br>③ <b>✅ 完了：</b> 演奏が終わったら「完了」へ！配信にセットリストを映したい場合は「OBSカスタムCSS」ボタンから専用URLをご活用ください。
+                    </li>
+                    <li><strong>セットリスト画像保存：</strong> 「✅ 完了」ボタンの下部にある<b>「📸 画像として保存する」</b>ボタンから、本日のセットリストを1枚の画像として保存できます！</li>
+                </ul>
+            `
+        }
+    };
+
+    function openManualModal() {
+        currentManualPage = 1;
+        renderManualPage();
+        openModal('manualModal');
+    }
+
+    function changeManualPage(direction) {
+        currentManualPage += direction;
+        if (currentManualPage < 1) currentManualPage = 1;
+        if (currentManualPage > totalManualPages) currentManualPage = totalManualPages;
+        renderManualPage();
+    }
+
+    function renderManualPage() {
+        const pageData = manualData[currentManualPage];
+        document.getElementById('manualTitle').textContent = pageData.title;
+        document.getElementById('manualBody').innerHTML = pageData.content;
+        document.getElementById('manualPageIndicator').textContent = `${currentManualPage} / ${totalManualPages}`;
+
+        document.getElementById('prevManualBtn').style.visibility = currentManualPage === 1 ? 'hidden' : 'visible';
+        document.getElementById('nextManualBtn').style.display = currentManualPage === totalManualPages ? 'none' : 'inline-block';
+    }
+
+    // =========================================
+    // 画像を保存する処理 (html2canvas使用)
+    // =========================================
+    function downloadSetlistImage() {
+        const target = document.getElementById('captureArea');
+        const hideElements = target.querySelectorAll('.hide-on-capture');
+        hideElements.forEach(el => el.style.display = 'none');
+        
+        const bgColor = getComputedStyle(document.body).getPropertyValue('--panel-bg').trim();
+        
+        html2canvas(target, {
+            backgroundColor: bgColor,
+            scale: 2
+        }).then(canvas => {
+            hideElements.forEach(el => el.style.display = '');
+            const link = document.createElement('a');
+            link.download = '本日のセットリスト.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            hideElements.forEach(el => el.style.display = '');
+            alert('画像の保存に失敗しました。');
+        });
+    }
+
+    // =========================================
+    // スプレッドシート自動取得 & データ処理
+    // =========================================
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
+
+    let allData = [];
+    let roomQueue = {}; 
+    let currentSortKey = '';
+    let currentSortOrder = 1; 
+    let currentGenre = "すべて";
+    let genre1Key = 'ジャンル'; 
+    let genre2Key = 'ジャンル②'; 
+
+    const tableBody = document.getElementById('tableBody');
+    const controls = document.getElementById('controls');
+    const tableWrapper = document.getElementById('tableWrapper');
+    const tableBodyWrapper = document.querySelector('.table-body-wrapper');
+    const tableHeaderWrapper = document.querySelector('.table-header-wrapper');
+    const loadingArea = document.getElementById('loadingArea');
+    const searchInput = document.getElementById('searchInput');
+    const songCountDisplay = document.getElementById('songCountDisplay');
+    const genreFilters = document.getElementById('genreFilters');
+    let selectedArtist = '';
+    const artistFilterIndicator = document.getElementById('artistFilterIndicator');
+    const artistFilterName = document.getElementById('artistFilterName');
+
+    function setArtistFilter(name) {
+        selectedArtist = String(name ?? '').trim();
+        artistFilterName.textContent = selectedArtist;
+        artistFilterIndicator.hidden = !selectedArtist;
+        tableBodyWrapper.scrollTop = 0;
+        renderTable();
+    }
+
+    let pendingArtistFilter = '';
+    function confirmArtistFilter() {
+        closeModal(null, 'artistConfirmModal');
+        if (pendingArtistFilter) setArtistFilter(pendingArtistFilter);
+        pendingArtistFilter = '';
+    }
+    tableBody.addEventListener('click', event => {
+        const artistButton = event.target.closest('.artist-filter-button');
+        if (!artistButton) return;
+        pendingArtistFilter = artistButton.dataset.artist || '';
+        document.getElementById('confirmArtistName').textContent = pendingArtistFilter;
+        openModal('artistConfirmModal');
+    });
+    
+    tableBodyWrapper.addEventListener('scroll', (e) => { tableHeaderWrapper.scrollLeft = e.target.scrollLeft; });
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
+    function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
+    function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
+    // ログイン実装前の暫定保存。IDは行番号ではなくChordWikiの曲URLとアーティストから作る。
+    const PERSONAL_KEYS_STORAGE = 'shareliscore_personal_chordwiki_keys_v1';
+    let personalKeys = {};
+    try {
+        const parsed = JSON.parse(localStorage.getItem(PERSONAL_KEYS_STORAGE) || '{}');
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) personalKeys = parsed;
+    } catch (error) { console.warn('保存済みKeyの読み込みに失敗:', error); }
+
+    // ChordWikiの原曲URLを共通解析。/wiki/の生の+は空白、%2Bは文字としての+。
+    // 既存マスターの wiki.cgi?c=view 形式も読める。タグ・検索・外部サイトは対象外。
+    function parseChordWikiUrl(rawUrl, requireOriginal = false) {
+        try {
+            const input = String(rawUrl ?? '').trim();
+            if (!input || input.length > 500) return null;
+            const url = new URL(input);
+            if (url.protocol !== 'https:' || url.hostname !== 'ja.chordwiki.org' ||
+                url.username || url.password || url.port || url.hash) return null;
+            let title = '';
+            let originalUrl = input;
+            if (url.pathname.startsWith('/wiki/')) {
+                if (url.search && requireOriginal) return null; // 既存の追跡パラメータ付きURLは読取互換だけ維持
+                const rawTitle = url.pathname.slice('/wiki/'.length);
+                if (!rawTitle || rawTitle.includes('/')) return null;
+                title = decodeURIComponent(rawTitle.replace(/\+/g, ' '));
+            } else if (url.pathname === '/wiki.cgi' && url.searchParams.get('c') === 'view') {
+                title = url.searchParams.get('t') || '';
+                const baseKey = url.searchParams.get('key');
+                if (requireOriginal && baseKey !== null && baseKey !== '0') return null;
+            } else {
+                return null;
+            }
+            if (!title.trim() || /[\x00-\x1f\x7f]/.test(title)) return null;
+            return { title, originalUrl };
+        } catch (error) { return null; }
+    }
+    function chordWikiTitle(rawUrl) {
+        return parseChordWikiUrl(rawUrl)?.title || null;
+    }
+    function validateNewChordWikiUrl(rawUrl) {
+        const parsed = parseChordWikiUrl(rawUrl, true);
+        if (!parsed) return 'ChordWikiの原曲楽曲ページURLを入力してください（タグ・検索ページ・移調済みURLは登録できません）。';
+        return '';
+    }
+    function personalSongKey(song) {
+        const wikiTitle = chordWikiTitle(song['コードwiki']);
+        return wikiTitle ? `${wikiTitle}\u0000${String(song['アーティスト'] || '').trim()}` : null;
+    }
+    function getPersonalKey(song) {
+        if (signedInUser) {
+            const entry = effectivePersonalSong(song._id);
+            return Number.isInteger(entry.key) && entry.key >= -5 && entry.key <= 6 ? entry.key : 0;
+        }
+        const id = personalSongKey(song);
+        const val = id ? Number(personalKeys[id]) : 0;
+        return Number.isInteger(val) && val >= -5 && val <= 6 ? val : 0;
+    }
+    function chordWikiUrlForKey(rawUrl, key) {
+        const page = parseChordWikiUrl(rawUrl);
+        if (!page || !Number.isInteger(key) || key < -5 || key > 6) return '';
+        if (key === 0) return page.originalUrl;
+        // URLSearchParamsは空白を+、文字の+を%2Bに区別してエンコードする。
+        const query = new URLSearchParams({ c: 'view', t: page.title, key: String(key), symbol: '' });
+        return `https://ja.chordwiki.org/wiki.cgi?${query.toString()}`;
+    }
+    function personalChordWikiUrl(song) {
+        return chordWikiUrlForKey(song['コードwiki'], getPersonalKey(song));
+    }
+    function displayKey(key) { return key > 0 ? `+${key}` : String(key); }
+    function savePersonalKey(songId, key) {
+        const song = allData.find(row => row._id === String(songId));
+        if (signedInUser) {
+            if (!song || !Number.isInteger(key) || key < -5 || key > 6) return;
+            stagePersonalSong(songId, { key });
+            renderPersonalKeyPicker(song);
+            return;
+        }
+        const id = song && personalSongKey(song);
+        if (!id || !Number.isInteger(key) || key < -5 || key > 6) return;
+        const previous = personalKeys[id];
+        if (key === 0) delete personalKeys[id];
+        else personalKeys[id] = key;
+        try {
+            localStorage.setItem(PERSONAL_KEYS_STORAGE, JSON.stringify(personalKeys));
+        } catch (error) {
+            if (previous === undefined) delete personalKeys[id]; else personalKeys[id] = previous;
+            alert('保存に失敗しました。ブラウザのストレージ設定を確認してください。');
+            return;
+        }
+        renderPersonalKeyPicker(song);
+        // Key変更でリストのスクロール位置が飛ばないようにする。
+        const previousScrollTop = tableBodyWrapper.scrollTop;
+        renderTable();
+        tableBodyWrapper.scrollTop = previousScrollTop;
+        updateQueueUI();
+    }
+    function changeTableKey(songId, direction) {
+        const song = allData.find(row => row._id === String(songId));
+        if (!song || !chordWikiTitle(song['コードwiki'])) return;
+        const next = getPersonalKey(song) + direction;
+        if (!Number.isInteger(next) || next < -5 || next > 6) return;
+        savePersonalKey(songId, next);
+    }
+    function renderPersonalKeyPicker(song) {
+        const picker = document.getElementById('detailKeyPicker');
+        const selected = getPersonalKey(song);
+        picker.innerHTML = '';
+        const decrement = document.createElement('button');
+        decrement.type = 'button';
+        decrement.textContent = '◀';
+        decrement.title = 'Keyを半音下げる';
+        decrement.setAttribute('aria-label', 'Keyを半音下げる');
+        decrement.disabled = selected <= -5;
+        decrement.onclick = () => savePersonalKey(song._id, selected - 1);
+
+        const value = document.createElement('span');
+        value.className = 'key-current';
+        value.textContent = selected === 0 ? '原曲Key（±0）' : `Key ${displayKey(selected)}`;
+        value.setAttribute('aria-live', 'polite');
+
+        const increment = document.createElement('button');
+        increment.type = 'button';
+        increment.textContent = '▶';
+        increment.title = 'Keyを半音上げる';
+        increment.setAttribute('aria-label', 'Keyを半音上げる');
+        increment.disabled = selected >= 6;
+        increment.onclick = () => savePersonalKey(song._id, selected + 1);
+
+        picker.append(decrement, value, increment);
+        document.getElementById('detailKeyStatus').textContent = `現在の選択Key：${displayKey(selected)}（${selected === 0 ? '原曲' : '半音' + (selected > 0 ? '上げ' : '下げ') + Math.abs(selected)}）`;
+        document.getElementById('detailKeyLink').href = personalChordWikiUrl(song);
+    }
+
+    const GUEST_THEME_STORAGE = 'sharelistscore_guest_theme';
+    const VALID_THEMES = ['dark', 'white', 'eva01', 'eva02', 'eva00', 'eva08'];
+    function applyTheme(theme) {
+        const selected = VALID_THEMES.includes(theme) ? theme : 'dark';
+        // body.classNameを丸ごと書き換えると、ルーム参加状態(in-room)が消えるためテーマクラスだけ変更する。
+        document.body.classList.remove(...VALID_THEMES.filter(value => value !== 'dark').map(value => `theme-${value}`));
+        if (selected !== 'dark') document.body.classList.add(`theme-${selected}`);
+        document.getElementById('themeSelect').value = selected;
+    }
+    async function changeTheme() {
+        const selected = document.getElementById('themeSelect').value;
+        if (!VALID_THEMES.includes(selected)) return;
+        ++themeLoadVersion; // 読込中にユーザーが手動変更した場合、古い取得結果で上書きしない。
+        applyTheme(selected);
+        if (!signedInUser) {
+            localStorage.setItem(GUEST_THEME_STORAGE, selected);
+            return;
+        }
+        const uid = signedInUser.uid;
+        try {
+            await db.ref(`users/${uid}/preferences/theme`).set(selected);
+        } catch (error) {
+            console.error('UIカラーの保存に失敗:', error);
+            alert('UIカラーを保存できませんでした。Firebaseのアクセス権限をご確認ください。');
+        }
+    }
+
+
+    // Apps Script を「ウェブアプリ」としてデプロイして /exec URL をここに設定。
+    // 公開CSVのURLは書き込みに使えません。
+    const SONG_ADD_API_URL = 'https://script.google.com/macros/s/AKfycbwAF4yXcQOM-JlRdOrLFrB1AYczZe1ks53ysx2UE1-ZgH87cjix_rHacJ55OYPzCpu5/exec';
+
+    function openAddSongModal() {
+        const genres = new Set();
+        allData.forEach(row => {
+            [genre1Key, genre2Key].forEach(key => {
+                const value = String(row[key] || '').trim();
+                if (value) genres.add(value);
+            });
+        });
+        const options = Array.from(genres).sort((a, b) => a.localeCompare(b, 'ja'));
+        const first = document.getElementById('newGenre1');
+        const second = document.getElementById('newGenre2');
+        first.replaceChildren(new Option('選択してください', ''));
+        second.replaceChildren(new Option('なし', ''));
+        options.forEach(value => {
+            first.add(new Option(value, value));
+            second.add(new Option(value, value));
+        });
+        newCodeUrlInput.setCustomValidity('');
+        newCodeUrlInput.dispatchEvent(new Event('input'));
+        document.getElementById('addSongFeedback').textContent = options.length ? '' : 'ジャンル選択肢を取得できません。ページを再読み込みしてください。';
+        openModal('addSongModal');
+    }
+
+    // 入力中も形式を確認。サーバー側でも同じ条件で検証する。
+    const newCodeUrlInput = document.getElementById('newCodeUrl');
+    newCodeUrlInput.addEventListener('input', () => {
+        const value = newCodeUrlInput.value.trim();
+        const message = value ? validateNewChordWikiUrl(value) : '';
+        const status = document.getElementById('newCodeUrlCheck');
+        status.textContent = message || (value ? '✓ Key変更に対応するURL形式です。' : '');
+        status.style.color = message ? '#dc3545' : '#28a745';
+        newCodeUrlInput.setCustomValidity(message);
+    });
+
+    async function submitNewSong(event) {
+        event.preventDefault();
+        const form = document.getElementById('addSongForm');
+        const urlError = validateNewChordWikiUrl(newCodeUrlInput.value);
+        newCodeUrlInput.setCustomValidity(urlError);
+        document.getElementById('newCodeUrlCheck').textContent = urlError;
+        if (!form.reportValidity()) return;
+        const feedback = document.getElementById('addSongFeedback');
+        const submit = document.getElementById('addSongSubmit');
+        if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(SONG_ADD_API_URL)) {
+            feedback.textContent = '管理者の設定が未完了です。Apps Script のウェブアプリURLを設定してください。';
+            return;
+        }
+        const data = Object.fromEntries(new FormData(form).entries());
+        if (data.genre1 === data.genre2) {
+            feedback.textContent = 'ジャンル②にはジャンルと異なる項目を選んでください。';
+            return;
+        }
+        submit.disabled = true;
+        feedback.textContent = '送信中です…';
+        try {
+            // Apps Script は通常の CORS API としては利用できないため opaque 応答。
+            // fetch 成功は「到達の保証」や「シートへの書込成功の確認」ではありません。
+            await fetch(SONG_ADD_API_URL, {
+                method: 'POST', mode: 'no-cors', redirect: 'follow',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(data)
+            });
+            form.reset();
+            newCodeUrlInput.setCustomValidity('');
+            document.getElementById('newCodeUrlCheck').textContent = '';
+            feedback.textContent = '送信しました。登録結果は直接確認できないため、しばらくしてページを再読み込みし、楽曲が追加されたか確認してください（公開CSVの更新には時間がかかる場合があります）。表示されない場合は管理者にお問い合わせください。';
+        } catch (error) {
+            feedback.textContent = '送信できませんでした。通信環境や設定をご確認のうえ、再度お試しください。';
+        } finally {
+            submit.disabled = false;
+        }
+    }
+
+    // ジャンルボタン生成
+    function populateGenreButtons() {
+        genreFilters.innerHTML = ''; 
+        const gSet = new Set();
+        
+        allData.forEach(row => { 
+            if (genre1Key && row[genre1Key] && row[genre1Key].trim() !== '') {
+                gSet.add(row[genre1Key].trim()); 
+            }
+            if (genre2Key && row[genre2Key] && row[genre2Key].trim() !== '') {
+                gSet.add(row[genre2Key].trim()); 
+            }
+        });
+        
+        const genres = ["すべて", ...Array.from(gSet).sort()];
+
+        genres.forEach(genre => {
+            const btn = document.createElement('button');
+            btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`; 
+            btn.textContent = genre;
+            btn.onclick = () => { 
+                document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active')); 
+                btn.classList.add('active'); 
+                currentGenre = genre; 
+                renderTable(); 
+            };
+            genreFilters.appendChild(btn);
+        });
+    }
+
+    function loadRowsIntoApp(rawData) {
+        const headerIndex = rawData.findIndex(row => row.includes("曲名"));
+        if (headerIndex === -1) { 
+            showCsvLoadError("エラー: データ内に「曲名」が見つかりませんでした。");
+            return; 
+        }
+        
+        const headers = rawData[headerIndex];
+        
+        if (headers.includes('ジャンル①')) {
+            genre1Key = 'ジャンル①';
+        } else if (headers.includes('ジャンル')) {
+            genre1Key = 'ジャンル';
+        } else if (headers.length > 7 && headers[7]) {
+            genre1Key = headers[7].trim();
+        } else {
+            genre1Key = '';
+        }
+
+        if (headers.includes('ジャンル②')) {
+            genre2Key = 'ジャンル②';
+        } else if (headers.length > 8 && headers[8]) {
+            genre2Key = headers[8].trim();
+        } else {
+            genre2Key = '';
+        }
+
+        const idColumn = headers.findIndex(name => String(name).trim() === '楽曲ID');
+        if (idColumn < 0) {
+            showCsvLoadError('「楽曲ID」列が公開CSVにありません。スプレッドシートの公開設定を確認してください。');
+            return;
+        }
+        const seenIds = new Set();
+        const rows = rawData.slice(headerIndex + 1).filter(row => row.some(cell => String(cell || '').trim()));
+        const invalidIds = rows.filter(row => !String(row[idColumn] || '').trim());
+        if (invalidIds.length) {
+            showCsvLoadError(`楽曲IDが空欄の楽曲が ${invalidIds.length} 件あります。IDを発行してから再読み込みしてください。`);
+            return;
+        }
+        const duplicateIds = rows.map(row => String(row[idColumn]).trim()).filter(id => {
+            if (seenIds.has(id)) return true;
+            seenIds.add(id);
+            return false;
+        });
+        if (duplicateIds.length) {
+            showCsvLoadError('楽曲IDが重複しています。スプレッドシートを確認してください。');
+            return;
+        }
+        allData = rows.map((row, idx) => {
+            const obj = { _id: String(row[idColumn]).trim(), _legacyId: idx.toString() };
+            headers.forEach((headerName, index) => {
+                if (headerName.trim() === 'お気に入り度') return;
+                if (Object.prototype.hasOwnProperty.call(obj, headerName) && obj[headerName]) return;
+                obj[headerName] = row[index] || '';
+            });
+            return obj;
+        });
+
+        populateGenreButtons();
+        loadingArea.style.display = 'none';
+        controls.style.display = 'block';
+        tableWrapper.style.display = 'flex';
+        
+        if (currentRoomId && !window._firebaseListenerInitialized) {
+            window._firebaseListenerInitialized = true;
+            db.ref('rooms/' + currentRoomId + '/queue').on('value', (snapshot) => {
+                roomQueue = snapshot.val() || {};
+                renderTable(); updateQueueUI();
+            });
+        } else {
+            renderTable(); updateQueueUI();
+        }
+    }
+
+    function showCsvLoadError(message) {
+        loadingArea.style.display = 'flex';
+        controls.style.display = 'none';
+        tableWrapper.style.display = 'none';
+        loadingArea.innerHTML = `<span style='color:red;'>${escapeHtml(message)}</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>`;
+        document.getElementById('retryBtn').onclick = () => location.reload();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initRoomUI();
+
+        Papa.parse(SHEET_CSV_URL, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            encoding: "UTF-8",
+            complete: function(results) { 
+                loadRowsIntoApp(results.data); 
+            },
+            error: function(error) {
+                showCsvLoadError("エラー: スプレッドシートからのデータ取得に失敗しました。URLや公開設定を確認してください。");
+            }
+        });
+    });
+
+    let searchDebounceTimer = null;
+    searchInput.addEventListener('input', () => { clearTimeout(searchDebounceTimer); searchDebounceTimer = setTimeout(renderTable, 150); });
+
+    // =========================================
+    // セッション曲管理機能
+    // =========================================
+    function addToQueue(songId) {
+        const song = allData.find(r => r._id === String(songId));
+        if (!song) return;
+        const selectedKey = getPersonalKey(song);
+        const qId = 'q_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+        const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now(), keyOffset: selectedKey };
+        if (currentRoomId) {
+            db.ref('rooms/' + currentRoomId + '/queue/' + qId).set(data);
+        } else {
+            roomQueue[qId] = data;
+            renderTable(); updateQueueUI();
+        }
+    }
+
+    function changeStatus(qId, newStatus) {
+        const newOrder = Date.now(); 
+        if(currentRoomId) {
+            db.ref(`rooms/${currentRoomId}/queue/${qId}`).update({status: newStatus, order: newOrder});
+        } else {
+            roomQueue[qId].status = newStatus; roomQueue[qId].order = newOrder;
+            renderTable(); updateQueueUI();
+        }
+    }
+
+    function removeQueue(qId) {
+        if(currentRoomId) { db.ref(`rooms/${currentRoomId}/queue/${qId}`).remove(); } 
+        else { delete roomQueue[qId]; renderTable(); updateQueueUI(); }
+    }
+
+    function swapOrder(qId1, qId2) {
+        const order1 = roomQueue[qId1].order;
+        const order2 = roomQueue[qId2].order;
+        if(currentRoomId) {
+            db.ref(`rooms/${currentRoomId}/queue/${qId1}`).update({order: order2});
+            db.ref(`rooms/${currentRoomId}/queue/${qId2}`).update({order: order1});
+        } else {
+            roomQueue[qId1].order = order2; roomQueue[qId1].order = order1;
+            updateQueueUI();
+        }
+    }
+
+    function updateQueueUI() {
+        const reservedItems = [], confirmedItems = [], completedItems = [];
+        
+        Object.keys(roomQueue).forEach(qId => {
+            const data = roomQueue[qId];
+            const songData = allData.find(r => r._id === String(data.songId)) || (/^\d+$/.test(String(data.songId)) ? allData.find(r => r._legacyId === String(data.songId)) : null);
+            if(!songData) return;
+            const item = { qId: qId, ...data, songData: songData };
+            if(item.status === 'reserved') reservedItems.push(item);
+            else if(item.status === 'confirmed') confirmedItems.push(item);
+            else if(item.status === 'completed') completedItems.push(item);
+        });
+
+        reservedItems.sort((a,b) => a.order - b.order);
+        confirmedItems.sort((a,b) => a.order - b.order);
+        completedItems.sort((a,b) => a.order - b.order);
+
+        document.getElementById('reservedCount').textContent = reservedItems.length;
+        document.getElementById('confirmedCount').textContent = confirmedItems.length;
+        document.getElementById('completedCount').textContent = completedItems.length;
+        document.getElementById('modalReservedCount').textContent = reservedItems.length;
+        document.getElementById('modalConfirmedCount').textContent = confirmedItems.length;
+
+        // 予約時のKeyを保持する。旧データにkeyOffsetがなければ原曲Keyとして扱う。
+        const getWikiLink = (item) => {
+            const n = Number(item.keyOffset ?? 0);
+            const selectedKey = Number.isInteger(n) && n >= -5 && n <= 6 ? n : 0;
+            const wikiUrl = safeHref(chordWikiUrlForKey(item.songData['コードwiki'], selectedKey));
+            return wikiUrl ? ` | <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--link-color); text-decoration:underline;">🎸 コードWiki (Key ${displayKey(selectedKey)})</a>` : '';
+        };
+
+        // --- 1. 予約リスト ---
+        const rCont = document.getElementById('reservedContainer');
+        rCont.innerHTML = '';
+        if(reservedItems.length === 0) rCont.innerHTML = '<p style="color:gray;">予約リストは空です。リストの「＋ 追加」から曲を追加してください。</p>';
+        reservedItems.forEach((item, index) => {
+            const upBtn = index > 0 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${reservedItems[index-1].qId}')">▲</button>` : `<button class="btn-updown" style="visibility:hidden;">▲</button>`;
+            const downBtn = index < reservedItems.length - 1 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${reservedItems[index+1].qId}')">▼</button>` : `<button class="btn-updown" style="visibility:hidden;">▼</button>`;
+            
+            const div = document.createElement('div');
+            div.className = 'queue-item';
+            div.innerHTML = `
+                <div class="queue-order-buttons">${upBtn}${downBtn}</div>
+                <div class="queue-info">
+                    <div class="queue-title">${escapeHtml(item.songData['曲名'])}<span class="queue-artist"> / ${escapeHtml(item.songData['アーティスト'])}</span></div>
+                    <div class="queue-meta">🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item)}</div>
+                </div>
+                <div class="queue-actions">
+                    <button class="btn-remove" onclick="removeQueue('${item.qId}')">取消</button>
+                        <button class="btn-confirm" onclick="changeStatus('${item.qId}', 'confirmed')">演奏確定 ＞</button>
+                </div>
+            `;
+            rCont.appendChild(div);
+        });
+
+        // --- 2. 確定リスト ---
+        const cCont = document.getElementById('confirmedContainer');
+        cCont.innerHTML = '';
+        if(confirmedItems.length === 0) cCont.innerHTML = '<p style="color:gray;">確定した曲はありません。</p>';
+        confirmedItems.forEach((item, index) => {
+            const upBtn = index > 0 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${confirmedItems[index-1].qId}')">▲</button>` : `<button class="btn-updown" style="visibility:hidden;">▲</button>`;
+            const downBtn = index < confirmedItems.length - 1 ? `<button class="btn-updown" onclick="swapOrder('${item.qId}', '${confirmedItems[index+1].qId}')">▼</button>` : `<button class="btn-updown" style="visibility:hidden;">▼</button>`;
+
+            const div = document.createElement('div');
+            div.className = 'queue-item';
+            div.innerHTML = `
+                <div class="queue-order-buttons">${upBtn}${downBtn}</div>
+                <div class="queue-info">
+                    <div class="queue-title">${escapeHtml(item.songData['曲名'])}<span class="queue-artist"> / ${escapeHtml(item.songData['アーティスト'])}</span></div>
+                    <div class="queue-meta">🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item)}</div>
+                </div>
+                <div class="queue-actions">
+                    <button class="btn-revert" onclick="changeStatus('${item.qId}', 'reserved')">＜ 戻す</button>
+                        <button class="btn-complete" onclick="changeStatus('${item.qId}', 'completed')">完了 ＞</button>
+                </div>
+            `;
+            cCont.appendChild(div);
+        });
+
+        // --- 3. 完了リスト ---
+        const fCont = document.getElementById('completedContainer');
+        fCont.innerHTML = '';
+        
+        if(completedItems.length === 0) {
+            fCont.innerHTML = '<p style="color:gray; text-align:center;">完了した曲はありません。</p>';
+        } else {
+            const completedCountMap = {}; 
+            const circleNumbers = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+
+            completedItems.forEach((item, index) => {
+                const sId = item.songId;
+                completedCountMap[sId] = (completedCountMap[sId] || 0) + 1;
+                let displayTitle = escapeHtml(item.songData['曲名']);
+                
+                if (completedCountMap[sId] > 1) {
+                    const numStr = circleNumbers[completedCountMap[sId]] || `(${completedCountMap[sId]})`;
+                    displayTitle += ` ${numStr}`;
+                }
+
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.padding = '10px 0';
+                div.style.borderBottom = (index === completedItems.length - 1) ? 'none' : '1px dashed var(--border-color)';
+                
+                div.innerHTML = `
+                    <div style="flex: 1; text-align: left; font-size: 14px; line-height: 1.4;">
+                        <span style="font-weight: bold;">${index + 1}. ${displayTitle}</span>
+                        <span style="margin-left: 8px; font-size: 12px; opacity: 0.8;">/ ${escapeHtml(item.songData['アーティスト'])}</span>
+                    </div>
+                    <button class="btn-revert hide-on-capture" style="padding: 3px 6px; font-size: 11px; opacity: 0.5; margin-left: 10px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="changeStatus('${item.qId}', 'confirmed')">戻す</button>
+                `;
+                fCont.appendChild(div);
+            });
+        }
+    }
+
+    // =========================================
+    // その他UI処理
+    // =========================================
+    function handleSort(key) {
+        let actualKey = key === 'genre1' ? genre1Key : key;
+        if (currentSortKey === actualKey) { currentSortOrder *= -1; } else { currentSortKey = actualKey; currentSortOrder = 1; }
+        updateSortIcons(); renderTable();
+    }
+
+    function updateSortIcons() {
+        const keys = ['曲名', 'アーティスト', 'genre1', 'BPM'];
+        keys.forEach(k => {
+            const iconEl = document.getElementById(`icon-${k}`);
+            if (iconEl) { const actualKey = k === 'genre1' ? genre1Key : k; iconEl.textContent = currentSortKey === actualKey ? (currentSortOrder === 1 ? '▲' : '▼') : ''; }
+        });
+    }
+
+    function showSongDetails(id) {
+        const song = allData.find(r => r._id === id);
+        if(!song) return;
+        // ログインユーザーの登録Keyは維持。ゲストは従来通り原曲Keyに戻す。
+        if (!signedInUser && getPersonalKey(song) !== 0) savePersonalKey(song._id, 0);
+        currentDetailSongId = song._id;
+        renderDetailPersonalControls(song);
+        document.getElementById('detailTitle').textContent = song['曲名'] || '不明な曲';
+        document.getElementById('detailArtist').textContent = song['アーティスト'] || '-';
+        document.getElementById('detailLyricist').textContent = song['作詞'] || '-';
+        document.getElementById('detailComposer').textContent = song['作曲'] || '-';
+        document.getElementById('detailArranger').textContent = song['編曲'] || '-';
+        document.getElementById('detailBPM').textContent = song['BPM'] || '-';
+        document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
+        document.getElementById('detailGenre2').textContent = song[genre2Key] || '-';
+        document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
+        document.getElementById('detailKeyArea').style.display = chordWikiTitle(song['コードwiki']) ? 'block' : 'none';
+        if (chordWikiTitle(song['コードwiki'])) renderPersonalKeyPicker(song);
+        openModal('songDetailsModal');
+    }
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
+        
+        let filteredData = allData.filter(row => {
+            if (myListMode && !isInMyList(row)) return false;
+            const g1 = (row[genre1Key] || '').trim();
+            const g2 = (row[genre2Key] || '').trim();
+            
+            const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
+            
+            const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
+            const matchArtist = !selectedArtist || String(row['アーティスト'] || '').trim() === selectedArtist;
+            return matchGenre && matchArtist && keywords.every(kw => searchStr.includes(kw));
+        });
+
+        if (currentSortKey) {
+            filteredData.sort((a, b) => {
+                let valA = a[currentSortKey] || ''; let valB = b[currentSortKey] || '';
+                if (currentSortKey === 'BPM') { valA = Number(valA) || 0; valB = Number(valB) || 0; } else { valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase(); }
+                if (valA < valB) return -1 * currentSortOrder; if (valA > valB) return 1 * currentSortOrder; return 0;
+            });
+        }
+        songCountDisplay.textContent = `${myListMode ? 'マイリスト' : '全曲マスター'}：${filteredData.length} 曲`;
+
+        filteredData.forEach(row => {
+            const tr = document.createElement('tr');
+            
+            let displayGenre = escapeHtml(row[genre1Key] || '-');
+            if (row[genre2Key] && row[genre2Key].trim() !== '') {
+                displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
+            }
+            if (row['タイアップ情報']) {
+                displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
+            }
+
+            let activeQid = null;
+            let activeStatus = null;
+            for(let qId in roomQueue) {
+                if(roomQueue[qId].songId === row._id && roomQueue[qId].status !== 'completed') {
+                    activeQid = qId;
+                    activeStatus = roomQueue[qId].status;
+                    break;
+                }
+            }
+            
+            let actionBtnHtml = `<button style="border-radius:4px; padding:4px 8px; font-size:12px;" onclick="addToQueue('${row._id}')">＋ 追加</button>`;
+            
+            if (activeQid) {
+                if (activeStatus === 'reserved') {
+                    actionBtnHtml = `<button style="background:var(--primary); color:white; border-radius:4px; padding:4px 8px; font-size:12px;" onclick="removeQueue('${activeQid}')">✓ 予約済</button>`;
+                } else if (activeStatus === 'confirmed') {
+                    actionBtnHtml = `<button style="background:#28a745; color:white; border-radius:4px; padding:4px 8px; font-size:12px; opacity:0.8;" disabled>🎸 確定済</button>`;
+                }
+            }
+
+            const currentKey = getPersonalKey(row);
+            const hasChordWiki = Boolean(chordWikiTitle(row['コードwiki']));
+            const keyPickerHtml = hasChordWiki ? `
+                <div class="table-key-picker" aria-label="${escapeHtml(row['曲名'])} のKey変更">
+                    <button type="button" aria-label="Keyを半音下げる" onclick="changeTableKey('${row._id}', -1)" ${currentKey <= -5 ? 'disabled' : ''}>◀</button>
+                    <span class="table-key-value" aria-live="polite">${displayKey(currentKey)}</span>
+                    <button type="button" aria-label="Keyを半音上げる" onclick="changeTableKey('${row._id}', 1)" ${currentKey >= 6 ? 'disabled' : ''}>▶</button>
+                </div>` : '<span class="no-chordwiki-label" title="コードWikiが未登録です">コードWiki無し</span>';
+            const artistName = String(row['アーティスト'] || '').trim();
+            const artistLinkHtml = artistName ? `<button type="button" class="artist-filter-button" data-artist="${escapeHtml(artistName)}" title="${escapeHtml(artistName)}の曲だけを表示">${escapeHtml(artistName)}</button>` : '-';
+            const personalUi = signedInUser ? personalControlsHtml(row) : {
+                part:'<span style="opacity:.4">－</span>', liked:'', artist:''
+            };
+            tr.innerHTML = `
+                <td class="col-action nowrap-cell">${actionBtnHtml}</td>
+                <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                <td class="col-artist col-main">${artistLinkHtml}</td>
+                <td class="col-genre col-sub">${displayGenre}</td>
+                <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
+                <td class="col-key nowrap-cell">${keyPickerHtml}</td>
+                <td class="col-part nowrap-cell">${personalUi.part}</td>
+                <td class="col-liked nowrap-cell">${personalUi.liked}</td>
+                <td class="col-star nowrap-cell">${personalUi.artist}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+    }
+
+</script>
+
+</body>
+</html>
