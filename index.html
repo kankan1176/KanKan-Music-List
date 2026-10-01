@@ -552,6 +552,7 @@ h2 {
     // Googleログイン：ゲスト閲覧も可能。UIDは個人データ実装時の識別子として利用します。
     const auth = firebase.auth();
     let signedInUser = null;
+    let themeLoadVersion = 0;
     async function loginWithGoogle() {
         try {
             await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
@@ -566,13 +567,30 @@ h2 {
         try { await auth.signOut(); }
         catch (error) { console.error(error); alert('ログアウトできませんでした。'); }
     }
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async user => {
         signedInUser = user;
+        const version = ++themeLoadVersion;
         document.getElementById('loginStatus').textContent = user ? (user.displayName || user.email || 'ログイン中') : 'ゲスト利用中';
         document.getElementById('loginStatus').title = user ? (user.email || '') : '';
         document.getElementById('loginStatus').classList.toggle('logged-in', !!user);
         document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
         document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
+
+        if (!user) {
+            applyTheme(localStorage.getItem(GUEST_THEME_STORAGE) || 'dark');
+            return;
+        }
+        try {
+            const snapshot = await db.ref(`users/${user.uid}/preferences/theme`).once('value');
+            if (version !== themeLoadVersion || auth.currentUser?.uid !== user.uid) return;
+            applyTheme(snapshot.val() || 'dark');
+        } catch (error) {
+            console.error('UIカラーの読込に失敗:', error);
+            if (version === themeLoadVersion && auth.currentUser?.uid === user.uid) {
+                applyTheme('dark');
+                alert('保存済みのUIカラーを読み込めませんでした。Firebaseのアクセス権限をご確認ください。');
+            }
+        }
     });
 
 
@@ -958,7 +976,32 @@ h2 {
         document.getElementById('detailKeyLink').href = personalChordWikiUrl(song);
     }
 
-    function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
+    const GUEST_THEME_STORAGE = 'sharelistscore_guest_theme';
+    const VALID_THEMES = ['dark', 'white', 'eva01', 'eva02', 'eva00', 'eva08'];
+    function applyTheme(theme) {
+        const selected = VALID_THEMES.includes(theme) ? theme : 'dark';
+        // body.classNameを丸ごと書き換えると、ルーム参加状態(in-room)が消えるためテーマクラスだけ変更する。
+        document.body.classList.remove(...VALID_THEMES.filter(value => value !== 'dark').map(value => `theme-${value}`));
+        if (selected !== 'dark') document.body.classList.add(`theme-${selected}`);
+        document.getElementById('themeSelect').value = selected;
+    }
+    async function changeTheme() {
+        const selected = document.getElementById('themeSelect').value;
+        if (!VALID_THEMES.includes(selected)) return;
+        ++themeLoadVersion; // 読込中にユーザーが手動変更した場合、古い取得結果で上書きしない。
+        applyTheme(selected);
+        if (!signedInUser) {
+            localStorage.setItem(GUEST_THEME_STORAGE, selected);
+            return;
+        }
+        const uid = signedInUser.uid;
+        try {
+            await db.ref(`users/${uid}/preferences/theme`).set(selected);
+        } catch (error) {
+            console.error('UIカラーの保存に失敗:', error);
+            alert('UIカラーを保存できませんでした。Firebaseのアクセス権限をご確認ください。');
+        }
+    }
 
 
     // Apps Script を「ウェブアプリ」としてデプロイして /exec URL をここに設定。
