@@ -5,7 +5,7 @@
  * 公開POSTを許す仕組みのため、シートのバックアップと定期的な確認を推奨します。
  */
 const SPREADSHEET_ID = '1YMACN6m-5tE3TSY4jNxVRdQieDCTwh7Zhted-z8zTl4';
-const SHEET_NAME = ''; // タブ名が分かれば入力。空欄なら「曲名」と「楽曲ID」があるシートを自動検出。
+const SHEET_NAME = '全曲';
 
 /** 新規投稿では原曲のChordWiki楽曲ページだけを受け付ける（Apps Script V8互換）。 */
 function isOriginalChordWikiUrl_(value) {
