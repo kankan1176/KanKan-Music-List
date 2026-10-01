@@ -350,6 +350,18 @@
 
 <!-- ================= モーダル群 ================= -->
 
+<!-- アーティスト絞り込み確認 -->
+<div class="modal-overlay" id="artistConfirmModal" onclick="closeModal(event, 'artistConfirmModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width: 360px;">
+        <h2>🎤 アーティスト検索</h2>
+        <p style="font-size: 14px; line-height: 1.6;"><strong id="confirmArtistName"></strong> の曲に絞りますか？</p>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+            <button type="button" onclick="closeModal(null, 'artistConfirmModal')">いいえ</button>
+            <button type="button" class="primary-btn" onclick="confirmArtistFilter()">はい</button>
+        </div>
+    </div>
+</div>
+
 <!-- ★追加：OBSカスタムCSS＆URL案内用モーダル -->
 <div class="modal-overlay" id="obsModal" onclick="closeModal(event, 'obsModal')">
     <div class="modal" onclick="event.stopPropagation()" style="max-width: 600px;">
@@ -824,9 +836,18 @@ h2 {
         renderTable();
     }
 
+    let pendingArtistFilter = '';
+    function confirmArtistFilter() {
+        closeModal(null, 'artistConfirmModal');
+        if (pendingArtistFilter) setArtistFilter(pendingArtistFilter);
+        pendingArtistFilter = '';
+    }
     tableBody.addEventListener('click', event => {
         const artistButton = event.target.closest('.artist-filter-button');
-        if (artistButton) setArtistFilter(artistButton.dataset.artist);
+        if (!artistButton) return;
+        pendingArtistFilter = artistButton.dataset.artist || '';
+        document.getElementById('confirmArtistName').textContent = pendingArtistFilter;
+        openModal('artistConfirmModal');
     });
     
     tableBodyWrapper.addEventListener('scroll', (e) => { tableHeaderWrapper.scrollLeft = e.target.scrollLeft; });
