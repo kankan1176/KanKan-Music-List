@@ -4,8 +4,53 @@
  * 「ウェブアプリとしてデプロイ」: 実行ユーザー = 自分 / アクセス = 全員。
  * 公開POSTを許す仕組みのため、シートのバックアップと定期的な確認を推奨します。
  */
-const SPREADSHEET_ID = 'PASTE_EDITABLE_SPREADSHEET_ID_HERE';
-const SHEET_NAME = 'PASTE_SONG_SHEET_TAB_NAME_HERE';
+const SPREADSHEET_ID = '1YMACN6m-5tE3TSY4jNxVRdQieDCTwh7Zhted-z8zTl4';
+const SHEET_NAME = ''; // タブ名が分かれば入力。空欄なら「曲名」と「楽曲ID」があるシートを自動検出。
+
+/** 新規投稿では原曲のChordWiki楽曲ページだけを受け付ける（Apps Script V8互換）。 */
+function isOriginalChordWikiUrl_(value) {
+  const input = String(value || '').trim();
+  if (!input || input.length > 500 || /[\s\x00-\x1f\x7f]/.test(input)) return false;
+  // クエリのない /wiki/個別ページ。タグ・検索・外部ドメインを許可しない。
+  const direct = input.match(/^https:\/\/ja\.chordwiki\.org\/wiki\/([^/?#]+)$/i);
+  if (direct) {
+    try {
+      const title = decodeURIComponent(direct[1].replace(/\+/g, ' '));
+      return !!title.trim() && !/[\x00-\x1f\x7f/]/.test(title);
+    } catch (error) { return false; }
+  }
+  // 原曲キーが省略か0の c=view URLは許可。それ以外の wiki.cgi は拒否。
+  const cgi = input.match(/^https:\/\/ja\.chordwiki\.org\/wiki\.cgi\?([^#]+)$/i);
+  if (!cgi) return false;
+  const params = {};
+  try {
+    cgi[1].split('&').forEach(pair => {
+      const i = pair.indexOf('=');
+      const key = decodeURIComponent((i < 0 ? pair : pair.slice(0, i)).replace(/\+/g, ' '));
+      const val = decodeURIComponent((i < 0 ? '' : pair.slice(i + 1)).replace(/\+/g, ' '));
+      if (Object.prototype.hasOwnProperty.call(params, key)) throw Error('duplicate query');
+      params[key] = val;
+    });
+  } catch (error) { return false; }
+  return params.c === 'view' && !!String(params.t || '').trim() &&
+    !/[\x00-\x1f\x7f]/.test(params.t) && (params.key === undefined || params.key === '0');
+}
+
+/** タブ名が未指定なら見出しから特定。曖昧な場合は書き込まない。 */
+function getSongSheet_() {
+  const book = SpreadsheetApp.openById(SPREADSHEET_ID);
+  if (SHEET_NAME) {
+    const sheet = book.getSheetByName(SHEET_NAME);
+    if (!sheet) throw Error('tab not found');
+    return sheet;
+  }
+  const matches = book.getSheets().filter(sheet => {
+    const rows = sheet.getDataRange().getDisplayValues();
+    return rows.some(row => row.includes('曲名') && row.includes('楽曲ID'));
+  });
+  if (matches.length !== 1) throw Error('song sheet not uniquely identified: ' + matches.length);
+  return matches[0];
+}
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -19,12 +64,12 @@ function doPost(e) {
     const genre1 = clean_(data.genre1, 80);
     const genre2 = clean_(data.genre2, 80);
     const bpmValue = String(data.bpm || '').trim();
-    if (!artist || !title || !genre1 || !/^https?:\/\/[^\s]+$/i.test(codeUrl) || codeUrl.length > 500) throw Error('invalid input');
+    if (!artist || !title || !genre1 || !isOriginalChordWikiUrl_(codeUrl)) throw Error('invalid input or unsupported ChordWiki URL');
     if (genre2 && genre1 === genre2) throw Error('duplicate genres');
     if (bpmValue && (!/^\d+$/.test(bpmValue) || +bpmValue < 1 || +bpmValue > 400)) throw Error('invalid bpm');
 
     lock.waitLock(10000);
-    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+    const sheet = getSongSheet_();
     if (!sheet) throw Error('tab not found');
     // index.html と同様に「曲名」を含む行をヘッダーとみなします。
     const values = sheet.getDataRange().getDisplayValues();
@@ -90,7 +135,7 @@ function assignMissingSongIds() {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
-    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+    const sheet = getSongSheet_();
     if (!sheet) throw Error('tab not found');
     const values = sheet.getDataRange().getDisplayValues();
     const headerIndex = values.findIndex(row => row.includes('曲名'));
