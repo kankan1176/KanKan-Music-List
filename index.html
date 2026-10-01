@@ -112,6 +112,7 @@
 
         .col-action { width: 100px; }
         .col-key { width: 145px; }
+        .no-chordwiki-label { font-size: 11px; opacity: 0.75; white-space: nowrap; }
         .col-title { width: 27%; }
         .col-artist { width: 25%; }
         .col-genre { width: auto; }
@@ -799,6 +800,7 @@ h2 {
     function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
     function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
+    function artistWikipediaUrl(name) { return 'https://ja.wikipedia.org/w/index.php?search=' + encodeURIComponent(String(name ?? '').trim()); }
     // ログイン実装前の暫定保存。IDは行番号ではなくChordWikiの曲URLとアーティストから作る。
     const PERSONAL_KEYS_STORAGE = 'shareliscore_personal_chordwiki_keys_v1';
     let personalKeys = {};
@@ -812,7 +814,9 @@ h2 {
             const url = new URL(String(rawUrl || '').trim());
             if (url.protocol !== 'https:' || url.hostname !== 'ja.chordwiki.org') return null;
             if (url.pathname.startsWith('/wiki/')) {
-                const title = decodeURIComponent(url.pathname.slice('/wiki/'.length));
+                // ChordWikiの/wiki/形式では、ページ名の +（%2B）は空白の区切りとして使われる。
+                // t= にそのまま + を渡すと別ページ扱いになる曲（例：ギラギラ+(Ado)）がある。
+                const title = decodeURIComponent(url.pathname.slice('/wiki/'.length)).replace(/\+/g, ' ');
                 return title || null;
             }
             if (url.pathname === '/wiki.cgi' && url.searchParams.get('c') === 'view') {
@@ -1353,12 +1357,14 @@ h2 {
                     <button type="button" aria-label="Keyを半音下げる" onclick="changeTableKey('${row._id}', -1)" ${currentKey <= -5 ? 'disabled' : ''}>◀</button>
                     <span class="table-key-value" aria-live="polite">${displayKey(currentKey)}</span>
                     <button type="button" aria-label="Keyを半音上げる" onclick="changeTableKey('${row._id}', 1)" ${currentKey >= 6 ? 'disabled' : ''}>▶</button>
-                </div>` : '<span title="ChordWiki URLなし">−</span>';
+                </div>` : '<span class="no-chordwiki-label" title="コードWikiが未登録です">コードWiki無し</span>';
+            const artistName = String(row['アーティスト'] || '').trim();
+            const artistLinkHtml = artistName ? `<a class="song-title-link" href="${artistWikipediaUrl(artistName)}" target="_blank" rel="noopener noreferrer" title="Wikipediaで${escapeHtml(artistName)}を検索">${escapeHtml(artistName)}</a>` : '-';
             tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                 <td class="col-key nowrap-cell">${keyPickerHtml}</td>
                 <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
-                <td class="col-artist col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['アーティスト'] || '-')}</span></td>
+                <td class="col-artist col-main">${artistLinkHtml}</td>
                 <td class="col-genre col-sub">${displayGenre}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
             `;
