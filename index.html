@@ -111,11 +111,17 @@
         .data-table { width: 100%; min-width: 560px; table-layout: fixed; border-collapse: collapse; }
 
         .col-action { width: 100px; }
-        .col-title { width: 30%; }
+        .col-key { width: 145px; }
+        .col-title { width: 27%; }
         .col-artist { width: 25%; }
         .col-genre { width: auto; }
         .col-bpm { width: 65px; }
-        .col-code { width: 65px; }
+        .table-key-picker { display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; }
+        .table-key-picker button { padding:4px 6px; min-width:26px; min-height:27px; font-size:12px; line-height:1; }
+        .table-key-picker button:disabled { opacity:0.3; cursor:not-allowed; }
+        .table-key-value { min-width:29px; text-align:center; font-size:12px; font-weight:bold; font-variant-numeric:tabular-nums; }
+        #detailKeyLink { display:block; width:100%; box-sizing:border-box; margin-top:12px; padding:11px 12px; background:var(--primary); color:var(--primary-text); border:1px solid var(--primary); border-radius:6px; text-align:center; text-decoration:none; font-size:15px; font-weight:bold; }
+        #detailKeyLink:hover { opacity:0.86; text-decoration:none; }
 
         th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); word-wrap: break-word; overflow-wrap: break-word; }
         th { color: var(--th-text); font-weight: bold; font-size: 13px; white-space: nowrap; user-select: none; border-bottom: none; }
@@ -222,9 +228,10 @@
             #tableBody .col-action button { padding: 6px 10px; min-height: 30px; font-size: 12px; }
             #tableBody .col-title { flex: 1; min-width: 0; font-size: 14px; padding-top: 5px !important; }
             
-            #tableBody .col-artist, #tableBody .col-genre, #tableBody .col-bpm, #tableBody .col-code { width: 100% !important; }
+            #tableBody .col-key { width:auto !important; margin-right:8px; }
+            #tableBody .col-artist, #tableBody .col-genre, #tableBody .col-bpm { width: 100% !important; }
             #tableBody .col-artist { margin-top: 3px; opacity: 0.9; }
-            #tableBody .col-genre, #tableBody .col-bpm, #tableBody .col-code { font-size: 11px; opacity: 0.85; }
+            #tableBody .col-genre, #tableBody .col-bpm { font-size: 11px; opacity: 0.85; }
         }
     </style>
 </head>
@@ -300,22 +307,22 @@
     <div id="tableWrapper">
         <div class="table-header-wrapper">
             <table class="data-table">
-                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-code"></colgroup>
+                <colgroup><col class="col-action"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"></colgroup>
                 <thead>
                     <tr>
                         <th class="col-action">ステータス</th>
+                        <th class="col-key">Key</th>
                         <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
                         <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
                         <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
                         <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
-                        <th>コード</th>
                     </tr>
                 </thead>
             </table>
         </div>
         <div class="table-body-wrapper">
             <table class="data-table">
-                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-code"></colgroup>
+                <colgroup><col class="col-action"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"></colgroup>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
@@ -449,12 +456,11 @@ h2 {
         <div class="detail-item"><span class="detail-label">ジャンル①</span><span id="detailGenre1"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
         <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
-        <div class="detail-item" id="detailCodeArea" style="display:none;"><span class="detail-label">コード</span><span id="detailCode"></span></div>
         <div class="detail-item" id="detailKeyArea" style="display:none;">
             <label style="display:block; font-weight:bold; margin-bottom:7px;">🎹 自分用Key（原曲を0として半音単位）</label>
             <div class="key-picker" id="detailKeyPicker"></div>
             <div id="detailKeyStatus" style="font-size:12px; opacity:0.85; margin-top:7px;" aria-live="polite"></div>
-            <a id="detailKeyLink" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-top:7px; text-decoration:underline;">選択したKeyでChordWikiを開く ↗</a>
+            <a id="detailKeyLink" target="_blank" rel="noopener noreferrer">🎸 選択したKeyでChordWikiを開く ↗</a>
             <div style="font-size:11px; opacity:0.7; margin-top:6px;">詳細を開き直すと原曲Key（±0）に戻ります。元のスプレッドシートのURLは変更しません。</div>
         </div>
     </div>
@@ -851,8 +857,18 @@ h2 {
             return;
         }
         renderPersonalKeyPicker(song);
+        // Key変更でリストのスクロール位置が飛ばないようにする。
+        const previousScrollTop = tableBodyWrapper.scrollTop;
         renderTable();
+        tableBodyWrapper.scrollTop = previousScrollTop;
         updateQueueUI();
+    }
+    function changeTableKey(songId, direction) {
+        const song = allData.find(row => row._id === String(songId));
+        if (!song || !chordWikiTitle(song['コードwiki'])) return;
+        const next = getPersonalKey(song) + direction;
+        if (!Number.isInteger(next) || next < -5 || next > 6) return;
+        savePersonalKey(songId, next);
     }
     function renderPersonalKeyPicker(song) {
         const picker = document.getElementById('detailKeyPicker');
@@ -1082,8 +1098,11 @@ h2 {
     // セッション曲管理機能
     // =========================================
     function addToQueue(songId) {
+        const song = allData.find(r => r._id === String(songId));
+        if (!song) return;
+        const selectedKey = getPersonalKey(song);
         const qId = 'q_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-        const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now() };
+        const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now(), keyOffset: selectedKey };
         if (currentRoomId) {
             db.ref('rooms/' + currentRoomId + '/queue/' + qId).set(data);
         } else {
@@ -1142,9 +1161,12 @@ h2 {
         document.getElementById('modalReservedCount').textContent = reservedItems.length;
         document.getElementById('modalConfirmedCount').textContent = confirmedItems.length;
 
-        const getWikiLink = (songData) => {
-            const wikiUrl = safeHref(personalChordWikiUrl(songData));
-            return wikiUrl ? ` | <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--link-color); text-decoration:underline;">🎸 コードWiki (Key ${displayKey(getPersonalKey(songData))})</a>` : '';
+        // 予約時のKeyを保持する。旧データにkeyOffsetがなければ原曲Keyとして扱う。
+        const getWikiLink = (item) => {
+            const n = Number(item.keyOffset ?? 0);
+            const selectedKey = Number.isInteger(n) && n >= -5 && n <= 6 ? n : 0;
+            const wikiUrl = safeHref(chordWikiUrlForKey(item.songData['コードwiki'], selectedKey));
+            return wikiUrl ? ` | <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--link-color); text-decoration:underline;">🎸 コードWiki (Key ${displayKey(selectedKey)})</a>` : '';
         };
 
         // --- 1. 予約リスト ---
@@ -1161,7 +1183,7 @@ h2 {
                 <div class="queue-order-buttons">${upBtn}${downBtn}</div>
                 <div class="queue-info">
                     <div class="queue-title">${escapeHtml(item.songData['曲名'])}<span class="queue-artist"> / ${escapeHtml(item.songData['アーティスト'])}</span></div>
-                    <div class="queue-meta">🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item.songData)}</div>
+                    <div class="queue-meta">🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item)}</div>
                 </div>
                 <div class="queue-actions">
                     <button class="btn-remove" onclick="removeQueue('${item.qId}')">取消</button>
@@ -1185,7 +1207,7 @@ h2 {
                 <div class="queue-order-buttons">${upBtn}${downBtn}</div>
                 <div class="queue-info">
                     <div class="queue-title">${escapeHtml(item.songData['曲名'])}<span class="queue-artist"> / ${escapeHtml(item.songData['アーティスト'])}</span></div>
-                    <div class="queue-meta">🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item.songData)}</div>
+                    <div class="queue-meta">🙋 追加: <b>${escapeHtml(item.addedBy)}</b>${getWikiLink(item)}</div>
                 </div>
                 <div class="queue-actions">
                     <button class="btn-revert" onclick="changeStatus('${item.qId}', 'reserved')">＜ 戻す</button>
@@ -1265,14 +1287,8 @@ h2 {
         document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
         document.getElementById('detailGenre2').textContent = song[genre2Key] || '-';
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
-        const codeArea = document.getElementById('detailCodeArea');
-        const detailWikiUrl = safeHref(personalChordWikiUrl(song));
         document.getElementById('detailKeyArea').style.display = chordWikiTitle(song['コードwiki']) ? 'block' : 'none';
         if (chordWikiTitle(song['コードwiki'])) renderPersonalKeyPicker(song);
-        if (detailWikiUrl) {
-            document.getElementById('detailCode').innerHTML = `<a href="${detailWikiUrl}" target="_blank" rel="noopener noreferrer">Wikiを開く (Key ${displayKey(getPersonalKey(song))})</a>`;
-            codeArea.style.display = 'block';
-        } else { codeArea.style.display = 'none'; }
         openModal('songDetailsModal');
     }
 
@@ -1310,10 +1326,6 @@ h2 {
                 displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
             }
 
-            let linkHtml = '-';
-            const rowWikiUrl = safeHref(personalChordWikiUrl(row));
-            if (rowWikiUrl) { linkHtml = `<a href="${rowWikiUrl}" target="_blank" rel="noopener noreferrer">開く ${displayKey(getPersonalKey(row))}</a>`; }
-
             let activeQid = null;
             let activeStatus = null;
             for(let qId in roomQueue) {
@@ -1334,13 +1346,21 @@ h2 {
                 }
             }
 
+            const currentKey = getPersonalKey(row);
+            const hasChordWiki = Boolean(chordWikiTitle(row['コードwiki']));
+            const keyPickerHtml = hasChordWiki ? `
+                <div class="table-key-picker" aria-label="${escapeHtml(row['曲名'])} のKey変更">
+                    <button type="button" aria-label="Keyを半音下げる" onclick="changeTableKey('${row._id}', -1)" ${currentKey <= -5 ? 'disabled' : ''}>◀</button>
+                    <span class="table-key-value" aria-live="polite">${displayKey(currentKey)}</span>
+                    <button type="button" aria-label="Keyを半音上げる" onclick="changeTableKey('${row._id}', 1)" ${currentKey >= 6 ? 'disabled' : ''}>▶</button>
+                </div>` : '<span title="ChordWiki URLなし">−</span>';
             tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
+                <td class="col-key nowrap-cell">${keyPickerHtml}</td>
                 <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
                 <td class="col-artist col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['アーティスト'] || '-')}</span></td>
                 <td class="col-genre col-sub">${displayGenre}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
-                <td class="col-code col-sub nowrap-cell">${linkHtml}</td>
             `;
             tableBody.appendChild(tr);
         });
