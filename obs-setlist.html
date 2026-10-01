@@ -78,6 +78,13 @@
         .status-buttons button { flex: 1; min-width: 80px; padding: 7px; border-radius: 6px; font-size: 13px; }
         .song-count { font-weight: bold; font-size: 13px; color: var(--primary); margin-top: 2px; }
 
+        /* ルーム未参加時は予約・確定・完了ボタンおよびテーブルのステータス列を非表示 */
+        body:not(.in-room) .status-buttons,
+        body:not(.in-room) .col-action {
+            display: none !important;
+            width: 0 !important;
+        }
+
         .filter-section { margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .filter-label { font-size: 11px; font-weight: bold; opacity: 0.8; width: 85px; flex-shrink: 0; white-space: nowrap; }
         .genre-filters, .fav-filters { display: flex; gap: 5px; flex-wrap: wrap; flex-grow: 1; }
@@ -256,7 +263,7 @@
                 <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-code"></colgroup>
                 <thead>
                     <tr>
-                        <th>ステータス</th>
+                        <th class="col-action">ステータス</th>
                         <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
                         <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
                         <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
@@ -451,6 +458,7 @@ h2 {
         document.getElementById('usernameInput').value = myName || '';
 
         if (currentRoomId) {
+            document.body.classList.add('in-room');
             if (!myName) {
                 myName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（例：Gt. カンカン）");
                 if (!myName) myName = "名無し";
@@ -474,6 +482,7 @@ h2 {
             });
 
         } else {
+            document.body.classList.remove('in-room');
             myName = myName || "自分";
             roomWrapper.classList.remove('active');
             createBtn.style.display = 'inline-block';
