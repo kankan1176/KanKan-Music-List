@@ -225,6 +225,7 @@
             </div>
 
             <div class="header-buttons">
+                <button onclick="openAddSongModal()" style="background-color:#28a745;color:white;border:none;">➕ 楽曲追加</button>
                 <button onclick="openManualModal()" style="background-color: #17a2b8; color: white; border: none;">📖 使い方ガイド</button>
                 <button id="createRoomBtn" onclick="createRoom()">🌐 ルームを作る</button>
                 <!-- ★ルーム参加時のみ表示されるOBSカスタムCSSボタン -->
@@ -361,6 +362,30 @@ h2 {
             <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 4</span>
             <button id="nextManualBtn" class="primary-btn" onclick="changeManualPage(1)" style="padding: 8px 16px;">次へ ▶</button>
         </div>
+    </div>
+</div>
+
+<!-- 楽曲追加フォーム：スプレッドシートへの書込は Apps Script 側で実行 -->
+<div class="modal-overlay" id="addSongModal" onclick="closeModal(event, 'addSongModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:520px;">
+        <span class="modal-close" onclick="closeModal(null, 'addSongModal')">&times;</span>
+        <h2>➕ 楽曲を追加</h2>
+        <p style="font-size:12px;line-height:1.5;opacity:.8;">入力した情報を共有楽曲リストに登録します。公開される情報のみ入力してください。</p>
+        <form id="addSongForm" onsubmit="submitNewSong(event)">
+            <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
+            <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
+            <div class="setting-group"><label for="newCodeUrl">コードサイト URL *</label><input class="setting-input" id="newCodeUrl" name="codeUrl" type="url" placeholder="https://..." maxlength="500" required></div>
+            <div class="setting-group"><label for="newBpm">BPM（任意）</label><input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK"></div>
+            <div class="setting-group"><label for="newGenre1">ジャンル *</label><select id="newGenre1" name="genre1" required></select></div>
+            <div class="setting-group"><label for="newGenre2">ジャンル②（任意）</label><select id="newGenre2" name="genre2"></select></div>
+            <!-- Bot対策のハニーポット。通常は非表示 -->
+            <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;"><label for="newWebsite">Website</label><input id="newWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+            <p id="addSongFeedback" role="status" aria-live="polite" style="font-size:12px;line-height:1.5;min-height:18px;"></p>
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+                <button type="button" onclick="closeModal(null,'addSongModal')">キャンセル</button>
+                <button type="submit" id="addSongSubmit" class="primary-btn">スプレッドシートに登録</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -718,6 +743,66 @@ h2 {
     function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     function changeTheme() { document.body.className = document.getElementById('themeSelect').value === 'dark' ? '' : `theme-${document.getElementById('themeSelect').value}`; }
+
+
+    // Apps Script を「ウェブアプリ」としてデプロイして /exec URL をここに設定。
+    // 公開CSVのURLは書き込みに使えません。
+    const SONG_ADD_API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_EXEC_URL_HERE';
+
+    function openAddSongModal() {
+        const genres = new Set();
+        allData.forEach(row => {
+            [genre1Key, genre2Key].forEach(key => {
+                const value = String(row[key] || '').trim();
+                if (value) genres.add(value);
+            });
+        });
+        const options = Array.from(genres).sort((a, b) => a.localeCompare(b, 'ja'));
+        const first = document.getElementById('newGenre1');
+        const second = document.getElementById('newGenre2');
+        first.replaceChildren(new Option('選択してください', ''));
+        second.replaceChildren(new Option('なし', ''));
+        options.forEach(value => {
+            first.add(new Option(value, value));
+            second.add(new Option(value, value));
+        });
+        document.getElementById('addSongFeedback').textContent = options.length ? '' : 'ジャンル選択肢を取得できません。ページを再読み込みしてください。';
+        openModal('addSongModal');
+    }
+
+    async function submitNewSong(event) {
+        event.preventDefault();
+        const form = document.getElementById('addSongForm');
+        if (!form.reportValidity()) return;
+        const feedback = document.getElementById('addSongFeedback');
+        const submit = document.getElementById('addSongSubmit');
+        if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(SONG_ADD_API_URL)) {
+            feedback.textContent = '管理者の設定が未完了です。Apps Script のウェブアプリURLを設定してください。';
+            return;
+        }
+        const data = Object.fromEntries(new FormData(form).entries());
+        if (data.genre1 === data.genre2) {
+            feedback.textContent = 'ジャンル②にはジャンルと異なる項目を選んでください。';
+            return;
+        }
+        submit.disabled = true;
+        feedback.textContent = '送信中です…';
+        try {
+            // Apps Script は通常の CORS API としては利用できないため opaque 応答。
+            // fetch 成功は「到達の保証」や「シートへの書込成功の確認」ではありません。
+            await fetch(SONG_ADD_API_URL, {
+                method: 'POST', mode: 'no-cors', redirect: 'follow',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(data)
+            });
+            form.reset();
+            feedback.textContent = '送信しました。登録結果は直接確認できないため、しばらくしてページを再読み込みし、楽曲が追加されたか確認してください（公開CSVの更新には時間がかかる場合があります）。表示されない場合は管理者にお問い合わせください。';
+        } catch (error) {
+            feedback.textContent = '送信できませんでした。通信環境や設定をご確認のうえ、再度お試しください。';
+        } finally {
+            submit.disabled = false;
+        }
+    }
 
     // ジャンルボタン生成
     function populateGenreButtons() {
@@ -1083,9 +1168,6 @@ h2 {
             let displayGenre = escapeHtml(row[genre1Key] || '-');
             if (row[genre2Key] && row[genre2Key].trim() !== '') {
                 displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
-            }
-            if (row[favKey] && row[favKey].trim() !== '') {
-                displayGenre += ` / ${escapeHtml(row[favKey])}`;
             }
             if (row['タイアップ情報']) {
                 displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
