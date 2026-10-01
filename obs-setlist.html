@@ -8,80 +8,161 @@
     <!-- Firebase SDK (互換バージョン) -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+    <!-- PapaParse CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <style>
         :root {
-            --bg-color: rgba(18, 18, 18, 0.85);
-            --panel-bg: rgba(30, 30, 30, 0.95);
+            --bg-color: rgba(18, 18, 18, 0.88);
+            --panel-bg: rgba(26, 26, 26, 0.92);
             --text-color: #ffffff;
             --primary: #007bff;
-            --border-color: #444;
+            --primary-light: #4da3ff;
+            --border-color: rgba(0, 123, 255, 0.4);
+            --item-bg: rgba(255, 255, 255, 0.06);
+            --item-hover: rgba(255, 255, 255, 0.1);
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background: transparent; /* OBSで背景を透明にするため */
-            color: var(--text-color);
+        /* OBSで高さを変えても崩れないよう全体を柔軟な比率に設定 */
+        html, body {
+            width: 100%;
+            height: 100%;
             margin: 0;
-            padding: 20px;
+            padding: 8px;
             box-sizing: border-box;
+            background: transparent !important; /* OBSで背景透過 */
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
             overflow: hidden;
         }
 
+        /* 外枠コンテナ：高さを100%フィットさせて追従 */
         .obs-container {
-            background-color: var(--panel-bg);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        h2 {
-            margin-top: 0;
-            text-align: center;
-            font-size: 22px;
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 10px;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        #obsCompletedContainer {
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            max-height: 70vh;
-            overflow-y: auto;
+            background-color: var(--panel-bg);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            padding: 10px 14px;
+            box-sizing: border-box;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
         }
 
-        .obs-song-item {
+        /* ヘッダーエリア（固定高） */
+        .obs-header {
+            flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px 14px;
-            border-radius: 6px;
-            border-left: 4px solid var(--primary);
-            font-size: 16px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+        }
+
+        .obs-title {
+            margin: 0;
+            font-size: 17px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .obs-counter {
+            font-size: 13px;
+            font-weight: bold;
+            background: var(--primary);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        /* セットリスト領域：幅800pxを活かして2列グリッドで15曲以上を綺麗に配置 */
+        #obsCompletedContainer {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            grid-auto-rows: max-content;
+            align-content: start;
+            gap: 6px 12px;
+            overflow-y: auto;
+            padding-right: 4px;
+            box-sizing: border-box;
+        }
+
+        /* OBS上で目障りなスクロールバーを非表示にしつつスクロール可能に保持 */
+        #obsCompletedContainer::-webkit-scrollbar {
+            display: none;
+        }
+        #obsCompletedContainer {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 各楽曲アイテム：高さをスリム化して多数の曲を一覧表示 */
+        .obs-song-item {
+            display: flex;
+            align-items: center;
+            background: var(--item-bg);
+            padding: 5px 8px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary);
+            font-size: 13px;
+            line-height: 1.3;
+            box-sizing: border-box;
+            min-width: 0;
+            backdrop-filter: blur(2px);
+        }
+
+        .obs-song-num {
+            font-weight: bold;
+            color: var(--primary-light);
+            font-size: 12px;
+            margin-right: 6px;
+            flex-shrink: 0;
+            width: 22px;
+            text-align: right;
+        }
+
+        .obs-song-info {
+            display: flex;
+            align-items: baseline;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+            min-width: 0;
         }
 
         .obs-song-title {
             font-weight: bold;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .obs-song-artist {
-            font-size: 13px;
-            opacity: 0.8;
-            margin-left: 10px;
+            font-size: 11px;
+            opacity: 0.75;
+            margin-left: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 1;
         }
 
         .empty-notice {
+            grid-column: 1 / -1;
             text-align: center;
-            color: #aaa;
-            padding: 20px;
+            color: #bbb;
+            padding: 30px 10px;
+            font-size: 14px;
             font-style: italic;
         }
     </style>
@@ -89,17 +170,17 @@
 <body>
 
 <div class="obs-container">
-    <h2>🎸 本日のセットリスト 🎸</h2>
+    <div class="obs-header">
+        <h2 class="obs-title">🎸 本日のセットリスト</h2>
+        <span class="obs-counter" id="songCounter">0 曲</span>
+    </div>
     <div id="obsCompletedContainer">
-        <div class="empty-notice">まだ完了した曲はありません...</div>
+        <div class="empty-notice">データを読み込み中...</div>
     </div>
 </div>
 
-<!-- PapaParse CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-
 <script>
-    // Firebase 初期化
+    // Firebase 設定
     const firebaseConfig = {
       apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
       authDomain: "kankan-session-room.firebaseapp.com",
@@ -118,6 +199,7 @@
 
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
 
+    // スプレッドシートから楽曲情報を取得
     Papa.parse(SHEET_CSV_URL, {
         download: true,
         header: false,
@@ -137,8 +219,13 @@
             if (roomId) {
                 initObsRealtimeSync();
             } else {
-                document.getElementById('obsCompletedContainer').innerHTML = '<div class="empty-notice">⚠️ URLに ?room=ルームID が指定されていません</div>';
+                document.getElementById('obsCompletedContainer').innerHTML = 
+                    '<div class="empty-notice">⚠️ URLに ?room=ルームID が指定されていません</div>';
             }
+        },
+        error: function() {
+            document.getElementById('obsCompletedContainer').innerHTML = 
+                '<div class="empty-notice">⚠️ スプレッドシートの取得に失敗しました</div>';
         }
     });
 
@@ -157,6 +244,7 @@
                 }
             });
 
+            // 完了順（演奏順）に並び替え
             completedItems.sort((a, b) => a.order - b.order);
             renderObsList(completedItems);
         });
@@ -168,7 +256,9 @@
 
     function renderObsList(items) {
         const container = document.getElementById('obsCompletedContainer');
+        const counter = document.getElementById('songCounter');
         container.innerHTML = '';
+        counter.textContent = `${items.length} 曲`;
 
         if (items.length === 0) {
             container.innerHTML = '<div class="empty-notice">まだ完了した曲はありません...</div>';
@@ -189,8 +279,8 @@
             const div = document.createElement('div');
             div.className = 'obs-song-item';
             div.innerHTML = `
-                <div>
-                    <span style="font-weight:bold; color:var(--primary); margin-right:8px;">${index + 1}.</span>
+                <span class="obs-song-num">${index + 1}.</span>
+                <div class="obs-song-info">
                     <span class="obs-song-title">${displayTitle}</span>
                     <span class="obs-song-artist">/ ${escapeHtml(item.songData['アーティスト'])}</span>
                 </div>
