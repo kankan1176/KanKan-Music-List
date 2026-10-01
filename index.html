@@ -868,9 +868,9 @@ h2 {
             const url = new URL(String(rawUrl || '').trim());
             if (url.protocol !== 'https:' || url.hostname !== 'ja.chordwiki.org') return null;
             if (url.pathname.startsWith('/wiki/')) {
-                // ChordWikiの/wiki/形式では、ページ名の +（%2B）は空白の区切りとして使われる。
-                // t= にそのまま + を渡すと別ページ扱いになる曲（例：ギラギラ+(Ado)）がある。
-                const title = decodeURIComponent(url.pathname.slice('/wiki/'.length)).replace(/\+/g, ' ');
+                // /wiki/ 内の + はページ名の一部として保持する。
+                // 例: ギラギラ+(Ado) → t=ギラギラ%2B(Ado)（空白へ変換しない）。
+                const title = decodeURIComponent(url.pathname.slice('/wiki/'.length));
                 return title || null;
             }
             if (url.pathname === '/wiki.cgi' && url.searchParams.get('c') === 'view') {
