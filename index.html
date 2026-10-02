@@ -514,6 +514,14 @@
             transition:border-color .2s;
         }
 
+
+        /* フレンド管理: テーマ共通の色変数を使用 */
+        .friends-section {display:flex;flex-direction:column;gap:6px;min-height:22px;font-size:13px;}
+        .friend-item {display:flex;align-items:center;justify-content:space-between;gap:7px;border:1px solid var(--border-color);border-radius:5px;padding:7px 8px;overflow-wrap:anywhere;}
+        .friend-item .friend-name {flex:1;min-width:0;overflow-wrap:anywhere;}
+        .friend-item .friend-commands {display:flex;gap:5px;flex-shrink:0;}
+        .friend-item button {padding:4px 7px;font-size:12px;}
+        .friend-item .friend-danger {border-color:#cf5360;color:#e87982;}
 </style>
 </head>
 <body>
@@ -539,6 +547,7 @@
                 <button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
                 <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
                 <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;">📁 マイリスト</button>
+                <button id="friendsBtn" type="button" onclick="openFriendsModal()" style="display:none;">👥 フレンド</button>
                 <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
                 <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 楽曲追加</button>
                 <button onclick="openManualModal()" style="background-color:#ffc107;color:#212529;border:1px solid #ffc107;">📖 使い方ガイド</button>
@@ -669,6 +678,31 @@
     </div>
 </div>
 
+<!-- STEP 3-1: Google認証利用者専用・フレンド申請と承認 -->
+<div class="modal-overlay" id="friendsModal" onclick="closeModal(event,'friendsModal')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
+    <span class="modal-close" onclick="closeModal(null,'friendsModal')">&times;</span>
+    <h2>👥 フレンド管理</h2>
+    <p style="font-size:12px;opacity:.8;">フレンドIDはGoogleのメールアドレスやUIDではありません。申請は相手の承認後に成立します。</p>
+    <div class="setting-group"><label>自分のフレンドID</label>
+      <div style="display:flex;gap:7px;align-items:center;">
+        <input id="myFriendCode" class="setting-input" readonly placeholder="取得中…" style="flex:1;font-size:15px;font-weight:bold;">
+        <button type="button" onclick="copyMyFriendCode()">コピー</button>
+      </div>
+    </div>
+    <div class="setting-group"><label for="friendCodeInput">友達のフレンドID</label>
+      <div style="display:flex;gap:7px;align-items:center;">
+        <input id="friendCodeInput" class="setting-input" maxlength="13" placeholder="SL-XXXXXXXXXX" style="flex:1;" autocomplete="off">
+        <button type="button" class="primary-btn" id="sendFriendRequestBtn" onclick="sendFriendRequest()">申請</button>
+      </div>
+    </div>
+    <div id="friendFeedback" role="status" aria-live="polite" style="font-size:12px;min-height:18px;margin-bottom:8px;"></div>
+    <h3 style="font-size:15px;">届いた申請</h3><div id="incomingFriendRequests" class="friends-section">読み込み中…</div>
+    <h3 style="font-size:15px;">送った申請</h3><div id="outgoingFriendRequests" class="friends-section">読み込み中…</div>
+    <h3 style="font-size:15px;">フレンド一覧</h3><div id="friendsList" class="friends-section">読み込み中…</div>
+    <button type="button" onclick="refreshFriendsPanel()" style="margin-top:12px;">↻ 再読み込み</button>
+  </div>
+</div>
 <div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
     <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
         <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
@@ -1280,6 +1314,8 @@
         document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
         document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
         document.getElementById('myListSwitchBtn').style.display = user && !currentRoomId ? 'inline-block' : 'none';
+        document.getElementById('friendsBtn').style.display = user ? 'inline-block' : 'none';
+        if (!user) stopFriendsFeature();
         document.getElementById('addSongHeaderBtn').style.display = 'inline-block';
         // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
         const nameVersion = ++usernameLoadVersion;
@@ -1302,6 +1338,7 @@
         document.getElementById('detailPersonalEdit').style.display = 'none';
         currentDetailSongId = null;
         await loadMyListForUser(user);
+        if (user && auth.currentUser?.uid === user.uid) void startFriendsFeature(user);
 
         if (!user) {
             applyTheme(localStorage.getItem(GUEST_THEME_STORAGE) || 'dark');
@@ -1412,6 +1449,7 @@
             try {
                 // 匿名ゲストの表示名は端末内に保存。Google本人のみFirebaseプロフィールへ保存。
                 await db.ref(`users/${user.uid}/profile/displayName`).set(newName);
+                if (friendCodeForUser && auth.currentUser?.uid === user.uid) db.ref(`friendProfiles/${user.uid}/displayName`).set(newName).catch(err => console.warn('フレンド公開名の同期失敗',err));
                 if (auth.currentUser?.uid !== user.uid) return;
             } catch(error) {
                 console.error('ユーザー名の保存に失敗:', error);
@@ -1641,6 +1679,155 @@
     });
     
     tableBodyWrapper.addEventListener('scroll', (e) => { tableHeaderWrapper.scrollLeft = e.target.scrollLeft; });
+    // ===== STEP 3-1 フレンドID・申請・承認・拒否・解除 =====
+    const FRIEND_GOOGLE_ONLY = 'フレンド機能はGoogleログインが必要です。';
+    let friendCodeForUser = '';
+    let friendFeatureUid = '';
+    let friendRefreshSeq = 0;
+    let friendListeners = [];
+    const friendNameCache = {};
+    function friendUser() { const u = auth.currentUser; return u && !u.isAnonymous && signedInUser?.uid === u.uid ? u : null; }
+    function friendNotice(message,isError=false) {
+        const el=document.getElementById('friendFeedback');
+        el.textContent=message;el.style.color=isError?'#eb7777':'var(--text-color)';
+    }
+    function stopFriendsFeature() {
+        friendListeners.forEach(([ref,fn]) => ref.off('value',fn)); friendListeners=[];
+        friendFeatureUid=''; friendCodeForUser=''; friendRefreshSeq++;
+        document.getElementById('myFriendCode').value='';
+        closeModal(null,'friendsModal');
+    }
+    function attachFriendListener(path,uid) {
+        const ref=db.ref(path); const fn=()=>{ if (friendUser()?.uid===uid) void refreshFriendsPanel(); };
+        ref.on('value',fn,err=>console.warn('フレンド同期',err)); friendListeners.push([ref,fn]);
+    }
+    async function startFriendsFeature(user) {
+        if (!user || friendFeatureUid===user.uid) return;
+        stopFriendsFeature();friendFeatureUid=user.uid;
+        try {
+            // 公開IDはランダムな10桁。既存コードとの競合はトランザクションで回避。
+            let codeSnap=await db.ref(`users/${user.uid}/profile/friendCode`).once('value');
+            if (friendUser()?.uid!==user.uid) return;
+            let code=String(codeSnap.val()||'');
+            if (!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code)) {
+                const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let registered=false;
+                for(let attempt=0; attempt<8 && !registered; attempt++) {
+                    const values=new Uint8Array(10);crypto.getRandomValues(values);
+                    code='SL-'+Array.from(values,n=>alphabet[n%alphabet.length]).join('');
+                    const result=await db.ref(`friendCodes/${code}`).transaction(old=>old===null?user.uid:undefined,undefined,false);
+                    registered=result.committed;
+                }
+                if (!registered) throw Error('フレンドIDの発行ができませんでした');
+                if (friendUser()?.uid!==user.uid) return;
+                await db.ref(`users/${user.uid}/profile/friendCode`).set(code);
+            } else {
+                const mapped=await db.ref(`friendCodes/${code}`).once('value');
+                if(mapped.val()!==user.uid) throw Error('フレンドIDの登録情報が一致しません');
+            }
+            friendCodeForUser=code;
+            const name=String(myName || user.displayName || 'ユーザー').trim().slice(0,40) || 'ユーザー';
+            await db.ref(`friendProfiles/${user.uid}`).set({displayName:name,code});
+            if(friendUser()?.uid!==user.uid)return;
+            document.getElementById('myFriendCode').value=code;
+            attachFriendListener(`friendRequests/${user.uid}`,user.uid);
+            attachFriendListener(`sentRequests/${user.uid}`,user.uid);
+            attachFriendListener(`friendships/${user.uid}`,user.uid);
+            void refreshFriendsPanel();
+        } catch(err) {console.error('フレンド初期化失敗',err);friendNotice('フレンド機能の初期化に失敗しました。Firebaseルールを確認してください。',true);}
+    }
+    function openFriendsModal() {
+        if(!friendUser())return alert(FRIEND_GOOGLE_ONLY);
+        openModal('friendsModal');document.getElementById('myFriendCode').value=friendCodeForUser;
+        void refreshFriendsPanel();
+    }
+    function copyMyFriendCode() {
+        if(!friendCodeForUser)return friendNotice('フレンドIDを取得中です。',true);
+        navigator.clipboard.writeText(friendCodeForUser).then(()=>friendNotice('フレンドIDをコピーしました。')).catch(()=>{document.getElementById('myFriendCode').select();friendNotice('IDを選択しました。Ctrl+Cでコピーしてください。');});
+    }
+    async function getFriendDisplayName(uid) {
+        if(friendNameCache[uid])return friendNameCache[uid];
+        try{const snap=await db.ref(`friendProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(snap.val()||'ユーザー').slice(0,40);}
+        catch{return 'ユーザー';}
+    }
+    function friendItem(name,buttons) {
+        const row=document.createElement('div');row.className='friend-item';
+        const label=document.createElement('span');label.className='friend-name';label.textContent=name;row.append(label);
+        const commands=document.createElement('div');commands.className='friend-commands';
+        for(const [title,fn,danger] of buttons){const button=document.createElement('button');button.type='button';button.textContent=title;if(danger)button.className='friend-danger';button.onclick=fn;commands.append(button);}
+        row.append(commands);return row;
+    }
+    async function refreshFriendsPanel() {
+        const user=friendUser();if(!user)return;
+        const uid=user.uid, seq=++friendRefreshSeq;
+        try{
+            const [incoming, outgoing, friendship]=await Promise.all([
+                db.ref(`friendRequests/${uid}`).once('value'),db.ref(`sentRequests/${uid}`).once('value'),db.ref(`friendships/${uid}`).once('value')]);
+            if(seq!==friendRefreshSeq || friendUser()?.uid!==uid)return;
+            const inc=document.getElementById('incomingFriendRequests'),out=document.getElementById('outgoingFriendRequests'),fr=document.getElementById('friendsList');
+            inc.replaceChildren();out.replaceChildren();fr.replaceChildren();
+            const received=Object.entries(incoming.val()||{}).filter(([,r])=>r?.status==='pending');
+            for(const [sender,r] of received){inc.append(friendItem(String(r.fromName||await getFriendDisplayName(sender)),[
+                ['承認',()=>void respondFriendRequest(uid,sender,r,true)],['拒否',()=>void respondFriendRequest(uid,sender,r,false),true]]));}
+            if(!received.length)inc.textContent='現在、申請はありません。';
+            const sentEntries=Object.keys(outgoing.val()||{});
+            let sentCount=0;
+            for(const target of sentEntries){
+                const s=await db.ref(`friendRequests/${target}/${uid}`).once('value');if(s.val()?.status!=='pending')continue;
+                out.append(friendItem(await getFriendDisplayName(target),[['申請中',()=>{},false]]));
+                const last=out.lastElementChild?.querySelector('button');if(last)last.disabled=true;sentCount++;
+            }
+            if(!sentCount)out.textContent='送信中の申請はありません。';
+            const list=Object.keys(friendship.val()||{}).filter(other=>other!==uid);
+            for(const other of list){
+                const [a,b]=await Promise.all([db.ref(`friendRequests/${uid}/${other}/status`).once('value'),db.ref(`friendRequests/${other}/${uid}/status`).once('value')]);
+                if(a.val()!=='accepted'&&b.val()!=='accepted')continue;
+                fr.append(friendItem(await getFriendDisplayName(other),[['解除',()=>void unfriendUser(other),true]]));
+            }
+            if(!fr.childElementCount)fr.textContent='まだフレンドはいません。';
+        }catch(err){console.error('フレンド一覧読込失敗',err);friendNotice('一覧を読み込めませんでした。Firebaseルールを確認してください。',true);}
+    }
+    async function sendFriendRequest() {
+        const user=friendUser();if(!user)return alert(FRIEND_GOOGLE_ONLY);
+        const code=String(document.getElementById('friendCodeInput').value||'').trim().toUpperCase().replace(/\s/g,'');
+        if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code))return friendNotice('フレンドIDは SL- から始まる10桁のコードです。',true);
+        const button=document.getElementById('sendFriendRequestBtn');button.disabled=true;
+        try{
+            const mapping=await db.ref(`friendCodes/${code}`).once('value');const target=String(mapping.val()||'');
+            if(!target)return friendNotice('該当するフレンドIDがありません。',true);
+            if(target===user.uid)return friendNotice('自分自身には申請できません。',true);
+            const [mine,theirs,existing]=await Promise.all([
+                db.ref(`friendRequests/${user.uid}/${target}/status`).once('value'),db.ref(`friendRequests/${target}/${user.uid}`).once('value'),db.ref(`friendships/${user.uid}/${target}`).once('value')]);
+            if(mine.val()==='accepted'||theirs.val()?.status==='accepted'||existing.val())return friendNotice('すでにフレンドです。',true);
+            if(mine.val()==='pending')return friendNotice('相手から申請が届いています。届いた申請から承認してください。',true);
+            if(theirs.val()?.status==='pending')return friendNotice('すでに申請を送信しています。',true);
+            const fromName=String(myName||user.displayName||'ユーザー').trim().slice(0,40)||'ユーザー';
+            await db.ref(`friendRequests/${target}/${user.uid}`).set({fromUid:user.uid,toUid:target,fromName,createdAt:Date.now(),status:'pending'});
+            await db.ref(`sentRequests/${user.uid}/${target}`).set(true);
+            document.getElementById('friendCodeInput').value='';friendNotice('友達申請を送信しました。');void refreshFriendsPanel();
+        }catch(err){console.error('友達申請失敗',err);friendNotice('申請に失敗しました。時間をおいて再試行してください。',true);}
+        finally{button.disabled=false;}
+    }
+    async function respondFriendRequest(target,sender,request,accept) {
+        const user=friendUser();if(!user||user.uid!==target)return;
+        try{
+            await db.ref(`friendRequests/${target}/${sender}`).set({...request,status:accept?'accepted':'rejected'});
+            if(accept)await db.ref().update({[`friendships/${target}/${sender}`]:true,[`friendships/${sender}/${target}`]:true});
+            friendNotice(accept?'フレンドになりました！':'申請を拒否しました。');void refreshFriendsPanel();
+        }catch(err){console.error('申請処理失敗',err);friendNotice('処理に失敗しました。再読み込みして確認してください。',true);}
+    }
+    async function unfriendUser(other) {
+        const user=friendUser();if(!user||!confirm('このフレンドを解除しますか？'))return;
+        try{
+            const uid=user.uid;const a=db.ref(`friendRequests/${uid}/${other}`),b=db.ref(`friendRequests/${other}/${uid}`);
+            const [sa,sb]=await Promise.all([a.once('value'),b.once('value')]);
+            const ref=sa.val()?.status==='accepted'?a:sb.val()?.status==='accepted'?b:null;
+            if(ref){const item=ref===a?sa.val():sb.val();await ref.set({...item,status:'removed'});}
+            await db.ref().update({[`friendships/${uid}/${other}`]:null,[`friendships/${other}/${uid}`]:null});
+            friendNotice('フレンドを解除しました。');void refreshFriendsPanel();
+        }catch(err){console.error('フレンド解除失敗',err);friendNotice('解除に失敗しました。再読み込みして確認してください。',true);}
+    }
+    // ===== フレンド機能ここまで =====
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
     function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
