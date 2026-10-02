@@ -8,6 +8,7 @@
     <!-- Firebase SDK (互換バージョン) -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <!-- PapaParse CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
@@ -192,12 +193,13 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const obsAuth = firebase.auth();
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('room');
     let allSongsCache = [];
 
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?gid=0&single=true&output=csv";
 
     // スプレッドシートから楽曲情報を取得
     Papa.parse(SHEET_CSV_URL, {
@@ -245,7 +247,17 @@
         }
     });
 
-    function initObsRealtimeSync() {
+    async function initObsRealtimeSync() {
+        // 新しいFirebaseルールではroom/queueの閲覧に認証が必要。
+        // OBS側は個人アカウント不要なので匿名UIDを取得してから購読する。
+        try {
+            if (!obsAuth.currentUser) await obsAuth.signInAnonymously();
+        } catch (error) {
+            console.error('OBSの匿名認証に失敗:', error);
+            document.getElementById('obsCompletedContainer').innerHTML =
+                '<div class="empty-notice">⚠️ OBS認証に失敗しました。Firebaseの匿名ログイン設定を確認してください。</div>';
+            return;
+        }
         db.ref('rooms/' + roomId + '/queue').on('value', (snapshot) => {
             const queue = snapshot.val() || {};
             const completedItems = [];
@@ -263,6 +275,10 @@
             // 完了順（演奏順）に並び替え
             completedItems.sort((a, b) => a.order - b.order);
             renderObsList(completedItems);
+        }, error => {
+            console.error('OBSのqueue読み込みに失敗:', error);
+            document.getElementById('obsCompletedContainer').innerHTML =
+                '<div class="empty-notice">⚠️ ルームデータを読み込めません。FirebaseのルールとルームIDを確認してください。</div>';
         });
     }
 
