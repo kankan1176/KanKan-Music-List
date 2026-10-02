@@ -338,6 +338,31 @@
         body.my-list-mode .col-select {width:43px;text-align:center;}
         .my-select-row {width:17px;height:17px;cursor:pointer;accent-color:var(--primary);}
         body.my-list-mode .col-delete {width:45px;text-align:center;}
+
+        /* PC: 長い楽曲名・アーティスト名の折り返しを防ぎ、ジャンル幅を詰める */
+        @media (min-width: 601px) {
+          body:not(.my-list-mode) .col-title { width: 23%; }
+          body:not(.my-list-mode) .col-artist { width: 25%; }
+          body:not(.my-list-mode) .col-genre { width: 11%; }
+          .data-table td.col-title,
+          .data-table td.col-artist,
+          .data-table td.col-genre {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            overflow-wrap: normal;
+          }
+          .data-table td.col-title .song-title-link,
+          .data-table td.col-artist .artist-filter-button {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow-wrap: normal;
+          }
+          .data-table td.col-artist .my-artist-cell { min-width: 0; }
+        }
     </style>
 </head>
 <body>
@@ -1961,13 +1986,13 @@ h2 {
                     <button type="button" aria-label="Keyを半音上げる" onclick="changeTableKey('${row._id}', 1)" ${currentKey >= 6 ? 'disabled' : ''}>▶</button>
                 </div>` : '<span class="no-chordwiki-label" title="コードWikiが未登録です">コードWiki無し</span>';
             const artistName = String(row['アーティスト'] || '').trim();
-            const artistLinkHtml = artistName ? `<button type="button" class="artist-filter-button" data-artist="${escapeHtml(artistName)}" title="${escapeHtml(artistName)}の曲だけを表示">${escapeHtml(artistName)}</button>` : '-';
+            const artistLinkHtml = artistName ? `<button type="button" class="artist-filter-button" data-artist="${escapeHtml(artistName)}" title="${escapeHtml(artistName)}（クリックで絞り込み）">${escapeHtml(artistName)}</button>` : '-';
             const personalUi = signedInUser ? personalControlsHtml(row) : {
                 part:'<span style="opacity:.4">－</span>', liked:'', artist:''
             };
             if (myListMode) {
                 tr.innerHTML = `
-                    <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
                     <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}</div></td>
                     <td class="col-key nowrap-cell">${keyPickerHtml}</td>
                     <td class="col-part nowrap-cell">${myListPartButtons(row)}</td>
@@ -1976,7 +2001,7 @@ h2 {
                     <td class="col-select nowrap-cell"><input type="checkbox" class="my-select-row" data-song-id="${row._id}" aria-label="${escapeHtml(row['曲名'])}を一括編集対象に選択" onchange="toggleMySongSelection('${row._id}',this.checked)" ${selectedMySongIds.has(row._id)?'checked':''}></td>`;
             } else tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
-                <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
                 <td class="col-artist col-main">${artistLinkHtml}</td>
                 <td class="col-genre col-sub">${displayGenre}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
