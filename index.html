@@ -132,11 +132,11 @@
         .col-action { width: 92px; }
         .col-title { width: 24%; }
         .col-artist { width: 19%; }
-        .col-genre { width: auto; }
+        .col-genre { width: 15%; }
         .col-bpm { width: 58px; }
         .col-key { width: 128px; }
         .col-part { width: 59px; }
-        .col-liked,.col-star { width: 42px; text-align:center; }
+        .col-liked { width: 39px; text-align:center; }
         .personal-toggle { border:1px solid transparent; background:transparent; font-size:19px; padding:2px 3px; opacity:.36; }
         .personal-toggle.selected { opacity:1; border-color:var(--primary); background:var(--btn-bg); }
         .personal-toggle:hover { opacity:1; background:var(--btn-hover); }
@@ -300,6 +300,28 @@
             #tableBody .col-artist { margin-top: 3px; opacity: 0.9; }
             #tableBody .col-genre, #tableBody .col-bpm { font-size: 11px; opacity: 0.85; }
         }
+        /* PC: ジャンル列を縮小し、マスターで横スクロールを抑える */
+        @media (min-width:601px) {
+          body:not(.my-list-mode) .data-table { width:100%; min-width:0; }
+          body:not(.my-list-mode) .col-action {width:74px;}
+          body:not(.my-list-mode) .col-title {width:24%;}
+          body:not(.my-list-mode) .col-artist {width:18%;}
+          body:not(.my-list-mode) .col-genre {width:17%; overflow-wrap:anywhere;}
+          body:not(.my-list-mode) .col-bpm {width:48px;}
+          body:not(.my-list-mode) .col-key {width:120px;}
+          body:not(.my-list-mode) .col-part {width:50px;}
+          body:not(.my-list-mode) .col-liked {width:36px;}
+          body:not(.my-list-mode) th,body:not(.my-list-mode) td {padding:8px 6px;}
+        }
+        .artist-confirm-actions {display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:18px;}
+        .artist-confirm-actions .favorite-artist-modal {font-size:23px;line-height:1;}
+        #myListBulkBar {display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 9px;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:6px;font-size:12px;}
+        body.my-list-mode #myListBulkBar {display:flex;}
+        #myListBulkBar select {width:auto;max-width:125px;font-size:12px;padding:4px;}
+        #myListBulkBar button {padding:4px 7px;font-size:12px;}
+        body.my-list-mode .col-select {width:43px;text-align:center;}
+        .my-select-row {width:17px;height:17px;cursor:pointer;accent-color:var(--primary);}
+        body.my-list-mode .col-delete {width:45px;text-align:center;}
     </style>
 </head>
 <body>
@@ -368,6 +390,27 @@
             </div>
 
         </div>
+        <div id="myListBulkBar" aria-label="選択したマイリストの一括編集">
+            <span id="selectedSongCount">選択：0曲</span>
+            <button type="button" onclick="selectVisibleMySongs(true)">表示中を選択</button>
+            <button type="button" onclick="selectVisibleMySongs(false)">選択解除</button>
+            <select id="bulkPartSelect" aria-label="一括担当パート">
+                <option value="">担当パートを指定</option>
+                <option value="🎤">🎤 ボーカル</option><option value="🎸">🎸 ギター・ベース</option>
+                <option value="🥁">🥁 打楽器</option><option value="🎹">🎹 鍵盤</option>
+                <option value="🎺">🎺 管楽器</option><option value="🎻">🎻 弦楽器</option><option value="🪈">🪈 笛</option>
+            </select>
+            <select id="bulkKeySelect" aria-label="一括Key">
+                <option value="">Keyを指定</option>
+                <option value="-5">-5</option><option value="-4">-4</option><option value="-3">-3</option>
+                <option value="-2">-2</option><option value="-1">-1</option><option value="0">±0</option>
+                <option value="1">+1</option><option value="2">+2</option><option value="3">+3</option>
+                <option value="4">+4</option><option value="5">+5</option><option value="6">+6</option>
+            </select>
+            <select id="bulkLikedSelect" aria-label="好きな曲を一括変更"><option value="">🎵 変更なし</option><option value="on">🎵 登録</option><option value="off">🎵 解除</option></select>
+            <button type="button" class="primary-btn" onclick="applyBulkMyListEdit()">選択曲に適用</button>
+            <button type="button" onclick="removeSelectedMySongs()">選択曲を削除</button>
+        </div>
         <div id="myListSaveBar" role="status" aria-live="polite">
             <span id="myListPendingCount">未保存の変更があります</span>
             <button type="button" id="saveMyListButton" onclick="saveMyListChanges()">まとめて登録</button>
@@ -383,7 +426,7 @@
     <div id="tableWrapper">
         <div class="table-header-wrapper">
             <table class="data-table">
-                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-part"><col class="col-liked"><col class="col-star"></colgroup>
+                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-part"><col class="col-liked"></colgroup>
                 <thead>
                     <tr>
                         <th class="col-action">ステータス</th>
@@ -393,15 +436,14 @@
                         <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
                         <th class="col-key">Key</th>
                         <th class="col-part" title="担当パート">🎤</th>
-                        <th class="col-liked" title="好きな曲">💖</th>
-                        <th class="col-star" title="好きなアーティスト">🌟</th>
+                        <th class="col-liked" title="好きな曲">🎵</th>
                     </tr>
                 </thead>
             </table>
         </div>
         <div class="table-body-wrapper">
             <table class="data-table">
-                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-part"><col class="col-liked"><col class="col-star"></colgroup>
+                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-part"><col class="col-liked"></colgroup>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
@@ -415,7 +457,8 @@
     <div class="modal" onclick="event.stopPropagation()" style="max-width: 360px;">
         <h2>🎤 アーティスト検索</h2>
         <p style="font-size: 14px; line-height: 1.6;"><strong id="confirmArtistName"></strong> の曲に絞りますか？</p>
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+        <div class="artist-confirm-actions">
+            <button type="button" id="artistModalStar" class="personal-toggle favorite-artist-modal" title="好きなアーティストに登録・解除（まとめて登録で保存）" onclick="toggleConfirmedArtist()">⭐</button>
             <button type="button" onclick="closeModal(null, 'artistConfirmModal')">いいえ</button>
             <button type="button" class="primary-btn" onclick="confirmArtistFilter()">はい</button>
         </div>
@@ -638,17 +681,73 @@ h2 {
     const PARTS = ['', '🎤', '🎸', '🥁', '🎹', '🎺', '🎻', '🪈'];
     const PART_NAMES = { '':'未登録','🎤':'ボーカル','🎸':'ギター・ベース','🥁':'ドラム・パーカッション','🎹':'鍵盤・シンセ','🎺':'木管・金管','🎻':'弦楽器','🪈':'笛・和管楽器' };
     let myListMode = false;
+    const selectedMySongIds = new Set();
+    let lastFilteredMySongIds = [];
+    function updateSelectedMySongCount() {
+        document.getElementById('selectedSongCount').textContent = `選択：${selectedMySongIds.size}曲`;
+    }
+    function toggleMySongSelection(id, checked) {
+        if (checked) selectedMySongIds.add(id); else selectedMySongIds.delete(id);
+        updateSelectedMySongCount();
+    }
+    function selectVisibleMySongs(checked) {
+        if (checked) lastFilteredMySongIds.forEach(id=>selectedMySongIds.add(id));
+        else selectedMySongIds.clear();
+        updateSelectedMySongCount();
+        tableBody.querySelectorAll('.my-select-row').forEach(input=>input.checked=selectedMySongIds.has(input.dataset.songId));
+    }
+    function applyBulkMyListEdit() {
+        if (!signedInUser || !myListMode || !selectedMySongIds.size) return alert('編集する曲にチェックを入れてください。');
+        const part=document.getElementById('bulkPartSelect').value;
+        const key=document.getElementById('bulkKeySelect').value;
+        const liked=document.getElementById('bulkLikedSelect').value;
+        if (!part && key==='' && !liked) return alert('変更する項目を選んでください。');
+        selectedMySongIds.forEach(id=>{
+            const patch={};
+            if (part) patch.part=part;
+            if (key!=='') patch.key=Number(key);
+            if (liked) patch.liked=liked==='on';
+            // 一括KeyはChordWiki登録曲にのみ設定
+            if ('key' in patch && !chordWikiTitle(allData.find(song=>song._id===id)?.['コードwiki'])) delete patch.key;
+            if (Object.keys(patch).length) stagePersonalSong(id,patch,false);
+        });
+        updateMyListBar(); renderTable();
+        alert('選択曲へ反映しました。「まとめて登録」で保存してください。');
+    }
+    function removeSelectedMySongs() {
+        if (!signedInUser || !myListMode || !selectedMySongIds.size) return alert('削除する曲にチェックを入れてください。');
+        if (!confirm(`選択した${selectedMySongIds.size}曲をマイリストから削除しますか？（全曲マスターには影響しません）`)) return;
+        selectedMySongIds.forEach(id=>stagePersonalSong(id,{part:'',liked:false,key:0,excluded:true},false));
+        selectedMySongIds.clear();updateSelectedMySongCount();updateMyListBar();renderTable();
+    }
+    function toggleConfirmedArtist() {
+        if (!signedInUser) return alert('先にGoogleログインしてください。');
+        if (!pendingArtistFilter) return;
+        const key=artistDbKey(pendingArtistFilter);
+        pendingArtists[key]=!favoriteArtistValue(pendingArtistFilter);
+        updateMyListBar();updateArtistModalStar();
+        const top=tableBodyWrapper.scrollTop;renderTable();tableBodyWrapper.scrollTop=top;
+    }
+    function updateArtistModalStar() {
+        const btn=document.getElementById('artistModalStar');
+        const selected=!!signedInUser && !!pendingArtistFilter && favoriteArtistValue(pendingArtistFilter);
+        btn.style.display=signedInUser?'inline-block':'none';
+        btn.classList.toggle('selected',selected);
+        btn.setAttribute('aria-pressed',String(selected));
+        btn.title=selected?'⭐ お気に入りアーティストを解除':'☆ お気に入りアーティストに登録';
+        btn.textContent=selected?'⭐':'☆';
+    }
     let defaultPart = '';
     const tableHeaderTable = document.querySelector('.table-header-wrapper .data-table');
     const tableBodyTable = document.querySelector('.table-body-wrapper .data-table');
     const masterHeaderMarkup = tableHeaderTable.innerHTML;
     const masterBodyColumns = tableBodyTable.querySelector('colgroup').outerHTML;
-    const myListColumns = '<colgroup><col class="col-title"><col class="col-artist"><col class="col-key"><col class="col-part"><col class="col-liked"><col class="col-delete"></colgroup>';
+    const myListColumns = '<colgroup><col class="col-title"><col class="col-artist"><col class="col-key"><col class="col-part"><col class="col-liked"><col class="col-delete"><col class="col-select"></colgroup>';
     const myListHeader = myListColumns + `<thead><tr>
         <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
         <th class="sortable col-artist" onclick="handleSort('アーティスト')">アーティスト（🌟） <span class="sort-icon" id="icon-アーティスト"></span></th>
         <th class="col-key">Key</th><th class="col-part">担当パート</th>
-        <th class="col-liked" title="好きな曲">💖</th><th class="col-delete">削除</th>
+        <th class="col-liked" title="好きな曲">🎵</th><th class="col-delete">削除</th><th class="col-select" title="複数選択">☑</th>
     </tr></thead>`;
     let renderedMyListLayout = null;
     function ensureListLayout() {
@@ -703,6 +802,7 @@ h2 {
         const version = ++myListLoadVersion;
         myListMode = false;
         personalSongs = {}; favoriteArtists = {}; pendingSongs = {}; pendingArtists = {}; defaultPart='';
+        selectedMySongIds.clear();updateSelectedMySongCount();
         document.getElementById('defaultPartSelect').value='';
         document.body.classList.remove('my-list-mode');
         document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
@@ -729,12 +829,13 @@ h2 {
     function toggleMyList() {
         if (!signedInUser) return;
         myListMode = !myListMode;
+        selectedMySongIds.clear();updateSelectedMySongCount();
         document.body.classList.toggle('my-list-mode',myListMode);
         document.getElementById('myListSwitchBtn').textContent = myListMode ? '📚 全曲一覧' : '📁 マイリスト';
         tableBodyWrapper.scrollTop = 0;
         renderTable();
     }
-    function stagePersonalSong(id, patch) {
+    function stagePersonalSong(id, patch, rerender=true) {
         if (!signedInUser) return;
         const old = effectivePersonalSong(id);
         const next = Object.assign({}, old, patch);
@@ -745,8 +846,8 @@ h2 {
         pendingSongs[id] = next;
         updateMyListBar();
         const top = tableBodyWrapper.scrollTop;
-        renderTable(); tableBodyWrapper.scrollTop = top;
-        if (currentDetailSongId === id) {
+        if (rerender) {renderTable(); tableBodyWrapper.scrollTop = top;}
+        if (rerender && currentDetailSongId === id) {
             const song=allData.find(row=>row._id===id);
             if (song) renderDetailPersonalControls(song);
         }
@@ -777,7 +878,7 @@ h2 {
         const p=effectivePersonalSong(song._id);
         const artist=String(song['アーティスト'] || '').trim();
         const part=`<select class="part-select" aria-label="担当パート" title="担当パートを選択" onchange="setPersonalPart('${song._id}',this.value)">${PARTS.map(icon=>`<option value="${icon}" ${p.part===icon?'selected':''} title="${PART_NAMES[icon]}">${icon||'－'}</option>`).join('')}</select>`;
-        const liked=`<button type="button" class="personal-toggle ${p.liked?'selected':''}" title="好きな曲" aria-pressed="${!!p.liked}" onclick="setPersonalLiked('${song._id}')">💖</button>`;
+        const liked=`<button type="button" class="personal-toggle ${p.liked?'selected':''}" title="好きな曲" aria-pressed="${!!p.liked}" onclick="setPersonalLiked('${song._id}')">🎵</button>`;
         const artistButton=`<button type="button" class="personal-toggle ${favoriteArtistValue(artist)?'selected':''}" title="好きなアーティスト" aria-pressed="${favoriteArtistValue(artist)}" onclick="setFavoriteArtist('${song._id}')">🌟</button>`;
         return {part,liked,artist:artistButton};
     }
@@ -798,7 +899,7 @@ h2 {
         wrapper.style.display=signedInUser ? 'block':'none';
         if (!signedInUser) return;
         const controls=personalControlsHtml(song);
-        document.getElementById('detailPersonalControls').innerHTML=controls.part+controls.liked+controls.artist;
+        document.getElementById('detailPersonalControls').innerHTML=controls.part+controls.liked;
     }
     async function saveMyListChanges() {
         const user=signedInUser;
@@ -819,6 +920,7 @@ h2 {
             if (auth.currentUser?.uid !== user.uid) return;
             ids.forEach(id=>{personalSongs[id]=changes[`users/${user.uid}/songs/${id}`];delete pendingSongs[id];});
             artists.forEach(id=>{if(pendingArtists[id])favoriteArtists[id]=true;else delete favoriteArtists[id];delete pendingArtists[id];});
+            selectedMySongIds.clear();updateSelectedMySongCount();
             updateMyListBar();renderTable();
             const song=allData.find(row=>row._id===currentDetailSongId);
             if (song) renderDetailPersonalControls(song);
@@ -1145,6 +1247,7 @@ h2 {
         if (!artistButton) return;
         pendingArtistFilter = artistButton.dataset.artist || '';
         document.getElementById('confirmArtistName').textContent = pendingArtistFilter;
+        updateArtistModalStar();
         openModal('artistConfirmModal');
     });
     
@@ -1747,6 +1850,7 @@ h2 {
             });
         }
         songCountDisplay.textContent = `${myListMode ? 'マイリスト' : '全曲マスター'}：${filteredData.length} 曲`;
+        lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
 
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
@@ -1795,11 +1899,12 @@ h2 {
             if (myListMode) {
                 tr.innerHTML = `
                     <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
-                    <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}${personalUi.artist}</div></td>
+                    <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}</div></td>
                     <td class="col-key nowrap-cell">${keyPickerHtml}</td>
                     <td class="col-part nowrap-cell">${myListPartButtons(row)}</td>
                     <td class="col-liked nowrap-cell">${personalUi.liked}</td>
-                    <td class="col-delete nowrap-cell"><button type="button" class="my-delete" title="マイリストから削除" aria-label="${escapeHtml(row['曲名'])}をマイリストから削除" onclick="removeFromMyList('${row._id}')">✕</button></td>`;
+                    <td class="col-delete nowrap-cell"><button type="button" class="my-delete" title="マイリストから削除" aria-label="${escapeHtml(row['曲名'])}をマイリストから削除" onclick="removeFromMyList('${row._id}')">✕</button></td>
+                    <td class="col-select nowrap-cell"><input type="checkbox" class="my-select-row" data-song-id="${row._id}" aria-label="${escapeHtml(row['曲名'])}を一括編集対象に選択" onchange="toggleMySongSelection('${row._id}',this.checked)" ${selectedMySongIds.has(row._id)?'checked':''}></td>`;
             } else tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                 <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
@@ -1809,7 +1914,6 @@ h2 {
                 <td class="col-key nowrap-cell">${keyPickerHtml}</td>
                 <td class="col-part nowrap-cell">${personalUi.part}</td>
                 <td class="col-liked nowrap-cell">${personalUi.liked}</td>
-                <td class="col-star nowrap-cell">${personalUi.artist}</td>
             `;
             tableBody.appendChild(tr);
         });
