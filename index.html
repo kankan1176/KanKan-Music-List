@@ -329,6 +329,10 @@
         body.my-list-mode #myListBulkBar {display:flex;}
         #myListBulkBar select {width:auto;max-width:125px;font-size:12px;padding:4px;}
         #myListBulkBar button {padding:4px 7px;font-size:12px;}
+        /* 選択曲の削除は、各テーマのprimaryに関係なく危険操作として赤系で統一。 */
+        #myListBulkBar .bulk-delete-btn { background:#a82936; border:1px solid #df5862; color:#fff; font-weight:700; }
+        #myListBulkBar .bulk-delete-btn:hover { background:#c53846; border-color:#fa7982; color:#fff; }
+        #myListBulkBar .bulk-delete-btn:focus-visible { outline:2px solid #ff9ba2; outline-offset:2px; }
         body.my-list-mode .col-select {width:43px;text-align:center;}
         .my-select-row {width:17px;height:17px;cursor:pointer;accent-color:var(--primary);}
         body.my-list-mode tr.my-selected-row {outline:1px solid var(--border-color);outline-offset:-1px;}
@@ -592,6 +596,10 @@
                 <option value="🥁">🥁 打楽器</option><option value="🎹">🎹 鍵盤</option>
                 <option value="🎺">🎺 管楽器</option><option value="🎻">🎻 弦楽器</option><option value="🪈">🪈 笛</option>
             </select>
+            <select id="bulkPartAction" aria-label="担当パート一括操作">
+                <option value="on">パートON</option>
+                <option value="off">パートOFF</option>
+            </select>
             <select id="bulkKeySelect" aria-label="一括Key">
                 <option value="">Keyを指定</option>
                 <option value="-5">-5</option><option value="-4">-4</option><option value="-3">-3</option>
@@ -600,7 +608,7 @@
                 <option value="4">+4</option><option value="5">+5</option><option value="6">+6</option>
             </select>
             <button type="button" class="primary-btn" onclick="applyBulkMyListEdit()">選択曲に適用</button>
-            <button type="button" onclick="removeSelectedMySongs()">選択曲を削除</button>
+            <button type="button" class="bulk-delete-btn" onclick="removeSelectedMySongs()">選択曲を削除</button>
         </div>
     </div>
 
@@ -929,15 +937,21 @@ h2 {
     function applyBulkMyListEdit() {
         if (!signedInUser || !myListMode || !selectedMySongIds.size) return alert('編集する曲にチェックを入れてください。');
         const part=document.getElementById('bulkPartSelect').value;
+        const partAction=document.getElementById('bulkPartAction').value;
         const key=document.getElementById('bulkKeySelect').value;
         if (!part && key==='') return alert('変更する項目を選んでください。');
         selectedMySongIds.forEach(id=>{
             const patch={};
             if (part) {
                 const parts=getSelectedParts(effectivePersonalSong(id));
-                if (!parts.includes(part)) parts.push(part);
+                const index=parts.indexOf(part);
+                if (partAction==='off') {
+                    if (index>=0) parts.splice(index,1); // 指定パートだけOFF。ほかのパートは保持。
+                } else if (index<0) {
+                    parts.push(part); // 指定パートだけON。既存のパートは保持。
+                }
                 patch.parts=parts;
-                patch.part=parts[0]||'';
+                patch.part=parts[0]||''; // 古いクライアントとの互換性を維持。
             }
             if (key!=='') patch.key=Number(key);
             // 一括KeyはChordWiki登録曲にのみ設定
@@ -1542,7 +1556,7 @@ h2 {
                 <p>マイリストでは曲の右端にある<b>チェックボックス</b>で複数曲を選べます。</p>
                 <ul style="padding-left:20px;margin:8px 0;">
                     <li>「表示中を選択」または各曲のチェックで編集対象を指定します。</li>
-                    <li>上部の編集バーで<b>担当パート・Key・🎵</b>を設定し、「選択曲に適用」を押します。</li>
+                    <li>上部の編集バーで<b>担当パート・パートON/OFF・Key</b>を指定し、「選択曲に適用」を押します。</li>
                     <li>「選択曲を削除」で複数曲をまとめてマイリストから外せます。</li>
                     <li><b>「選択曲に適用」</b>を押すと、個人の変更内容が自動保存されます。</li>
                 </ul>
