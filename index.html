@@ -637,9 +637,48 @@ body.in-room #roomListPanel {display:flex}
         body, button, input, select, textarea { font-family:var(--app-font); }
         /* コード欄とURL欄は等幅を保ち、内容の読みやすさを優先する。 */
         #obsCssTextarea, #obsUrlInput { font-family:ui-monospace,Consolas,monospace; }
+
+        /* 左右のガイド付箋：メインの1300px領域を圧迫しない独立レイヤー */
+        .side-guide { position:fixed; top:175px; z-index:12; display:flex; flex-direction:column; gap:10px;
+            width:clamp(115px,calc((100vw - 1340px)/2 - 18px),178px); pointer-events:none; }
+        .side-guide--left {left:12px;} .side-guide--right {right:12px;}
+        .side-guide-card {position:relative; pointer-events:auto; padding:11px 9px 10px;
+            border:1px solid #c6ad68; border-left:4px solid #cfaa54; border-radius:3px 8px 8px 3px;
+            background:#fff6d5; color:#473d29; box-shadow:2px 4px 9px rgba(0,0,0,.19);
+            transform:rotate(-.45deg); font-size:11px; line-height:1.55; overflow-wrap:anywhere; }
+        .side-guide--right .side-guide-card {background:#ecf5f2; border-color:#92b9ae; border-left-color:#5c9f94; transform:rotate(.45deg);}
+        .side-guide-card strong {display:block; padding-right:16px; margin-bottom:4px; font-size:12px; line-height:1.45;}
+        .side-guide-card p {margin:0;} .side-guide-card [data-guide-close] {position:absolute;top:4px;right:5px;
+            padding:1px 5px; background:transparent; border:0; color:#554a39; font-size:17px; line-height:1;}
+        .side-guide-card[hidden],.side-guide[hidden] {display:none!important;}
+        #sideGuideToggle {position:fixed;z-index:25;bottom:14px;left:12px; background:#fff1bd!important;
+            color:#55401b!important;border:1px solid #c69a38!important; font-size:11px; font-weight:700;
+            padding:6px 9px; box-shadow:0 2px 8px rgba(0,0,0,.25);}
+        @media(max-width:1579px){
+            .side-guide {display:none;top:auto;bottom:55px;right:10px;left:auto;width:min(320px,calc(100vw - 20px));
+                max-height:70vh;overflow-y:auto;padding:5px;box-sizing:border-box;}
+            body.guide-drawer-open .side-guide:not([hidden]) {display:flex;}
+            #sideGuideToggle {left:10px;bottom:10px;}
+        }
+        @media(min-width:1580px){body.guides-collapsed .side-guide {display:none;}}
 </style>
 </head>
 <body>
+
+
+<!-- ガイド付箋：閉じた付箋は復元ボタンからいつでも戻せます -->
+<aside class="side-guide side-guide--left" id="guideLeft" aria-label="操作ガイド 左">
+  <section class="side-guide-card" data-guide-id="flow"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>📝 セッションの流れ</strong><p>演奏候補を「予約」→曲を決めて「確定」→演奏したら「完了」。ルーム全員にリアルタイム反映！</p></section>
+  <section class="side-guide-card" data-guide-id="key"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>🎼 Key変更のコツ</strong><p>Keyを選んでから予約すると、予約時のKeyを保持。ChordWikiリンクにも選んだKeyを反映します。マイリスト登録も同様です。</p></section>
+  <section class="side-guide-card" data-guide-id="search"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>🔎 検索のヒント</strong><p>曲名・略称（検索登録語）・アーティスト・タイアップ・作詞・作曲・編曲など、いろいろな言葉で検索できます。</p></section>
+</aside>
+<aside class="side-guide side-guide--right" id="guideRight" aria-label="操作ガイド 右">
+  <section class="side-guide-card" data-guide-id="friends"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>👥 フレンド機能</strong><p>フレンドとマイリストを共有！ 共通の登録曲を自動抽出し、お互いのKey・担当パートも確認できます。</p></section>
+  <section class="side-guide-card" data-guide-id="obs"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>📺 OBS配信</strong><p>ルーム内の「OBSカスタムCSS」から色や透明度を設定。完了曲を配信画面へ表示できます。</p></section>
+  <section class="side-guide-card" data-guide-id="parts"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>🎸 複数パート対応</strong><p>マイリストで担当楽器を複数選択OK。マルチプレイヤーの登録曲もまとめて管理できます。</p></section>
+  <section class="side-guide-card" data-guide-id="rooms"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>🤝 ルームの共通曲</strong><p>Googleログイン済みの2人以上で登録曲が重なると色付き表示。メンバー別の一覧も自由に切り替えられます。</p></section>
+</aside>
+<button type="button" id="sideGuideToggle" onclick="toggleSideGuides()" aria-controls="guideLeft guideRight">📌 付箋を隠す</button>
 
 <div class="container">
     <div class="top-area">
@@ -687,7 +726,7 @@ body.in-room #roomListPanel {display:flex}
             <div id="roomShareNotice" aria-live="polite">ルームの共有マイリストを読み込み中…</div>
         </section>
 
-        <div id="listModeIndicator" class="list-mode-indicator" role="status" aria-live="polite">📚 全曲マスター</div>
+        <div id="listModeIndicator" class="list-mode-indicator" role="status" aria-live="polite">📚 総登録楽曲数</div>
 
         <div class="controls" id="controls">
             <div class="search-row">
@@ -788,7 +827,7 @@ body.in-room #roomListPanel {display:flex}
 <div class="modal-overlay" id="myListRemovalModal" onclick="cancelMyListRemoval()">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="myListRemovalTitle" onclick="event.stopPropagation()" style="max-width:360px;">
         <h2 id="myListRemovalTitle">マイリストから解除しますか？</h2>
-        <p style="font-size:14px;line-height:1.6;overflow-wrap:anywhere;">「<strong id="myListRemovalSongName"></strong>」をマイリストから解除します。全曲マスターの楽曲は削除されません。</p>
+        <p style="font-size:14px;line-height:1.6;overflow-wrap:anywhere;">「<strong id="myListRemovalSongName"></strong>」をマイリストから解除します。全曲一覧の楽曲データは削除されません。</p>
         <div class="artist-confirm-actions">
             <button type="button" onclick="cancelMyListRemoval()">いいえ</button>
             <button type="button" class="primary-btn" onclick="confirmMyListRemoval()">はい</button>
@@ -816,7 +855,7 @@ body.in-room #roomListPanel {display:flex}
   <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
     <span class="modal-close" onclick="closeModal(null,'friendsModal')">&times;</span>
     <h2>👥 フレンド管理</h2>
-    <p style="font-size:12px;opacity:.8;">Googleログインしたユーザー同士で友達申請できます。承認済みの友達の持ち曲を閲覧できます。</p>
+    <p style="font-size:12px;opacity:.8;">Googleログインしたユーザー同士で友達申請できます。承認済みの友達のマイリストを閲覧できます。</p>
     <h3 style="font-size:15px;margin-bottom:8px;">👥 フレンド一覧</h3>
     <div id="friendsList" class="friends-section">読み込み中…</div>
     <button type="button" onclick="refreshFriendsPanel()" style="margin:8px 0 13px;">↻ 一覧を更新</button>
@@ -1168,7 +1207,7 @@ body.in-room #roomListPanel {display:flex}
     }
     function removeSelectedMySongs() {
         if (!signedInUser || !myListMode || !selectedMySongIds.size) return alert('削除する曲にチェックを入れてください。');
-        if (!confirm(`選択した${selectedMySongIds.size}曲をマイリストから削除しますか？（全曲マスターには影響しません）`)) return;
+        if (!confirm(`選択した${selectedMySongIds.size}曲をマイリストから削除しますか？（全曲一覧の楽曲データには影響しません）`)) return;
         selectedMySongIds.forEach(id=>stagePersonalSong(id,{registered:false,part:'',parts:[],liked:false,key:0,excluded:true},false));
         selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();updateMyListBar();renderTable();
     }
@@ -1419,7 +1458,7 @@ body.in-room #roomListPanel {display:flex}
     function removeFromMyList(songId) {
         if (!signedInUser || !myListMode) return;
         const song=allData.find(row=>row._id===songId);
-        if (!song || !confirm(`「${song['曲名']}」をマイリストから削除しますか？\n全曲マスターやアーティストのお気に入り登録は変更しません。\n削除内容は自動保存されます。`)) return;
+        if (!song || !confirm(`「${song['曲名']}」をマイリストから削除しますか？\n全曲一覧の楽曲データやアーティストのお気に入り登録は変更しません。\n削除内容は自動保存されます。`)) return;
         stagePersonalSong(songId,{registered:false,part:'',parts:[],liked:false,key:0,excluded:true});
     }
     function renderDetailPersonalControls(song) {
@@ -1784,7 +1823,7 @@ body.in-room #roomListPanel {display:flex}
                 roomSongScopeLoaded = true;
                 if (allData.length) renderTable();
                 const status = document.getElementById('roomStatusText');
-                status.title = 'ルーム内では全曲マスターから予約できます';
+                status.title = 'ルーム内では全曲一覧から予約できます';
             }, error => {
                 console.error('ルームの選曲元を読み込めませんでした:', error);
                 roomSongScopeLoaded = false; // マイリスト制限の読込失敗時に全曲を公開しない。
@@ -1899,14 +1938,14 @@ body.in-room #roomListPanel {display:flex}
     let currentManualPage = 1;
     const totalManualPages = 10;
     const manualData = {
-        1: { title: "📖 使い方ガイド (1/10) - はじめに", content: `<p>シェアリスコアは、楽曲検索・個人マイリスト・フレンド共有・セッションルームを使えるセットリストツールです。</p><ul><li>全曲マスターの閲覧と楽曲追加はGoogleログインなしでも利用できます。</li><li>Googleログインするとマイリスト・フレンド機能が使えます。</li><li>ゲストもルームへ参加できます（匿名認証）。</li></ul>` },
-        2: { title: "📖 使い方ガイド (2/10) - 全曲マスターで探す", content: `<ul><li>検索欄で曲名・アーティスト名などを検索します。</li><li>ジャンルで絞り込み、見出しのクリックで並べ替えます。</li><li>曲名を押すと曲の詳細やChordWikiへのリンクが開きます。</li><li>アーティスト名から絞り込み、⭐でお気に入りアーティストを保存できます（ログイン時）。</li></ul>` },
+        1: { title: "📖 使い方ガイド (1/10) - はじめに", content: `<p>シェアリスコアは、楽曲検索・個人マイリスト・フレンド共有・セッションルームを使えるセットリストツールです。</p><ul><li>全曲一覧の閲覧と楽曲追加はGoogleログインなしでも利用できます。</li><li>Googleログインするとマイリスト・フレンド機能が使えます。</li><li>ゲストもルームへ参加できます（匿名認証）。</li></ul>` },
+        2: { title: "📖 使い方ガイド (2/10) - 総登録楽曲数から探す", content: `<ul><li>検索欄で曲名・アーティスト名などを検索します。</li><li>ジャンルで絞り込み、見出しのクリックで並べ替えます。</li><li>曲名を押すと曲の詳細やChordWikiへのリンクが開きます。</li><li>アーティスト名から絞り込み、⭐でお気に入りアーティストを保存できます（ログイン時）。</li></ul>` },
         3: { title: "📖 使い方ガイド (3/10) - 曲の追加とKey", content: `<ul><li>「＋楽曲追加」を開き、曲名・アーティスト名・ChordWiki原曲URL・ジャンルなどを入力します。</li><li>登録後、公開CSVへの反映には時間がかかる場合があります。</li><li>Keyの◀ ▶は半音単位です。未登録の曲はKeyを選んだ後で「＋登録」を押すとマイリストへ保存されます。</li></ul>` },
-        4: { title: "📖 使い方ガイド (4/10) - マイリスト", content: `<ul><li>Googleログイン後、ヘッダーの「マイリスト」で持ち曲一覧に切り替わります。</li><li>「＋登録」で追加、「解除」は確認画面の「はい」で実行します。</li><li>Keyや担当パートは自動保存され、1曲に複数パートを設定できます。</li><li>楽曲詳細画面からもマイリスト登録・解除ができます。</li></ul>` },
-        5: { title: "📖 使い方ガイド (5/10) - マイリストの一括編集", content: `<ul><li>チェックボックス、Shift＋クリック（範囲）、Ctrl＋クリック（個別）で複数曲を選択します。</li><li>担当パートを指定し、パートON/OFF・Keyを選んで「選択曲に適用」を押します。</li><li>「選択曲を削除」はマイリストからの解除です。全曲マスターからは消えません。</li></ul>` },
+        4: { title: "📖 使い方ガイド (4/10) - マイリスト", content: `<ul><li>Googleログイン後、ヘッダーの「マイリスト」でマイリスト一覧に切り替わります。</li><li>「＋登録」で追加、「解除」は確認画面の「はい」で実行します。</li><li>Keyや担当パートは自動保存され、1曲に複数パートを設定できます。</li><li>楽曲詳細画面からもマイリスト登録・解除ができます。</li></ul>` },
+        5: { title: "📖 使い方ガイド (5/10) - マイリストの一括編集", content: `<ul><li>チェックボックス、Shift＋クリック（範囲）、Ctrl＋クリック（個別）で複数曲を選択します。</li><li>担当パートを指定し、パートON/OFF・Keyを選んで「選択曲に適用」を押します。</li><li>「選択曲を削除」はマイリストからの解除です。全曲一覧の楽曲データからは消えません。</li></ul>` },
         6: { title: "📖 使い方ガイド (6/10) - マイページと設定", content: `<ul><li>マイアカウント：ユーザー名・基本担当パートを登録します。</li><li>フレンド：自分のフレンドID確認・新規申請・承認・友達一覧を表示します。</li><li>設定：UIカラーテーマ、フォント変更、最新情報の再読み込みができます。</li><li>キャッシュ全消去は通常不要です。表示が古いときだけ再読み込みを試してください。</li></ul>` },
-        7: { title: "📖 使い方ガイド (7/10) - フレンド機能", content: `<ul><li>フレンドIDを相手に渡すか、相手のIDで申請します。</li><li>相手が承認すると、双方のフレンド一覧に表示されます。</li><li>「持ち曲を見る」では、相手の保存済みKey・担当パートも閲覧できます。</li><li>共通曲のみの抽出や、自分との共通曲の色付けにも対応しています。</li></ul>` },
-        8: { title: "📖 使い方ガイド (8/10) - ルームを作る・参加する", content: `<ul><li>「ルームを作る」でルームURLを発行し、仲間に共有します。</li><li>ルーム中は全曲マスターを使って予約でき、マイリスト起点でも全曲から選べます。</li><li>ゲストも参加可能です。個人マイリストの共有にはGoogleログインが必要です。</li><li>ルームを退出するとその参加者の共有リストが解除されます。</li></ul>` },
+        7: { title: "📖 使い方ガイド (7/10) - フレンド機能", content: `<ul><li>フレンドIDを相手に渡すか、相手のIDで申請します。</li><li>相手が承認すると、双方のフレンド一覧に表示されます。</li><li>「マイリストを見る」では、相手の保存済みKey・担当パートも閲覧できます。</li><li>共通曲のみの抽出や、自分との共通曲の色付けにも対応しています。</li></ul>` },
+        8: { title: "📖 使い方ガイド (8/10) - ルームを作る・参加する", content: `<ul><li>「ルームを作る」でルームURLを発行し、仲間に共有します。</li><li>ルーム中は全曲一覧を使って予約でき、マイリスト起点でも全曲から選べます。</li><li>ゲストも参加可能です。個人マイリストの共有にはGoogleログインが必要です。</li><li>ルームを退出するとその参加者の共有リストが解除されます。</li></ul>` },
         9: { title: "📖 使い方ガイド (9/10) - ルームの共通曲と演奏管理", content: `<ul><li>切り替えボタンで全曲一覧／共通曲／自分／各メンバーのマイリストを閲覧できます。</li><li>異なるGoogleログイン済みメンバー2人以上が同じ楽曲UUIDを登録すると共通曲に表示されます。</li><li>曲の詳細から登録者名・Key・担当パートを確認できます。</li><li>予約 → 確定 → 完了は全員共通でリアルタイム同期されます。</li></ul>` },
         10: { title: "📖 使い方ガイド (10/10) - OBS表示と困ったとき", content: `<ul><li>ルーム参加中だけ「OBSカスタムCSS」が表示されます。</li><li>現在のルーム専用URLをOBSのブラウザソースへ設定してください。</li><li>表示デザインは色・背景透明度を選んで「①確定」→「表示を確認」→「②CSS生成」→「③コピー」で変更できます。</li><li>OBSには「完了」の曲が演奏順で表示されます。</li><li>情報が古い場合は設定の「最新情報を再読み込み」を試してください。</li></ul>` },
     };
@@ -2122,7 +2161,7 @@ body.in-room #roomListPanel {display:flex}
             for(const other of list){
                 const [a,b]=await Promise.all([db.ref(`friendRequests/${uid}/${other}/status`).once('value'),db.ref(`friendRequests/${other}/${uid}/status`).once('value')]);
                 if(a.val()!=='accepted'&&b.val()!=='accepted')continue;
-                fr.append(friendItem(await getFriendDisplayName(other),[['📁 持ち曲を見る',()=>openFriendSharedList(other)],['解除',()=>void unfriendUser(other),true]]));
+                fr.append(friendItem(await getFriendDisplayName(other),[['📁 マイリストを見る',()=>openFriendSharedList(other)],['解除',()=>void unfriendUser(other),true]]));
             }
             if(!fr.childElementCount)fr.textContent='まだフレンドはいません。';
         }catch(err){console.error('フレンド一覧読込失敗',err);friendNotice('一覧を読み込めませんでした。Firebaseルールを確認してください。',true);}
@@ -2261,7 +2300,7 @@ body.in-room #roomListPanel {display:flex}
         friendSharedListener=snap=>{
             if (version!==friendSharedVersion || friendUser()?.uid!==u.uid) return;
             const shared=snap.val();friendSharedSongs=shared?.songs || {};
-            document.getElementById('friendSharedMeta').textContent=shared?'保存済みの持ち曲を共有中（変更は自動反映されます）':'まだ共有リストがありません。相手の再ログイン後に同期されます。';
+            document.getElementById('friendSharedMeta').textContent=shared?'保存済みのマイリストを共有中（変更は自動反映されます）':'まだ共有リストがありません。相手の再ログイン後に同期されます。';
             renderFriendSharedList();
         };
         friendSharedRef.on('value',friendSharedListener,err=>{
@@ -3084,9 +3123,9 @@ html, body { background: transparent !important; color: ${text} !important; }
         }
         const currentModeLabel = currentRoomId
             ? (roomListView==='all' ? '🌐 ルーム：全曲一覧' : roomListView==='common' ? '🤝 ルーム：2人以上の共通曲' : `📁 ルーム：${roomListView===signedInUser?.uid?'自分':roomSharedLists[roomListView]?.name||'メンバー'}のマイリスト`)
-            : myListMode ? '📁 自分のマイリスト' : '📚 全曲マスター';
+            : myListMode ? '📁 自分のマイリスト' : '📚 総登録楽曲数';
         document.getElementById('listModeIndicator').textContent = currentModeLabel;
-        songCountDisplay.textContent = `${currentModeLabel}：${filteredData.length} 曲`;
+        songCountDisplay.textContent = (!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`;
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
 
@@ -3174,6 +3213,39 @@ html, body { background: transparent !important; color: ${text} !important; }
         });
 
     }
+
+
+    /* 左右ガイド付箋：個別非表示と一括復元。保存失敗時も表示自体は継続する。 */
+    const GUIDE_STORE_KEY = 'shareliscore_guide_hidden_v1';
+    let guideHiddenIds = [];
+    try {const saved=JSON.parse(localStorage.getItem(GUIDE_STORE_KEY)||'[]');guideHiddenIds=Array.isArray(saved)?saved:[];}catch(_){guideHiddenIds=[];}
+    function updateSideGuides() {
+        document.querySelectorAll('.side-guide-card[data-guide-id]').forEach(card=>{card.hidden=guideHiddenIds.includes(card.dataset.guideId);});
+        const anyVisible=document.querySelectorAll('.side-guide-card:not([hidden])').length>0;
+        document.getElementById('guideLeft').hidden=!anyVisible;
+        document.getElementById('guideRight').hidden=!anyVisible;
+        // Hide an individual side when all of its notes were closed.
+        ['guideLeft','guideRight'].forEach(id=>{
+            const node=document.getElementById(id);node.hidden=!node.querySelector('.side-guide-card:not([hidden])');
+        });
+        const button=document.getElementById('sideGuideToggle');
+        button.textContent = guideHiddenIds.length || document.body.classList.contains('guides-collapsed') ? '📌 付箋を戻す／表示' : '📌 付箋を隠す';
+        button.setAttribute('aria-expanded',String(!document.body.classList.contains('guides-collapsed')));
+    }
+    function toggleSideGuides() {
+        if(guideHiddenIds.length){guideHiddenIds=[];try{localStorage.removeItem(GUIDE_STORE_KEY);}catch(_){} document.body.classList.remove('guides-collapsed');document.body.classList.add('guide-drawer-open');}
+        else if(matchMedia('(max-width:1579px)').matches){document.body.classList.toggle('guide-drawer-open');}
+        else{document.body.classList.toggle('guides-collapsed');}
+        updateSideGuides();
+        if (matchMedia('(max-width:1579px)').matches) document.getElementById('sideGuideToggle').textContent=document.body.classList.contains('guide-drawer-open')?'📌 付箋を隠す':'📌 付箋を表示';
+    }
+    document.querySelectorAll('[data-guide-close]').forEach(button=>button.addEventListener('click',()=>{
+        const id=button.closest('[data-guide-id]')?.dataset.guideId;
+        if(id && !guideHiddenIds.includes(id)) guideHiddenIds.push(id);
+        try{localStorage.setItem(GUIDE_STORE_KEY,JSON.stringify(guideHiddenIds));}catch(_){}
+        updateSideGuides();
+    }));
+    updateSideGuides();
 
 </script>
 
