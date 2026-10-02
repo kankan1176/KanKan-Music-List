@@ -882,7 +882,23 @@ h2 {
 
     // Googleログイン：ゲスト閲覧も可能。UIDは個人データ実装時の識別子として利用します。
     const auth = firebase.auth();
+    // Googleアカウントの利用者だけを個人マイリストのログイン済みとみなす。
+    // 匿名認証のUIDはルーム参加・操作用であり、users/{uid}へ個人情報を作成しない。
     let signedInUser = null;
+    let resolveInitialAuth;
+    const initialAuthReady = new Promise(resolve => { resolveInitialAuth = resolve; });
+    let roomAuthInFlight = null;
+    async function ensureRoomAuth() {
+        // Firebaseの保存済みGoogleログイン復元より先に匿名ログインで上書きしない。
+        await initialAuthReady;
+        if (auth.currentUser) return auth.currentUser;
+        if (!roomAuthInFlight) {
+            roomAuthInFlight = auth.signInAnonymously()
+              .then(result => result.user)
+              .finally(() => { roomAuthInFlight = null; });
+        }
+        return roomAuthInFlight;
+    }
     // 個人マイリスト: マスターのUUIDを参照し、編集は登録ボタンまで保留する。
     const PARTS = ['', '🎤', '🎸', '🥁', '🎹', '🎺', '🎻', '🪈'];
     const PART_NAMES = { '':'未登録','🎤':'ボーカル','🎸':'ギター・ベース','🥁':'ドラム・パーカッション','🎹':'鍵盤・シンセ','🎺':'木管・金管','🎻':'弦楽器','🪈':'笛・和管楽器' };
@@ -1268,7 +1284,7 @@ h2 {
         myName = cleanName;
         document.getElementById('usernameInput').value = cleanName;
         const status = document.getElementById('loginStatus');
-        if (auth.currentUser) status.textContent = cleanName;
+        if (signedInUser) status.textContent = cleanName;
         if (currentRoomId && mySessionId) {
             db.ref(`rooms/${currentRoomId}/members/${mySessionId}`)
               .update({ name: cleanName })
@@ -1288,11 +1304,24 @@ h2 {
         }
     }
     async function logoutGoogle() {
-        try { await auth.signOut(); }
-        catch (error) { console.error(error); alert('ログアウトできませんでした。'); }
+        try {
+            await auth.signOut();
+            // 入室中は再読込し、新しい匿名UIDで参加者登録を作り直す。
+            if (currentRoomId) window.location.reload();
+        } catch (error) { console.error(error); alert('ログアウトできませんでした。'); }
     }
-    auth.onAuthStateChanged(async user => {
+    auth.onAuthStateChanged(async firebaseUser => {
+        // ゲストの匿名認証はルームにのみ使う。個人機能はGoogle認証のまま。
+        const user = firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null;
         signedInUser = user;
+        if (resolveInitialAuth) { resolveInitialAuth(); resolveInitialAuth = null; }
+        // 入室中にGoogleログインへ切り替えた場合も、参加UIDを現在の認証に合わせる。
+        if (firebaseUser && typeof currentRoomId !== 'undefined' && currentRoomId &&
+            typeof mySessionId !== 'undefined' && mySessionId) {
+            db.ref(`rooms/${currentRoomId}/members/${mySessionId}`)
+              .update({uid: firebaseUser.uid, guest: !!firebaseUser.isAnonymous})
+              .catch(error => console.error('参加者の認証UID更新に失敗:', error));
+        }
         const version = ++themeLoadVersion;
         document.getElementById('loginStatus').textContent = user ? (user.displayName || user.email || 'ログイン中') : 'ゲスト利用中';
         document.getElementById('loginStatus').title = user ? (user.email || '') : '';
@@ -1349,7 +1378,7 @@ h2 {
     let myName = ''; 
     let mySessionId = ''; 
 
-    function initRoomUI() {
+    async function initRoomUI() {
         const roomWrapper = document.getElementById('roomStatusWrapper');
         const createBtn = document.getElementById('createRoomBtn');
         
@@ -1358,6 +1387,14 @@ h2 {
         document.getElementById('usernameInput').value = myName || '';
 
         if (currentRoomId) {
+            // URLからゲストが入室する場合は、データベース操作前に匿名認証を完了する。
+            let roomUser;
+            try { roomUser = await ensureRoomAuth(); }
+            catch (error) {
+                console.error('ルーム用の匿名認証に失敗:', error);
+                alert('ルームに接続できませんでした。通信状況を確認して再読み込みしてください。');
+                return false;
+            }
             document.body.classList.add('in-room');
             if (!myName) {
                 myName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（例：Gt. カンカン）");
@@ -1389,8 +1426,15 @@ h2 {
 
             mySessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
             const myMemberRef = db.ref(`rooms/${currentRoomId}/members/${mySessionId}`);
-            myMemberRef.set({ name: myName });
-            myMemberRef.onDisconnect().remove();
+            try {
+                // UIDで本人確認できるデータにする。切断時削除を登録してから参加者を書き込む。
+                await myMemberRef.onDisconnect().remove();
+                await myMemberRef.set({name: myName, uid: roomUser.uid, guest: !!roomUser.isAnonymous});
+            } catch (error) {
+                console.error('ルーム参加者の登録に失敗:', error);
+                alert('ルーム参加情報を登録できませんでした。再読み込みしてお試しください。');
+                return false;
+            }
 
             db.ref(`rooms/${currentRoomId}/members`).on('value', snap => {
                 const members = snap.val() || {};
@@ -1404,6 +1448,7 @@ h2 {
             roomWrapper.classList.remove('active');
             createBtn.style.display = 'inline-block';
         }
+        return true;
     }
 
     async function changeUsername() {
@@ -1411,10 +1456,10 @@ h2 {
         const newName = input.value.trim();
         if (!newName) { alert('ユーザー名を入力してください。'); return; }
         if (newName.length > 40) { alert('ユーザー名は40文字以内にしてください。'); return; }
-        const user = auth.currentUser;
+        const user = signedInUser;
         if (user) {
             try {
-                // Googleアカウント自体の名前は変更せず、本人のアプリ用プロフィールに保存。
+                // 匿名ゲストの表示名は端末内に保存。Google本人のみFirebaseプロフィールへ保存。
                 await db.ref(`users/${user.uid}/profile/displayName`).set(newName);
                 if (auth.currentUser?.uid !== user.uid) return;
             } catch(error) {
@@ -1431,19 +1476,18 @@ h2 {
     }
 
     async function createRoom() {
-        const source = myListMode ? 'mylist' : 'master';
-        if (source === 'mylist' && !signedInUser) return alert('マイリストからルームを作成するにはログインしてください。');
-        // ルーム作成前に自動保存の完了を待ち、選曲範囲に最新内容を反映。
-        if (source === 'mylist' && !(await saveMyListChanges())) return;
+        // 新しいルームは、作成時にどちらの一覧を開いていても全曲マスターから予約可能。
         const button = document.getElementById('createRoomBtn');
         button.disabled = true;
         try {
+            const roomUser = await ensureRoomAuth();
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let newRoomId = '';
             for (let i = 0; i < 5; i++) newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
-            const songIds = source === 'mylist' ? allData.filter(isInMyList).map(song => song._id) : [];
-            // 設定保存に成功してから移動する。参加者も同じ曲だけから選曲できる。
-            await db.ref(`rooms/${newRoomId}/settings`).set({source, songIds, createdAt: firebase.database.ServerValue.TIMESTAMP});
+            await db.ref(`rooms/${newRoomId}/settings`).set({
+                source: 'master', songIds: [], createdAt: firebase.database.ServerValue.TIMESTAMP,
+                createdByUid: roomUser.uid
+            });
             window.location.href = '?room=' + encodeURIComponent(newRoomId);
         } catch (error) {
             console.error('ルーム作成時の選曲元保存に失敗:', error);
@@ -2050,8 +2094,9 @@ h2 {
         document.getElementById('retryBtn').onclick = () => location.reload();
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        initRoomUI();
+    window.addEventListener('DOMContentLoaded', async () => {
+        // 認証・ルーム参加者登録を終えてから曲表と予約リスナーを起動。
+        if (!(await initRoomUI())) return;
 
         Papa.parse(SHEET_CSV_URL, {
             download: true,
