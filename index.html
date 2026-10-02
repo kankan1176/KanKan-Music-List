@@ -1908,6 +1908,105 @@ body.in-room #roomListPanel {display:flex}
     function isUnsetGuestName(value) {
         return !String(value || '').trim() || ['自分', 'ゲスト', '名無し'].includes(String(value).trim());
     }
+    // ゲストの名前未入力時は匿名UIDの先頭5文字のみを表示する。
+    function guestShortName(uid) { return String(uid || '').slice(0, 5) || 'ゲスト'; }
+    function roomMemberName(member) {
+        const uid = String(member?.uid || '').trim();
+        const supplied = String(member?.name || '').trim();
+        return member?.guest && (isUnsetGuestName(supplied) || (uid && supplied === uid))
+            ? guestShortName(uid) : (supplied || (member?.guest ? guestShortName(uid) : uid) || '名無し');
+    }
+    // Firestore等への移行は不要。RTDBの接続切断検知に心拍監視を併用する。
+    const ROOM_HEARTBEAT_MS = 30000;
+    const ROOM_MEMBER_TIMEOUT_MS = 180000; // 通信が3分止まった場合、参加者表示と共通曲から除外
+    const ROOM_LEGACY_TIMEOUT_MS = 600000; // 旧形式のlastSeenなし接続は参加から10分経過後に除外
+    let roomServerClockOffset = 0;
+    let roomMembersRaw = {};
+    let roomPresenceRef = null;
+    let roomPresenceConnectionRef = null;
+    let roomPresenceConnectionHandler = null;
+    let roomPresenceHeartbeatTimer = null;
+    let roomPresenceExpiryTimer = null;
+    let roomPresenceConnected = false;
+    let roomPresenceRegisterBusy = false;
+    let roomVisibleSignature = '';
+    function estimatedServerNow() { return Date.now() + roomServerClockOffset; }
+    function isFreshRoomSession(sessionId, member) {
+        if (!member || typeof member !== 'object') return false;
+        const lastSeen = Number(member.lastSeen);
+        if (Number.isFinite(lastSeen) && lastSeen > 0) {
+            return lastSeen >= estimatedServerNow() - ROOM_MEMBER_TIMEOUT_MS;
+        }
+        // 旧バージョンの接続記録には心拍がない。既知のsessionId先頭の作成時刻を利用。
+        const match = /^([0-9a-z]{8})[0-9a-z]+$/i.exec(sessionId);
+        const created = match ? parseInt(match[1], 36) : NaN;
+        if (Number.isFinite(created) && created > 1700000000000 && created < 2100000000000) {
+            return created >= estimatedServerNow() - ROOM_LEGACY_TIMEOUT_MS;
+        }
+        // 不明な旧形式の記録は勝手に削除しない。新形式はlastSeenで自動除外。
+        return true;
+    }
+    function refreshVisibleRoomMembers() {
+        const fresh = Object.fromEntries(Object.entries(roomMembersRaw || {})
+            .filter(([sessionId, member]) => isFreshRoomSession(sessionId, member)));
+        const signature = JSON.stringify(Object.entries(fresh).map(([id, m]) => [id, m.uid, m.name, m.guest]));
+        roomActiveMembers = fresh;
+        renderRoomParticipants();
+        if (signature !== roomVisibleSignature) {
+            roomVisibleSignature = signature;
+            rebuildRoomSharedLists();
+        }
+    }
+    function stopRoomPresence() {
+        if (roomPresenceHeartbeatTimer) clearInterval(roomPresenceHeartbeatTimer);
+        if (roomPresenceExpiryTimer) clearInterval(roomPresenceExpiryTimer);
+        if (roomPresenceConnectionRef && roomPresenceConnectionHandler)
+            roomPresenceConnectionRef.off('value', roomPresenceConnectionHandler);
+        roomPresenceHeartbeatTimer = roomPresenceExpiryTimer = null;
+        roomPresenceConnectionRef = roomPresenceConnectionHandler = roomPresenceRef = null;
+        roomPresenceConnected = false;
+    }
+    function startRoomPresence(memberRef, sessionId) {
+        stopRoomPresence();
+        db.ref('.info/serverTimeOffset').on('value', snapshot => {
+            roomServerClockOffset = Number(snapshot.val()) || 0;
+            refreshVisibleRoomMembers();
+        });
+        roomPresenceRef = memberRef;
+        roomPresenceConnectionRef = db.ref('.info/connected');
+        roomPresenceConnectionHandler = snapshot => {
+            roomPresenceConnected = snapshot.val() === true;
+            if (!roomPresenceConnected || mySessionId !== sessionId || !roomPresenceRef) return;
+            // onDisconnectは接続ごとに消費されるので、再接続のたびに登録し直す。
+            if (roomPresenceRegisterBusy) return;
+            roomPresenceRegisterBusy = true;
+            void (async () => {
+                try {
+                    const user = auth.currentUser;
+                    if (!user || mySessionId !== sessionId) return;
+                    await memberRef.onDisconnect().remove();
+                    if (!roomPresenceConnected || mySessionId !== sessionId) return;
+                    await memberRef.set({name: myName, uid: user.uid, guest: !!user.isAnonymous,
+                        lastSeen: firebase.database.ServerValue.TIMESTAMP});
+                } catch(error) { console.warn('ルーム接続状態の再登録に失敗:', error); }
+                finally { roomPresenceRegisterBusy = false; }
+            })();
+        };
+        roomPresenceConnectionRef.on('value', roomPresenceConnectionHandler);
+        roomPresenceHeartbeatTimer = setInterval(() => {
+            if (!roomPresenceConnected || roomPresenceRegisterBusy || mySessionId !== sessionId) return;
+            memberRef.update({lastSeen: firebase.database.ServerValue.TIMESTAMP})
+                .catch(error => console.warn('参加者の接続更新に失敗:', error));
+        }, ROOM_HEARTBEAT_MS);
+        roomPresenceExpiryTimer = setInterval(refreshVisibleRoomMembers, ROOM_HEARTBEAT_MS);
+        // アプリ内ブラウザから戻ったときは、タイマー停止中の時間を補正する。
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && roomPresenceConnected && mySessionId === sessionId) {
+                memberRef.update({lastSeen: firebase.database.ServerValue.TIMESTAMP})
+                    .catch(error => console.warn('参加状態の復帰更新に失敗:', error));
+            }
+        });
+    }
     // STEP 3-3: Room list snapshots are separate from users/{UID} private records.
     const ROOM_LIST_BASE = 'roomSharedLists';
     let roomListView = 'all'; // all | common | Google UID
@@ -1920,11 +2019,10 @@ body.in-room #roomListPanel {display:flex}
             if (!member || typeof member !== 'object') return;
             const uid = typeof member.uid === 'string' ? member.uid.trim() : '';
             const key = uid ? `uid:${uid}` : `legacy:${sessionId}`;
-            const suppliedName = String(member.name || '').trim();
-            const name = member.guest && isUnsetGuestName(suppliedName) && uid ? uid : (suppliedName || uid || '名無し');
+            const name = roomMemberName(member);
             const previous = unique.get(key);
             // 以前のタブが「自分」等の仮名を残していても、保存済み表示名を優先する。
-            const hasPersonalName = value => value && !['自分', 'ゲスト', '名無し'].includes(value);
+            const hasPersonalName = value => value && !isUnsetGuestName(value) && value !== guestShortName(uid);
             if (!previous || (!hasPersonalName(previous.name) && hasPersonalName(name))) {
                 unique.set(key, {uid, name, guest:!!member.guest});
             }
@@ -1940,9 +2038,9 @@ body.in-room #roomListPanel {display:flex}
             let label = person.name;
             if (currentUid && person.uid === currentUid) {
                 const actual = String(myName || '').trim();
-                if (!isUnsetGuestName(actual)) label = actual;
+                if (!isUnsetGuestName(actual)) label = person.guest && actual === currentUid ? guestShortName(currentUid) : actual;
                 else if (signedInUser?.displayName && isUnsetGuestName(label)) label = signedInUser.displayName;
-                else if (person.guest && isUnsetGuestName(label)) label = currentUid;
+                else if (person.guest && (isUnsetGuestName(label) || label === currentUid)) label = guestShortName(currentUid);
                 return `${label}（自分）`;
             }
             return label;
@@ -2069,7 +2167,7 @@ body.in-room #roomListPanel {display:flex}
         roomSharesListenerRef=db.ref(`${ROOM_LIST_BASE}/${currentRoomId}`);
         roomSharesListenerRef.on('value',snap=>{roomRawShares=snap.val()||{};rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;setRoomShareMessage(sharing<2 ? `現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。` : '保存済みの曲・Key・担当パートを共有中。緑色は2人以上の共通曲です。');},err=>{console.error('ルーム共有閲覧失敗',err);setRoomShareMessage('共有リストを表示できません。Firebaseルールを確認してください。');});
         roomMemberListRef=db.ref(`rooms/${currentRoomId}/members`);
-        roomMemberListRef.on('value',snap=>{roomActiveMembers=snap.val()||{};renderRoomParticipants();rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
+        roomMemberListRef.on('value',snap=>{roomMembersRaw=snap.val()||{};refreshVisibleRoomMembers();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
         startRoomOwnPublishing();
     }
     function renderRoomSongMembers(id) {
@@ -2109,9 +2207,9 @@ body.in-room #roomListPanel {display:flex}
             }
             document.body.classList.add('in-room');
             if (isUnsetGuestName(myName) || (roomUser.isAnonymous && myName === roomUser.uid && isUnsetGuestName(storedRoomName))) {
-                const enteredName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（空欄の場合はユーザーIDを表示します）");
+                const enteredName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（空欄の場合はユーザーIDの先頭5文字を表示します）");
                 // Googleログイン中の既存プロフィールは上で読み込む。匿名ゲストの未記入はUIDそのものを表示。
-                myName = String(enteredName || '').trim().slice(0,40) || roomUser.uid;
+                myName = String(enteredName || '').trim().slice(0,40) || guestShortName(roomUser.uid);
                 if (enteredName && enteredName.trim()) localStorage.setItem('kankan_username', myName);
                 else localStorage.removeItem('kankan_username');
                 document.getElementById('usernameInput').value = enteredName && enteredName.trim() ? myName : '';
@@ -2143,13 +2241,15 @@ body.in-room #roomListPanel {display:flex}
             try {
                 // UIDで本人確認できるデータにする。切断時削除を登録してから参加者を書き込む。
                 await myMemberRef.onDisconnect().remove();
-                await myMemberRef.set({name: myName, uid: roomUser.uid, guest: !!roomUser.isAnonymous});
+                await myMemberRef.set({name: myName, uid: roomUser.uid, guest: !!roomUser.isAnonymous,
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP});
             } catch (error) {
                 console.error('ルーム参加者の登録に失敗:', error);
                 alert('ルーム参加情報を登録できませんでした。再読み込みしてお試しください。');
                 return false;
             }
 
+            startRoomPresence(myMemberRef, mySessionId);
             renderRoomListTabs();
             startRoomSharedListeners();
 
@@ -2210,6 +2310,7 @@ body.in-room #roomListPanel {display:flex}
     }
 
     async function leaveRoom() {
+        stopRoomPresence();
         await removeOwnRoomShare();
         if (currentRoomId && mySessionId) {
             try { await db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).remove(); } catch(err){console.warn('退出時の参加者情報削除失敗',err);}
