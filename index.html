@@ -340,6 +340,7 @@
         #myListBulkBar button {padding:4px 7px;font-size:12px;}
         body.my-list-mode .col-select {width:43px;text-align:center;}
         .my-select-row {width:17px;height:17px;cursor:pointer;accent-color:var(--primary);}
+        body.my-list-mode tr.my-selected-row {outline:1px solid var(--border-color);outline-offset:-1px;}
         body.my-list-mode .col-delete {width:45px;text-align:center;}
 
         /* PC: 長い楽曲名・アーティスト名の折り返しを防ぎ、ジャンル幅を詰める */
@@ -436,6 +437,7 @@
         </div>
         <div id="myListBulkBar" aria-label="選択したマイリストの一括編集">
             <span id="selectedSongCount">選択：0曲</span>
+            <span title="チェックボックスまたは行で操作できます" style="opacity:.7;font-size:11px;">Shift＋クリック：範囲 / Ctrl＋クリック：個別</span>
             <button type="button" onclick="selectVisibleMySongs(true)">表示中を選択</button>
             <button type="button" onclick="selectVisibleMySongs(false)">選択解除</button>
             <select id="bulkPartSelect" aria-label="一括担当パート">
@@ -732,18 +734,45 @@ h2 {
     let roomScopedSongIds = new Set();
     const selectedMySongIds = new Set();
     let lastFilteredMySongIds = [];
+    let lastMySelectionAnchorId = null;
     function updateSelectedMySongCount() {
         document.getElementById('selectedSongCount').textContent = `選択：${selectedMySongIds.size}曲`;
+        // チェックボックス・行のハイライトを常に同じ選択状態にする。
+        tableBody.querySelectorAll('.my-select-row').forEach(input => {
+            const selected = selectedMySongIds.has(input.dataset.songId);
+            input.checked = selected;
+            input.closest('tr')?.classList.toggle('my-selected-row', selected);
+        });
     }
-    function toggleMySongSelection(id, checked) {
-        if (checked) selectedMySongIds.add(id); else selectedMySongIds.delete(id);
+    function handleMySongSelection(id, event, checked) {
+        if (!myListMode || !lastFilteredMySongIds.includes(id)) return;
+        const previousIndex = lastFilteredMySongIds.indexOf(lastMySelectionAnchorId);
+        const currentIndex = lastFilteredMySongIds.indexOf(id);
+        if (event.shiftKey && previousIndex >= 0) {
+            // 現在の表示・ソート順に沿って、最後に選んだ曲との間をまとめて追加。
+            const start = Math.min(previousIndex, currentIndex);
+            const end = Math.max(previousIndex, currentIndex);
+            lastFilteredMySongIds.slice(start, end + 1).forEach(songId => selectedMySongIds.add(songId));
+        } else if (checked === undefined) {
+            // Ctrl (MacはCommand) + 行クリック：離れた曲を追加／解除。
+            if (selectedMySongIds.has(id)) selectedMySongIds.delete(id);
+            else selectedMySongIds.add(id);
+        } else {
+            // 通常のチェック操作、Ctrl + チェック操作はいずれも個別切り替え。
+            if (checked) selectedMySongIds.add(id);
+            else selectedMySongIds.delete(id);
+        }
+        lastMySelectionAnchorId = id;
         updateSelectedMySongCount();
+    }
+    function handleMySongCheckboxClick(event, id) {
+        // Checkboxの標準動作で更新されたcheckedを利用し、Shift時のみ範囲を優先する。
+        handleMySongSelection(id, event, event.currentTarget.checked);
     }
     function selectVisibleMySongs(checked) {
         if (checked) lastFilteredMySongIds.forEach(id=>selectedMySongIds.add(id));
-        else selectedMySongIds.clear();
+        else { selectedMySongIds.clear(); lastMySelectionAnchorId = null; }
         updateSelectedMySongCount();
-        tableBody.querySelectorAll('.my-select-row').forEach(input=>input.checked=selectedMySongIds.has(input.dataset.songId));
     }
     function applyBulkMyListEdit() {
         if (!signedInUser || !myListMode || !selectedMySongIds.size) return alert('編集する曲にチェックを入れてください。');
@@ -767,7 +796,7 @@ h2 {
         if (!signedInUser || !myListMode || !selectedMySongIds.size) return alert('削除する曲にチェックを入れてください。');
         if (!confirm(`選択した${selectedMySongIds.size}曲をマイリストから削除しますか？（全曲マスターには影響しません）`)) return;
         selectedMySongIds.forEach(id=>stagePersonalSong(id,{part:'',liked:false,key:0,excluded:true},false));
-        selectedMySongIds.clear();updateSelectedMySongCount();updateMyListBar();renderTable();
+        selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();updateMyListBar();renderTable();
     }
     function toggleConfirmedArtist() {
         if (!signedInUser) return alert('先にGoogleログインしてください。');
@@ -851,7 +880,7 @@ h2 {
         const version = ++myListLoadVersion;
         myListMode = false;
         personalSongs = {}; favoriteArtists = {}; pendingSongs = {}; pendingArtists = {}; defaultPart='';
-        selectedMySongIds.clear();updateSelectedMySongCount();
+        selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();
         document.getElementById('defaultPartSelect').value='';
         document.body.classList.remove('my-list-mode');
         document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
@@ -879,7 +908,7 @@ h2 {
         // 入室後は作成時の候補曲セットを全参加者で統一するため切替不可。
         if (!signedInUser || currentRoomId) return;
         myListMode = !myListMode;
-        selectedMySongIds.clear();updateSelectedMySongCount();
+        selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();
         document.body.classList.toggle('my-list-mode',myListMode);
         document.getElementById('myListSwitchBtn').textContent = myListMode ? '📚 全曲一覧' : '📁 マイリスト';
         tableBodyWrapper.scrollTop = 0;
@@ -970,7 +999,7 @@ h2 {
             if (auth.currentUser?.uid !== user.uid) return;
             ids.forEach(id=>{personalSongs[id]=changes[`users/${user.uid}/songs/${id}`];delete pendingSongs[id];});
             artists.forEach(id=>{if(pendingArtists[id])favoriteArtists[id]=true;else delete favoriteArtists[id];delete pendingArtists[id];});
-            selectedMySongIds.clear();updateSelectedMySongCount();
+            selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();
             updateMyListBar();renderTable();
             const song=allData.find(row=>row._id===currentDetailSongId);
             if (song) renderDetailPersonalControls(song);
@@ -1384,6 +1413,16 @@ h2 {
         if (pendingArtistFilter) setArtistFilter(pendingArtistFilter);
         pendingArtistFilter = '';
     }
+    // マイリストの行は修飾キー付きクリックでも選択可能。通常クリックの詳細表示やボタンは維持。
+    tableBody.addEventListener('click', event => {
+        if (!myListMode || !(event.shiftKey || event.ctrlKey || event.metaKey)) return;
+        if (event.target.closest('.my-select-row, input, select, textarea')) return;
+        const row = event.target.closest('tr[data-my-song-id]');
+        if (!row) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        handleMySongSelection(row.dataset.mySongId, event);
+    }, true);
     tableBody.addEventListener('click', event => {
         const artistButton = event.target.closest('.artist-filter-button');
         if (!artistButton) return;
@@ -1994,6 +2033,7 @@ h2 {
         }
         songCountDisplay.textContent = `${currentRoomId ? (roomSongScopeLoaded ? (roomSongScope === 'mylist' ? 'ルーム：マイリスト限定' : 'ルーム：全曲一覧') : 'ルーム設定を読み込み中') : (myListMode ? 'マイリスト' : '全曲マスター')}：${filteredData.length} 曲`;
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
+        if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
 
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
@@ -2040,6 +2080,8 @@ h2 {
                 part:'<span style="opacity:.4">－</span>', liked:'', artist:''
             };
             if (myListMode) {
+                tr.dataset.mySongId = row._id;
+                tr.classList.toggle('my-selected-row', selectedMySongIds.has(row._id));
                 tr.innerHTML = `
                     <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
                     <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}</div></td>
@@ -2047,7 +2089,7 @@ h2 {
                     <td class="col-part nowrap-cell">${myListPartButtons(row)}</td>
                     <td class="col-liked nowrap-cell">${personalUi.liked}</td>
                     <td class="col-delete nowrap-cell"><button type="button" class="my-delete" title="マイリストから削除" aria-label="${escapeHtml(row['曲名'])}をマイリストから削除" onclick="removeFromMyList('${row._id}')">✕</button></td>
-                    <td class="col-select nowrap-cell"><input type="checkbox" class="my-select-row" data-song-id="${row._id}" aria-label="${escapeHtml(row['曲名'])}を一括編集対象に選択" onchange="toggleMySongSelection('${row._id}',this.checked)" ${selectedMySongIds.has(row._id)?'checked':''}></td>`;
+                    <td class="col-select nowrap-cell"><input type="checkbox" class="my-select-row" data-song-id="${row._id}" aria-label="${escapeHtml(row['曲名'])}を一括編集対象に選択" onclick="handleMySongCheckboxClick(event, '${row._id}')" ${selectedMySongIds.has(row._id)?'checked':''}></td>`;
             } else tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                 <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
