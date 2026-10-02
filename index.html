@@ -1668,6 +1668,8 @@ body.in-room #roomListPanel {display:flex}
         }
     }
     async function logoutGoogle() {
+        // キャンセル時はルーム共有・認証状態とも変更しない。
+        if (!window.confirm('ログアウトしますか？')) return;
         try {
             if (currentRoomId) await removeOwnRoomShare();
             await auth.signOut();
@@ -2255,34 +2257,66 @@ body.in-room #roomListPanel {display:flex}
         row.append(commands);return row;
     }
     async function refreshFriendsPanel() {
-        const user=friendUser();if(!user)return;
+        const user=friendUser(); if(!user)return;
         const uid=user.uid, seq=++friendRefreshSeq;
-        try{
-            const [incoming, outgoing, friendship]=await Promise.all([
-                db.ref(`friendRequests/${uid}`).once('value'),db.ref(`sentRequests/${uid}`).once('value'),db.ref(`friendships/${uid}`).once('value')]);
-            if(seq!==friendRefreshSeq || friendUser()?.uid!==uid)return;
-            const inc=document.getElementById('incomingFriendRequests'),out=document.getElementById('outgoingFriendRequests'),fr=document.getElementById('friendsList');
-            inc.replaceChildren();out.replaceChildren();fr.replaceChildren();
-            const received=Object.entries(incoming.val()||{}).filter(([,r])=>r?.status==='pending');
-            for(const [sender,r] of received){inc.append(friendItem(String(r.fromName||await getFriendDisplayName(sender)),[
-                ['承認',()=>void respondFriendRequest(uid,sender,r,true)],['拒否',()=>void respondFriendRequest(uid,sender,r,false),true]]));}
-            if(!received.length)inc.textContent='現在、申請はありません。';
-            const sentEntries=Object.keys(outgoing.val()||{});
-            let sentCount=0;
-            for(const target of sentEntries){
-                const s=await db.ref(`friendRequests/${target}/${uid}`).once('value');if(s.val()?.status!=='pending')continue;
-                out.append(friendItem(await getFriendDisplayName(target),[['申請中',()=>{},false]]));
-                const last=out.lastElementChild?.querySelector('button');if(last)last.disabled=true;sentCount++;
-            }
-            if(!sentCount)out.textContent='送信中の申請はありません。';
-            const list=Object.keys(friendship.val()||{}).filter(other=>other!==uid);
-            for(const other of list){
-                const [a,b]=await Promise.all([db.ref(`friendRequests/${uid}/${other}/status`).once('value'),db.ref(`friendRequests/${other}/${uid}/status`).once('value')]);
-                if(a.val()!=='accepted'&&b.val()!=='accepted')continue;
-                fr.append(friendItem(await getFriendDisplayName(other),[['📁 マイリストを見る',()=>openFriendSharedList(other)],['解除',()=>void unfriendUser(other),true]]));
-            }
-            if(!fr.childElementCount)fr.textContent='まだフレンドはいません。';
-        }catch(err){console.error('フレンド一覧読込失敗',err);friendNotice('一覧を読み込めませんでした。Firebaseルールを確認してください。',true);}
+        // Firebase の複数リスナーが続けて発火しても、最新の取得結果だけを描画する。
+        const isLatest=()=>seq===friendRefreshSeq && friendUser()?.uid===uid;
+        try {
+            const [incoming,outgoing,friendship]=await Promise.all([
+                db.ref(`friendRequests/${uid}`).once('value'),
+                db.ref(`sentRequests/${uid}`).once('value'),
+                db.ref(`friendships/${uid}`).once('value')
+            ]);
+            if(!isLatest())return;
+            const inc=document.getElementById('incomingFriendRequests');
+            const out=document.getElementById('outgoingFriendRequests');
+            const fr=document.getElementById('friendsList');
+            // 名前ではなく UID で重複排除。同じ表示名の別アカウントを誤って統合しない。
+            const acceptedUids=new Set(Object.entries(friendship.val()||{})
+                .filter(([other,active])=>other!==uid && !!active).map(([other])=>other));
+            const received=Object.entries(incoming.val()||{})
+                .filter(([sender,r])=>sender!==uid && r?.status==='pending' && !acceptedUids.has(sender));
+            const receivedRows=await Promise.all(received.map(async ([sender,r])=>
+                friendItem(String(r.fromName||await getFriendDisplayName(sender)),[
+                    ['承認',()=>void respondFriendRequest(uid,sender,r,true)],
+                    ['拒否',()=>void respondFriendRequest(uid,sender,r,false),true]
+                ])
+            ));
+            if(!isLatest())return;
+            const sentUids=[...new Set(Object.keys(outgoing.val()||{}))]
+                .filter(target=>target!==uid && !acceptedUids.has(target));
+            const sentRows=(await Promise.all(sentUids.map(async target=>{
+                const request=await db.ref(`friendRequests/${target}/${uid}`).once('value');
+                if(request.val()?.status!=='pending')return null;
+                const row=friendItem(await getFriendDisplayName(target),[['申請中',()=>{},false]]);
+                const button=row.querySelector('button');if(button)button.disabled=true;
+                return row;
+            }))).filter(Boolean);
+            if(!isLatest())return;
+            const friendRows=(await Promise.all([...acceptedUids].map(async other=>{
+                const [a,b]=await Promise.all([
+                    db.ref(`friendRequests/${uid}/${other}/status`).once('value'),
+                    db.ref(`friendRequests/${other}/${uid}/status`).once('value')
+                ]);
+                if(a.val()!=='accepted' && b.val()!=='accepted')return null;
+                return friendItem(await getFriendDisplayName(other),[
+                    ['📁 マイリストを見る',()=>openFriendSharedList(other)],
+                    ['解除',()=>void unfriendUser(other),true]
+                ]);
+            }))).filter(Boolean);
+            if(!isLatest())return;
+            // 待機中には画面へ追加せず、全データが揃ってから一度だけ置き換える。
+            inc.replaceChildren(...receivedRows);
+            out.replaceChildren(...sentRows);
+            fr.replaceChildren(...friendRows);
+            if(!receivedRows.length)inc.textContent='現在、申請はありません。';
+            if(!sentRows.length)out.textContent='送信中の申請はありません。';
+            if(!friendRows.length)fr.textContent='まだフレンドはいません。';
+        }catch(err){
+            if(!isLatest())return;
+            console.error('フレンド一覧読込失敗',err);
+            friendNotice('一覧を読み込めませんでした。Firebaseルールを確認してください。',true);
+        }
     }
     async function sendFriendRequest() {
         const user=friendUser();if(!user)return alert(FRIEND_GOOGLE_ONLY);
