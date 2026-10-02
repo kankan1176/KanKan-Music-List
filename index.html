@@ -541,6 +541,21 @@
         .friend-item .friend-commands {display:flex;gap:5px;flex-shrink:0;}
         .friend-item button {padding:4px 7px;font-size:12px;}
         .friend-item .friend-danger {border-color:#cf5360;color:#e87982;}
+
+/* STEP 3-3: Room member list selector and overlapping songs. */
+#roomListPanel {display:none; flex-shrink:0; padding:7px 9px; border:1px solid var(--border-color);border-radius:6px;background:var(--panel-bg);gap:6px;flex-direction:column}
+body.in-room #roomListPanel {display:flex}
+#roomListTabs {display:flex; flex-wrap:wrap;gap:5px;min-height:28px}
+#roomListTabs button {font-size:12px;padding:5px 9px;max-width:190px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+#roomListTabs button.active {background:var(--primary);color:var(--primary-text);border-color:var(--primary);font-weight:700}
+#roomShareNotice {font-size:11px;opacity:.78}
+#tableBody tr.room-overlap {background:color-mix(in srgb,#38b97f 16%, var(--panel-bg));box-shadow:inset 3px 0 #38b97f}
+.room-overlap-tag {display:inline-block;color:#fff;background:#247c54;padding:2px 5px;border-radius:4px;margin-left:5px;font-size:10px;white-space:nowrap}
+.room-member-attrs {font-size:10px;opacity:.8;white-space:normal}
+#detailRoomShared {display:none}
+#detailRoomMembers .member-row {padding:5px 0;border-bottom:1px dashed var(--border-color);font-size:12px}
+@media(max-width:600px){#roomListTabs button{max-width:135px} .room-overlap-tag{font-size:9px}}
+
 </style>
 </head>
 <body>
@@ -584,6 +599,11 @@
                 👥 参加中: <span id="roomMembersList">読み込み中...</span>
             </div>
         </div>
+
+        <section id="roomListPanel" aria-label="ルームのメンバー別マイリスト">
+            <div id="roomListTabs" role="group" aria-label="閲覧するリスト"></div>
+            <div id="roomShareNotice" aria-live="polite">ルームの共有マイリストを読み込み中…</div>
+        </section>
 
         <div id="listModeIndicator" class="list-mode-indicator" role="status" aria-live="polite">📚 全曲マスター</div>
 
@@ -846,6 +866,7 @@
             <a id="detailKeyLink" target="_blank" rel="noopener noreferrer">🎸 選択したKeyでChordWikiを開く ↗</a>
             <div style="font-size:11px; opacity:0.7; margin-top:6px;">自分用Keyの変更です。元のスプレッドシートのURLは変更しません。</div>
         </div>
+        <div class="detail-item" id="detailRoomShared"><b>🤝 ルーム内でこの曲を登録しているメンバー</b><div id="detailRoomMembers"></div></div>
         <div id="detailPersonalEdit" class="detail-item" style="display:none;">
             <label style="display:block;font-weight:bold;margin-bottom:7px;">マイリスト登録（本人のみ）</label>
             <div id="detailPersonalControls" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"></div>
@@ -1326,6 +1347,8 @@
     async function loginWithGoogle() {
         try {
             await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+            // 匿名UIDで入室後のGoogle切替は、古い参加セッションを切断時削除して新UIDで再入室。
+            if (currentRoomId && mySessionId) window.location.reload();
         } catch (error) {
             console.error('Googleログイン失敗:', error);
             if (error.code !== 'auth/popup-closed-by-user') {
@@ -1335,6 +1358,7 @@
     }
     async function logoutGoogle() {
         try {
+            if (currentRoomId) await removeOwnRoomShare();
             await auth.signOut();
             // 入室中は再読込し、新しい匿名UIDで参加者登録を作り直す。
             if (currentRoomId) window.location.reload();
@@ -1351,6 +1375,14 @@
             db.ref(`rooms/${currentRoomId}/members/${mySessionId}`)
               .update({uid: firebaseUser.uid, guest: !!firebaseUser.isAnonymous})
               .catch(error => console.error('参加者の認証UID更新に失敗:', error));
+        }
+        if(currentRoomId && mySessionId) {
+            if(user) {
+                // UID must be updated at members before the rule allows a fresh share to be written.
+                db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({uid:user.uid,guest:false})
+                  .then(()=>{if(auth.currentUser?.uid===user.uid){stopRoomOwnSource();startRoomOwnPublishing();}})
+                  .catch(err=>console.warn('ルーム共有の本人確認待ち',err));
+            } else {stopRoomOwnSource();}
         }
         const version = ++themeLoadVersion;
         document.getElementById('loginStatus').textContent = user ? (user.displayName || user.email || 'ログイン中') : 'ゲスト利用中';
@@ -1409,6 +1441,117 @@
     const currentRoomId = urlParams.get('room');
     let myName = ''; 
     let mySessionId = ''; 
+    // STEP 3-3: Room list snapshots are separate from users/{UID} private records.
+    const ROOM_LIST_BASE = 'roomSharedLists';
+    let roomListView = 'all'; // all | common | Google UID
+    let roomActiveMembers = {};
+    let roomRawShares = {};
+    let roomSharedLists = {};
+    let roomSharesListenerRef = null;
+    let roomMemberListRef = null;
+    let roomOwnPublishedRef = null;
+    let roomOwnSourceRef = null;
+    let roomOwnSourceHandler = null;
+    let roomShareWriteQueue = Promise.resolve();
+    let roomShareVersion = 0;
+
+    // Select the latest live session per unique Google UID; duplicate tabs count as one person.
+    function rebuildRoomSharedLists() {
+        const latest = {};
+        Object.entries(roomRawShares || {}).forEach(([session, data]) => {
+            const active = roomActiveMembers[session];
+            if (!active || !data || active.uid !== data.uid || active.guest) return;
+            const uid = data.uid;
+            if (!latest[uid] || Number(latest[uid].updatedAt || 0) < Number(data.updatedAt || 0)) {
+                latest[uid] = {name:String(data.name || active.name || 'メンバー').slice(0,40), songs:data.songs && typeof data.songs==='object' ? data.songs : {},updatedAt:data.updatedAt || 0};
+            }
+        });
+        roomSharedLists = latest;
+        if (roomListView !== 'all' && roomListView !== 'common' && !latest[roomListView]) roomListView = 'all';
+        renderRoomListTabs();
+        if (allData.length) renderTable();
+        if (currentDetailSongId) renderRoomSongMembers(currentDetailSongId);
+    }
+    function roomOwnersOfSong(id) {
+        return Object.entries(roomSharedLists).filter(([, entry]) => Object.prototype.hasOwnProperty.call(entry.songs || {},id));
+    }
+    function renderRoomListTabs() {
+        const tabs = document.getElementById('roomListTabs'); if (!tabs || !currentRoomId) return;
+        tabs.replaceChildren();
+        const add = (value,label) => {
+            const button=document.createElement('button');button.type='button';button.textContent=label;
+            button.classList.toggle('active',roomListView===value);
+            button.setAttribute('aria-pressed',String(roomListView===value));
+            button.onclick=()=>{roomListView=value;renderRoomListTabs();renderTable();tableBodyWrapper.scrollTop=0;};tabs.append(button);
+        };
+        add('all','🌐 全曲一覧');
+        Object.entries(roomSharedLists).sort((a,b)=>a[0]===signedInUser?.uid?-1:b[0]===signedInUser?.uid?1:a[1].name.localeCompare(b[1].name,'ja')).forEach(([uid,entry])=>{
+            add(uid,`📁 ${uid===signedInUser?.uid?'自分':entry.name}（${Object.keys(entry.songs||{}).length}曲）`);
+        });
+        add('common',`🤝 共通曲（${allData.filter(song=>roomOwnersOfSong(song._id).length>=2).length}曲）`);
+    }
+    function setRoomShareMessage(message) {const el=document.getElementById('roomShareNotice');if(el)el.textContent=message;}
+    function stopRoomOwnSource() {
+        if(roomOwnSourceRef && roomOwnSourceHandler)roomOwnSourceRef.off('value',roomOwnSourceHandler);
+        roomOwnSourceRef=null;roomOwnSourceHandler=null;
+    }
+    async function removeOwnRoomShare() {
+        stopRoomOwnSource();
+        const ref=roomOwnPublishedRef;roomOwnPublishedRef=null;roomShareVersion++;
+        if(ref){try{await ref.remove();}catch(e){console.warn('退出時のルーム共有リスト削除失敗。切断時削除も登録済みです',e);}}
+    }
+    function startRoomOwnPublishing() {
+        if (!currentRoomId || !mySessionId || !signedInUser || signedInUser.isAnonymous) return;
+        const uid=signedInUser.uid;
+        if (roomOwnSourceRef && roomOwnPublishedRef?.key===mySessionId) return;
+        stopRoomOwnSource();
+        const out=db.ref(`${ROOM_LIST_BASE}/${currentRoomId}/${mySessionId}`);
+        roomOwnPublishedRef=out;
+        const version=++roomShareVersion;
+        // The already-validated friend share is the saved personal snapshot; no pending edits are exposed.
+        const source=db.ref(`friendSharedLists/${uid}`);
+        roomOwnSourceRef=source;
+        const handle=snapshot=>{
+            if(version!==roomShareVersion || auth.currentUser?.uid!==uid || !mySessionId || !snapshot.exists())return;
+            const data=snapshot.val();
+            const clean={};
+            for (const [id,item] of Object.entries(data.songs||{})){
+                if (!allData.some(song=>song._id===id) || !item || typeof item!=='object') continue;
+                clean[id]={key:Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0,
+                    parts:Array.isArray(item.parts)?item.parts.filter(part=>PARTS.includes(part)&&part).slice(0,7):[]};
+            }
+            const payload={uid,name:String(myName||signedInUser.displayName||'メンバー').slice(0,40),songs:clean,updatedAt:firebase.database.ServerValue.TIMESTAMP};
+            roomShareWriteQueue=roomShareWriteQueue.catch(()=>{}).then(async()=>{
+                if (version!==roomShareVersion || auth.currentUser?.uid!==uid) return;
+                await out.onDisconnect().remove();
+                await out.set(payload);
+            }).catch(err=>{console.error('ルーム共有リスト同期失敗',err);setRoomShareMessage('共有リストの同期に失敗しました。ルールと接続を確認してください。');});
+        };
+        roomOwnSourceHandler=handle;
+        source.on('value',handle,err=>{console.warn('保存済みリスト監視失敗',err);setRoomShareMessage('自分の共有リストを読み込めませんでした。');});
+    }
+    function startRoomSharedListeners() {
+        if(!currentRoomId || roomSharesListenerRef)return;
+        roomSharesListenerRef=db.ref(`${ROOM_LIST_BASE}/${currentRoomId}`);
+        roomSharesListenerRef.on('value',snap=>{roomRawShares=snap.val()||{};rebuildRoomSharedLists();setRoomShareMessage('保存済みの曲・Key・担当パートを共有中。緑色は2人以上の共通曲です。');},err=>{console.error('ルーム共有閲覧失敗',err);setRoomShareMessage('共有リストを表示できません。Firebaseルールを確認してください。');});
+        roomMemberListRef=db.ref(`rooms/${currentRoomId}/members`);
+        roomMemberListRef.on('value',snap=>{roomActiveMembers=snap.val()||{};rebuildRoomSharedLists();});
+        startRoomOwnPublishing();
+    }
+    function renderRoomSongMembers(id) {
+        const panel=document.getElementById('detailRoomShared');const list=document.getElementById('detailRoomMembers');
+        if(!panel||!list)return;
+        panel.style.display=currentRoomId?'block':'none';if(!currentRoomId)return;
+        list.replaceChildren();
+        const matches=roomOwnersOfSong(id);
+        if (!matches.length){list.textContent='現在この曲を共有しているメンバーはいません。';return;}
+        for(const [uid,entry] of matches){
+            const item=entry.songs[id]||{};const row=document.createElement('div');row.className='member-row';
+            row.textContent=`${entry.name}${uid===signedInUser?.uid?'（自分）':''}　/　Key ${displayKey(Number(item.key)||0)}　/　${Array.isArray(item.parts)&&item.parts.length?item.parts.join(' '):'パート未設定'}`;
+            list.append(row);
+        }
+    }
+
 
     async function initRoomUI() {
         const roomWrapper = document.getElementById('roomStatusWrapper');
@@ -1447,7 +1590,7 @@
                 roomSongScopeLoaded = true;
                 if (allData.length) renderTable();
                 const status = document.getElementById('roomStatusText');
-                status.title = roomSongScope === 'mylist' ? '作成者のマイリストから選曲' : '全曲マスターから選曲';
+                status.title = 'ルーム内では全曲マスターから予約できます';
             }, error => {
                 console.error('ルームの選曲元を読み込めませんでした:', error);
                 roomSongScopeLoaded = false; // マイリスト制限の読込失敗時に全曲を公開しない。
@@ -1467,6 +1610,9 @@
                 alert('ルーム参加情報を登録できませんでした。再読み込みしてお試しください。');
                 return false;
             }
+
+            renderRoomListTabs();
+            startRoomSharedListeners();
 
             db.ref(`rooms/${currentRoomId}/members`).on('value', snap => {
                 const members = snap.val() || {};
@@ -1529,7 +1675,13 @@
         }
     }
 
-    function leaveRoom() { window.location.href = window.location.pathname; }
+    async function leaveRoom() {
+        await removeOwnRoomShare();
+        if (currentRoomId && mySessionId) {
+            try { await db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).remove(); } catch(err){console.warn('退出時の参加者情報削除失敗',err);}
+        }
+        window.location.href=window.location.pathname;
+    }
 
     function copyRoomLink() {
         const url = window.location.href;
@@ -2331,6 +2483,7 @@
 
         populateGenreButtons();
         if (signedInUser && sharedListReadyUid === signedInUser.uid) void queueFriendSharedSync(signedInUser.uid);
+        if (currentRoomId) renderRoomListTabs();
         loadingArea.style.display = 'none';
         controls.style.display = 'block';
         tableWrapper.style.display = 'flex';
@@ -2572,6 +2725,7 @@
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
         document.getElementById('detailKeyArea').style.display = chordWikiTitle(song['コードwiki']) ? 'block' : 'none';
         if (chordWikiTitle(song['コードwiki'])) renderPersonalKeyPicker(song);
+        renderRoomSongMembers(id);
         openModal('songDetailsModal');
     }
 
@@ -2581,7 +2735,7 @@
         const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
         
         let filteredData = allData.filter(row => {
-            if (currentRoomId && (!roomSongScopeLoaded || (roomSongScope === 'mylist' && !roomScopedSongIds.has(row._id)))) return false;
+            if (currentRoomId && (roomListView === 'common' ? roomOwnersOfSong(row._id).length < 2 : roomListView !== 'all' && !roomSharedLists[roomListView]?.songs?.[row._id])) return false;
             if (!currentRoomId && myListMode && !isInMyList(row)) return false;
             const g1 = (row[genre1Key] || '').trim();
             const g2 = (row[genre2Key] || '').trim();
@@ -2601,7 +2755,7 @@
             });
         }
         const currentModeLabel = currentRoomId
-            ? (!roomSongScopeLoaded ? '⌛ ルームの一覧を読み込み中' : roomSongScope === 'mylist' ? '🌐 ルーム：作成時のマイリスト限定（従来仕様）' : '🌐 ルーム：全曲一覧')
+            ? (roomListView==='all' ? '🌐 ルーム：全曲一覧' : roomListView==='common' ? '🤝 ルーム：2人以上の共通曲' : `📁 ルーム：${roomListView===signedInUser?.uid?'自分':roomSharedLists[roomListView]?.name||'メンバー'}のマイリスト`)
             : myListMode ? '📁 自分のマイリスト' : '📚 全曲マスター';
         document.getElementById('listModeIndicator').textContent = currentModeLabel;
         songCountDisplay.textContent = `${currentModeLabel}：${filteredData.length} 曲`;
@@ -2610,6 +2764,12 @@
 
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
+            const roomMatches=currentRoomId?roomOwnersOfSong(row._id):[];
+            if(roomMatches.length>=2)tr.classList.add('room-overlap');
+            const memberEntry=currentRoomId&&roomListView!=='all'&&roomListView!=='common'?roomSharedLists[roomListView]?.songs?.[row._id]:null;
+            const commonTag=roomMatches.length>=2?`<span class="room-overlap-tag">${roomMatches.length}人共通</span>`:'';
+            const memberTag=memberEntry?`<div class="room-member-attrs">担当：${escapeHtml((memberEntry.parts||[]).join(' ')||'未設定')}</div>`:'';
+
             
             let displayGenre = escapeHtml(row[genre1Key] || '-');
             if (row[genre2Key] && row[genre2Key].trim() !== '') {
@@ -2647,6 +2807,7 @@
                     <span class="table-key-value" aria-live="polite">${displayKey(currentKey)}</span>
                     <button type="button" aria-label="Keyを半音上げる" onclick="changeTableKey('${row._id}', 1)" ${currentKey >= 6 ? 'disabled' : ''}>▶</button>
                 </div>` : '<span class="no-chordwiki-label" title="コードWikiが未登録です">コードWiki無し</span>';
+            const displayRoomKey = memberEntry ? `<span class="table-key-value">${displayKey(Number(memberEntry.key)||0)}</span>` : keyPickerHtml;
             const artistName = String(row['アーティスト'] || '').trim();
             const artistLinkHtml = artistName ? `<button type="button" class="artist-filter-button" data-artist="${escapeHtml(artistName)}" title="${escapeHtml(artistName)}（クリックで絞り込み）">${escapeHtml(artistName)}</button>` : '-';
             const personalUi = signedInUser ? personalControlsHtml(row) : {
@@ -2656,18 +2817,18 @@
                 tr.dataset.mySongId = row._id;
                 tr.classList.toggle('my-selected-row', selectedMySongIds.has(row._id));
                 tr.innerHTML = `
-                    <td class="col-register nowrap-cell">${myListRegistrationButton(row)}</td>
-                    <td class="col-key nowrap-cell">${keyPickerHtml}</td>
-                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                    <td class="col-register nowrap-cell">${currentRoomId?'－':myListRegistrationButton(row)}</td>
+                    <td class="col-key nowrap-cell">${displayRoomKey}</td>
+                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
                     <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}</div></td>
                     <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                     <td class="col-genre col-sub">${displayGenre}</td>
                     <td class="col-part nowrap-cell">${myListPartButtons(row)}</td>
                     <td class="col-select nowrap-cell"><input type="checkbox" class="my-select-row" data-song-id="${row._id}" aria-label="${escapeHtml(row['曲名'])}を一括編集対象に選択" onclick="handleMySongCheckboxClick(event, '${row._id}')" ${selectedMySongIds.has(row._id)?'checked':''}></td>`;
             } else tr.innerHTML = `
-                <td class="col-register nowrap-cell">${myListRegistrationButton(row)}</td>
-                <td class="col-key nowrap-cell">${keyPickerHtml}</td>
-                <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                <td class="col-register nowrap-cell">${currentRoomId?'－':myListRegistrationButton(row)}</td>
+                <td class="col-key nowrap-cell">${displayRoomKey}</td>
+                <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
                 <td class="col-artist col-main">${artistLinkHtml}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                 <td class="col-genre col-sub">${displayGenre}</td>
