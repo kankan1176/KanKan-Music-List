@@ -1171,6 +1171,8 @@ body.in-room #roomListPanel {display:flex}
             favoriteArtists = artistsSnapshot.val() || {};
             defaultPart = PARTS.includes(partSnapshot.val()) ? partSnapshot.val() : '';
             sharedListReadyUid = user.uid;
+            // 共通曲は自分と友達の両方の「保存済み」公開リストを監視して判定する。
+            watchOwnFriendSharedSongs(user.uid);
             if (allData.length) void queueFriendSharedSync(user.uid);
             document.getElementById('defaultPartSelect').value = defaultPart;
             if (allData.length) renderTable();
@@ -1422,7 +1424,7 @@ body.in-room #roomListPanel {display:flex}
         document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
         document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
         document.getElementById('myListSwitchBtn').style.display = user && !currentRoomId ? 'inline-block' : 'none';
-        if (!user) { stopFriendsFeature(); closeFriendSharedList(); sharedListReadyUid=''; }
+        if (!user) { stopFriendsFeature(); closeFriendSharedList(); stopOwnFriendSharedSongs(); sharedListReadyUid=''; }
         document.getElementById('addSongHeaderBtn').style.display = 'inline-block';
         // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
         const nameVersion = ++usernameLoadVersion;
@@ -2057,6 +2059,38 @@ body.in-room #roomListPanel {display:flex}
     }
     // ===== STEP 3-2: 保存済みリストの共有・閲覧 =====
     let sharedListReadyUid = '';
+    let ownFriendSharedSongsRef = null;
+    let ownFriendSharedSongsListener = null;
+    let ownFriendSharedUid = '';
+    let ownSavedFriendSongIds = new Set();
+    let ownSavedFriendSongsReady = false;
+    function stopOwnFriendSharedSongs() {
+        if (ownFriendSharedSongsRef && ownFriendSharedSongsListener) ownFriendSharedSongsRef.off('value', ownFriendSharedSongsListener);
+        ownFriendSharedSongsRef = null;
+        ownFriendSharedSongsListener = null;
+        ownFriendSharedUid = '';
+        ownSavedFriendSongIds = new Set();
+        ownSavedFriendSongsReady = false;
+    }
+    function watchOwnFriendSharedSongs(uid) {
+        if (!uid || ownFriendSharedUid === uid) return;
+        stopOwnFriendSharedSongs();
+        ownFriendSharedUid = uid;
+        const ref = db.ref(`friendSharedLists/${uid}/songs`);
+        const handle = snapshot => {
+            if (ownFriendSharedUid !== uid || auth.currentUser?.uid !== uid) return;
+            ownSavedFriendSongIds = new Set(Object.keys(snapshot.val() || {}));
+            ownSavedFriendSongsReady = true;
+            if (friendSharedUid) renderFriendSharedList();
+        };
+        ownFriendSharedSongsRef = ref;
+        ownFriendSharedSongsListener = handle;
+        ref.on('value', handle, err => {
+            console.warn('自分の共有済みマイリスト監視失敗', err);
+            ownSavedFriendSongsReady = false;
+            if (friendSharedUid) document.getElementById('friendSharedMeta').textContent = '共通曲の再計算に失敗しました。再読み込みしてください。';
+        });
+    }
     let friendSharedSyncQueue = Promise.resolve();
     let friendSharedUid = '';
     let friendSharedSongs = {};
@@ -2082,7 +2116,11 @@ body.in-room #roomListPanel {display:flex}
         // 同時更新の逆転を防ぐため同じユーザーの同期を直列化。
         friendSharedSyncQueue = friendSharedSyncQueue.catch(()=>{}).then(async()=>{
             if (friendUser()?.uid !== uid || sharedListReadyUid !== uid) return;
-            try { await db.ref(`friendSharedLists/${uid}`).set(buildSavedFriendShare()); }
+            try {
+                await db.ref(`friendSharedLists/${uid}`).set(buildSavedFriendShare());
+                // 自分のリスト保存だけでも開いているフレンド画面へ反映する。
+                if (friendSharedUid) renderFriendSharedList();
+            }
             catch(err) {console.warn('フレンド向けリストの同期に失敗。個人マイリストの保存は成功しています。',err);friendNotice('フレンド向けリストの同期に失敗しました。再読み込みで再試行します。',true);}
         });
         return friendSharedSyncQueue;
@@ -2129,10 +2167,13 @@ body.in-room #roomListPanel {display:flex}
         const onlyCommon=document.getElementById('friendCommonOnly').checked;
         const sharedIds=new Set(Object.keys(friendSharedSongs));
         const rows=allData.filter(song=>sharedIds.has(song._id));
-        const common=rows.filter(song=>isInMyList(song));
-        document.getElementById('friendCommonCount').textContent=`🤝 共通 ${common.length}曲 / 全${rows.length}曲`;
+        // 自分の表示中の編集途中データではなく、Firebaseへ保存成功したリスト同士を比較する。
+        const common=rows.filter(song=>ownSavedFriendSongIds.has(song._id));
+        document.getElementById('friendCommonCount').textContent=ownSavedFriendSongsReady
+            ? `🤝 共通 ${common.length}曲 / 全${rows.length}曲`
+            : `🤝 共通曲を確認中… / 全${rows.length}曲`;
         for(const song of rows){
-            const overlaps=isInMyList(song);
+            const overlaps=ownSavedFriendSongIds.has(song._id);
             if(onlyCommon && !overlaps)continue;
             const entry=friendSharedSongs[song._id] || {};
             const row=document.createElement('div');row.className='shared-song'+(overlaps?' common':'');
