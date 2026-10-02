@@ -407,6 +407,46 @@
           #tableBody .col-action,#tableBody .col-part,#tableBody .col-select {order:6;}
           body.my-list-mode #tableBody .col-part {width:100%!important;}
         }
+
+        /* Shared six-column grid: master and mylist have identical positions.
+           No minimum table width: remaining space is allocated to the mode-specific controls. */
+        .table-body-wrapper { overflow-x: hidden; }
+        .data-table, body.my-list-mode .data-table,
+        body:not(.my-list-mode) .data-table { width:100%; min-width:0; max-width:100%; table-layout:fixed; }
+        .data-table col.col-register, body.my-list-mode .data-table col.col-register { width:10%; }
+        .data-table col.col-key, body.my-list-mode .data-table col.col-key { width:12%; }
+        .data-table col.col-title, body.my-list-mode .data-table col.col-title { width:23%; }
+        .data-table col.col-artist, body.my-list-mode .data-table col.col-artist { width:18%; }
+        .data-table col.col-bpm, body.my-list-mode .data-table col.col-bpm { width:7%; }
+        .data-table col.col-genre, body.my-list-mode .data-table col.col-genre { width:13%; }
+        .data-table col.col-action { width:17%; }
+        body.my-list-mode .data-table col.col-part { width:13%; }
+        body.my-list-mode .data-table col.col-select { width:4%; }
+        .data-table th, .data-table td { padding-left:5px; padding-right:5px; box-sizing:border-box; }
+        .data-table th.col-register { white-space:normal; line-height:1.25; text-align:center; }
+        .data-table .my-register-btn { width:100%; min-width:0; padding-left:1px; padding-right:1px; }
+        .data-table .table-key-picker { gap:2px; min-width:0; }
+        .data-table .table-key-picker button { min-width:21px; padding:4px 2px; flex:0 1 25px; }
+        .data-table .table-key-value { min-width:19px; }
+        body.my-list-mode .my-part-icons { flex-wrap:wrap; white-space:normal; gap:2px; justify-content:flex-start; }
+        body.my-list-mode .my-part-icons button { padding:3px 1px; font-size:16px; line-height:1.1; flex:0 0 auto; }
+        .data-table .col-title, .data-table .col-artist, .data-table .col-genre { overflow:hidden; }
+        .data-table th.col-part, .data-table th.col-select { white-space:normal; font-size:11px; text-align:center; }
+        .detail-part-icons { display:flex; flex-wrap:wrap; gap:5px; }
+        .detail-part-icons button { border:1px solid var(--border-color); background:var(--btn-bg); opacity:.5; padding:6px; font-size:20px; border-radius:5px; }
+        .detail-part-icons button.active { opacity:1; background:var(--btn-hover); border-color:var(--primary); }
+        @media (min-width:601px) and (max-width:1020px) {
+          .data-table th { font-size:11px; }
+          .data-table td { font-size:11px; }
+          body.my-list-mode .my-part-icons button { font-size:14px; }
+          .data-table .my-register-btn { font-size:10px; }
+        }
+        @media (max-width:600px) {
+          .table-body-wrapper { overflow-x:hidden; }
+          .table-header-wrapper .data-table, .table-body-wrapper .data-table { min-width:0!important; }
+          body.my-list-mode .my-part-icons { justify-content:flex-start; }
+          body.my-list-mode #tableBody .col-part { width:100%!important; }
+        }
 </style>
 </head>
 <body>
@@ -817,7 +857,12 @@ h2 {
         if (!part && key==='') return alert('変更する項目を選んでください。');
         selectedMySongIds.forEach(id=>{
             const patch={};
-            if (part) patch.part=part;
+            if (part) {
+                const parts=getSelectedParts(effectivePersonalSong(id));
+                if (!parts.includes(part)) parts.push(part);
+                patch.parts=parts;
+                patch.part=parts[0]||'';
+            }
             if (key!=='') patch.key=Number(key);
             // 一括KeyはChordWiki登録曲にのみ設定
             if ('key' in patch && !chordWikiTitle(allData.find(song=>song._id===id)?.['コードwiki'])) delete patch.key;
@@ -829,7 +874,7 @@ h2 {
     function removeSelectedMySongs() {
         if (!signedInUser || !myListMode || !selectedMySongIds.size) return alert('削除する曲にチェックを入れてください。');
         if (!confirm(`選択した${selectedMySongIds.size}曲をマイリストから削除しますか？（全曲マスターには影響しません）`)) return;
-        selectedMySongIds.forEach(id=>stagePersonalSong(id,{registered:false,part:'',liked:false,key:0,excluded:true},false));
+        selectedMySongIds.forEach(id=>stagePersonalSong(id,{registered:false,part:'',parts:[],liked:false,key:0,excluded:true},false));
         selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();updateMyListBar();renderTable();
     }
     function toggleConfirmedArtist() {
@@ -892,6 +937,8 @@ h2 {
     let favoriteArtists = {};
     let pendingSongs = {};
     let pendingArtists = {};
+    // 未登録曲のKeyは「＋登録」を押すまでFirebaseに保存しない。
+    let draftRegistrationKeys = {};
     let myListLoadVersion = 0;
     let currentDetailSongId = null;
     function artistDbKey(name) {
@@ -906,7 +953,7 @@ h2 {
     }
     function isInMyList(song) {
         const p = effectivePersonalSong(song._id);
-        return !p.excluded && !!(p.registered || p.part || p.liked || favoriteArtistValue(String(song['アーティスト'] || '').trim()));
+        return !p.excluded && !!(p.registered || p.part || getSelectedParts(p).length || p.liked || favoriteArtistValue(String(song['アーティスト'] || '').trim()));
     }
     // 編集後は短時間まとめて自動保存。バーや保存ボタンは表示しない。
     let autoSaveTimer = null;
@@ -921,7 +968,7 @@ h2 {
     async function loadMyListForUser(user) {
         const version = ++myListLoadVersion;
         myListMode = false;
-        personalSongs = {}; favoriteArtists = {}; pendingSongs = {}; pendingArtists = {}; defaultPart='';
+        personalSongs = {}; favoriteArtists = {}; pendingSongs = {}; pendingArtists = {}; draftRegistrationKeys = {}; defaultPart='';
         selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();
         document.getElementById('defaultPartSelect').value='';
         document.body.classList.remove('my-list-mode');
@@ -960,7 +1007,7 @@ h2 {
         if (!signedInUser) return;
         const old = effectivePersonalSong(id);
         const next = Object.assign({}, old, patch);
-        if (!Object.prototype.hasOwnProperty.call(patch,'part') && !old.part && !old.liked && !old.excluded && defaultPart) next.part=defaultPart;
+        if (!Object.prototype.hasOwnProperty.call(patch,'part') && !Object.prototype.hasOwnProperty.call(patch,'parts') && !old.part && !old.parts?.length && !old.liked && !old.excluded && defaultPart) { next.part=defaultPart; next.parts=[defaultPart]; }
         if (Object.prototype.hasOwnProperty.call(patch,'part') && patch.part && !PARTS.includes(patch.part)) return;
         if (!patch.excluded) next.excluded=false;
         if (next.key === undefined) next.key=0;
@@ -973,10 +1020,19 @@ h2 {
             if (song) renderDetailPersonalControls(song);
         }
     }
+    // Legacy `part` remains as the primary part for older clients; `parts` holds every selection.
+    function getSelectedParts(personal) {
+        const raw = Array.isArray(personal?.parts) ? personal.parts :
+            (typeof personal?.part === 'string' && personal.part ? [personal.part] : []);
+        return [...new Set(raw.filter(part => part && PARTS.includes(part)))];
+    }
     function setPersonalPart(songId, part) {
-        if (!PARTS.includes(part)) return;
-        const current=effectivePersonalSong(songId).part || '';
-        stagePersonalSong(songId,{part:myListMode && current===part?'':part});
+        if (!part || !PARTS.includes(part)) return;
+        const next=getSelectedParts(effectivePersonalSong(songId));
+        const index=next.indexOf(part);
+        if (index>=0) next.splice(index,1);
+        else next.push(part);
+        stagePersonalSong(songId,{parts:next,part:next[0]||''});
     }
     function setFavoriteArtist(songId) {
         if (!signedInUser) return;
@@ -994,14 +1050,18 @@ h2 {
     function personalControlsHtml(song) {
         const p=effectivePersonalSong(song._id);
         const artist=String(song['アーティスト'] || '').trim();
-        const part=`<select class="part-select" aria-label="担当パート" title="担当パートを選択" onchange="setPersonalPart('${song._id}',this.value)">${PARTS.map(icon=>`<option value="${icon}" ${p.part===icon?'selected':''} title="${PART_NAMES[icon]}">${icon||'－'}</option>`).join('')}</select>`;
+        const selectedParts=getSelectedParts(p);
+        const part=`<div class="detail-part-icons" aria-label="担当パートを複数選択">${PARTS.filter(Boolean).map(icon=>
+            `<button type="button" class="${selectedParts.includes(icon)?'active':''}" title="${PART_NAMES[icon]}（クリックで切替）" aria-pressed="${selectedParts.includes(icon)}" onclick="setPersonalPart('${song._id}','${icon}')">${icon}</button>`
+        ).join('')}</div>`;
         const artistButton=`<button type="button" class="personal-toggle ${favoriteArtistValue(artist)?'selected':''}" title="好きなアーティスト" aria-pressed="${favoriteArtistValue(artist)}" onclick="setFavoriteArtist('${song._id}')">🌟</button>`;
         return {part,artist:artistButton};
     }
     function myListPartButtons(song) {
         const p=effectivePersonalSong(song._id);
-        return `<div class="my-part-icons" aria-label="担当パートを選択">${PARTS.filter(Boolean).map(icon=>
-            `<button type="button" class="${p.part===icon?'active':''}" title="${PART_NAMES[icon]}（もう一度押すと解除）" aria-pressed="${p.part===icon}" onclick="setPersonalPart('${song._id}','${icon}')">${icon}</button>`
+        const selectedParts=getSelectedParts(p);
+        return `<div class="my-part-icons" aria-label="担当パートを複数選択">${PARTS.filter(Boolean).map(icon=>
+            `<button type="button" class="${selectedParts.includes(icon)?'active':''}" title="${PART_NAMES[icon]}（もう一度押すと解除）" aria-pressed="${selectedParts.includes(icon)}" onclick="setPersonalPart('${song._id}','${icon}')">${icon}</button>`
         ).join('')}</div>`;
     }
     // 曲単位の明示的なマイリスト登録。旧データのパート・お気に入り判定にも対応。
@@ -1011,11 +1071,16 @@ h2 {
         if (!song) return;
         if (isInMyList(song)) {
             // 明示的な登録解除は、旧式のアーティストお気に入り判定より優先する。
-            stagePersonalSong(songId,{registered:false,part:'',liked:false,excluded:true});
+            stagePersonalSong(songId,{registered:false,part:'',parts:[],liked:false,excluded:true});
+            delete draftRegistrationKeys[songId];
             selectedMySongIds.delete(songId);
             updateSelectedMySongCount();
         } else {
-            stagePersonalSong(songId,{registered:true,excluded:false});
+            const draftKey = draftRegistrationKeys[songId];
+            const patch = {registered:true,excluded:false};
+            if (Number.isInteger(draftKey)) patch.key = draftKey;
+            stagePersonalSong(songId,patch);
+            delete draftRegistrationKeys[songId];
         }
     }
     function myListRegistrationButton(song) {
@@ -1027,7 +1092,7 @@ h2 {
         if (!signedInUser || !myListMode) return;
         const song=allData.find(row=>row._id===songId);
         if (!song || !confirm(`「${song['曲名']}」をマイリストから削除しますか？\n全曲マスターやアーティストのお気に入り登録は変更しません。\n削除内容は自動保存されます。`)) return;
-        stagePersonalSong(songId,{registered:false,part:'',liked:false,key:0,excluded:true});
+        stagePersonalSong(songId,{registered:false,part:'',parts:[],liked:false,key:0,excluded:true});
     }
     function renderDetailPersonalControls(song) {
         const wrapper=document.getElementById('detailPersonalEdit');
@@ -1053,7 +1118,8 @@ h2 {
         if (!songs.length && !artists.length) return true;
         const changes = {};
         songs.forEach(([id,item]) => {
-            const entry = {registered:!!item.registered,part:PARTS.includes(item.part)?item.part:'',liked:!!item.liked,key:Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0};
+            const parts=getSelectedParts(item);
+            const entry = {registered:!!item.registered,part:parts[0]||'',parts,liked:!!item.liked,key:Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0};
             if (item.excluded) entry.excluded=true;
             changes[`users/${user.uid}/songs/${id}`] = entry;
         });
@@ -1563,6 +1629,10 @@ h2 {
     }
     function getPersonalKey(song) {
         if (signedInUser) {
+            // 登録前は選択中のKeyだけを画面内で保持する。
+            if (!isInMyList(song) && Object.prototype.hasOwnProperty.call(draftRegistrationKeys, song._id)) {
+                return draftRegistrationKeys[song._id];
+            }
             const entry = effectivePersonalSong(song._id);
             return Number.isInteger(entry.key) && entry.key >= -5 && entry.key <= 6 ? entry.key : 0;
         }
@@ -1586,7 +1656,16 @@ h2 {
         const song = allData.find(row => row._id === String(songId));
         if (signedInUser) {
             if (!song || !Number.isInteger(key) || key < -5 || key > 6) return;
-            stagePersonalSong(songId, { key });
+            if (isInMyList(song)) {
+                // 登録済み曲のKey変更のみ従来どおり自動保存。
+                stagePersonalSong(songId, { key });
+            } else {
+                // 未登録曲はKey選択だけではマイリストに登録・保存しない。
+                draftRegistrationKeys[songId] = key;
+                const previousScrollTop = tableBodyWrapper.scrollTop;
+                renderTable();
+                tableBodyWrapper.scrollTop = previousScrollTop;
+            }
             renderPersonalKeyPicker(song);
             return;
         }
