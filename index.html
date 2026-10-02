@@ -1860,8 +1860,10 @@ body.in-room #roomListPanel {display:flex}
                 // 読込失敗時もGoogle名でログイン機能は継続する。
             }
         } else {
-            myName = localStorage.getItem('kankan_username') || '自分';
-            document.getElementById('usernameInput').value = myName;
+            // ゲスト名が未設定なら匿名認証UIDを使う。旧版の仮名は引き継がない。
+            const guestStoredName = String(localStorage.getItem('kankan_username') || '').trim();
+            myName = isUnsetGuestName(guestStoredName) ? (firebaseUser?.isAnonymous ? firebaseUser.uid : '') : guestStoredName;
+            document.getElementById('usernameInput').value = isUnsetGuestName(guestStoredName) ? '' : guestStoredName;
         }
         document.getElementById('detailPersonalEdit').style.display = 'none';
         currentDetailSongId = null;
@@ -1902,6 +1904,10 @@ body.in-room #roomListPanel {display:flex}
     const currentRoomId = urlParams.get('room');
     let myName = ''; 
     let mySessionId = ''; 
+    // 旧版で保存された仮名も、ゲストの名前未設定として扱う。
+    function isUnsetGuestName(value) {
+        return !String(value || '').trim() || ['自分', 'ゲスト', '名無し'].includes(String(value).trim());
+    }
     // STEP 3-3: Room list snapshots are separate from users/{UID} private records.
     const ROOM_LIST_BASE = 'roomSharedLists';
     let roomListView = 'all'; // all | common | Google UID
@@ -1914,7 +1920,8 @@ body.in-room #roomListPanel {display:flex}
             if (!member || typeof member !== 'object') return;
             const uid = typeof member.uid === 'string' ? member.uid.trim() : '';
             const key = uid ? `uid:${uid}` : `legacy:${sessionId}`;
-            const name = String(member.name || '').trim() || '名無し';
+            const suppliedName = String(member.name || '').trim();
+            const name = member.guest && isUnsetGuestName(suppliedName) && uid ? uid : (suppliedName || uid || '名無し');
             const previous = unique.get(key);
             // 以前のタブが「自分」等の仮名を残していても、保存済み表示名を優先する。
             const hasPersonalName = value => value && !['自分', 'ゲスト', '名無し'].includes(value);
@@ -1933,8 +1940,9 @@ body.in-room #roomListPanel {display:flex}
             let label = person.name;
             if (currentUid && person.uid === currentUid) {
                 const actual = String(myName || '').trim();
-                if (actual && !['自分', 'ゲスト', '名無し'].includes(actual)) label = actual;
-                else if (signedInUser?.displayName && ['自分', 'ゲスト', '名無し'].includes(label)) label = signedInUser.displayName;
+                if (!isUnsetGuestName(actual)) label = actual;
+                else if (signedInUser?.displayName && isUnsetGuestName(label)) label = signedInUser.displayName;
+                else if (person.guest && isUnsetGuestName(label)) label = currentUid;
                 return `${label}（自分）`;
             }
             return label;
@@ -2084,8 +2092,11 @@ body.in-room #roomListPanel {display:flex}
         const createBtn = document.getElementById('createRoomBtn');
         
         // ログイン時の保存済みユーザー名は認証状態リスナーから非同期で復元する。
-        myName = myName || (auth.currentUser && (auth.currentUser.displayName || auth.currentUser.email?.split('@')[0])) || localStorage.getItem('kankan_username');
-        document.getElementById('usernameInput').value = myName || '';
+        const storedRoomName = String(localStorage.getItem('kankan_username') || '').trim();
+        myName = !isUnsetGuestName(myName) ? myName
+            : ((auth.currentUser && !auth.currentUser.isAnonymous && (auth.currentUser.displayName || auth.currentUser.email?.split('@')[0]))
+                || (!isUnsetGuestName(storedRoomName) ? storedRoomName : ''));
+        document.getElementById('usernameInput').value = isUnsetGuestName(myName) ? '' : myName;
 
         if (currentRoomId) {
             // URLからゲストが入室する場合は、データベース操作前に匿名認証を完了する。
@@ -2097,11 +2108,13 @@ body.in-room #roomListPanel {display:flex}
                 return false;
             }
             document.body.classList.add('in-room');
-            if (!myName) {
-                myName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（例：Gt. カンカン）");
-                if (!myName) myName = "名無し";
-                localStorage.setItem('kankan_username', myName);
-                document.getElementById('usernameInput').value = myName;
+            if (isUnsetGuestName(myName) || (roomUser.isAnonymous && myName === roomUser.uid && isUnsetGuestName(storedRoomName))) {
+                const enteredName = prompt("セッションルームで表示する『あなたの名前』を入力してください\n（空欄の場合はユーザーIDを表示します）");
+                // Googleログイン中の既存プロフィールは上で読み込む。匿名ゲストの未記入はUIDそのものを表示。
+                myName = String(enteredName || '').trim().slice(0,40) || roomUser.uid;
+                if (enteredName && enteredName.trim()) localStorage.setItem('kankan_username', myName);
+                else localStorage.removeItem('kankan_username');
+                document.getElementById('usernameInput').value = enteredName && enteredName.trim() ? myName : '';
             }
 
             roomWrapper.classList.add('active');
@@ -2143,7 +2156,7 @@ body.in-room #roomListPanel {display:flex}
 
         } else {
             document.body.classList.remove('in-room');
-            myName = myName || "自分";
+            myName = isUnsetGuestName(myName) ? (auth.currentUser?.uid || '') : myName;
             roomWrapper.classList.remove('active');
             createBtn.style.display = 'inline-block';
         }
