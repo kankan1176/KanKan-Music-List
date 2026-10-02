@@ -57,6 +57,9 @@
         #googleLoginBtn svg { width: 16px; height: 16px; flex: 0 0 16px; display: block; }
         #loginStatus { align-self: center; }
         #loginStatus.logged-in { background-color: #ffffff; color: #212529; border: 1px solid #dedede; border-radius: 6px; padding: 7px 10px; font-weight: 600; box-sizing: border-box; }
+        /* 全曲一覧・マイリスト切替ボタン共通：淡い赤 */
+        #myListSwitchBtn { background-color: #f4a6af; color: #431b23; border: 1px solid #e78f9c; font-weight: bold; }
+        #myListSwitchBtn:hover { background-color: #ed919e; color: #431b23; }
         
         button { padding: 6px 12px; background-color: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; white-space: nowrap; }
         button:hover { background-color: var(--btn-hover); color: var(--text-color); }
@@ -157,7 +160,8 @@
         body.my-list-mode .col-artist { width:21%; }
         body.my-list-mode .col-key { width:125px; }
         body.my-list-mode .col-part { width:auto; }
-        body.my-list-mode .col-liked,body.my-list-mode .col-delete { width:53px; text-align:center; }
+        body.my-list-mode .col-liked { width:68px; text-align:center; }
+        body.my-list-mode .col-delete { width:53px; text-align:center; }
         .my-part-icons { display:flex; justify-content:center; gap:2px; white-space:nowrap; }
         .my-part-icons button { border:1px solid transparent; background:transparent; padding:3px 2px; font-size:18px; opacity:.34; border-radius:5px; }
         .my-part-icons button.active { border-color:var(--primary); background:var(--btn-bg); opacity:1; }
@@ -309,8 +313,8 @@
           body:not(.my-list-mode) .col-genre {width:17%; overflow-wrap:anywhere;}
           body:not(.my-list-mode) .col-bpm {width:48px;}
           body:not(.my-list-mode) .col-key {width:120px;}
-          body:not(.my-list-mode) .col-part {width:50px;}
-          body:not(.my-list-mode) .col-liked {width:36px;}
+          body:not(.my-list-mode) .col-part {width:66px;}
+          body:not(.my-list-mode) .col-liked {width:66px;}
           body:not(.my-list-mode) th,body:not(.my-list-mode) td {padding:8px 6px;}
         }
         /* 一覧の見やすさ：曲名の左余白とKey見出し・操作の位置を統一 */
@@ -318,7 +322,7 @@
           body:not(.my-list-mode) th.col-title,
           body:not(.my-list-mode) td.col-title { padding-left:16px !important; }
         }
-        /* PCの全曲一覧：ヘッダーの「曲名」「🎤」のみ少し右へ */
+        /* PCの全曲一覧：ヘッダーの「曲名」「パート」のみ少し右へ */
         @media (min-width:601px) {
           body:not(.my-list-mode) .table-header-wrapper th.col-title { padding-left:22px !important; }
           body:not(.my-list-mode) .table-header-wrapper th.col-part { padding-left:12px !important; }
@@ -358,9 +362,9 @@
                 </button>
                 <button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
                 <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
-                <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;background:var(--primary);color:var(--primary-text);border-color:var(--primary);">📁 マイリスト</button>
+                <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;">📁 マイリスト</button>
                 <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
-                <button onclick="openAddSongModal()" style="background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 楽曲追加</button>
+                <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:none;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 楽曲追加</button>
                 <button onclick="openManualModal()" style="background-color:#ffc107;color:#212529;border:1px solid #ffc107;">📖 使い方ガイド</button>
                 <!-- ルーム参加時のみ表示。ルームを作るボタンと同じ位置の補助機能 -->
                 <button id="obsCustomCssBtn" onclick="openObsModal()" style="background-color:#6f42c1;color:white;border:none;">📺 OBSカスタムCSS</button>
@@ -447,8 +451,8 @@
                         <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
                         <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
                         <th class="col-key">Key</th>
-                        <th class="col-part" title="担当パート">🎤</th>
-                        <th class="col-liked" title="好きな曲">🎵</th>
+                        <th class="col-part" title="担当パート">パート</th>
+                        <th class="col-liked" title="好きな曲">好きな曲</th>
                     </tr>
                 </thead>
             </table>
@@ -759,7 +763,7 @@ h2 {
         <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
         <th class="sortable col-artist" onclick="handleSort('アーティスト')">アーティスト（🌟） <span class="sort-icon" id="icon-アーティスト"></span></th>
         <th class="col-key">Key</th><th class="col-part">担当パート</th>
-        <th class="col-liked" title="好きな曲">🎵</th><th class="col-delete">削除</th><th class="col-select" title="複数選択">☑</th>
+        <th class="col-liked" title="好きな曲">好きな曲</th><th class="col-delete">削除</th><th class="col-select" title="複数選択">☑</th>
     </tr></thead>`;
     let renderedMyListLayout = null;
     function ensureListLayout() {
@@ -966,6 +970,19 @@ h2 {
         document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
         document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
         document.getElementById('myListSwitchBtn').style.display = user ? 'inline-block' : 'none';
+        document.getElementById('addSongHeaderBtn').style.display = user ? 'inline-block' : 'none';
+        if (!user && document.getElementById('addSongModal').style.display === 'flex') closeModal(null, 'addSongModal');
+        if (user) {
+            const googleName = String(user.displayName || user.email?.split('@')[0] || '').trim();
+            if (googleName) {
+                myName = googleName;
+                document.getElementById('usernameInput').value = googleName;
+                if (currentRoomId && mySessionId) {
+                    db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({ name: googleName }).catch(error => console.error('ルーム表示名の更新失敗:', error));
+                    document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(googleName)})`;
+                }
+            }
+        }
         document.getElementById('detailPersonalEdit').style.display = 'none';
         currentDetailSongId = null;
         await loadMyListForUser(user);
@@ -1000,7 +1017,7 @@ h2 {
         const roomWrapper = document.getElementById('roomStatusWrapper');
         const createBtn = document.getElementById('createRoomBtn');
         
-        myName = localStorage.getItem('kankan_username');
+        myName = (auth.currentUser && (auth.currentUser.displayName || auth.currentUser.email?.split('@')[0])) || localStorage.getItem('kankan_username');
         document.getElementById('usernameInput').value = myName || '';
 
         if (currentRoomId) {
@@ -1433,6 +1450,7 @@ h2 {
     const SONG_ADD_API_URL = 'https://script.google.com/macros/s/AKfycbwAF4yXcQOM-JlRdOrLFrB1AYczZe1ks53ysx2UE1-ZgH87cjix_rHacJ55OYPzCpu5/exec';
 
     function openAddSongModal() {
+        if (!auth.currentUser) { alert('楽曲追加にはGoogleログインが必要です。'); return; }
         const genres = new Set();
         allData.forEach(row => {
             [genre1Key, genre2Key].forEach(key => {
@@ -1468,6 +1486,8 @@ h2 {
 
     async function submitNewSong(event) {
         event.preventDefault();
+        const postingUser = auth.currentUser;
+        if (!postingUser) { alert('楽曲追加にはGoogleログインが必要です。'); closeModal(null, 'addSongModal'); return; }
         const form = document.getElementById('addSongForm');
         const urlError = validateNewChordWikiUrl(newCodeUrlInput.value);
         newCodeUrlInput.setCustomValidity(urlError);
@@ -1485,8 +1505,11 @@ h2 {
             return;
         }
         submit.disabled = true;
-        feedback.textContent = '送信中です…';
+        feedback.textContent = 'ログイン状態を確認して送信中です…';
         try {
+            const idToken = await postingUser.getIdToken();
+            if (!idToken || auth.currentUser?.uid !== postingUser.uid) throw new Error('ログイン状態が変わりました');
+            data.idToken = idToken;
             // Apps Script は通常の CORS API としては利用できないため opaque 応答。
             // fetch 成功は「到達の保証」や「シートへの書込成功の確認」ではありません。
             await fetch(SONG_ADD_API_URL, {
@@ -1497,9 +1520,9 @@ h2 {
             form.reset();
             newCodeUrlInput.setCustomValidity('');
             document.getElementById('newCodeUrlCheck').textContent = '';
-            feedback.textContent = '送信しました。登録結果は直接確認できないため、しばらくしてページを再読み込みし、楽曲が追加されたか確認してください（公開CSVの更新には時間がかかる場合があります）。表示されない場合は管理者にお問い合わせください。';
+            feedback.textContent = '送信処理が終了しました。ただし書き込み結果は画面から判定できません。しばらくしてページを再読み込みし、楽曲が増えたか確認してください（公開CSVの更新には時間がかかる場合があります）。';
         } catch (error) {
-            feedback.textContent = '送信できませんでした。通信環境や設定をご確認のうえ、再度お試しください。';
+            feedback.textContent = '送信できませんでした。Googleログイン状態や通信環境を確認し、再度お試しください。';
         } finally {
             submit.disabled = false;
         }
