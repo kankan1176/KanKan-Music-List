@@ -783,17 +783,17 @@ body.in-room #roomListPanel {display:flex}
             padding:5px 19px 5px 7px; min-height:31px; border:1px solid var(--border-color);
             border-radius:5px; background:var(--btn-bg); color:var(--text-color);
             font:inherit; font-size:13px; font-weight:700; text-align:center;
-            text-align-last:center; cursor:pointer; color-scheme:dark;
+            text-align-last:left; cursor:pointer; color-scheme:dark;
         }
         body.theme-white .key-dropdown,body.theme-eva00 .key-dropdown,body.theme-eva08 .key-dropdown {color-scheme:light;}
         .key-dropdown:focus-visible {outline:2px solid var(--primary);outline-offset:2px;}
         .key-dropdown:disabled {opacity:.75; cursor:default;}
         .table-key-picker {max-width:100%;min-width:0;}
-        .table-key-picker .key-dropdown {width:min(100%,76px);margin:auto;}
+        .table-key-picker .key-dropdown {width:min(100%,108px);margin:auto;}
         #detailKeyPicker {width:100%;}
         #detailKeyPicker .key-dropdown {max-width:230px;min-height:41px;font-size:15px;}
         @media(max-width:600px) {
-          #tableBody .table-key-picker .key-dropdown {width:78px;min-height:38px;font-size:14px;}
+          #tableBody .table-key-picker .key-dropdown {width:min(100%,108px);min-height:38px;font-size:13px;}
           #detailKeyPicker .key-dropdown {max-width:100%;}
         }
 
@@ -3144,7 +3144,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     // 未設定のKeyは0。既存の保存Keyや、共有リスト所有者のKeyは保持して表示する。
     function keyDropdownOptions(selectedKey) {
         const selected = Number(selectedKey);
-        return Array.from({length:12}, (_,i) => i - 5).map(key =>
+        return Array.from({length:12}, (_,i) => 6 - i).map(key =>
             `<option value="${key}" ${key === selected ? 'selected' : ''}>${key === 0 ? '0（原曲）' : displayKey(key)}</option>`
         ).join('');
     }
@@ -3156,7 +3156,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         select.className = 'key-dropdown';
         select.setAttribute('aria-label', '自分用Keyを選択');
         select.title = '原曲Keyは0です';
-        for (let key = -5; key <= 6; key++) {
+        for (let key = 6; key >= -5; key--) {
             select.add(new Option(key === 0 ? '0（原曲）' : displayKey(key), String(key), false, key === selected));
         }
         select.onchange = () => savePersonalKey(song._id, Number(select.value));
