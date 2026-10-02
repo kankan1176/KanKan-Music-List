@@ -1778,6 +1778,7 @@ body.in-room #roomListPanel {display:flex}
     function applyUsername(name) {
         const cleanName = String(name || '').trim() || '名無し';
         myName = cleanName;
+        renderRoomParticipants();
         document.getElementById('usernameInput').value = cleanName;
         const status = document.getElementById('loginStatus');
         if (signedInUser) status.textContent = cleanName;
@@ -1815,6 +1816,8 @@ body.in-room #roomListPanel {display:flex}
         // ゲストの匿名認証はルームにのみ使う。個人機能はGoogle認証のまま。
         const user = firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null;
         signedInUser = user;
+        // Googleログイン／ログアウトによる表示名・本人判定の変更も参加者表示へ反映する。
+        if (typeof roomActiveMembers !== 'undefined') renderRoomParticipants();
         loadLanguageForUser(user);
         syncMobileNav();
         if (resolveInitialAuth) { resolveInitialAuth(); resolveInitialAuth = null; }
@@ -1903,6 +1906,41 @@ body.in-room #roomListPanel {display:flex}
     const ROOM_LIST_BASE = 'roomSharedLists';
     let roomListView = 'all'; // all | common | Google UID
     let roomActiveMembers = {};
+    // 接続はタブごとのsessionIdで保持するが、参加者表示は認証UIDごとに1人と数える。
+    // UIDを持たない過去のレコードだけは別人として扱い、同名の別アカウントは統合しない。
+    function uniqueRoomParticipants(members) {
+        const unique = new Map();
+        Object.entries(members || {}).forEach(([sessionId, member]) => {
+            if (!member || typeof member !== 'object') return;
+            const uid = typeof member.uid === 'string' ? member.uid.trim() : '';
+            const key = uid ? `uid:${uid}` : `legacy:${sessionId}`;
+            const name = String(member.name || '').trim() || '名無し';
+            const previous = unique.get(key);
+            // 以前のタブが「自分」等の仮名を残していても、保存済み表示名を優先する。
+            const hasPersonalName = value => value && !['自分', 'ゲスト', '名無し'].includes(value);
+            if (!previous || (!hasPersonalName(previous.name) && hasPersonalName(name))) {
+                unique.set(key, {uid, name, guest:!!member.guest});
+            }
+        });
+        return [...unique.values()];
+    }
+    function renderRoomParticipants() {
+        const target = document.getElementById('roomMembersList');
+        if (!target || !currentRoomId) return;
+        const people = uniqueRoomParticipants(roomActiveMembers);
+        const currentUid = auth.currentUser?.uid || '';
+        const names = people.map(person => {
+            let label = person.name;
+            if (currentUid && person.uid === currentUid) {
+                const actual = String(myName || '').trim();
+                if (actual && !['自分', 'ゲスト', '名無し'].includes(actual)) label = actual;
+                else if (signedInUser?.displayName && ['自分', 'ゲスト', '名無し'].includes(label)) label = signedInUser.displayName;
+                return `${label}（自分）`;
+            }
+            return label;
+        });
+        target.textContent = names.length ? `${names.join('、')} ｜ 計${names.length}人` : '読み込み中...';
+    }
     let roomRawShares = {};
     let roomSharedLists = {};
     let roomSharesListenerRef = null;
@@ -2023,7 +2061,7 @@ body.in-room #roomListPanel {display:flex}
         roomSharesListenerRef=db.ref(`${ROOM_LIST_BASE}/${currentRoomId}`);
         roomSharesListenerRef.on('value',snap=>{roomRawShares=snap.val()||{};rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;setRoomShareMessage(sharing<2 ? `現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。` : '保存済みの曲・Key・担当パートを共有中。緑色は2人以上の共通曲です。');},err=>{console.error('ルーム共有閲覧失敗',err);setRoomShareMessage('共有リストを表示できません。Firebaseルールを確認してください。');});
         roomMemberListRef=db.ref(`rooms/${currentRoomId}/members`);
-        roomMemberListRef.on('value',snap=>{roomActiveMembers=snap.val()||{};rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
+        roomMemberListRef.on('value',snap=>{roomActiveMembers=snap.val()||{};renderRoomParticipants();rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
         startRoomOwnPublishing();
     }
     function renderRoomSongMembers(id) {
@@ -2102,11 +2140,6 @@ body.in-room #roomListPanel {display:flex}
             renderRoomListTabs();
             startRoomSharedListeners();
 
-            db.ref(`rooms/${currentRoomId}/members`).on('value', snap => {
-                const members = snap.val() || {};
-                const names = Object.values(members).map(m => escapeHtml(m.name));
-                document.getElementById('roomMembersList').innerHTML = names.length > 0 ? names.join(' , ') : '読み込み中...';
-            });
 
         } else {
             document.body.classList.remove('in-room');
@@ -3190,10 +3223,23 @@ html, body { background: transparent !important; color: ${text} !important; }
     // =========================================
     // セッション曲管理機能
     // =========================================
+    // メンバー別リストから予約する場合は、予約者本人ではなく表示中のリスト所有者の保存Keyを引き継ぐ。
+    // 全曲一覧・共通曲はこれまでどおり予約者本人のKeyを使用する。
+    function getQueueKeyForCurrentView(song) {
+        if (currentRoomId && roomListView !== 'all' && roomListView !== 'common') {
+            const entry = roomSharedLists[roomListView]?.songs?.[song._id];
+            if (entry) {
+                const ownerKey = Number(entry.key ?? 0);
+                return Number.isInteger(ownerKey) && ownerKey >= -5 && ownerKey <= 6 ? ownerKey : 0;
+            }
+        }
+        return getPersonalKey(song);
+    }
+
     function addToQueue(songId) {
         const song = allData.find(r => r._id === String(songId));
         if (!song) return;
-        const selectedKey = getPersonalKey(song);
+        const selectedKey = getQueueKeyForCurrentView(song);
         const qId = 'q_' + Date.now() + '_' + Math.floor(Math.random()*1000);
         const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now(), keyOffset: selectedKey };
         if (currentRoomId) {
