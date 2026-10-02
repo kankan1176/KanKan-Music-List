@@ -8,6 +8,7 @@
     <!-- Firebase SDK (互換バージョン) -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <!-- PapaParse CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
@@ -171,7 +172,7 @@
 
 <div class="obs-container">
     <div class="obs-header">
-        <h2 class="obs-title">🎸 本日のセットリスト</h2>
+        <h2 class="obs-title">🎵 本日のセットリスト 🎵</h2>
         <span class="obs-counter" id="songCounter">0 曲</span>
     </div>
     <div id="obsCompletedContainer">
@@ -192,27 +193,91 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const obsAuth = firebase.auth();
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('room');
     let allSongsCache = [];
 
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?output=csv";
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?gid=0&single=true&output=csv";
 
-    // スプレッドシートから楽曲情報を取得
-    Papa.parse(SHEET_CSV_URL, {
-        download: true,
-        header: false,
-        skipEmptyLines: true,
-        encoding: "UTF-8",
-        complete: function(results) {
-            const rawData = results.data;
-            const headerIndex = rawData.findIndex(row => row.includes("曲名"));
-            if (headerIndex !== -1) {
-                const headers = rawData[headerIndex];
-                const idColumn = headers.findIndex(name => String(name).trim() === '楽曲ID');
+    // OBSはCSVとFirebase認証を並行して準備し、両方が完了したらキューを購読する。
+    // 認証が復元される前に匿名ログインを重ねないよう onAuthStateChanged を使用する。
+    let csvReady = false;
+    let authReady = false;
+    let subscribed = false;
+    let latestQueueRef = null;
+    let songById = new Map();
+    let legacySongById = new Map();
+    const noticeEl = document.getElementById('obsCompletedContainer');
+
+    function showObsError(message, error) {
+        if (error) console.error('[OBS]', message, error);
+        noticeEl.innerHTML = '<div class="empty-notice">' + escapeHtml(message) + '</div>';
+    }
+
+    function subscribeWhenReady() {
+        if (subscribed || !csvReady || !authReady || !roomId) return;
+        subscribed = true;
+        latestQueueRef = db.ref('rooms/' + roomId + '/queue');
+        latestQueueRef.on('value', (snapshot) => {
+            const queue = snapshot.val() || {};
+            const completedItems = [];
+            Object.keys(queue).forEach(qId => {
+                const item = queue[qId];
+                if (!item || item.status !== 'completed') return;
+                const id = String(item.songId ?? '');
+                const songData = songById.get(id) || (/^\d+$/.test(id) ? legacySongById.get(id) : null);
+                if (songData) completedItems.push({ ...item, songData });
+                else console.warn('[OBS] マスターで見つからない楽曲ID:', id);
+            });
+            completedItems.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+            renderObsList(completedItems);
+        }, (error) => {
+            subscribed = false;
+            showObsError('⚠️ ルームの読み込みに失敗しました。認証とFirebaseルールを確認してください。', error);
+        });
+    }
+
+    if (!roomId || !/^[A-Za-z0-9_-]{1,40}$/.test(roomId)) {
+        showObsError('⚠️ URLに正しい ?room=ルームID を指定してください。');
+    } else {
+        // 認証済みGoogleアカウントが復元された場合も、そのまま利用可能。
+        // OBS単体で未ログインの場合のみFirebase匿名認証を行う。
+        let anonymousSignInPending = false;
+        obsAuth.onAuthStateChanged(async (user) => {
+            if (user) {
+                authReady = true;
+                subscribeWhenReady();
+            } else if (!anonymousSignInPending) {
+                authReady = false;
+                anonymousSignInPending = true;
+                try {
+                    await obsAuth.signInAnonymously();
+                } catch (error) {
+                    showObsError('⚠️ OBSの匿名認証に失敗しました。Firebaseの匿名ログイン設定を確認してください。', error);
+                } finally {
+                    anonymousSignInPending = false;
+                }
+            }
+        }, error => showObsError('⚠️ Firebaseの認証状態を確認できません。', error));
+
+        Papa.parse(SHEET_CSV_URL, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            encoding: 'UTF-8',
+            complete: function(results) {
+                const rawData = results.data || [];
+                const headerIndex = rawData.findIndex(row => row.some(v => String(v).trim() === '曲名'));
+                if (headerIndex < 0) {
+                    showObsError('⚠️ 公開CSVに「曲名」列がありません。');
+                    return;
+                }
+                const headers = rawData[headerIndex].map(v => String(v).trim());
+                const idColumn = headers.indexOf('楽曲ID');
                 if (idColumn < 0) {
-                    document.getElementById('obsCompletedContainer').innerHTML = '<div class="empty-notice">⚠️ 公開CSVに「楽曲ID」列がありません</div>';
+                    showObsError('⚠️ 公開CSVに「楽曲ID」列がありません。');
                     return;
                 }
                 const rows = rawData.slice(headerIndex + 1).filter(row => row.some(cell => String(cell || '').trim()));
@@ -223,46 +288,20 @@
                     seen.add(id);
                     return false;
                 })) {
-                    document.getElementById('obsCompletedContainer').innerHTML = '<div class="empty-notice">⚠️ 楽曲IDに空欄または重複があります</div>';
+                    showObsError('⚠️ 楽曲IDに空欄または重複があります。');
                     return;
                 }
                 allSongsCache = rows.map((row, idx) => {
-                    const obj = { _id: String(row[idColumn]).trim(), _legacyId: idx.toString() };
+                    const obj = { _id: String(row[idColumn]).trim(), _legacyId: String(idx) };
                     headers.forEach((h, i) => { obj[h] = row[i] || ''; });
                     return obj;
                 });
-            }
-            if (roomId) {
-                initObsRealtimeSync();
-            } else {
-                document.getElementById('obsCompletedContainer').innerHTML = 
-                    '<div class="empty-notice">⚠️ URLに ?room=ルームID が指定されていません</div>';
-            }
-        },
-        error: function() {
-            document.getElementById('obsCompletedContainer').innerHTML = 
-                '<div class="empty-notice">⚠️ スプレッドシートの取得に失敗しました</div>';
-        }
-    });
-
-    function initObsRealtimeSync() {
-        db.ref('rooms/' + roomId + '/queue').on('value', (snapshot) => {
-            const queue = snapshot.val() || {};
-            const completedItems = [];
-
-            Object.keys(queue).forEach(qId => {
-                const item = queue[qId];
-                if (item.status === 'completed') {
-                    const songData = allSongsCache.find(r => r._id === String(item.songId)) || (/^\d+$/.test(String(item.songId)) ? allSongsCache.find(r => r._legacyId === String(item.songId)) : null);
-                    if (songData) {
-                        completedItems.push({ ...item, songData });
-                    }
-                }
-            });
-
-            // 完了順（演奏順）に並び替え
-            completedItems.sort((a, b) => a.order - b.order);
-            renderObsList(completedItems);
+                songById = new Map(allSongsCache.map(song => [song._id, song]));
+                legacySongById = new Map(allSongsCache.map(song => [song._legacyId, song]));
+                csvReady = true;
+                subscribeWhenReady();
+            },
+            error: (error) => showObsError('⚠️ スプレッドシートの取得に失敗しました。', error)
         });
     }
 
