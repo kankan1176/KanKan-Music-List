@@ -191,6 +191,36 @@
       messagingSenderId: "759342880820",
       appId: "1:759342880820:web:9af0af755e35926a281261"
     };
+    // メイン画面で①確定した配色の「表示を確認」専用プレビュー。
+    // URLをコピーした通常のOBS URLには影響せず、実際のOBSへの反映はコピーしたCSSで行う。
+    (function applyConfirmedStylePreview() {
+        const query = new URLSearchParams(window.location.search);
+        if (query.get('obsPreview') !== '1') return;
+        const frame = query.get('previewFrame');
+        const text = query.get('previewText');
+        const background = query.get('previewBg');
+        const transparencyRaw = query.get('previewOpacity');
+        const transparency = Number(transparencyRaw);
+        const validColor = value => /^#[0-9a-fA-F]{6}$/.test(value || '');
+        if (![frame, text, background].every(validColor) || transparencyRaw === null || !Number.isInteger(transparency) || transparency < 0 || transparency > 100) return;
+        const rgb = [1, 3, 5].map(i => parseInt(background.slice(i, i + 2), 16));
+        const alpha = Number(((100 - transparency) / 100).toFixed(2));
+        const bg = `rgba(${rgb.join(', ')}, ${alpha})`;
+        const previewStyle = document.createElement('style');
+        previewStyle.id = 'confirmed-obs-style-preview';
+        previewStyle.textContent = `:root {
+            --primary: ${frame}; --primary-light: ${frame};
+            --text-color: ${text}; --panel-bg: ${bg};
+        }
+        .obs-container { background:${bg} !important; border-color:${frame} !important; color:${text} !important; }
+        .obs-header { border-bottom-color:${frame} !important; }
+        .obs-title,.obs-song-title,.obs-song-artist,.empty-notice,.obs-song-info { color:${text} !important; }
+        .obs-counter { background:${frame} !important; color:${text} !important; }
+        .obs-song-item { border-left-color:${frame} !important; color:${text} !important; }
+        .obs-song-num { color:${frame} !important; }`;
+        document.head.appendChild(previewStyle);
+    })();
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const obsAuth = firebase.auth();
