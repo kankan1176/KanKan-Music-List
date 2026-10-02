@@ -598,6 +598,20 @@ body.in-room #roomListPanel {display:flex}
         .obs-copy-row { display:flex; gap:8px; flex-wrap:wrap; margin:7px 0 15px; }
         .obs-copy-row button { min-width:120px; }
         .obs-url-field { width:100%; box-sizing:border-box; }
+
+        /* OBS設定ダイアログ：配色ジェネレーター */
+        #obsModal .obs-blue-action { background:#147ded !important; border:1px solid #147ded !important; color:#fff !important; font-weight:700; }
+        #obsModal .obs-blue-action:hover { background:#0763c5 !important; border-color:#0763c5 !important; }
+        #obsModal .obs-blue-action:disabled { opacity:.45; cursor:not-allowed; }
+        #obsModal .obs-style-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 13px; margin:10px 0 12px; }
+        #obsModal .obs-style-field { display:flex; flex-direction:column; gap:5px; min-width:0; font-size:12px; font-weight:650; }
+        #obsModal input[type=color] { width:100%; height:36px; min-height:36px; box-sizing:border-box; padding:3px; border:1px solid var(--border-color); border-radius:5px; background:var(--panel-bg); cursor:pointer; }
+        #obsModal .obs-opacity-line { display:flex; align-items:center; gap:8px; }
+        #obsModal #obsBgOpacity { width:100%; flex:1; accent-color:#147ded; }
+        #obsModal #obsOpacityLabel { min-width:43px; text-align:right; font-variant-numeric:tabular-nums; }
+        #obsModal .obs-style-hint { font-size:11px; opacity:.75; margin:5px 0 8px; line-height:1.5; }
+        #obsModal .obs-style-status { font-size:12px; min-height:18px; margin:5px 0 0; }
+        @media(max-width:520px) { #obsModal .obs-style-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -807,174 +821,33 @@ body.in-room #roomListPanel {display:flex}
   </div>
 </div>
 
-<!-- OBS案内: ルーム参加中のみヘッダーボタンから開く。OBS表示本体は obs.html で独立運用。 -->
+<!-- OBS案内: ルーム参加中のみヘッダーボタンから開く。CSSはOBS「ブラウザ」ソースへ貼り付け。 -->
 <div class="modal-overlay" id="obsModal" onclick="closeModal(event, 'obsModal')">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="obsModalTitle" onclick="event.stopPropagation()" style="max-width:620px;">
     <span class="modal-close" role="button" tabindex="0" aria-label="閉じる" onclick="closeModal(null, 'obsModal')" onkeydown="if(event.key==='Enter')closeModal(null,'obsModal')">&times;</span>
     <h2 id="obsModalTitle">📺 OBSカスタムCSS</h2>
-    <p style="font-size:13px;line-height:1.6;">OBSの「ブラウザ」ソースに現在のルーム専用URLを設定してください。CSSを追加しなくても、OBS表示ページ側に基本デザインは組み込まれています。</p>
+    <p style="font-size:13px;line-height:1.6;">現在のルーム用URLをOBSの「ブラウザ」ソースに設定してください。配色を変える場合は下で色を選び、<b>確定 → CSS生成 → CSSをコピー</b>の順に操作します。</p>
     <div class="setting-group">
       <label for="obsUrlInput">現在のルーム用URL</label>
       <input id="obsUrlInput" class="setting-input obs-url-field" type="text" readonly>
-      <div class="obs-copy-row"><button class="primary-btn" type="button" onclick="copyObsUrl()">📋 URLをコピー</button><button type="button" onclick="window.open(document.getElementById('obsUrlInput').value,'_blank','noopener,noreferrer')">表示を確認</button></div>
+      <div class="obs-copy-row"><button class="obs-blue-action" type="button" onclick="copyObsUrl()">📋 URLをコピー</button><button type="button" onclick="window.open(document.getElementById('obsUrlInput').value,'_blank','noopener,noreferrer')">表示を確認</button></div>
     </div>
     <div class="setting-group">
-      <label for="obsCssTextarea">任意：OBSカスタムCSS</label>
-      <textarea id="obsCssTextarea" class="setting-input" readonly spellcheck="false">:root {
-            --bg-color: rgba(18, 18, 18, 0.88);
-            --panel-bg: rgba(26, 26, 26, 0.92);
-            --text-color: #ffffff;
-            --primary: #007bff;
-            --primary-light: #4da3ff;
-            --border-color: rgba(0, 123, 255, 0.4);
-            --item-bg: rgba(255, 255, 255, 0.06);
-            --item-hover: rgba(255, 255, 255, 0.1);
-        }
-
-        /* OBSで高さを変えても崩れないよう全体を柔軟な比率に設定 */
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 8px;
-            box-sizing: border-box;
-            background: transparent !important; /* OBSで背景透過 */
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-            overflow: hidden;
-        }
-
-        /* 外枠コンテナ：高さを100%フィットさせて追従 */
-        .obs-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--panel-bg);
-            border: 2px solid var(--primary);
-            border-radius: 10px;
-            padding: 10px 14px;
-            box-sizing: border-box;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
-        }
-
-        /* ヘッダーエリア（固定高） */
-        .obs-header {
-            flex-shrink: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 6px;
-            margin-bottom: 8px;
-        }
-
-        .obs-title {
-            margin: 0;
-            font-size: 17px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .obs-counter {
-            font-size: 13px;
-            font-weight: bold;
-            background: var(--primary);
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 12px;
-        }
-
-        /* セットリスト領域：幅800pxを活かして2列グリッドで15曲以上を綺麗に配置 */
-        #obsCompletedContainer {
-            flex-grow: 1;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-            grid-auto-rows: max-content;
-            align-content: start;
-            gap: 6px 12px;
-            overflow-y: auto;
-            padding-right: 4px;
-            box-sizing: border-box;
-        }
-
-        /* OBS上で目障りなスクロールバーを非表示にしつつスクロール可能に保持 */
-        #obsCompletedContainer::-webkit-scrollbar {
-            display: none;
-        }
-        #obsCompletedContainer {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        /* 各楽曲アイテム：高さをスリム化して多数の曲を一覧表示 */
-        .obs-song-item {
-            display: flex;
-            align-items: center;
-            background: var(--item-bg);
-            padding: 5px 8px;
-            border-radius: 5px;
-            border-left: 3px solid var(--primary);
-            font-size: 13px;
-            line-height: 1.3;
-            box-sizing: border-box;
-            min-width: 0;
-            backdrop-filter: blur(2px);
-        }
-
-        .obs-song-num {
-            font-weight: bold;
-            color: var(--primary-light);
-            font-size: 12px;
-            margin-right: 6px;
-            flex-shrink: 0;
-            width: 22px;
-            text-align: right;
-        }
-
-        .obs-song-info {
-            display: flex;
-            align-items: baseline;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex-grow: 1;
-            min-width: 0;
-        }
-
-        .obs-song-title {
-            font-weight: bold;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .obs-song-artist {
-            font-size: 11px;
-            opacity: 0.75;
-            margin-left: 6px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex-shrink: 1;
-        }
-
-        .empty-notice {
-            grid-column: 1 / -1;
-            text-align: center;
-            color: #bbb;
-            padding: 30px 10px;
-            font-size: 14px;
-            font-style: italic;
-        }
-</textarea>
-      <div class="obs-copy-row"><button type="button" onclick="copyObsCss()">📋 CSSをコピー</button></div>
+      <label>OBSに映るセットリストのデザイン</label>
+      <div class="obs-style-grid">
+        <label class="obs-style-field" for="obsFrameColor">枠色<input type="color" id="obsFrameColor" value="#007bff" oninput="invalidateObsStyle()"></label>
+        <label class="obs-style-field" for="obsTextColor">文字色<input type="color" id="obsTextColor" value="#ffffff" oninput="invalidateObsStyle()"></label>
+        <label class="obs-style-field" for="obsBackgroundColor">背景色<input type="color" id="obsBackgroundColor" value="#1a1a1a" oninput="invalidateObsStyle()"></label>
+        <label class="obs-style-field" for="obsBgOpacity">背景透明度（0%：不透明 / 100%：透明）
+          <span class="obs-opacity-line"><input type="range" id="obsBgOpacity" min="0" max="100" step="1" value="8" oninput="updateObsOpacity()"><output id="obsOpacityLabel" for="obsBgOpacity">8%</output></span>
+        </label>
+      </div>
+      <div class="obs-copy-row"><button type="button" class="obs-blue-action" id="obsConfirmStyleBtn" onclick="confirmObsStyle()">① 確定</button><button type="button" id="obsGenerateCssBtn" class="obs-blue-action" onclick="generateObsCss()" disabled>② CSS生成</button></div>
+      <p id="obsStyleStatus" class="obs-style-status" aria-live="polite">色と透明度を選択して「確定」を押してください。</p>
+      <p class="obs-style-hint">設定を変えた場合は再度「確定」してください。生成したCSSはOBSの「ブラウザ」ソースの「カスタムCSS」欄に貼り付けます。通常のブラウザの「表示を確認」には適用されません。</p>
+      <label for="obsCssTextarea">生成されたOBSカスタムCSS</label>
+      <textarea id="obsCssTextarea" class="setting-input" readonly spellcheck="false" placeholder="「確定」→「CSS生成」を押すとここに出力されます。"></textarea>
+      <div class="obs-copy-row"><button class="obs-blue-action" type="button" id="obsCopyCssBtn" onclick="copyObsCss()" disabled>③ 📋 CSSをコピー</button></div>
     </div>
   </div>
 </div>
@@ -2436,13 +2309,74 @@ body.in-room #roomListPanel {display:flex}
             case 'manual': openManualModal(); break;
         }
     }
+    let confirmedObsStyle = null;
+    function updateObsOpacity() {
+        document.getElementById('obsOpacityLabel').textContent = document.getElementById('obsBgOpacity').value + '%';
+        invalidateObsStyle();
+    }
+    function invalidateObsStyle() {
+        confirmedObsStyle = null;
+        const generate = document.getElementById('obsGenerateCssBtn');
+        const copy = document.getElementById('obsCopyCssBtn');
+        generate.disabled = true;
+        copy.disabled = true;
+        document.getElementById('obsCssTextarea').value = '';
+        document.getElementById('obsStyleStatus').textContent = '設定が変更されました。「確定」を押してください。';
+    }
     function openObsModal() {
         if (!currentRoomId || !document.body.classList.contains('in-room')) return;
         const obsUrl = new URL('obs.html', window.location.href);
         obsUrl.search = new URLSearchParams({room:currentRoomId}).toString();
         obsUrl.hash = '';
         document.getElementById('obsUrlInput').value = obsUrl.href;
+        document.getElementById('obsOpacityLabel').textContent = document.getElementById('obsBgOpacity').value + '%';
         openModal('obsModal');
+    }
+    function confirmObsStyle() {
+        const frame = document.getElementById('obsFrameColor').value;
+        const text = document.getElementById('obsTextColor').value;
+        const background = document.getElementById('obsBackgroundColor').value;
+        const transparency = Number(document.getElementById('obsBgOpacity').value);
+        if (![frame,text,background].every(s => /^#[0-9a-fA-F]{6}$/.test(s)) || !Number.isFinite(transparency) || transparency < 0 || transparency > 100) {
+            document.getElementById('obsStyleStatus').textContent = '配色設定を確認してください。';
+            return;
+        }
+        confirmedObsStyle = {frame,text,background,transparency};
+        document.getElementById('obsGenerateCssBtn').disabled = false;
+        document.getElementById('obsCopyCssBtn').disabled = true;
+        document.getElementById('obsCssTextarea').value = '';
+        document.getElementById('obsStyleStatus').textContent = '配色を確定しました。次に「CSS生成」を押してください。';
+    }
+    function generateObsCss() {
+        if (!confirmedObsStyle) return;
+        const {frame,text,background,transparency} = confirmedObsStyle;
+        const n = [1,3,5].map(i => parseInt(background.slice(i,i+2),16));
+        const alpha = Number(((100-transparency)/100).toFixed(2));
+        const bg = `rgba(${n[0]}, ${n[1]}, ${n[2]}, ${alpha})`;
+        // OBSの既定スタイルを上書き。ブラウザソースのカスタムCSS欄に貼り付ける。
+        const stylesheet = `/* シェアリスコア：OBSカスタムCSS（自動生成） */
+:root {
+  --primary: ${frame} !important;
+  --primary-light: ${frame} !important;
+  --text-color: ${text} !important;
+  --panel-bg: ${bg} !important;
+}
+html, body { background: transparent !important; color: ${text} !important; }
+.obs-container {
+  background: ${bg} !important;
+  border-color: ${frame} !important;
+  color: ${text} !important;
+}
+.obs-header { border-bottom-color: ${frame} !important; }
+.obs-title, .obs-song-title, .obs-song-artist,
+.empty-notice, .obs-song-info { color: ${text} !important; }
+.obs-counter { background: ${frame} !important; color: ${text} !important; }
+.obs-song-item { border-left-color: ${frame} !important; color: ${text} !important; }
+.obs-song-num { color: ${frame} !important; }
+/* 背景透明度：${transparency}% */`;
+        document.getElementById('obsCssTextarea').value = stylesheet;
+        document.getElementById('obsCopyCssBtn').disabled = false;
+        document.getElementById('obsStyleStatus').textContent = 'CSSを生成しました。「CSSをコピー」してOBSに貼り付けてください。';
     }
     async function copyObsText(text, inputId) {
         try {
