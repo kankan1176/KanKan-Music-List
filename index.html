@@ -516,13 +516,11 @@
 
 
         /* マイページ: ヘッダーの入口を一つに統合。テーマ色とスマホ幅に追従。 */
-        #myListSwitchBtn { display:none !important; } /* 旧ボタンは既存状態同期のためDOMに保持 */
         #myPageBtn { font-weight:700; background:var(--btn-bg); border-color:var(--primary); color:var(--text-color); }
         #myPageBtn:hover { background:var(--btn-hover); }
         .mypage-menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
         .mypage-menu button { width:100%; min-width:0; padding:13px 8px; text-align:left; font-size:14px; line-height:1.4; white-space:normal; background:var(--btn-bg); }
         .mypage-menu button:hover { border-color:var(--primary); background:var(--btn-hover); }
-        #myPageMasterBtn { margin-top:12px; width:100%; }
         #myPageAccountHint { margin:0 0 14px; font-size:12px; opacity:.85; overflow-wrap:anywhere; }
         @media(max-width:380px) { .mypage-menu {grid-template-columns:1fr;} }
 
@@ -555,12 +553,12 @@
                     </svg>
                     <span>Googleでログイン</span>
                 </button>
-                <button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
                 <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
                 <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;">📁 マイリスト</button>
                 <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
                 <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 楽曲追加</button>
                 <button id="myPageBtn" type="button" onclick="openMyPage()" aria-haspopup="dialog" aria-controls="myPageModal">👤 マイページ</button>
+                <button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
             </div>
         </div>
         
@@ -693,12 +691,10 @@
     <h2 id="myPageTitle">👤 マイページ</h2>
     <p id="myPageAccountHint"></p>
     <div class="mypage-menu">
-      <button type="button" onclick="openMyPageSection('mylist')">📁 マイリスト</button>
       <button type="button" onclick="openMyPageSection('friends')">👥 フレンド</button>
       <button type="button" onclick="openMyPageSection('settings')">⚙️ 設定</button>
       <button type="button" onclick="openMyPageSection('manual')">📖 使い方ガイド</button>
     </div>
-    <button id="myPageMasterBtn" type="button" onclick="openMyPageSection('master')" style="display:none;">📚 全曲マスターに戻る</button>
   </div>
 </div>
 
@@ -1854,25 +1850,18 @@
     // マイページはナビゲーション専用。個人マイリスト・フレンド・設定の保存形式は変更しない。
     function openMyPage() {
         const hint = document.getElementById('myPageAccountHint');
-        if (!signedInUser) hint.textContent = 'ゲスト利用中：マイリスト・フレンドはGoogleログイン後に利用できます。';
-        else if (currentRoomId) hint.textContent = 'ルーム参加中：マイリストの切り替えは退出後に利用できます。';
+        if (!signedInUser) hint.textContent = 'ゲスト利用中：フレンドはGoogleログイン後に利用できます。';
+        else if (currentRoomId) hint.textContent = 'ルーム参加中です。';
         else hint.textContent = `${signedInUser.displayName || signedInUser.email || 'Googleログイン中'} でログイン中`;
-        document.getElementById('myPageMasterBtn').style.display = signedInUser && !currentRoomId && myListMode ? 'block' : 'none';
         openModal('myPageModal');
     }
     function openMyPageSection(section) {
-        if ((section === 'mylist' || section === 'friends') && !signedInUser) {
+        if (section === 'friends' && !signedInUser) {
             alert('この機能はGoogleログインが必要です。');
-            return;
-        }
-        if ((section === 'mylist' || section === 'master') && currentRoomId) {
-            alert('ルーム参加中は個人リストへ切り替えられません。退出後に利用してください。');
             return;
         }
         closeModal(null,'myPageModal');
         switch (section) {
-            case 'mylist': if (!myListMode) toggleMyList(); break;
-            case 'master': if (myListMode) toggleMyList(); break;
             case 'friends': openFriendsModal(); break;
             case 'settings': openModal('settingsModal'); break;
             case 'manual': openManualModal(); break;
