@@ -145,6 +145,9 @@
         .personal-toggle:hover { opacity:1; background:var(--btn-hover); }
         .part-select { width:48px; padding:5px 1px; font-size:17px; text-align:center; font-family:inherit; cursor:pointer; }
         #myListSaveBar { display:none; flex-shrink:0; align-items:center; justify-content:space-between; gap:9px; padding:7px 10px; background:var(--panel-bg); border:1px solid var(--primary); border-radius:6px; font-size:12px; }
+        /* マイリストの保存通知は最初から場所を予約し、出現時に曲一覧を押し下げない。 */
+        body.my-list-mode #myListSaveBar { display:flex; visibility:hidden; pointer-events:none; }
+        body.my-list-mode #myListSaveBar.active { visibility:visible; pointer-events:auto; }
         #myListSaveBar.active { display:flex; }
         #myListSaveBar button { background:var(--primary); color:var(--primary-text); font-weight:bold; }
         .my-list-mode #songCountDisplay { color:var(--primary); }
@@ -722,6 +725,11 @@ h2 {
     const PARTS = ['', '🎤', '🎸', '🥁', '🎹', '🎺', '🎻', '🪈'];
     const PART_NAMES = { '':'未登録','🎤':'ボーカル','🎸':'ギター・ベース','🥁':'ドラム・パーカッション','🎹':'鍵盤・シンセ','🎺':'木管・金管','🎻':'弦楽器','🪈':'笛・和管楽器' };
     let myListMode = false;
+    // ルーム作成時の選曲元をルームの共有設定として固定する。
+    // マイリストの曲IDのみ共有し、個人のパート・お気に入り情報は共有しない。
+    let roomSongScopeLoaded = !new URLSearchParams(window.location.search).has('room');
+    let roomSongScope = 'master';
+    let roomScopedSongIds = new Set();
     const selectedMySongIds = new Set();
     let lastFilteredMySongIds = [];
     function updateSelectedMySongCount() {
@@ -868,7 +876,8 @@ h2 {
         }
     }
     function toggleMyList() {
-        if (!signedInUser) return;
+        // 入室後は作成時の候補曲セットを全参加者で統一するため切替不可。
+        if (!signedInUser || currentRoomId) return;
         myListMode = !myListMode;
         selectedMySongIds.clear();updateSelectedMySongCount();
         document.body.classList.toggle('my-list-mode',myListMode);
@@ -1009,7 +1018,7 @@ h2 {
         document.getElementById('loginStatus').classList.toggle('logged-in', !!user);
         document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
         document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
-        document.getElementById('myListSwitchBtn').style.display = user ? 'inline-block' : 'none';
+        document.getElementById('myListSwitchBtn').style.display = user && !currentRoomId ? 'inline-block' : 'none';
         document.getElementById('addSongHeaderBtn').style.display = 'inline-block';
         // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
         const nameVersion = ++usernameLoadVersion;
@@ -1077,6 +1086,23 @@ h2 {
             }
 
             roomWrapper.classList.add('active');
+            // ルーム中は共有候補曲の表示に統一し、個人用の編集UIを出さない。
+            myListMode = false;
+            document.body.classList.remove('my-list-mode');
+            document.getElementById('myListSwitchBtn').style.display = 'none';
+            db.ref(`rooms/${currentRoomId}/settings`).on('value', snap => {
+                const settings = snap.val();
+                roomSongScope = settings && settings.source === 'mylist' ? 'mylist' : 'master';
+                roomScopedSongIds = new Set(roomSongScope === 'mylist' && Array.isArray(settings.songIds) ? settings.songIds : []);
+                roomSongScopeLoaded = true;
+                if (allData.length) renderTable();
+                const status = document.getElementById('roomStatusText');
+                status.title = roomSongScope === 'mylist' ? '作成者のマイリストから選曲' : '全曲マスターから選曲';
+            }, error => {
+                console.error('ルームの選曲元を読み込めませんでした:', error);
+                roomSongScopeLoaded = false; // マイリスト制限の読込失敗時に全曲を公開しない。
+                alert('ルームの選曲元を読み込めません。ルーム設定へのアクセス権限を確認してください。');
+            });
             document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
             createBtn.style.display = 'none';
 
@@ -1123,11 +1149,27 @@ h2 {
         alert('ユーザー名を変更しました！');
     }
 
-    function createRoom() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let newRoomId = '';
-        for(let i = 0; i < 5; i++) newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
-        window.location.href = '?room=' + newRoomId;
+    async function createRoom() {
+        const source = myListMode ? 'mylist' : 'master';
+        if (source === 'mylist' && !signedInUser) return alert('マイリストからルームを作成するにはログインしてください。');
+        if (source === 'mylist' && (Object.keys(pendingSongs).length || Object.keys(pendingArtists).length)) {
+            return alert('未保存のマイリスト変更があります。先に「まとめて登録」で保存してからルームを作ってください。');
+        }
+        const button = document.getElementById('createRoomBtn');
+        button.disabled = true;
+        try {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let newRoomId = '';
+            for (let i = 0; i < 5; i++) newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
+            const songIds = source === 'mylist' ? allData.filter(isInMyList).map(song => song._id) : [];
+            // 設定保存に成功してから移動する。参加者も同じ曲だけから選曲できる。
+            await db.ref(`rooms/${newRoomId}/settings`).set({source, songIds, createdAt: firebase.database.ServerValue.TIMESTAMP});
+            window.location.href = '?room=' + encodeURIComponent(newRoomId);
+        } catch (error) {
+            console.error('ルーム作成時の選曲元保存に失敗:', error);
+            alert('ルームを作成できませんでした。Firebaseのroomsへの書き込み権限を確認してください。');
+            button.disabled = false;
+        }
     }
 
     function leaveRoom() { window.location.href = window.location.pathname; }
@@ -1931,7 +1973,8 @@ h2 {
         const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
         
         let filteredData = allData.filter(row => {
-            if (myListMode && !isInMyList(row)) return false;
+            if (currentRoomId && (!roomSongScopeLoaded || (roomSongScope === 'mylist' && !roomScopedSongIds.has(row._id)))) return false;
+            if (!currentRoomId && myListMode && !isInMyList(row)) return false;
             const g1 = (row[genre1Key] || '').trim();
             const g2 = (row[genre2Key] || '').trim();
             
@@ -1949,7 +1992,7 @@ h2 {
                 if (valA < valB) return -1 * currentSortOrder; if (valA > valB) return 1 * currentSortOrder; return 0;
             });
         }
-        songCountDisplay.textContent = `${myListMode ? 'マイリスト' : '全曲マスター'}：${filteredData.length} 曲`;
+        songCountDisplay.textContent = `${currentRoomId ? (roomSongScopeLoaded ? (roomSongScope === 'mylist' ? 'ルーム：マイリスト限定' : 'ルーム：全曲一覧') : 'ルーム設定を読み込み中') : (myListMode ? 'マイリスト' : '全曲マスター')}：${filteredData.length} 曲`;
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
 
         filteredData.forEach(row => {
