@@ -318,6 +318,11 @@
           body:not(.my-list-mode) th.col-title,
           body:not(.my-list-mode) td.col-title { padding-left:16px !important; }
         }
+        /* PCの全曲一覧：ヘッダーの「曲名」「🎤」のみ少し右へ */
+        @media (min-width:601px) {
+          body:not(.my-list-mode) .table-header-wrapper th.col-title { padding-left:22px !important; }
+          body:not(.my-list-mode) .table-header-wrapper th.col-part { padding-left:12px !important; }
+        }
         th.col-key, td.col-key { text-align:center; }
         .table-key-picker { width:100%; justify-content:center; box-sizing:border-box; }
         .artist-confirm-actions {display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:18px;}
@@ -437,7 +442,7 @@
                 <thead>
                     <tr>
                         <th class="col-action">ステータス</th>
-                        <th class="sortable" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
+                        <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
                         <th class="sortable" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
                         <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
                         <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
