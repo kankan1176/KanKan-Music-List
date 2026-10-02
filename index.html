@@ -447,6 +447,70 @@
           body.my-list-mode .my-part-icons { justify-content:flex-start; }
           body.my-list-mode #tableBody .col-part { width:100%!important; }
         }
+
+        /* 担当パート7アイコンを1行固定。固定幅の列内で均等に縮めて横スクロールを防ぐ。 */
+        body.my-list-mode .my-part-icons {
+            display:flex; flex-wrap:nowrap !important; white-space:nowrap !important;
+            width:100%; min-width:0; max-width:100%; gap:0; justify-content:space-between;
+        }
+        body.my-list-mode .my-part-icons button {
+            flex:1 1 0; width:0; min-width:0; max-width:none;
+            padding:3px 0 !important; font-size:clamp(11px,1.25vw,16px);
+            line-height:1.15; text-align:center;
+        }
+        @media(max-width:600px) {
+            body.my-list-mode .my-part-icons { justify-content:flex-start; gap:3px; }
+            body.my-list-mode .my-part-icons button { flex:0 0 auto; width:auto; padding:3px 2px !important; font-size:17px; }
+        }
+
+        /* 一覧モード専用の識別色。テーマのprimary／ボタン色とは独立させる。 */
+        body {
+            --master-frame:#38bdf8; --master-frame-tint:#143040;
+            --mylist-frame:#f6ad55; --mylist-frame-tint:#3a291a;
+        }
+        body.theme-white {
+            --master-frame:#087e8b; --master-frame-tint:#e7f5f5;
+            --mylist-frame:#a34370; --mylist-frame-tint:#fbeef4;
+        }
+        body.theme-eva01 {
+            --master-frame:#50c7f5; --master-frame-tint:#283b60;
+            --mylist-frame:#ffb65c; --mylist-frame-tint:#513358;
+        }
+        body.theme-eva02 {
+            --master-frame:#64dfca; --master-frame-tint:#432b2f;
+            --mylist-frame:#d9aeff; --mylist-frame-tint:#563044;
+        }
+        body.theme-eva00 {
+            --master-frame:#236eac; --master-frame-tint:#e6f1fb;
+            --mylist-frame:#a34483; --mylist-frame-tint:#f9e9f3;
+        }
+        body.theme-eva08 {
+            --master-frame:#18847b; --master-frame-tint:#e8f7f4;
+            --mylist-frame:#7955b6; --mylist-frame-tint:#f2eafa;
+        }
+        body:not(.my-list-mode) {
+            --list-mode-accent:var(--master-frame);
+            --list-mode-tint:var(--master-frame-tint);
+        }
+        body.my-list-mode {
+            --list-mode-accent:var(--mylist-frame);
+            --list-mode-tint:var(--mylist-frame-tint);
+        }
+        /* 枠の太さは両モード共通にし、切り替え時の縦横ずれを起こさない。 */
+        #listModeIndicator {
+            border:2px solid var(--list-mode-accent);
+            border-left-width:6px;
+            background:var(--list-mode-tint);
+            padding-left:9px;
+            transition:border-color .2s,background-color .2s;
+        }
+        #tableWrapper {
+            box-sizing:border-box;
+            border:2px solid var(--list-mode-accent);
+            border-radius:5px;
+            transition:border-color .2s;
+        }
+
 </style>
 </head>
 <body>
@@ -552,7 +616,7 @@
                 <colgroup><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-action"></colgroup>
                 <thead>
                     <tr>
-                        <th class="col-register">マイリスト登録</th>
+                        <th class="col-register">マイリスト</th>
                         <th class="col-key">Key</th>
                         <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
                         <th class="sortable col-artist" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
@@ -583,6 +647,18 @@
             <button type="button" id="artistModalStar" class="personal-toggle favorite-artist-modal" title="好きなアーティストに登録・解除（自動保存）" onclick="toggleConfirmedArtist()">⭐</button>
             <button type="button" onclick="closeModal(null, 'artistConfirmModal')">いいえ</button>
             <button type="button" class="primary-btn" onclick="confirmArtistFilter()">はい</button>
+        </div>
+    </div>
+</div>
+
+<!-- マイリスト登録解除の確認。はいを押すまで個人データは変更しない -->
+<div class="modal-overlay" id="myListRemovalModal" onclick="cancelMyListRemoval()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="myListRemovalTitle" onclick="event.stopPropagation()" style="max-width:360px;">
+        <h2 id="myListRemovalTitle">マイリストから解除しますか？</h2>
+        <p style="font-size:14px;line-height:1.6;overflow-wrap:anywhere;">「<strong id="myListRemovalSongName"></strong>」をマイリストから解除します。全曲マスターの楽曲は削除されません。</p>
+        <div class="artist-confirm-actions">
+            <button type="button" onclick="cancelMyListRemoval()">いいえ</button>
+            <button type="button" class="primary-btn" onclick="confirmMyListRemoval()">はい</button>
         </div>
     </div>
 </div>
@@ -901,7 +977,7 @@ h2 {
     const masterBodyColumns = tableBodyTable.querySelector('colgroup').outerHTML;
     const myListColumns = '<colgroup><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-part"><col class="col-select"></colgroup>';
     const myListHeader = myListColumns + `<thead><tr>
-        <th class="col-register">マイリスト登録</th>
+        <th class="col-register">マイリスト</th>
         <th class="col-key">Key</th>
         <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
         <th class="sortable col-artist" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
@@ -1070,11 +1146,11 @@ h2 {
         const song=allData.find(item=>item._id===songId);
         if (!song) return;
         if (isInMyList(song)) {
-            // 明示的な登録解除は、旧式のアーティストお気に入り判定より優先する。
-            stagePersonalSong(songId,{registered:false,part:'',parts:[],liked:false,excluded:true});
-            delete draftRegistrationKeys[songId];
-            selectedMySongIds.delete(songId);
-            updateSelectedMySongCount();
+            // 解除前に専用の「はい／いいえ」確認画面を開く。ここではまだ保存しない。
+            pendingMyListRemovalId = songId;
+            document.getElementById('myListRemovalSongName').textContent = song['曲名'] || 'この曲';
+            openModal('myListRemovalModal');
+            return;
         } else {
             const draftKey = draftRegistrationKeys[songId];
             const patch = {registered:true,excluded:false};
@@ -1083,9 +1159,27 @@ h2 {
             delete draftRegistrationKeys[songId];
         }
     }
+    let pendingMyListRemovalId = null;
+    function cancelMyListRemoval() {
+        pendingMyListRemovalId = null;
+        closeModal(null, 'myListRemovalModal');
+    }
+    function confirmMyListRemoval() {
+        const songId = pendingMyListRemovalId;
+        pendingMyListRemovalId = null;
+        closeModal(null, 'myListRemovalModal');
+        if (!songId || !signedInUser) return;
+        const song = allData.find(item => item._id === songId);
+        if (!song || !isInMyList(song)) return;
+        // 旧式のお気に入り経由の再表示を防ぐため、除外フラグも保存。
+        stagePersonalSong(songId,{registered:false,part:'',parts:[],liked:false,excluded:true});
+        delete draftRegistrationKeys[songId];
+        selectedMySongIds.delete(songId);
+        updateSelectedMySongCount();
+    }
     function myListRegistrationButton(song) {
         const registered=!!signedInUser && isInMyList(song);
-        const label=registered?'✓ 登録済':'＋ 登録';
+        const label=registered?'解除':'+登録';
         return `<button type="button" class="my-register-btn ${registered?'registered':''}" aria-pressed="${registered}" title="${registered?'マイリストから解除':'マイリストへ登録'}" onclick="toggleMyListRegistration('${song._id}')">${label}</button>`;
     }
     function removeFromMyList(songId) {
