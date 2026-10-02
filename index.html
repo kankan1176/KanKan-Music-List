@@ -516,12 +516,22 @@
 
 
         /* マイページ: ヘッダーの入口を一つに統合。テーマ色とスマホ幅に追従。 */
-        #myPageBtn { font-weight:700; background:var(--btn-bg); border-color:var(--primary); color:var(--text-color); }
-        #myPageBtn:hover { background:var(--btn-hover); }
+        #myPageBtn { font-weight:700; background:#ffc107; border:1px solid #dda600; color:#26200a; }
+        #myPageBtn:hover { background:#ffdc55; border-color:#d9a300; color:#26200a; }
+        #myPageBtn:focus-visible { outline:2px solid #fff0a0; outline-offset:2px; }
         .mypage-menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
         .mypage-menu button { width:100%; min-width:0; padding:13px 8px; text-align:left; font-size:14px; line-height:1.4; white-space:normal; background:var(--btn-bg); }
         .mypage-menu button:hover { border-color:var(--primary); background:var(--btn-hover); }
         #myPageAccountHint { margin:0 0 14px; font-size:12px; opacity:.85; overflow-wrap:anywhere; }
+        .shared-list-meta {font-size:12px;opacity:.85;margin:8px 0;}
+        .shared-list-tools {display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;}
+        .shared-song {border:1px solid var(--border-color);border-radius:6px;padding:9px;margin:5px 0;display:flex;gap:9px;align-items:center;justify-content:space-between;}
+        .shared-song.common {border-color:#439a69;background:rgba(55,163,104,.14);}
+        .shared-song-name {font-size:13px;font-weight:700;overflow-wrap:anywhere;}
+        .shared-song-artist {font-size:11px;opacity:.78;}
+        .shared-song-attrs {flex:0 0 auto;font-size:12px;text-align:right;}
+        .shared-list-scroll {max-height:55vh;overflow:auto;}
+        .shared-common-tag {color:#2c9a60;font-weight:700;}
         @media(max-width:380px) { .mypage-menu {grid-template-columns:1fr;} }
 
         /* フレンド管理: テーマ共通の色変数を使用 */
@@ -723,6 +733,17 @@
     <button type="button" onclick="refreshFriendsPanel()" style="margin-top:12px;">↻ 再読み込み</button>
   </div>
 </div>
+<!-- STEP 3-2: 承認済みフレンドの公開マイリスト（閲覧のみ） -->
+<div class="modal-overlay" id="friendSharedModal" onclick="closeFriendSharedList(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="friendSharedTitle" onclick="event.stopPropagation()" style="max-width:650px;">
+    <span class="modal-close" onclick="closeFriendSharedList()">&times;</span>
+    <h2 id="friendSharedTitle">📁 フレンドのマイリスト</h2>
+    <div id="friendSharedMeta" class="shared-list-meta">読み込み中…</div>
+    <div class="shared-list-tools"><label><input type="checkbox" id="friendCommonOnly" onchange="renderFriendSharedList()"> 🤝 自分との共通曲のみ</label><span id="friendCommonCount"></span></div>
+    <div id="friendSharedSongs" class="shared-list-scroll" aria-live="polite">読み込み中…</div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
     <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
         <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
@@ -1097,6 +1118,8 @@
             personalSongs = songsSnapshot.val() || {};
             favoriteArtists = artistsSnapshot.val() || {};
             defaultPart = PARTS.includes(partSnapshot.val()) ? partSnapshot.val() : '';
+            sharedListReadyUid = user.uid;
+            if (allData.length) void queueFriendSharedSync(user.uid);
             document.getElementById('defaultPartSelect').value = defaultPart;
             if (allData.length) renderTable();
         } catch (error) {
@@ -1267,6 +1290,8 @@
                     else delete favoriteArtists[id];
                     if (pendingArtists[id] === value) delete pendingArtists[id];
                 });
+                // 保存済みの内容だけを友達用スナップショットへ同期。失敗しても個人保存は取り消さない。
+                void queueFriendSharedSync(user.uid);
                 // 変更途中のスクロール位置・複数選択状態を壊さず、残りは次の保存へ。
                 return true;
             } catch (error) {
@@ -1334,7 +1359,7 @@
         document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
         document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
         document.getElementById('myListSwitchBtn').style.display = user && !currentRoomId ? 'inline-block' : 'none';
-        if (!user) stopFriendsFeature();
+        if (!user) { stopFriendsFeature(); closeFriendSharedList(); sharedListReadyUid=''; }
         document.getElementById('addSongHeaderBtn').style.display = 'inline-block';
         // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
         const nameVersion = ++usernameLoadVersion;
@@ -1801,7 +1826,7 @@
             for(const other of list){
                 const [a,b]=await Promise.all([db.ref(`friendRequests/${uid}/${other}/status`).once('value'),db.ref(`friendRequests/${other}/${uid}/status`).once('value')]);
                 if(a.val()!=='accepted'&&b.val()!=='accepted')continue;
-                fr.append(friendItem(await getFriendDisplayName(other),[['解除',()=>void unfriendUser(other),true]]));
+                fr.append(friendItem(await getFriendDisplayName(other),[['📁 持ち曲を見る',()=>openFriendSharedList(other)],['解除',()=>void unfriendUser(other),true]]));
             }
             if(!fr.childElementCount)fr.textContent='まだフレンドはいません。';
         }catch(err){console.error('フレンド一覧読込失敗',err);friendNotice('一覧を読み込めませんでした。Firebaseルールを確認してください。',true);}
@@ -1843,9 +1868,104 @@
             const ref=sa.val()?.status==='accepted'?a:sb.val()?.status==='accepted'?b:null;
             if(ref){const item=ref===a?sa.val():sb.val();await ref.set({...item,status:'removed'});}
             await db.ref().update({[`friendships/${uid}/${other}`]:null,[`friendships/${other}/${uid}`]:null});
+            if (friendSharedUid === other) closeFriendSharedList();
             friendNotice('フレンドを解除しました。');void refreshFriendsPanel();
         }catch(err){console.error('フレンド解除失敗',err);friendNotice('解除に失敗しました。再読み込みして確認してください。',true);}
     }
+    // ===== STEP 3-2: 保存済みリストの共有・閲覧 =====
+    let sharedListReadyUid = '';
+    let friendSharedSyncQueue = Promise.resolve();
+    let friendSharedUid = '';
+    let friendSharedSongs = {};
+    let friendSharedRef = null;
+    let friendSharedListener = null;
+    let friendSharedVersion = 0;
+    // 保存済みの個人データからのみ生成。編集中の pendingSongs / pendingArtists は含めない。
+    function buildSavedFriendShare() {
+        const songs = {};
+        for (const song of allData) {
+            const id = song._id;
+            const item = personalSongs[id] || {};
+            const artist = String(song['アーティスト'] || '').trim();
+            const favorite = !!favoriteArtists[artistDbKey(artist)];
+            const parts = getSelectedParts(item);
+            if (item.excluded || !(item.registered || item.part || parts.length || item.liked || favorite)) continue;
+            songs[id] = {key: Number.isInteger(item.key) && item.key>=-5 && item.key<=6 ? item.key : 0, parts};
+        }
+        return {songs, updatedAt: Date.now()};
+    }
+    function queueFriendSharedSync(uid) {
+        if (!uid || sharedListReadyUid !== uid || !allData.length) return friendSharedSyncQueue;
+        // 同時更新の逆転を防ぐため同じユーザーの同期を直列化。
+        friendSharedSyncQueue = friendSharedSyncQueue.catch(()=>{}).then(async()=>{
+            if (friendUser()?.uid !== uid || sharedListReadyUid !== uid) return;
+            try { await db.ref(`friendSharedLists/${uid}`).set(buildSavedFriendShare()); }
+            catch(err) {console.warn('フレンド向けリストの同期に失敗。個人マイリストの保存は成功しています。',err);friendNotice('フレンド向けリストの同期に失敗しました。再読み込みで再試行します。',true);}
+        });
+        return friendSharedSyncQueue;
+    }
+    function closeFriendSharedList(event) {
+        if (event && event.target !== event.currentTarget) return;
+        friendSharedVersion++;
+        if (friendSharedRef && friendSharedListener) friendSharedRef.off('value',friendSharedListener);
+        friendSharedRef = null; friendSharedListener = null; friendSharedUid = ''; friendSharedSongs = {};
+        closeModal(null,'friendSharedModal');
+    }
+    async function openFriendSharedList(uid) {
+        const u=friendUser(); if (!u || !uid || uid === u.uid) return;
+        closeFriendSharedList();
+        const version = ++friendSharedVersion;
+        friendSharedUid=uid;
+        friendSharedSongs={};
+        document.getElementById('friendCommonOnly').checked=false;
+        document.getElementById('friendSharedTitle').textContent='📁 フレンドのマイリスト';
+        document.getElementById('friendSharedMeta').textContent='読み込み中…';
+        document.getElementById('friendSharedSongs').textContent='読み込み中…';
+        openModal('friendSharedModal');
+        const name = await getFriendDisplayName(uid);
+        if (version!==friendSharedVersion || friendUser()?.uid!==u.uid) return;
+        document.getElementById('friendSharedTitle').textContent=`📁 ${name} のマイリスト`;
+        friendSharedRef=db.ref(`friendSharedLists/${uid}`);
+        friendSharedListener=snap=>{
+            if (version!==friendSharedVersion || friendUser()?.uid!==u.uid) return;
+            const shared=snap.val();friendSharedSongs=shared?.songs || {};
+            document.getElementById('friendSharedMeta').textContent=shared?'保存済みの持ち曲を共有中（変更は自動反映されます）':'まだ共有リストがありません。相手の再ログイン後に同期されます。';
+            renderFriendSharedList();
+        };
+        friendSharedRef.on('value',friendSharedListener,err=>{
+            if(version!==friendSharedVersion)return;
+            console.warn('共有マイリスト読込失敗',err);
+            document.getElementById('friendSharedMeta').textContent='閲覧できません。相手とのフレンド関係・共有設定を確認してください。';
+            document.getElementById('friendSharedSongs').replaceChildren();
+        });
+    }
+    function renderFriendSharedList() {
+        const container=document.getElementById('friendSharedSongs');
+        if(!container || !friendSharedUid) return;
+        container.replaceChildren();
+        const onlyCommon=document.getElementById('friendCommonOnly').checked;
+        const sharedIds=new Set(Object.keys(friendSharedSongs));
+        const rows=allData.filter(song=>sharedIds.has(song._id));
+        const common=rows.filter(song=>isInMyList(song));
+        document.getElementById('friendCommonCount').textContent=`🤝 共通 ${common.length}曲 / 全${rows.length}曲`;
+        for(const song of rows){
+            const overlaps=isInMyList(song);
+            if(onlyCommon && !overlaps)continue;
+            const entry=friendSharedSongs[song._id] || {};
+            const row=document.createElement('div');row.className='shared-song'+(overlaps?' common':'');
+            const info=document.createElement('div');info.style.minWidth='0';
+            const title=document.createElement('div');title.className='shared-song-name';title.textContent=song['曲名']||'曲名不明';
+            const artist=document.createElement('div');artist.className='shared-song-artist';artist.textContent=song['アーティスト']||'';
+            info.append(title,artist);
+            if(overlaps){const tag=document.createElement('div');tag.className='shared-common-tag';tag.textContent='🤝 共通曲';info.append(tag);}
+            const attrs=document.createElement('div');attrs.className='shared-song-attrs';
+            const key=document.createElement('div');key.textContent=`Key ${displayKey(Number(entry.key)||0)}`;
+            const parts=document.createElement('div');parts.textContent=Array.isArray(entry.parts)&&entry.parts.length?entry.parts.join(' '):'パート未設定';
+            attrs.append(key,parts);row.append(info,attrs);container.append(row);
+        }
+        if(!container.childElementCount) container.textContent=onlyCommon?'共通曲はありません。':'公開されている曲はまだありません。';
+    }
+    // ===== STEP 3-2ここまで =====
     // ===== フレンド機能ここまで =====
     // マイページはナビゲーション専用。個人マイリスト・フレンド・設定の保存形式は変更しない。
     function openMyPage() {
@@ -2210,6 +2330,7 @@
         });
 
         populateGenreButtons();
+        if (signedInUser && sharedListReadyUid === signedInUser.uid) void queueFriendSharedSync(signedInUser.uid);
         loadingArea.style.display = 'none';
         controls.style.display = 'block';
         tableWrapper.style.display = 'flex';
