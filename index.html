@@ -528,6 +528,12 @@
         .shared-song {border:1px solid var(--border-color);border-radius:6px;padding:9px;margin:5px 0;display:flex;gap:9px;align-items:center;justify-content:space-between;}
         .shared-song.common {border-color:#439a69;background:rgba(55,163,104,.14);}
         .shared-song-name {font-size:13px;font-weight:700;overflow-wrap:anywhere;}
+        .shared-song-name.friend-song-detail-link {display:block;border:0;background:none;color:var(--link-color);text-decoration:underline;white-space:normal;text-align:left;padding:2px 0;font:inherit;font-weight:700;cursor:pointer;max-width:100%;}
+        .shared-song-name.friend-song-detail-link:hover {opacity:.8;background:none;color:var(--link-color);}
+        .shared-song-name.friend-song-detail-link:focus-visible {outline:2px solid var(--primary);outline-offset:2px;}
+        #detailFriendShared {border:1px solid #439a69;border-radius:6px;padding:10px;background:rgba(55,163,104,.10);}
+        #detailFriendShared .friend-detail-line {font-size:13px;line-height:1.6;overflow-wrap:anywhere;}
+        #detailFriendChordLink {display:block;margin-top:8px;padding:9px;background:var(--btn-bg);border:1px solid var(--primary);border-radius:5px;color:var(--link-color);text-decoration:none;text-align:center;font-size:13px;font-weight:700;}
         .shared-song-artist {font-size:11px;opacity:.78;}
         .shared-song-attrs {flex:0 0 auto;font-size:12px;text-align:right;}
         .shared-list-scroll {max-height:55vh;overflow:auto;}
@@ -1228,6 +1234,12 @@ body.in-room #roomListPanel {display:flex}
         <div class="detail-item"><span class="detail-label">ジャンル①</span><span id="detailGenre1"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
         <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
+        <div class="detail-item" id="detailFriendShared" style="display:none;">
+            <b id="detailFriendOwner">👥 フレンドの登録情報（閲覧のみ）</b>
+            <div class="friend-detail-line" id="detailFriendKey"></div>
+            <div class="friend-detail-line" id="detailFriendParts"></div>
+            <a id="detailFriendChordLink" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">🎸 フレンドのKeyでChordWikiを開く ↗</a>
+        </div>
         <div class="detail-item" id="detailKeyArea" style="display:none;">
             <label style="display:block; font-weight:bold; margin-bottom:7px;">🎹 自分用Key（原曲を0として半音単位）</label>
             <div class="key-picker" id="detailKeyPicker"></div>
@@ -2803,6 +2815,30 @@ body.in-room #roomListPanel {display:flex}
             document.getElementById('friendSharedSongs').replaceChildren();
         });
     }
+    // フレンドの共有データは閲覧専用。既存の楽曲詳細を開き、閉じたら元の一覧へ戻す。
+    let returnToFriendListFromDetail = false;
+    function openFriendSongDetails(songId) {
+        if (!friendSharedUid || !Object.prototype.hasOwnProperty.call(friendSharedSongs, songId)) return;
+        const song = allData.find(row => row._id === songId);
+        if (!song) return;
+        const entry = friendSharedSongs[songId] || {};
+        const selected = Number(entry.key);
+        const friendKey = Number.isInteger(selected) && selected >= -5 && selected <= 6 ? selected : 0;
+        const owner = document.getElementById('friendSharedTitle').textContent.replace(/^📁\s*/, '');
+        showSongDetails(songId);
+        const info = document.getElementById('detailFriendShared');
+        info.style.display = 'block';
+        document.getElementById('detailFriendOwner').textContent = `👥 ${owner}：登録情報（閲覧のみ）`;
+        document.getElementById('detailFriendKey').textContent = `登録Key：${displayKey(friendKey)}`;
+        document.getElementById('detailFriendParts').textContent = `担当パート：${Array.isArray(entry.parts) && entry.parts.length ? entry.parts.join(' ') : '未設定'}`;
+        const link = document.getElementById('detailFriendChordLink');
+        const url = chordWikiUrlForKey(song['コードwiki'], friendKey);
+        if (url) { link.href = url; link.style.display = 'block'; }
+        else { link.removeAttribute('href'); link.style.display = 'none'; }
+        returnToFriendListFromDetail = true;
+        // 二重モーダルを避け、閉じる操作ではスクロール位置を維持した元のフレンド一覧へ戻る。
+        document.getElementById('friendSharedModal').style.display = 'none';
+    }
     function renderFriendSharedList() {
         const container=document.getElementById('friendSharedSongs');
         if(!container || !friendSharedUid) return;
@@ -2821,7 +2857,7 @@ body.in-room #roomListPanel {display:flex}
             const entry=friendSharedSongs[song._id] || {};
             const row=document.createElement('div');row.className='shared-song'+(overlaps?' common':'');
             const info=document.createElement('div');info.style.minWidth='0';
-            const title=document.createElement('div');title.className='shared-song-name';title.textContent=song['曲名']||'曲名不明';
+            const title=document.createElement('button');title.type='button';title.className='shared-song-name friend-song-detail-link';title.textContent=song['曲名']||'曲名不明';title.title='楽曲詳細を開く';title.setAttribute('aria-label',`${song['曲名'] || '曲名不明'}の楽曲詳細を開く`);title.addEventListener('click',()=>openFriendSongDetails(song._id));
             const artist=document.createElement('div');artist.className='shared-song-artist';artist.textContent=song['アーティスト']||'';
             info.append(title,artist);
             if(overlaps){const tag=document.createElement('div');tag.className='shared-common-tag';tag.textContent='🤝 共通曲';info.append(tag);}
@@ -2965,7 +3001,15 @@ html, body { background: transparent !important; color: ${text} !important; }
         return copyObsText(field.value, 'obsCssTextarea');
     }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(e, id) { if (!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
+    function closeModal(e, id) {
+        if (e && e.target.id !== id) return;
+        document.getElementById(id).style.display = 'none';
+        if (id === 'songDetailsModal' && returnToFriendListFromDetail) {
+            returnToFriendListFromDetail = false;
+            document.getElementById('detailFriendShared').style.display = 'none';
+            if (friendSharedUid) document.getElementById('friendSharedModal').style.display = 'flex';
+        }
+    }
     function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
     // ログイン実装前の暫定保存。IDは行番号ではなくChordWikiの曲URLとアーティストから作る。
@@ -3792,6 +3836,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     function showSongDetails(id) {
+        document.getElementById('detailFriendShared').style.display = 'none';
         const song = allData.find(r => r._id === id);
         if(!song) return;
         // ログインユーザーの登録Keyは維持。ゲストは従来通り原曲Keyに戻す。
