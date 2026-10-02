@@ -662,6 +662,102 @@ body.in-room #roomListPanel {display:flex}
             #sideGuideToggle {left:10px;bottom:10px;}
         }
         @media(min-width:1580px){body.guides-collapsed .side-guide {display:none;}}
+
+        /* =======================================================
+           スマホ専用UI 600px以下。PC版のスタイル・機能は変更しない。
+           ======================================================= */
+        #mobileQuickNav { display:none; }
+        #mobileMorePanel[hidden] { display:none !important; }
+        @media screen and (max-width:600px) {
+          html,body {width:100%;max-width:100%;overflow:hidden;}
+          .container {min-height:0;gap:6px;padding:7px 8px max(8px,env(safe-area-inset-bottom));}
+          body.in-room .container {padding-bottom:calc(66px + env(safe-area-inset-bottom));}
+          .top-area {min-height:0;gap:6px;}
+          .header {flex-wrap:nowrap;gap:0;min-height:31px;}
+          .header > div:first-child {min-width:0;width:100%;}
+          .header h1 {font-size:15px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .header-buttons {display:none!important;}
+          #mobileQuickNav {display:block;position:relative;flex-shrink:0;z-index:40;}
+          .mobile-main-actions {display:grid;grid-template-columns:1fr 1fr 1fr 43px;gap:5px;}
+          .mobile-main-actions button {min-width:0;min-height:40px;padding:5px 2px;font-size:12px;font-weight:700;white-space:nowrap;border-radius:7px;}
+          #mobileAllBtn {background:#268bea;color:white;border-color:#268bea;}
+          #mobileMyBtn {background:#e35e70;color:white;border-color:#e35e70;}
+          #mobileMyPageBtn {background:#ffc83e;color:#332608;border-color:#d8ad35;}
+          #mobileMenuBtn {font-size:21px;background:var(--btn-bg);color:var(--text-color);}
+          .mobile-main-actions button[aria-pressed="true"] {outline:2px solid var(--text-color);outline-offset:-4px;}
+          #mobileMorePanel {position:absolute;right:0;top:calc(100% + 4px);width:min(295px,calc(100vw - 16px));padding:9px;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:8px;box-shadow:0 7px 24px #0008;display:grid;grid-template-columns:1fr 1fr;gap:7px;box-sizing:border-box;}
+          #mobileMorePanel button {min-width:0;min-height:40px;padding:7px 4px;font-size:12px;white-space:normal;}
+          #mobileIdentity {grid-column:1/-1;font-size:12px;opacity:.8;overflow-wrap:anywhere;}
+          #mobileLoginItem,#mobileLogoutItem {grid-column:1/-1;}
+          #mobileLeaveItem {color:#fff;background:#a82936;border-color:#df5862;}
+          #mobileObsItem {color:white;background:#7041bb;border-color:#7041bb;}
+          #mobileQuickNav:not(.mobile-authenticated) #mobileLogoutItem,
+          #mobileQuickNav.mobile-authenticated #mobileLoginItem {display:none;}
+          body:not(.in-room) #mobileObsItem,
+          body:not(.in-room) #mobileRoomLinkItem,
+          body:not(.in-room) #mobileLeaveItem,
+          body.in-room #mobileCreateRoomItem {display:none;}
+          .room-status-wrapper {padding:6px 8px;gap:4px;}
+          .room-status-bar {font-size:12px;gap:4px;}
+          .room-actions {display:none;}
+          .room-members-area {font-size:10px;padding:3px 6px;}
+          #roomListPanel {padding:5px 6px;gap:3px;}
+          #roomListTabs {flex-wrap:nowrap;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 2px 5px;scrollbar-width:thin;}
+          #roomListTabs button {flex:0 0 auto;max-width:135px;min-height:34px;}
+          #roomShareNotice {font-size:10px;line-height:1.35;}
+          #listModeIndicator {min-height:27px;padding:3px 7px;font-size:12px;}
+          .controls {padding:6px 7px;}
+          .search-row {gap:4px;}
+          #searchInput {height:41px;font-size:16px;padding:8px 10px;}
+          .song-count {font-size:11px;margin:0;}
+          .filter-section {margin-top:2px;gap:3px;flex-wrap:nowrap;min-width:0;}
+          .filter-label {width:auto;flex-shrink:0;font-size:11px;}
+          .genre-filters {flex-wrap:nowrap;min-width:0;overflow-x:auto;padding-bottom:3px;scrollbar-width:thin;}
+          .genre-btn {flex:0 0 auto;min-height:30px;white-space:nowrap;font-size:11px;padding:5px 8px;}
+          .status-buttons {display:none;}
+          body.in-room .status-buttons {display:grid!important;position:fixed;bottom:0;left:0;right:0;z-index:90;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:7px 9px calc(7px + env(safe-area-inset-bottom));background:var(--panel-bg);border-top:2px solid var(--border-color);box-shadow:0 -3px 12px #0005;}
+          body.in-room .status-buttons button {width:100%;min-width:0;min-height:45px;padding:7px 3px;font-size:13px;font-weight:750;}
+          #myListBulkBar {flex-wrap:nowrap;overflow-x:auto;max-height:64px;min-height:42px;scrollbar-width:thin;}
+          #myListBulkBar > * {flex:0 0 auto;}
+          #myListBulkBar span[title] {display:none;}
+          #tableWrapper {min-height:0;flex:1 1 0;overflow:hidden;}
+          .table-header-wrapper {display:none!important;}
+          .table-body-wrapper {min-height:0;flex:1 1 0;overflow-x:hidden!important;overflow-y:auto!important;padding:5px;}
+          .table-body-wrapper .data-table,
+          .table-body-wrapper .data-table tbody {display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;}
+          .table-body-wrapper colgroup {display:none!important;}
+          #tableBody tr {display:grid!important;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"title title" "artist artist" "key register" "bpm genre" "part part" "select select";align-items:center;column-gap:8px;row-gap:4px;width:100%!important;min-width:0!important;padding:11px 12px!important;margin:0 0 8px;border:1px solid var(--border-color);border-radius:9px;background:var(--panel-bg);box-sizing:border-box;}
+          #tableBody tr.room-overlap {border-color:#38b97f;box-shadow:inset 4px 0 #38b97f;}
+          #tableBody td {display:block!important;width:auto!important;min-width:0!important;max-width:100%!important;padding:0!important;margin:0!important;border:0!important;overflow:visible;font-size:12px;box-sizing:border-box;}
+          #tableBody td.col-title {grid-area:title!important;font-size:15px!important;font-weight:700;line-height:1.45;white-space:normal!important;}
+          #tableBody td.col-title .song-title-link {display:inline!important;white-space:normal!important;max-width:none!important;overflow-wrap:anywhere!important;font-size:15px;}
+          #tableBody td.col-artist {grid-area:artist!important;opacity:.88;font-size:12px!important;white-space:normal!important;}
+          #tableBody td.col-artist .artist-filter-button {display:inline!important;white-space:normal!important;overflow-wrap:anywhere;}
+          #tableBody td.col-artist .my-artist-cell {display:block;}
+          #tableBody td.col-key {grid-area:key!important;justify-self:start;}
+          #tableBody td.col-register {grid-area:register!important;justify-self:end;}
+          #tableBody td.col-action {grid-area:register!important;justify-self:end;}
+          body:not(.in-room) #tableBody td.col-action {display:none!important;}
+          #tableBody td.col-bpm {grid-area:bpm!important;opacity:.83;font-size:11px!important;}
+          #tableBody td.col-bpm::before {content:'BPM  ';font-weight:700;}
+          #tableBody td.col-genre {grid-area:genre!important;max-width:180px!important;opacity:.8;font-size:11px!important;text-align:right;white-space:normal!important;overflow-wrap:anywhere;}
+          #tableBody td.col-part {grid-area:part!important;border-top:1px dashed var(--border-color)!important;padding-top:5px!important;}
+          #tableBody td.col-select {grid-area:select!important;justify-self:end;}
+          #tableBody .table-key-picker {justify-content:flex-start;gap:7px;width:auto;}
+          #tableBody .table-key-picker button {width:35px;min-width:35px;min-height:36px;padding:4px!important;font-size:14px;}
+          #tableBody .table-key-value {min-width:32px;font-size:13px;}
+          #tableBody .my-register-btn,#tableBody td.col-action button {width:auto;min-width:84px;min-height:38px;padding:5px 10px!important;font-size:12px!important;}
+          body.my-list-mode #tableBody .col-part {width:100%!important;}
+          body.my-list-mode .my-part-icons {width:100%;justify-content:space-between;gap:3px;}
+          body.my-list-mode .my-part-icons button {flex:1 1 0;width:0;min-width:0;min-height:36px;font-size:18px;padding:4px 1px!important;}
+          .room-overlap-tag {display:inline-block;font-size:10px;margin:2px 0 2px 5px;}
+          .room-member-attrs {font-size:11px;margin-top:4px;}
+          .modal {box-sizing:border-box;max-width:calc(100vw - 24px);max-height:calc(100dvh - 36px);overflow-y:auto;}
+          .modal button {min-height:36px;}
+          #obsModal .modal {max-height:calc(100dvh - 24px);}
+          .side-guide,#sideGuideToggle {display:none!important;}
+          #roomListTabs button {font-size:12px;}
+        }
 </style>
 </head>
 <body>
@@ -708,6 +804,26 @@ body.in-room #roomListPanel {display:flex}
                 <button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
             </div>
         </div>
+
+        <!-- スマホ専用ナビゲーション。PC版では非表示。 -->
+        <nav id="mobileQuickNav" aria-label="スマホ用クイック操作">
+            <div class="mobile-main-actions">
+                <button type="button" id="mobileAllBtn" onclick="mobileGoAll()">🌐 全曲一覧</button>
+                <button type="button" id="mobileMyBtn" onclick="mobileGoMyList()">📁 マイリスト</button>
+                <button type="button" id="mobileMyPageBtn" onclick="openMyPage()">👤 マイページ</button>
+                <button type="button" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-expanded="false" aria-controls="mobileMorePanel" aria-label="その他の操作">☰</button>
+            </div>
+            <div id="mobileMorePanel" hidden>
+                <div id="mobileIdentity" aria-live="polite">ゲスト利用中</div>
+                <button type="button" id="mobileLoginItem" onclick="closeMobileMenu();loginWithGoogle()">Googleでログイン</button>
+                <button type="button" id="mobileLogoutItem" onclick="closeMobileMenu();logoutGoogle()">ログアウト</button>
+                <button type="button" id="mobileCreateRoomItem" onclick="closeMobileMenu();createRoom()">🌐 ルームを作る</button>
+                <button type="button" onclick="closeMobileMenu();openAddSongModal()">➕ 楽曲追加</button>
+                <button type="button" id="mobileObsItem" onclick="closeMobileMenu();openObsModal()">📺 OBSカスタムCSS</button>
+                <button type="button" id="mobileRoomLinkItem" onclick="closeMobileMenu();copyRoomLink()">🔗 ルームURLをコピー</button>
+                <button type="button" id="mobileLeaveItem" onclick="closeMobileMenu();leaveRoom()">🚪 ルーム退出</button>
+            </div>
+        </nav>
         
         <div class="room-status-wrapper" id="roomStatusWrapper">
             <div class="room-status-bar">
@@ -1563,6 +1679,7 @@ body.in-room #roomListPanel {display:flex}
         // ゲストの匿名認証はルームにのみ使う。個人機能はGoogle認証のまま。
         const user = firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null;
         signedInUser = user;
+        syncMobileNav();
         if (resolveInitialAuth) { resolveInitialAuth(); resolveInitialAuth = null; }
         // 入室中にGoogleログインへ切り替えた場合も、参加UIDを現在の認証に合わせる。
         if (firebaseUser && typeof currentRoomId !== 'undefined' && currentRoomId &&
@@ -2876,6 +2993,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
+        syncMobileNav();
         // 認証・ルーム参加者登録を終えてから曲表と予約リスナーを起動。
         if (!(await initRoomUI())) return;
 
@@ -3098,6 +3216,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     function renderTable() {
+        syncMobileNav();
         ensureListLayout();
         tableBody.innerHTML = '';
         const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
@@ -3239,6 +3358,47 @@ html, body { background: transparent !important; color: ${text} !important; }
     matchMedia('(max-width:1579px)').addEventListener('change',updateSideGuides);
     updateSideGuides();
 
+
+    // スマホ専用ナビ: PC用の既存ハンドラーを再利用する（Firebase処理は共通）。
+    function closeMobileMenu() {
+        const panel=document.getElementById('mobileMorePanel');
+        const btn=document.getElementById('mobileMenuBtn');
+        if(panel) panel.hidden=true;
+        if(btn) btn.setAttribute('aria-expanded','false');
+    }
+    function toggleMobileMenu() {
+        const panel=document.getElementById('mobileMorePanel');
+        if(!panel)return;
+        panel.hidden=!panel.hidden;
+        document.getElementById('mobileMenuBtn').setAttribute('aria-expanded',String(!panel.hidden));
+    }
+    function mobileGoAll() {
+        closeMobileMenu();
+        if(currentRoomId) {roomListView='all';renderRoomListTabs();renderTable();tableBodyWrapper.scrollTop=0;return;}
+        if(myListMode) toggleMyList();
+        syncMobileNav();
+    }
+    function mobileGoMyList() {
+        closeMobileMenu();
+        if(currentRoomId) {roomListView='common';renderRoomListTabs();renderTable();tableBodyWrapper.scrollTop=0;return;}
+        if(!signedInUser) {alert('マイリストはGoogleログイン後に利用できます。');return;}
+        if(!myListMode) toggleMyList();
+        syncMobileNav();
+    }
+    function syncMobileNav() {
+        const nav=document.getElementById('mobileQuickNav');
+        if(!nav)return;
+        nav.classList.toggle('mobile-authenticated',!!signedInUser);
+        const mine=document.getElementById('mobileMyBtn');
+        const all=document.getElementById('mobileAllBtn');
+        if(mine) {
+          mine.textContent=currentRoomId?'🤝 共通曲':'📁 マイリスト';
+          mine.setAttribute('aria-pressed',String(currentRoomId?roomListView==='common':!!myListMode));
+        }
+        if(all) all.setAttribute('aria-pressed',String(currentRoomId?roomListView==='all':!myListMode));
+        const identity=document.getElementById('mobileIdentity');
+        if(identity)identity.textContent=signedInUser?(myName||signedInUser.displayName||'Googleログイン中'):'ゲスト利用中';
+    }
 </script>
 
 </body>
