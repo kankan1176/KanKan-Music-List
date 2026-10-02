@@ -638,26 +638,27 @@ body.in-room #roomListPanel {display:flex}
         /* コード欄とURL欄は等幅を保ち、内容の読みやすさを優先する。 */
         #obsCssTextarea, #obsUrlInput { font-family:ui-monospace,Consolas,monospace; }
 
-        /* 左右のガイド付箋：メインの1300px領域を圧迫しない独立レイヤー */
+        /* ガイド付箋：画面端から少し内側に。リストには重ならない。 */
         .side-guide { position:fixed; top:175px; z-index:12; display:flex; flex-direction:column; gap:10px;
-            width:clamp(115px,calc((100vw - 1340px)/2 - 18px),178px); pointer-events:none; }
-        .side-guide--left {left:12px;} .side-guide--right {right:12px;}
-        .side-guide-card {position:relative; pointer-events:auto; padding:11px 9px 10px;
+            width:clamp(150px,calc((100vw - 1320px)/2 - 20px),190px); pointer-events:none; }
+        .side-guide--left {left:clamp(22px,2.6vw,48px);}
+        .side-guide--right {right:clamp(22px,2.6vw,48px);}
+        .side-guide-card {position:relative; pointer-events:auto; padding:12px 11px;
             border:1px solid #c6ad68; border-left:4px solid #cfaa54; border-radius:3px 8px 8px 3px;
             background:#fff6d5; color:#473d29; box-shadow:2px 4px 9px rgba(0,0,0,.19);
-            transform:rotate(-.45deg); font-size:11px; line-height:1.55; overflow-wrap:anywhere; }
+            transform:rotate(-.45deg); font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
         .side-guide--right .side-guide-card {background:#ecf5f2; border-color:#92b9ae; border-left-color:#5c9f94; transform:rotate(.45deg);}
-        .side-guide-card strong {display:block; padding-right:16px; margin-bottom:4px; font-size:12px; line-height:1.45;}
-        .side-guide-card p {margin:0;} .side-guide-card [data-guide-close] {position:absolute;top:4px;right:5px;
-            padding:1px 5px; background:transparent; border:0; color:#554a39; font-size:17px; line-height:1;}
-        .side-guide-card[hidden],.side-guide[hidden] {display:none!important;}
-        #sideGuideToggle {position:fixed;z-index:25;bottom:14px;left:12px; background:#fff1bd!important;
-            color:#55401b!important;border:1px solid #c69a38!important; font-size:11px; font-weight:700;
-            padding:6px 9px; box-shadow:0 2px 8px rgba(0,0,0,.25);}
+        .side-guide-card strong {display:block; margin-bottom:5px; font-size:14px; line-height:1.4;}
+        .side-guide-card p {margin:0;}
+        #sideGuideToggle {position:fixed;z-index:25;bottom:14px;left:clamp(16px,2.6vw,48px); background:#fff1bd!important;
+            color:#55401b!important;border:1px solid #c69a38!important; font-size:12px; font-weight:700;
+            padding:7px 11px; box-shadow:0 2px 8px rgba(0,0,0,.25);}
         @media(max-width:1579px){
-            .side-guide {display:none;top:auto;bottom:55px;right:10px;left:auto;width:min(320px,calc(100vw - 20px));
+            .side-guide {display:none;top:auto;bottom:55px;right:10px;left:auto;width:min(340px,calc(100vw - 20px));
                 max-height:70vh;overflow-y:auto;padding:5px;box-sizing:border-box;}
-            body.guide-drawer-open .side-guide:not([hidden]) {display:flex;}
+            body.guide-drawer-open .side-guide {display:flex;}
+            body.guide-drawer-open .side-guide--left {bottom:calc(55px + min(35vh,310px));}
+            body.guide-drawer-open .side-guide--right {bottom:55px;}
             #sideGuideToggle {left:10px;bottom:10px;}
         }
         @media(min-width:1580px){body.guides-collapsed .side-guide {display:none;}}
@@ -666,17 +667,17 @@ body.in-room #roomListPanel {display:flex}
 <body>
 
 
-<!-- ガイド付箋：閉じた付箋は復元ボタンからいつでも戻せます -->
+<!-- ガイド付箋：画面左下のボタンで全件まとめて表示／非表示 -->
 <aside class="side-guide side-guide--left" id="guideLeft" aria-label="操作ガイド 左">
-  <section class="side-guide-card" data-guide-id="flow"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>📝 セッションの流れ</strong><p>演奏候補を「予約」→曲を決めて「確定」→演奏したら「完了」。ルーム全員にリアルタイム反映！</p></section>
-  <section class="side-guide-card" data-guide-id="key"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>🎼 Key変更のコツ</strong><p>Keyを選んでから予約すると、予約時のKeyを保持。ChordWikiリンクにも選んだKeyを反映します。マイリスト登録も同様です。</p></section>
-  <section class="side-guide-card" data-guide-id="search"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>🔎 検索のヒント</strong><p>曲名・略称（検索登録語）・アーティスト・タイアップ・作詞・作曲・編曲など、いろいろな言葉で検索できます。</p></section>
+  <section class="side-guide-card" data-guide-id="flow"><strong>📝 セッションの流れ</strong><p>演奏候補を「予約」→曲を決めて「確定」→演奏したら「完了」。ルーム全員にリアルタイム反映！</p></section>
+  <section class="side-guide-card" data-guide-id="key"><strong>🎼 Key変更のコツ</strong><p>Keyを選んでから予約すると、予約時のKeyを保持。ChordWikiリンクにも選んだKeyを反映します。マイリスト登録も同様です。</p></section>
+  <section class="side-guide-card" data-guide-id="search"><strong>🔎 検索のヒント</strong><p>曲名・略称（検索登録語）・アーティスト・タイアップ・作詞・作曲・編曲など、いろいろな言葉で検索できます。</p></section>
 </aside>
 <aside class="side-guide side-guide--right" id="guideRight" aria-label="操作ガイド 右">
-  <section class="side-guide-card" data-guide-id="friends"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>👥 フレンド機能</strong><p>フレンドとマイリストを共有！ 共通の登録曲を自動抽出し、お互いのKey・担当パートも確認できます。</p></section>
-  <section class="side-guide-card" data-guide-id="obs"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>📺 OBS配信</strong><p>ルーム内の「OBSカスタムCSS」から色や透明度を設定。完了曲を配信画面へ表示できます。</p></section>
-  <section class="side-guide-card" data-guide-id="parts"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>🎸 複数パート対応</strong><p>マイリストで担当楽器を複数選択OK。マルチプレイヤーの登録曲もまとめて管理できます。</p></section>
-  <section class="side-guide-card" data-guide-id="rooms"><button type="button" data-guide-close aria-label="この付箋を閉じる">×</button><strong>🤝 ルームの共通曲</strong><p>Googleログイン済みの2人以上で登録曲が重なると色付き表示。メンバー別の一覧も自由に切り替えられます。</p></section>
+  <section class="side-guide-card" data-guide-id="friends"><strong>👥 フレンド機能</strong><p>フレンドとマイリストを共有！ 共通の登録曲を自動抽出し、お互いのKey・担当パートも確認できます。</p></section>
+  <section class="side-guide-card" data-guide-id="obs"><strong>📺 OBS配信</strong><p>ルーム内の「OBSカスタムCSS」から色や透明度を設定。完了曲を配信画面へ表示できます。</p></section>
+  <section class="side-guide-card" data-guide-id="parts"><strong>🎸 複数パート対応</strong><p>マイリストで担当楽器を複数選択OK。マルチプレイヤーの登録曲もまとめて管理できます。</p></section>
+  <section class="side-guide-card" data-guide-id="rooms"><strong>🤝 ルームの共通曲</strong><p>Googleログイン済みの2人以上で登録曲が重なると色付き表示。メンバー別の一覧も自由に切り替えられます。</p></section>
 </aside>
 <button type="button" id="sideGuideToggle" onclick="toggleSideGuides()" aria-controls="guideLeft guideRight">📌 付箋を隠す</button>
 
@@ -3215,36 +3216,27 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
 
-    /* 左右ガイド付箋：個別非表示と一括復元。保存失敗時も表示自体は継続する。 */
-    const GUIDE_STORE_KEY = 'shareliscore_guide_hidden_v1';
-    let guideHiddenIds = [];
-    try {const saved=JSON.parse(localStorage.getItem(GUIDE_STORE_KEY)||'[]');guideHiddenIds=Array.isArray(saved)?saved:[];}catch(_){guideHiddenIds=[];}
+    /* 付箋は全件まとめて表示／非表示。端末内に選択を記憶する。 */
+    const GUIDE_STORE_KEY = 'shareliscore_guides_hidden_all_v2';
+    let guidesHidden = false;
+    try {
+        const saved = localStorage.getItem(GUIDE_STORE_KEY);
+        guidesHidden = saved === null ? matchMedia('(max-width:1579px)').matches : saved === '1';
+    } catch (_) { guidesHidden = matchMedia('(max-width:1579px)').matches; }
     function updateSideGuides() {
-        document.querySelectorAll('.side-guide-card[data-guide-id]').forEach(card=>{card.hidden=guideHiddenIds.includes(card.dataset.guideId);});
-        const anyVisible=document.querySelectorAll('.side-guide-card:not([hidden])').length>0;
-        document.getElementById('guideLeft').hidden=!anyVisible;
-        document.getElementById('guideRight').hidden=!anyVisible;
-        // Hide an individual side when all of its notes were closed.
-        ['guideLeft','guideRight'].forEach(id=>{
-            const node=document.getElementById(id);node.hidden=!node.querySelector('.side-guide-card:not([hidden])');
-        });
-        const button=document.getElementById('sideGuideToggle');
-        button.textContent = guideHiddenIds.length || document.body.classList.contains('guides-collapsed') ? '📌 付箋を戻す／表示' : '📌 付箋を隠す';
-        button.setAttribute('aria-expanded',String(!document.body.classList.contains('guides-collapsed')));
+        const compact = matchMedia('(max-width:1579px)').matches;
+        document.body.classList.toggle('guides-collapsed',guidesHidden);
+        document.body.classList.toggle('guide-drawer-open',compact && !guidesHidden);
+        const button = document.getElementById('sideGuideToggle');
+        button.textContent = guidesHidden ? '📌 付箋を表示' : '📌 付箋を隠す';
+        button.setAttribute('aria-expanded',String(!guidesHidden));
     }
     function toggleSideGuides() {
-        if(guideHiddenIds.length){guideHiddenIds=[];try{localStorage.removeItem(GUIDE_STORE_KEY);}catch(_){} document.body.classList.remove('guides-collapsed');document.body.classList.add('guide-drawer-open');}
-        else if(matchMedia('(max-width:1579px)').matches){document.body.classList.toggle('guide-drawer-open');}
-        else{document.body.classList.toggle('guides-collapsed');}
+        guidesHidden = !guidesHidden;
+        try { localStorage.setItem(GUIDE_STORE_KEY,guidesHidden?'1':'0'); } catch (_) {}
         updateSideGuides();
-        if (matchMedia('(max-width:1579px)').matches) document.getElementById('sideGuideToggle').textContent=document.body.classList.contains('guide-drawer-open')?'📌 付箋を隠す':'📌 付箋を表示';
     }
-    document.querySelectorAll('[data-guide-close]').forEach(button=>button.addEventListener('click',()=>{
-        const id=button.closest('[data-guide-id]')?.dataset.guideId;
-        if(id && !guideHiddenIds.includes(id)) guideHiddenIds.push(id);
-        try{localStorage.setItem(GUIDE_STORE_KEY,JSON.stringify(guideHiddenIds));}catch(_){}
-        updateSideGuides();
-    }));
+    matchMedia('(max-width:1579px)').addEventListener('change',updateSideGuides);
     updateSideGuides();
 
 </script>
