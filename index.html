@@ -338,6 +338,31 @@
         body.my-list-mode .col-select {width:43px;text-align:center;}
         .my-select-row {width:17px;height:17px;cursor:pointer;accent-color:var(--primary);}
         body.my-list-mode .col-delete {width:45px;text-align:center;}
+
+        /* PC: 長い楽曲名・アーティスト名の折り返しを防ぎ、ジャンル幅を詰める */
+        @media (min-width: 601px) {
+          body:not(.my-list-mode) .col-title { width: 23%; }
+          body:not(.my-list-mode) .col-artist { width: 25%; }
+          body:not(.my-list-mode) .col-genre { width: 11%; }
+          .data-table td.col-title,
+          .data-table td.col-artist,
+          .data-table td.col-genre {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            overflow-wrap: normal;
+          }
+          .data-table td.col-title .song-title-link,
+          .data-table td.col-artist .artist-filter-button {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow-wrap: normal;
+          }
+          .data-table td.col-artist .my-artist-cell { min-width: 0; }
+        }
     </style>
 </head>
 <body>
@@ -531,13 +556,13 @@ h2 {
 <div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
     <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
         <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
-        <h2 id="manualTitle" style="color: var(--primary);">📖 使い方ガイド (1/4)</h2>
+        <h2 id="manualTitle" style="color: var(--primary);">📖 使い方ガイド (1/5)</h2>
         
         <div id="manualBody" style="font-size: 14px; line-height: 1.7; min-height: 200px; padding: 10px 0;"></div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
             <button id="prevManualBtn" onclick="changeManualPage(-1)" style="padding: 8px 16px;">◀ 前へ</button>
-            <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 4</span>
+            <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 5</span>
             <button id="nextManualBtn" class="primary-btn" onclick="changeManualPage(1)" style="padding: 8px 16px;">次へ ▶</button>
         </div>
     </div>
@@ -575,7 +600,7 @@ h2 {
         <div class="setting-group" style="margin-bottom: 25px;">
             <label>👤 ユーザー名 (セッション用)</label>
             <div style="display:flex; gap:10px;">
-                <input type="text" id="usernameInput" class="setting-input" placeholder="名前を入力">
+                <input type="text" id="usernameInput" class="setting-input" maxlength="40" placeholder="名前を入力">
                 <button onclick="changeUsername()" style="flex-shrink:0;">変更</button>
             </div>
         </div>
@@ -946,6 +971,21 @@ h2 {
             alert('登録に失敗しました。Firebaseの本人用アクセス権限を確認してください。選択内容は画面に残っています。');
         } finally {btn.disabled=false;}
     }
+    // Firebase AuthenticationのGoogle名とは別に、アプリ内表示名を本人用プロフィールで管理する。
+    let usernameLoadVersion = 0;
+    function applyUsername(name) {
+        const cleanName = String(name || '').trim() || '名無し';
+        myName = cleanName;
+        document.getElementById('usernameInput').value = cleanName;
+        const status = document.getElementById('loginStatus');
+        if (auth.currentUser) status.textContent = cleanName;
+        if (currentRoomId && mySessionId) {
+            db.ref(`rooms/${currentRoomId}/members/${mySessionId}`)
+              .update({ name: cleanName })
+              .catch(error => console.error('ルーム表示名の更新失敗:', error));
+            document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(cleanName)})`;
+        }
+    }
     let themeLoadVersion = 0;
     async function loginWithGoogle() {
         try {
@@ -972,16 +1012,23 @@ h2 {
         document.getElementById('myListSwitchBtn').style.display = user ? 'inline-block' : 'none';
         document.getElementById('addSongHeaderBtn').style.display = user ? 'inline-block' : 'none';
         if (!user && document.getElementById('addSongModal').style.display === 'flex') closeModal(null, 'addSongModal');
+        // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
+        const nameVersion = ++usernameLoadVersion;
         if (user) {
-            const googleName = String(user.displayName || user.email?.split('@')[0] || '').trim();
-            if (googleName) {
-                myName = googleName;
-                document.getElementById('usernameInput').value = googleName;
-                if (currentRoomId && mySessionId) {
-                    db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({ name: googleName }).catch(error => console.error('ルーム表示名の更新失敗:', error));
-                    document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(googleName)})`;
+            const googleName = String(user.displayName || user.email?.split('@')[0] || 'ユーザー').trim();
+            applyUsername(googleName);
+            try {
+                const nameSnapshot = await db.ref(`users/${user.uid}/profile/displayName`).once('value');
+                if (nameVersion === usernameLoadVersion && auth.currentUser?.uid === user.uid) {
+                    applyUsername(String(nameSnapshot.val() || '').trim() || googleName);
                 }
+            } catch(error) {
+                console.error('ユーザー名の読込に失敗:', error);
+                // 読込失敗時もGoogle名でログイン機能は継続する。
             }
+        } else {
+            myName = localStorage.getItem('kankan_username') || '自分';
+            document.getElementById('usernameInput').value = myName;
         }
         document.getElementById('detailPersonalEdit').style.display = 'none';
         currentDetailSongId = null;
@@ -1017,7 +1064,8 @@ h2 {
         const roomWrapper = document.getElementById('roomStatusWrapper');
         const createBtn = document.getElementById('createRoomBtn');
         
-        myName = (auth.currentUser && (auth.currentUser.displayName || auth.currentUser.email?.split('@')[0])) || localStorage.getItem('kankan_username');
+        // ログイン時の保存済みユーザー名は認証状態リスナーから非同期で復元する。
+        myName = myName || (auth.currentUser && (auth.currentUser.displayName || auth.currentUser.email?.split('@')[0])) || localStorage.getItem('kankan_username');
         document.getElementById('usernameInput').value = myName || '';
 
         if (currentRoomId) {
@@ -1052,17 +1100,28 @@ h2 {
         }
     }
 
-    function changeUsername() {
-        const newName = document.getElementById('usernameInput').value.trim();
-        if(newName) {
-            myName = newName;
-            localStorage.setItem('kankan_username', myName);
-            if(currentRoomId && mySessionId) {
-                db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({ name: myName });
-                document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
+    async function changeUsername() {
+        const input = document.getElementById('usernameInput');
+        const newName = input.value.trim();
+        if (!newName) { alert('ユーザー名を入力してください。'); return; }
+        if (newName.length > 40) { alert('ユーザー名は40文字以内にしてください。'); return; }
+        const user = auth.currentUser;
+        if (user) {
+            try {
+                // Googleアカウント自体の名前は変更せず、本人のアプリ用プロフィールに保存。
+                await db.ref(`users/${user.uid}/profile/displayName`).set(newName);
+                if (auth.currentUser?.uid !== user.uid) return;
+            } catch(error) {
+                console.error('ユーザー名の保存に失敗:', error);
+                alert('ユーザー名を保存できませんでした。Firebaseの本人用アクセス権限を確認してください。');
+                return;
             }
-            alert("名前を変更しました！");
+        } else {
+            localStorage.setItem('kankan_username', newName);
         }
+        ++usernameLoadVersion; // 保存中に走っていた古い読込結果で上書きしない。
+        applyUsername(newName);
+        alert('ユーザー名を変更しました！');
     }
 
     function createRoom() {
@@ -1131,53 +1190,66 @@ h2 {
     // マニュアル（使い方ガイド）のページ送り機能
     // =========================================
     let currentManualPage = 1;
-    const totalManualPages = 4;
+    const totalManualPages = 5;
 
     const manualData = {
         1: {
-            title: "📖 使い方ガイド (1/4) - アプリの概要と画面の見方",
+            title: "📖 使い方ガイド (1/5) - はじめに",
             content: `
-                <p><b>「シェアリスコア-Share List Score-」</b>へようこそ！このアプリは、GoogleスプレッドシートのKanKanリストを自動読み込みし、リアルタイムな予約やセットリストの作成・保存を行うためのツールです。</p>
-                <ul style="padding-left: 20px; margin-top: 10px;">
-                    <li style="margin-bottom: 8px;"><strong>メイン一覧：</strong> スプレッドシートから自動取得したすべての楽曲リストが表示されます。</li>
-                    <li style="margin-bottom: 8px;"><strong>ヘッダーメニュー：</strong> 「ルームを作る」や「OBSカスタムCSS」、「設定」が行えます。</li>
-                    <li><strong>フィルターボタン：</strong> 画面下のジャンルのボタンを押すことで、素早く曲を絞り込めます。</li>
+                <p><b>シェアリスコア</b>は、ChordWiki対応の楽曲管理・マイリスト・セッション共有ツールです。</p>
+                <ul style="padding-left:20px;margin:8px 0;">
+                    <li><b>閲覧：</b>ログインなしでも全曲一覧を検索できます。</li>
+                    <li><b>Googleログイン：</b>マイリスト保存・楽曲追加が使えます。</li>
+                    <li><b>⚙ 設定：</b>ユーザー名・基本担当パート・画面カラーを変更できます。ログイン中の個人設定はアカウントに保存されます。</li>
                 </ul>
             `
         },
         2: {
-            title: "📖 使い方ガイド (2/4) - 曲の検索と詳細情報",
+            title: "📖 使い方ガイド (2/5) - 全曲一覧",
             content: `
-                <p><b>目当ての曲を素早く見つけて詳細を確認する方法です。</b></p>
-                <ul style="padding-left: 20px; margin-top: 10px;">
-                    <li style="margin-bottom: 8px;"><strong>キーワード検索：</strong> 検索ボックスに曲名、アーティスト名、アニメ作品名、作詞・作曲・編曲者などをスペース区切りで入力すると、リアルタイムに候補が絞り込まれます。</li>
-                    <li style="margin-bottom: 8px;"><strong>ソート機能：</strong> 表のヘッダー（「曲名」「アーティスト」「ジャンル」「BPM」）をクリックすると、昇順・降順で並び替えることができます。</li>
-                    <li><strong>詳細ポップアップ：</strong> リスト上の<b>曲名をクリック</b>すると、作詞・作曲・編曲者やコードWikiへのリンクなど、詳細なデータを確認できます。</li>
+                <ul style="padding-left:20px;margin:8px 0;">
+                    <li><b>探す：</b>検索欄、ジャンルボタン、列見出しの並べ替えで絞り込みます。</li>
+                    <li><b>曲名をクリック：</b>詳細情報・ChordWikiを確認できます。</li>
+                    <li><b>アーティスト名をクリック：</b>確認画面の「はい」でそのアーティストに絞り込み。⭐で好きなアーティストにも登録できます。</li>
+                    <li><b>Key：</b>◀ ▶で原曲（0）から半音ずつ変更（-5～+6）。ChordWikiのない曲は変更できません。</li>
+                    <li><b>個人登録：</b>担当パートと🎵（好きな曲）を選び、「まとめて登録」で保存します。</li>
+                    <li><b>➕ 楽曲追加：</b>ログイン中のみ利用可能。ChordWikiの原曲URLなどを入力します。</li>
                 </ul>
             `
         },
         3: {
-            title: "📖 使い方ガイド (3/4) - セッションルームの使い方",
+            title: "📖 使い方ガイド (3/5) - マイリスト",
             content: `
-                <p><b>メンバー全員とリアルタイムにセットリストを共有する機能です。</b></p>
-                <ul style="padding-left: 20px; margin-top: 10px;">
-                    <li style="margin-bottom: 8px;"><strong>ルームの作成：</strong> 「🌐 ルームを作る」ボタンを押すと、専用のURLが発行されます。そのURLをSYNCROOMチャット欄やDMでメンバーに共有してください。</li>
-                    <li style="margin-bottom: 8px;"><strong>参加メンバーの確認：</strong> ルームに接続すると、画面上に現在接続しているメンバーの名前が一覧でリアルタイム表示されます。</li>
-                    <li><strong>名前の変更：</strong> メンバー一覧に表示される「自分の名前」は、右上「⚙ 設定」からいつでも自由に変更可能です。</li>
+                <p>ログイン後、ヘッダーの<b>📁 マイリスト</b>で個人の登録曲を表示。<b>📚 全曲一覧</b>でマスターへ戻れます。</p>
+                <ul style="padding-left:20px;margin:8px 0;">
+                    <li><b>Key：</b>自分が使うKeyを◀ ▶で変更します。</li>
+                    <li><b>パート：</b>🎤 歌／🎸 ギター・ベース／🥁 打楽器／🎹 鍵盤／🎺 管楽器／🎻 弦楽器／🪈 笛から選択します。</li>
+                    <li><b>🎵：</b>好きな曲の登録・解除。<b>✕：</b>マイリストから削除（全曲マスターは消えません）。</li>
+                    <li><b>保存：</b>変更後は「まとめて登録」を押して確定してください。</li>
                 </ul>
             `
         },
         4: {
-            title: "📖 使い方ガイド (4/4) - 予約から完了・画像保存まで",
+            title: "📖 使い方ガイド (4/5) - まとめて編集",
             content: `
-                <p><b>当日のセッション進行とセットリストのシェア手順です。</b></p>
-                <ul style="padding-left: 20px; margin-top: 10px;">
-                    <li style="margin-bottom: 8px;"><strong>3段階のステータス管理：</strong>
-                        <br>① <b>📝 予約：</b> リストの「＋追加」ボタンで予約リストに入ります。▲▼ボタンで順番の入れ替えも可能！
-                        <br>② <b>🎸 確定：</b> 予約リストから「演奏確定」を押すと演奏リストに移動します。
-                        <br>③ <b>✅ 完了：</b> 演奏が終わったら「完了」へ！配信にセットリストを映したい場合は「OBSカスタムCSS」ボタンから専用URLをご活用ください。
-                    </li>
-                    <li><strong>セットリスト画像保存：</strong> 「✅ 完了」ボタンの下部にある<b>「📸 画像として保存する」</b>ボタンから、本日のセットリストを1枚の画像として保存できます！</li>
+                <p>マイリストでは曲の右端にある<b>チェックボックス</b>で複数曲を選べます。</p>
+                <ul style="padding-left:20px;margin:8px 0;">
+                    <li>「表示中を選択」または各曲のチェックで編集対象を指定します。</li>
+                    <li>上部の編集バーで<b>担当パート・Key・🎵</b>を設定し、「選択曲に適用」を押します。</li>
+                    <li>「選択曲を削除」で複数曲をまとめてマイリストから外せます。</li>
+                    <li><b>最後に「まとめて登録」</b>を押すと、個人の変更内容が保存されます。</li>
+                </ul>
+            `
+        },
+        5: {
+            title: "📖 使い方ガイド (5/5) - セッション・OBS",
+            content: `
+                <ul style="padding-left:20px;margin:8px 0;">
+                    <li><b>🌐 ルームを作る：</b>発行されたURLを参加者へ共有。ルーム上部で参加者を確認できます。</li>
+                    <li><b>📝 予約：</b>曲のKeyを選んで「＋追加」。予約時のKeyがセットリストに引き継がれます。▲▼で曲順変更もできます。</li>
+                    <li><b>🎸 確定 → ✅ 完了：</b>演奏する曲を確定し、演奏後に完了へ移動します。</li>
+                    <li><b>📸 画像保存：</b>完了一覧から本日のセットリストを画像にできます。</li>
+                    <li><b>📺 OBSカスタムCSS：</b>ルーム内の専用URLをOBSのブラウザソースに設定すると完了曲をリアルタイム表示できます。</li>
                 </ul>
             `
         }
@@ -1927,13 +1999,13 @@ h2 {
                     <button type="button" aria-label="Keyを半音上げる" onclick="changeTableKey('${row._id}', 1)" ${currentKey >= 6 ? 'disabled' : ''}>▶</button>
                 </div>` : '<span class="no-chordwiki-label" title="コードWikiが未登録です">コードWiki無し</span>';
             const artistName = String(row['アーティスト'] || '').trim();
-            const artistLinkHtml = artistName ? `<button type="button" class="artist-filter-button" data-artist="${escapeHtml(artistName)}" title="${escapeHtml(artistName)}の曲だけを表示">${escapeHtml(artistName)}</button>` : '-';
+            const artistLinkHtml = artistName ? `<button type="button" class="artist-filter-button" data-artist="${escapeHtml(artistName)}" title="${escapeHtml(artistName)}（クリックで絞り込み）">${escapeHtml(artistName)}</button>` : '-';
             const personalUi = signedInUser ? personalControlsHtml(row) : {
                 part:'<span style="opacity:.4">－</span>', liked:'', artist:''
             };
             if (myListMode) {
                 tr.innerHTML = `
-                    <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
                     <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}</div></td>
                     <td class="col-key nowrap-cell">${keyPickerHtml}</td>
                     <td class="col-part nowrap-cell">${myListPartButtons(row)}</td>
@@ -1942,7 +2014,7 @@ h2 {
                     <td class="col-select nowrap-cell"><input type="checkbox" class="my-select-row" data-song-id="${row._id}" aria-label="${escapeHtml(row['曲名'])}を一括編集対象に選択" onchange="toggleMySongSelection('${row._id}',this.checked)" ${selectedMySongIds.has(row._id)?'checked':''}></td>`;
             } else tr.innerHTML = `
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
-                <td class="col-title col-main"><span class="song-title-link" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
+                <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span></td>
                 <td class="col-artist col-main">${artistLinkHtml}</td>
                 <td class="col-genre col-sub">${displayGenre}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
