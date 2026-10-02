@@ -367,6 +367,21 @@
           }
           .data-table td.col-artist .my-artist-cell { min-width: 0; }
         }
+            /* 第1段階：現在の一覧モードを常時表示し、表示切替でも領域の高さを保つ。 */
+        #listModeIndicator {
+            box-sizing:border-box; display:flex; align-items:center; flex-shrink:0;
+            min-height:32px; padding:5px 11px; border:1px solid var(--border-color);
+            border-left:4px solid var(--primary); border-radius:5px;
+            background:var(--panel-bg); color:var(--text-color); font-size:13px; font-weight:700;
+        }
+        body:not(.my-list-mode) .data-table .col-title { width:29%; }
+        body:not(.my-list-mode) .data-table .col-artist { width:23%; }
+        body:not(.my-list-mode) .data-table .col-genre { width:17%; }
+        @media (min-width:601px) {
+            body:not(.my-list-mode) .data-table .col-title { width:29%; }
+            body:not(.my-list-mode) .data-table .col-artist { width:23%; }
+            body:not(.my-list-mode) .data-table .col-genre { width:17%; }
+        }
     </style>
 </head>
 <body>
@@ -413,6 +428,8 @@
                 👥 参加中: <span id="roomMembersList">読み込み中...</span>
             </div>
         </div>
+
+        <div id="listModeIndicator" class="list-mode-indicator" role="status" aria-live="polite">📚 全曲マスター</div>
 
         <div class="controls" id="controls">
             <div class="search-row">
@@ -472,7 +489,7 @@
     <div id="tableWrapper">
         <div class="table-header-wrapper">
             <table class="data-table">
-                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-part"><col class="col-liked"></colgroup>
+                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-liked"></colgroup>
                 <thead>
                     <tr>
                         <th class="col-action">ステータス</th>
@@ -481,7 +498,6 @@
                         <th class="sortable" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
                         <th class="sortable" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
                         <th class="col-key">Key</th>
-                        <th class="col-part" title="担当パート">パート</th>
                         <th class="col-liked" title="好きな曲">好きな曲</th>
                     </tr>
                 </thead>
@@ -489,7 +505,7 @@
         </div>
         <div class="table-body-wrapper">
             <table class="data-table">
-                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-part"><col class="col-liked"></colgroup>
+                <colgroup><col class="col-action"><col class="col-title"><col class="col-artist"><col class="col-genre"><col class="col-bpm"><col class="col-key"><col class="col-liked"></colgroup>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
@@ -1269,7 +1285,7 @@ h2 {
                 <p><b>シェアリスコア</b>は、ChordWiki対応の楽曲管理・マイリスト・セッション共有ツールです。</p>
                 <ul style="padding-left:20px;margin:8px 0;">
                     <li><b>閲覧：</b>ログインなしでも全曲一覧を検索できます。</li>
-                    <li><b>Googleログイン：</b>マイリスト保存・楽曲追加が使えます。</li>
+                    <li><b>Googleログイン：</b>個人マイリストの保存が使えます。楽曲追加はゲストも利用できます。</li>
                     <li><b>⚙ 設定：</b>ユーザー名・基本担当パート・画面カラーを変更できます。ログイン中の個人設定はアカウントに保存されます。</li>
                 </ul>
             `
@@ -2031,7 +2047,11 @@ h2 {
                 if (valA < valB) return -1 * currentSortOrder; if (valA > valB) return 1 * currentSortOrder; return 0;
             });
         }
-        songCountDisplay.textContent = `${currentRoomId ? (roomSongScopeLoaded ? (roomSongScope === 'mylist' ? 'ルーム：マイリスト限定' : 'ルーム：全曲一覧') : 'ルーム設定を読み込み中') : (myListMode ? 'マイリスト' : '全曲マスター')}：${filteredData.length} 曲`;
+        const currentModeLabel = currentRoomId
+            ? (!roomSongScopeLoaded ? '⌛ ルームの一覧を読み込み中' : roomSongScope === 'mylist' ? '🌐 ルーム：作成時のマイリスト限定（従来仕様）' : '🌐 ルーム：全曲一覧')
+            : myListMode ? '📁 自分のマイリスト' : '📚 全曲マスター';
+        document.getElementById('listModeIndicator').textContent = currentModeLabel;
+        songCountDisplay.textContent = `${currentModeLabel}：${filteredData.length} 曲`;
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
 
@@ -2097,7 +2117,6 @@ h2 {
                 <td class="col-genre col-sub">${displayGenre}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                 <td class="col-key nowrap-cell">${keyPickerHtml}</td>
-                <td class="col-part nowrap-cell">${personalUi.part}</td>
                 <td class="col-liked nowrap-cell">${personalUi.liked}</td>
             `;
             tableBody.appendChild(tr);
