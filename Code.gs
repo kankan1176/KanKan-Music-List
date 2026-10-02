@@ -575,7 +575,7 @@ h2 {
         <div class="setting-group" style="margin-bottom: 25px;">
             <label>👤 ユーザー名 (セッション用)</label>
             <div style="display:flex; gap:10px;">
-                <input type="text" id="usernameInput" class="setting-input" placeholder="名前を入力">
+                <input type="text" id="usernameInput" class="setting-input" maxlength="40" placeholder="名前を入力">
                 <button onclick="changeUsername()" style="flex-shrink:0;">変更</button>
             </div>
         </div>
@@ -946,6 +946,21 @@ h2 {
             alert('登録に失敗しました。Firebaseの本人用アクセス権限を確認してください。選択内容は画面に残っています。');
         } finally {btn.disabled=false;}
     }
+    // Firebase AuthenticationのGoogle名とは別に、アプリ内表示名を本人用プロフィールで管理する。
+    let usernameLoadVersion = 0;
+    function applyUsername(name) {
+        const cleanName = String(name || '').trim() || '名無し';
+        myName = cleanName;
+        document.getElementById('usernameInput').value = cleanName;
+        const status = document.getElementById('loginStatus');
+        if (auth.currentUser) status.textContent = cleanName;
+        if (currentRoomId && mySessionId) {
+            db.ref(`rooms/${currentRoomId}/members/${mySessionId}`)
+              .update({ name: cleanName })
+              .catch(error => console.error('ルーム表示名の更新失敗:', error));
+            document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(cleanName)})`;
+        }
+    }
     let themeLoadVersion = 0;
     async function loginWithGoogle() {
         try {
@@ -972,16 +987,23 @@ h2 {
         document.getElementById('myListSwitchBtn').style.display = user ? 'inline-block' : 'none';
         document.getElementById('addSongHeaderBtn').style.display = user ? 'inline-block' : 'none';
         if (!user && document.getElementById('addSongModal').style.display === 'flex') closeModal(null, 'addSongModal');
+        // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
+        const nameVersion = ++usernameLoadVersion;
         if (user) {
-            const googleName = String(user.displayName || user.email?.split('@')[0] || '').trim();
-            if (googleName) {
-                myName = googleName;
-                document.getElementById('usernameInput').value = googleName;
-                if (currentRoomId && mySessionId) {
-                    db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({ name: googleName }).catch(error => console.error('ルーム表示名の更新失敗:', error));
-                    document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(googleName)})`;
+            const googleName = String(user.displayName || user.email?.split('@')[0] || 'ユーザー').trim();
+            applyUsername(googleName);
+            try {
+                const nameSnapshot = await db.ref(`users/${user.uid}/profile/displayName`).once('value');
+                if (nameVersion === usernameLoadVersion && auth.currentUser?.uid === user.uid) {
+                    applyUsername(String(nameSnapshot.val() || '').trim() || googleName);
                 }
+            } catch(error) {
+                console.error('ユーザー名の読込に失敗:', error);
+                // 読込失敗時もGoogle名でログイン機能は継続する。
             }
+        } else {
+            myName = localStorage.getItem('kankan_username') || '自分';
+            document.getElementById('usernameInput').value = myName;
         }
         document.getElementById('detailPersonalEdit').style.display = 'none';
         currentDetailSongId = null;
@@ -1017,7 +1039,8 @@ h2 {
         const roomWrapper = document.getElementById('roomStatusWrapper');
         const createBtn = document.getElementById('createRoomBtn');
         
-        myName = (auth.currentUser && (auth.currentUser.displayName || auth.currentUser.email?.split('@')[0])) || localStorage.getItem('kankan_username');
+        // ログイン時の保存済みユーザー名は認証状態リスナーから非同期で復元する。
+        myName = myName || (auth.currentUser && (auth.currentUser.displayName || auth.currentUser.email?.split('@')[0])) || localStorage.getItem('kankan_username');
         document.getElementById('usernameInput').value = myName || '';
 
         if (currentRoomId) {
@@ -1052,17 +1075,28 @@ h2 {
         }
     }
 
-    function changeUsername() {
-        const newName = document.getElementById('usernameInput').value.trim();
-        if(newName) {
-            myName = newName;
-            localStorage.setItem('kankan_username', myName);
-            if(currentRoomId && mySessionId) {
-                db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).update({ name: myName });
-                document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
+    async function changeUsername() {
+        const input = document.getElementById('usernameInput');
+        const newName = input.value.trim();
+        if (!newName) { alert('ユーザー名を入力してください。'); return; }
+        if (newName.length > 40) { alert('ユーザー名は40文字以内にしてください。'); return; }
+        const user = auth.currentUser;
+        if (user) {
+            try {
+                // Googleアカウント自体の名前は変更せず、本人のアプリ用プロフィールに保存。
+                await db.ref(`users/${user.uid}/profile/displayName`).set(newName);
+                if (auth.currentUser?.uid !== user.uid) return;
+            } catch(error) {
+                console.error('ユーザー名の保存に失敗:', error);
+                alert('ユーザー名を保存できませんでした。Firebaseの本人用アクセス権限を確認してください。');
+                return;
             }
-            alert("名前を変更しました！");
+        } else {
+            localStorage.setItem('kankan_username', newName);
         }
+        ++usernameLoadVersion; // 保存中に走っていた古い読込結果で上書きしない。
+        applyUsername(newName);
+        alert('ユーザー名を変更しました！');
     }
 
     function createRoom() {
