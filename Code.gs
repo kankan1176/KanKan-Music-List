@@ -25,9 +25,14 @@ function verifyGoogleUser_(idToken) {
     const user = Array.isArray(body.users) ? body.users[0] : null;
     if (!user || !user.localId || user.disabled) return null;
     // 現段階はGoogleログインの登録者に限定。
-    const googleLinked = (user.providerUserInfo || []).some(p => p.providerId === 'google.com');
-    if (!googleLinked) return null;
-    return { uid: user.localId, name: user.displayName || user.email || '' };
+    const googleProvider = (user.providerUserInfo || []).find(p => p.providerId === 'google.com');
+    // 本人がフォームに入力したIDではなく、認証済みGoogleプロバイダーのIDを採用する。
+    if (!googleProvider || !googleProvider.rawId) return null;
+    return {
+      uid: user.localId,
+      googleId: String(googleProvider.rawId),
+      name: user.displayName || user.email || ''
+    };
   } catch (error) {
     console.error('Firebase投稿認証の照会に失敗:', error.message);
     return null;
@@ -130,8 +135,23 @@ function doPost(e) {
     }
     const songIdColumn = headers.findIndex(h => h === '楽曲ID');
     if (songIdColumn < 0) throw Error('楽曲ID column missing');
-    const row = new Array(sheet.getLastColumn()).fill('');
+
+    // N列（14列目）には、認証済みGoogleアカウントの不変なプロバイダーIDを保存する。
+    // 既存の別用途データは絶対に上書きしない。
+    const POSTER_COLUMN = 14;
+    const POSTER_HEADER = '投稿者GoogleID';
+    const currentNHeader = String(headers[POSTER_COLUMN - 1] || '').trim();
+    if (currentNHeader && currentNHeader !== POSTER_HEADER) {
+      throw Error('N column already in use: ' + currentNHeader);
+    }
+    if (!currentNHeader && values.slice(headerIndex + 1)
+      .some(existing => String(existing[POSTER_COLUMN - 1] || '').trim())) {
+      throw Error('N column has existing data; please review it before deployment');
+    }
+
+    const row = new Array(Math.max(sheet.getLastColumn(), POSTER_COLUMN)).fill('');
     row[songIdColumn] = Utilities.getUuid();
+    row[POSTER_COLUMN - 1] = verifiedUser.googleId;
     row[col('artist')] = artist;
     row[col('title')] = title;
     row[col('codeUrl')] = codeUrl;
@@ -139,6 +159,9 @@ function doPost(e) {
     row[col('genre1')] = genre1;
     row[col('genre2')] = genre2;
     const nextRow = sheet.getLastRow() + 1;
+    if (!currentNHeader) {
+      sheet.getRange(headerIndex + 1, POSTER_COLUMN).setValue(POSTER_HEADER);
+    }
     // 値として登録し、セル内の = から始まる入力が数式に変換されないよう保護します。
     const range = sheet.getRange(nextRow, 1, 1, row.length);
     range.setNumberFormat('@');
