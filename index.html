@@ -1073,11 +1073,11 @@ body.in-room #roomListPanel {display:flex}
         <p style="font-size:12px;line-height:1.5;opacity:.8;">入力した情報を共有楽曲リストに登録します。公開される情報のみ入力してください。</p>
         <!-- 一括CSV登録を単曲フォームより上へ配置。クリック時は従来のCSVモーダルを開く。 -->
         <div style="margin:10px 0 12px;">
-            <button type="button" id="bulkCsvOpenBtn" onclick="openBulkCsvModal()" style="width:100%;padding:10px 12px;background:#1976d2;border-color:#1976d2;color:#fff;font-weight:700;white-space:normal;">📄 登録用CSVアップロード</button>
+            <button type="button" id="bulkCsvOpenBtn" onclick="openBulkCsvModal()" style="width:100%;padding:10px 12px;background:#1976d2;border-color:#1976d2;color:#fff;font-weight:700;white-space:normal;">📄 CSV一括インポート（マスター照合＋マイリスト）</button>
         </div>
         <div class="song-entry-warning" role="note" style="color:#ff727c;font-size:12px;line-height:1.5;margin:0 0 13px;overflow-wrap:anywhere;">
             <strong>⚠ 登録時の注意</strong><br>
-            曲名・アーティスト名・ChordWikiの原曲URLを正確に入力してください。移調済み・パラメータ付きのURLではなく、<strong>「/wiki/曲名」形式</strong>を使用してください。CSVの各行も同様です。
+            <strong>この下の1曲ずつの登録</strong>では曲名・アーティスト名・ChordWikiの原曲URLを正確に入力してください。原曲URLは<strong>「/wiki/曲名」形式</strong>です。上のCSV一括インポートでは移調済みURLも使用できます。
             <div style="margin-top:5px;"><strong>❌ NG：</strong><code style="font:inherit;overflow-wrap:anywhere;">https://ja.chordwiki.org/wiki.cgi?c=view&amp;t=%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89&amp;key=0&amp;symbol=</code></div>
             <div style="margin-top:4px;"><strong>⭕ OK：</strong><code style="font:inherit;overflow-wrap:anywhere;">https://ja.chordwiki.org/wiki/%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89</code></div>
         </div>
@@ -1100,23 +1100,24 @@ body.in-room #roomListPanel {display:flex}
 </div>
 
 
-<!-- CSV master importer: an administrator-only additive operation; the master CSV itself is never uploaded. -->
+<!-- CSV: master matching + personal My List (source CSV is the user's own setlist). -->
 <div class="modal-overlay" id="bulkCsvModal" onclick="closeModal(event,'bulkCsvModal')">
  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bulkCsvTitle" onclick="event.stopPropagation()" style="max-width:760px;box-sizing:border-box;">
   <span class="modal-close" onclick="closeModal(null,'bulkCsvModal')">&times;</span>
-  <h2 id="bulkCsvTitle">📄 登録用CSVを一括マスター登録</h2>
-  <p style="font-size:13px;line-height:1.6;">指定スプレッドシートの<strong>「登録用」タブだけ</strong>を CSV（UTF-8）で保存して選択してください。公開楽曲一覧はアップロード不要です。マスターへの書き込みは管理者のGoogleアカウントのみ許可されます。</p>
-  <p style="font-size:12px;line-height:1.5;color:#ff727c;overflow-wrap:anywhere;">⚠ CSV内の曲名・アーティスト名・ChordWiki原曲URLを正確に入力してください。URLは <strong>https://ja.chordwiki.org/wiki/曲名</strong> 形式を使用し、<strong>wiki.cgi?c=view&amp;...&amp;key=0</strong> などのパラメータ付きURLは使わないでください。</p>
+  <h2 id="bulkCsvTitle">📄 CSVからマスター照合＋マイリスト登録</h2>
+  <p style="font-size:13px;line-height:1.6;">Googleログインした本人のリストを取り込みます。指定スプレッドシートの<strong>「登録用」タブだけ</strong>をCSV（UTF-8）で保存してください。公開楽曲一覧は不要です。</p>
+  <p style="font-size:12px;line-height:1.55;color:#ff727c;">⚠ 曲名・アーティスト名・ChordWiki URLを正確に入力してください。<strong>CSVでは本人が普段演奏する移調済みURLをそのまま使用できます。</strong>URLの <code>key=3</code> をマイリストのKey＋3として抽出し、マスターへ新規登録する場合だけ原曲の <code>/wiki/曲名</code> に変換します。URLにkey指定がなければKey 0として扱います。</p>
   <p style="font-size:12px;"><a href="https://docs.google.com/spreadsheets/d/1w2PAsqmlaUW1uBb_0MiXlqO6T5QTYKtpPalQsIE_SDE/edit?gid=262324724#gid=262324724" target="_blank" rel="noopener noreferrer">📑 「登録用」タブを開く ↗</a></p>
   <div class="setting-group"><label for="bulkCsvFile">登録用CSVファイル</label><input id="bulkCsvFile" type="file" accept=".csv,text/csv,text/plain" style="width:100%;box-sizing:border-box;" onchange="previewBulkCsv()"></div>
-  <div id="bulkCsvSummary" role="status" aria-live="polite" style="font-size:13px;line-height:1.65;margin:10px 0;">CSVを選択すると既存マスター・ファイル内の重複を判定します。</div>
-  <div id="bulkCsvRows" style="max-height:210px;overflow:auto;border:1px solid var(--border-color);border-radius:5px;" aria-label="CSV事前確認結果"></div>
-  <p style="font-size:12px;line-height:1.6;opacity:.85;">重複判定：曲名＋アーティスト名が一致、または原曲ChordWiki URLが一致すると登録を保留します。大文字小文字・全半角・余分な空白・URL表記の違いを正規化します。最新マスターに対する再照合はGAS側でも行います。</p>
+  <div id="bulkCsvSummary" role="status" aria-live="polite" style="font-size:13px;line-height:1.65;margin:10px 0;">CSVを選択すると原曲URLと個人Keyを分離し、マスターを照合します。</div>
+  <div id="bulkCsvRows" style="max-height:235px;overflow:auto;border:1px solid var(--border-color);border-radius:5px;" aria-label="CSV取り込み確認結果"></div>
+  <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.5;margin:10px 0;"><input type="checkbox" id="bulkCsvOverwriteKey" style="width:17px;height:17px;flex:0 0 auto;" onchange="previewBulkCsvSummary()"><span>既に自分のマイリストにある楽曲も、CSVから抽出したKeyで上書きする（未チェックなら既存Key・担当パートを維持）。</span></label>
+  <p style="font-size:12px;line-height:1.55;opacity:.85;">照合条件：正規化した「曲名＋アーティスト名」またはChordWikiの原曲URL。一致先が食い違う曖昧な曲は自動登録しません。書き込む直前にもGAS側で最新マスターを再確認します。入力不備の曲は除外します。</p>
   <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;">
    <button type="button" onclick="closeModal(null,'bulkCsvModal')">閉じる</button>
-   <button type="button" id="bulkCsvSubmitBtn" class="primary-btn" onclick="submitBulkCsv()" disabled>✅ 新規候補のみ一括登録</button>
+   <button type="button" id="bulkCsvSubmitBtn" class="primary-btn" onclick="submitBulkCsv()" disabled>✅ 確認した曲をマイリストに取り込む</button>
   </div>
-  <p id="bulkCsvResult" role="status" aria-live="polite" style="font-size:12px;line-height:1.6;min-height:22px;"></p>
+  <p id="bulkCsvResult" role="status" aria-live="polite" style="font-size:12px;line-height:1.6;min-height:22px;overflow-wrap:anywhere;"></p>
  </div>
 </div>
 
@@ -3237,137 +3238,210 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
 
-    // 登録用CSVの一括取り込み。画面の公開CSVは事前照合に使い、GASが必ず最終再照合する。
-    const BULK_CSV_LIMIT = 250;
-    const BULK_CSV_CHUNK = 80;
-    let bulkCsvCandidates = [];
-    let bulkCsvBusy = false;
-    const bulkCsvAliases = {
-      title:['曲名','タイトル','楽曲名','songtitle','title'],
-      artist:['アーティスト','アーティスト名','歌手','artist'],
+    // CSV Import v2: the source URL may contain the uploader's personal key.
+    // Never place a transposed CGI URL into the master. The GAS endpoint independently parses it.
+    const BULK_CSV_LIMIT=250, BULK_CSV_CHUNK=60;
+    let bulkCsvCandidates=[],bulkCsvPreviewTotals={},bulkCsvBusy=false;
+    const bulkCsvAliases={
+      title:['曲名','タイトル','楽曲名','songtitle','title'],artist:['アーティスト','アーティスト名','歌手','artist'],
       codeUrl:['コードwiki','コードwikiurl','コードwiki原曲url','コードwiki原曲','コード譜url','chordwiki','chordwikiurl','原曲url','コードurl','url'],
-      bpm:['bpm'], genre1:['ジャンル','ジャンル①','ジャンル1','genre','genre1'],
-      genre2:['ジャンル②','ジャンル2','genre2'], tieup:['タイアップ','作品名','関連作品'],
-      search:['検索','検索ワード','検索用','略称'], lyrics:['作詞','作詞者'], composition:['作曲','作曲者'], arrangement:['編曲','編曲者']
+      bpm:['bpm'],genre1:['ジャンル','ジャンル①','ジャンル1','genre','genre1'],genre2:['ジャンル②','ジャンル2','genre2'],
+      tieup:['タイアップ','作品名','関連作品'],search:['検索','検索ワード','検索用','略称'],
+      lyrics:['作詞','作詞者'],composition:['作曲','作曲者'],arrangement:['編曲','編曲者']
     };
-    function bulkCsvHeader(value) { return String(value||'').normalize('NFKC').toLocaleLowerCase().replace(/[\s_　:：()（）・／/\-]/g,''); }
-    function bulkCsvText(value) { return String(value||'').normalize('NFKC').trim().replace(/[\s\u3000]+/g,' ').toLocaleLowerCase(); }
-    function bulkCsvUrl(value) {
-      const raw = String(value||'').trim();
-      try {
-        const u=new URL(raw); if(u.protocol!=='https:'||u.hostname.toLowerCase()!=='ja.chordwiki.org')return raw.toLocaleLowerCase();
-        let t='';
-        if(u.pathname==='/wiki.cgi' && u.searchParams.get('c')==='view')t=u.searchParams.get('t')||'';
-        else if(u.pathname.startsWith('/wiki/'))t=decodeURIComponent(u.pathname.slice(6).replace(/\+/g,' '));
-        else return raw.toLocaleLowerCase();
-        return 'chordwiki:'+bulkCsvText(t);
-      } catch(_) { return raw.toLocaleLowerCase(); }
+    function bulkCsvHeader(value){return String(value||'').normalize('NFKC').toLocaleLowerCase().replace(/[\s_　:：()（）・／/\-]/g,'');}
+    function bulkCsvText(value){return String(value||'').normalize('NFKC').trim().replace(/[\s\u3000]+/g,' ').toLocaleLowerCase();}
+    function bulkCsvPair(row){return bulkCsvText(row.title)+'\u001f'+bulkCsvText(row.artist);}
+    function bulkCsvWikiTitle(value){return 'chordwiki:'+bulkCsvText(value);}
+    // Fail closed for unexpected parameters, out-of-range keys, unknown pages or ambiguous key values.
+    function bulkCsvParseUrl(value){
+      try{
+        const raw=String(value||'').trim();if(!raw||raw.length>500||/[\s\x00-\x1f\x7f]/.test(raw))return null;
+        const u=new URL(raw);
+        if(u.protocol!=='https:'||u.hostname.toLowerCase()!=='ja.chordwiki.org'||u.username||u.password||u.port||u.hash)return null;
+        let title='',key=0,keySpecified=false;
+        if(u.pathname.startsWith('/wiki/')&&!u.search){
+          const p=u.pathname.slice('/wiki/'.length);if(!p||p.includes('/'))return null;
+          title=decodeURIComponent(p.replace(/\+/g,' '));
+        }else if(u.pathname==='/wiki.cgi'){
+          const parts=u.search.slice(1).split('&'),seen=new Set();
+          for(const part of parts){const name=decodeURIComponent(part.split('=')[0].replace(/\+/g,' '));if(seen.has(name))return null;seen.add(name);}
+          if(u.searchParams.get('c')!=='view')return null;
+          title=u.searchParams.get('t')||'';
+          const rawKey=u.searchParams.get('key');
+          if(rawKey!==null&&rawKey!==''){
+            keySpecified=true;const num=rawKey.trim();
+            if(!/^[+-]?\d+$/.test(num))return null;
+            key=Number(num);if(!Number.isInteger(key)||key< -5||key>6)return null;
+          }
+        }else return null;
+        if(!title.trim()||/[\x00-\x1f\x7f/]/.test(title))return null;
+        const originalUrl='https://ja.chordwiki.org/wiki/'+encodeURIComponent(title);
+        return {title,key,keySpecified,originalUrl,urlKey:bulkCsvWikiTitle(title)};
+      }catch(_){return null;}
     }
-    function bulkCsvKey(row){return bulkCsvText(row.title)+'\u001f'+bulkCsvText(row.artist);}
-    function bulkCsvMatch(row, other) {
-      if(bulkCsvText(row.title) && bulkCsvText(row.artist) && bulkCsvKey(row)===bulkCsvKey(other)) return '曲名＋アーティスト一致';
-      if(row.codeUrl && other.codeUrl && bulkCsvUrl(row.codeUrl)===bulkCsvUrl(other.codeUrl)) return 'ChordWiki URL一致';
-      return '';
+    function bulkCsvMasterRows(){return allData.map(song=>({id:song._id,title:song['曲名']||'',artist:song['アーティスト']||'',urlKey:bulkCsvParseUrl(song['コードwiki']||song['コードWiki']||'')?.urlKey||''}));}
+    function bulkCsvFindMatch(row,known){
+      const pairs=known.filter(other=>bulkCsvPair(row)===bulkCsvPair(other));
+      const urls=known.filter(other=>row.urlKey&&other.urlKey===row.urlKey);
+      const ids=new Set([...pairs,...urls].map(other=>other.id||other.sourceIndex));
+      if(ids.size>1)return {status:'ambiguous'};
+      const found=pairs[0]||urls[0];return found?{status:'existing',id:found.id||'',sourceIndex:found.sourceIndex}:{status:'new'};
     }
     function openBulkCsvModal(){
       closeModal(null,'addSongModal');
       document.getElementById('bulkCsvResult').textContent='';
       openModal('bulkCsvModal');
     }
-    function bulkCsvMasterRows(){return allData.map(song=>({title:song['曲名']||'',artist:song['アーティスト']||'',codeUrl:song['コードwiki']||song['コードWiki']||''}));}
+    function bulkCsvAlreadyPersonal(id){const p=effectivePersonalSong(id);return !p.excluded&&!!(p.registered||p.part||getSelectedParts(p).length||p.liked);}
+    function previewBulkCsvSummary(){
+      const total=bulkCsvPreviewTotals;
+      if(!total.all)return;
+      const overwriting=document.getElementById('bulkCsvOverwriteKey').checked;
+      const inList=bulkCsvCandidates.filter(item=>item.masterId&&bulkCsvAlreadyPersonal(item.masterId)).length;
+      document.getElementById('bulkCsvSummary').textContent=`全${total.all}曲｜新規マスター候補${total.new}｜マスター登録済${total.existing}｜曖昧${total.ambiguous}｜CSV内重複${total.duplicate}｜入力不備${total.invalid}｜既存マイリスト${inList}曲（${overwriting?'Key上書き':'Key維持'}）`;
+    }
     function previewBulkCsv(){
-      const input=document.getElementById('bulkCsvFile');
-      const summary=document.getElementById('bulkCsvSummary');
-      const output=document.getElementById('bulkCsvRows');
+      const input=document.getElementById('bulkCsvFile'),summary=document.getElementById('bulkCsvSummary'),output=document.getElementById('bulkCsvRows');
       document.getElementById('bulkCsvResult').textContent='';
       document.getElementById('bulkCsvSubmitBtn').disabled=true;
-      bulkCsvCandidates=[];output.replaceChildren();
+      bulkCsvCandidates=[];bulkCsvPreviewTotals={};output.replaceChildren();
+      if(!signedInUser||signedInUser.isAnonymous){summary.textContent='マイリストへの一括登録にはGoogleログインが必要です。';return;}
       const file=input.files?.[0];if(!file)return;
-      if(!/\.csv$/i.test(file.name)){summary.textContent='CSV（.csv）ファイルを選択してください。';return;}
+      if(!/\.csv$/i.test(file.name)){summary.textContent='CSV（.csv）を選択してください。';return;}
       if(file.size>1024*1024){summary.textContent='CSVは1MB以下に分けてください。';return;}
-      if(!allData.length){summary.textContent='公開マスターの読み込みが完了してからCSVを選択してください。';return;}
+      if(!allData.length){summary.textContent='公開マスターの読み込み後にCSVを選択してください。';return;}
       summary.textContent='CSVを読み込み中…';
       Papa.parse(file,{header:false,skipEmptyLines:'greedy',encoding:'UTF-8',complete:res=>{
-        if(res.errors?.length){summary.textContent='CSV解析エラー（行番号・引用符を確認してください）：'+res.errors[0].message;return;}
+        if(res.errors?.length){summary.textContent='CSV解析エラー：'+res.errors[0].message;return;}
         const rows=res.data;
         const headerAt=rows.findIndex(row=>Array.isArray(row)&&row.some(v=>bulkCsvAliases.title.includes(bulkCsvHeader(v)))&&row.some(v=>bulkCsvAliases.artist.includes(bulkCsvHeader(v))));
-        if(headerAt<0){summary.textContent='見出し「曲名」「アーティスト」が見つかりません。登録用タブのCSVか確認してください。';return;}
-        const hdr=rows[headerAt].map(bulkCsvHeader);const columns={};
+        if(headerAt<0){summary.textContent='見出し「曲名」「アーティスト」が見つかりません。';return;}
+        const hdr=rows[headerAt].map(bulkCsvHeader),columns={};
         for(const [field,aliases] of Object.entries(bulkCsvAliases))columns[field]=hdr.findIndex(h=>aliases.includes(h));
-        if(['title','artist','codeUrl','genre1'].some(k=>columns[k]<0)){
-          summary.textContent='必須列「曲名・アーティスト・コードwiki・ジャンル」が見つかりません。列名を確認してください。';return;
-        }
+        if(['title','artist','codeUrl','genre1'].some(k=>columns[k]<0)){summary.textContent='必須列（曲名・アーティスト・コードwiki・ジャンル）が足りません。';return;}
         const inputs=rows.slice(headerAt+1).filter(row=>row.some(v=>String(v||'').trim()));
-        if(inputs.length>BULK_CSV_LIMIT){summary.textContent=`一度に最大${BULK_CSV_LIMIT}曲までです。CSVを分割してください（今回${inputs.length}曲）。`;return;}
-        const known=bulkCsvMasterRows(),accepted=[];let oldCount=0,innerCount=0,invalidCount=0;
-        const allowed=new Set(allData.flatMap(song=>[song[genre1Key],song[genre2Key]]).filter(Boolean).map(s=>String(s).trim()));
+        if(inputs.length>BULK_CSV_LIMIT){summary.textContent=`1回最大${BULK_CSV_LIMIT}曲です（現在${inputs.length}曲）。`;return;}
+        const known=bulkCsvMasterRows(),seen=[],allowed=new Set(allData.flatMap(song=>[song[genre1Key],song[genre2Key]]).filter(Boolean).map(s=>String(s).trim()));
+        const total={all:inputs.length,new:0,existing:0,ambiguous:0,duplicate:0,invalid:0};
         const fragment=document.createDocumentFragment();
         inputs.forEach((cells,i)=>{
-          const song={};for(const [key,col] of Object.entries(columns))song[key]=col>=0?String(cells[col]||'').trim():'';
-          const malformed=!song.title||!song.artist||!song.genre1||!!validateNewChordWikiUrl(song.codeUrl)||
-            (song.bpm && (!/^\d+$/.test(song.bpm)||Number(song.bpm)<1||Number(song.bpm)>400))||
-            (song.genre2 && song.genre1===song.genre2)||!allowed.has(song.genre1)||!!(song.genre2&&!allowed.has(song.genre2));
-          const previous=malformed?'':known.map(other=>bulkCsvMatch(song,other)).find(Boolean);
-          const internal=!malformed&&!previous?accepted.map(other=>bulkCsvMatch(song,other)).find(Boolean):'';
-          let label,detail,color;
-          if(malformed){invalidCount++;label='⚠ 入力不備';detail='必須項目・原曲URL・BPM・既存のジャンルを確認';color='#dc6f64';}
-          else if(previous){oldCount++;label='⏭ 既存曲';detail=previous;color='#d6a44e';}
-          else if(internal){innerCount++;label='⏭ CSV内重複';detail=internal;color='#d6a44e';}
-          else {accepted.push(song);label='✅ 登録候補';detail='';color='#39a874';}
+          const song={sourceIndex:i};for(const [field,col] of Object.entries(columns))song[field]=col>=0?String(cells[col]||'').trim():'';
+          const parsed=bulkCsvParseUrl(song.codeUrl),bpm=String(song.bpm||'').trim();
+          const invalidBasic=!song.title||!song.artist||!parsed||
+            (bpm&&(!/^\d+$/.test(bpm)||+bpm<1||+bpm>400))||(song.genre2&&song.genre1===song.genre2);
+          let result=invalidBasic?{status:'invalid'}:bulkCsvFindMatch({...song,urlKey:parsed.urlKey},known);
+          // A known master song needs only identity + valid URL. Genre validation is needed for *new* master entries.
+          if(!invalidBasic&&result.status==='new'&&(!song.genre1||!allowed.has(song.genre1)||(song.genre2&&!allowed.has(song.genre2))))result={status:'invalid'};
+          if(!invalidBasic&&result.status!=='invalid'&&result.status!=='ambiguous'){
+            const previous=bulkCsvFindMatch({...song,urlKey:parsed.urlKey},seen);
+            if(previous.status!=='new')result={status:previous.status==='ambiguous'?'ambiguous':'duplicate'};
+          }
+          let label='',detail='',color='#39a874';
+          if(result.status==='invalid'){total.invalid++;label='⚠ 入力不備';detail='URL・必須項目・ジャンル・BPMを確認';color='#e57872';}
+          else if(result.status==='ambiguous'){total.ambiguous++;label='⚠ 照合保留';detail='曲名とURLが異なるマスター曲に一致するなど、対応が曖昧';color='#e57872';}
+          else if(result.status==='duplicate'){total.duplicate++;label='⏭ CSV内重複';detail='先の行と同一曲（先の行のKeyを使用）';color='#d6a44e';}
+          else {
+            const candidate={...song,originalUrl:parsed.originalUrl,personalKey:parsed.key,urlKey:parsed.urlKey,masterId:result.id||''};
+            bulkCsvCandidates.push(candidate);
+            seen.push({...candidate,id:'csv_'+String(i)});
+            total[result.status]++;label=result.status==='existing'?'📁 マスター登録済':'✅ マスター新規候補';
+          }
           const el=document.createElement('div');el.className='bulk-csv-row';
           const left=document.createElement('span');left.className='bulk-csv-status';left.style.color=color;left.textContent=label;
-          const right=document.createElement('span');right.className='bulk-csv-detail';right.textContent=`${i+1}. ${song.title||'（曲名未記入）'} / ${song.artist||'（アーティスト未記入）'}${detail?' ｜ '+detail:''}`;
+          const right=document.createElement('span');right.className='bulk-csv-detail';
+          right.textContent=`${i+1}. ${song.title||'（曲名未記入）'} / ${song.artist||'（アーティスト未記入）'}｜個人Key ${parsed?displayKey(parsed.key):'取得不可'}${parsed&&!parsed.keySpecified?'（URLに指定なし）':''}${detail?' ｜ '+detail:''}${parsed?' ｜ 原曲URL '+parsed.originalUrl:''}`;
           el.append(left,right);fragment.append(el);
         });
-        output.append(fragment);bulkCsvCandidates=accepted;
-        summary.textContent=`全${inputs.length}曲 ｜ 新規候補${accepted.length}曲 ｜ マスター登録済${oldCount}曲 ｜ CSV内重複${innerCount}曲 ｜ 入力不備${invalidCount}曲`;
-        document.getElementById('bulkCsvSubmitBtn').disabled=!accepted.length;
-      },error:err=>{summary.textContent='CSVを読み込めませんでした：'+String(err?.message||err);}});
+        output.append(fragment);bulkCsvPreviewTotals=total;previewBulkCsvSummary();
+        document.getElementById('bulkCsvSubmitBtn').disabled=!bulkCsvCandidates.length;
+      },error:err=>{summary.textContent='CSVを読めません：'+String(err?.message||err);}});
     }
-    // JSONP is used only to read the one-time outcome of a no-cors Apps Script POST.
     function bulkCsvGetStatus(requestId){
       return new Promise(resolve=>{
-        const callback='__bulkCsvCb_'+Math.random().toString(36).slice(2);
-        const script=document.createElement('script');let done=false;
+        const callback='__bulkCsvCb_'+Math.random().toString(36).slice(2),script=document.createElement('script');let done=false;
         const finish=value=>{if(done)return;done=true;clearTimeout(timer);delete window[callback];script.remove();resolve(value);};
-        window[callback]=value=>finish(value);
-        script.onerror=()=>finish(null);
+        window[callback]=value=>finish(value);script.onerror=()=>finish(null);
         const timer=setTimeout(()=>finish(null),7500);
         script.src=SONG_ADD_API_URL+'?action=bulkStatus&requestId='+encodeURIComponent(requestId)+'&callback='+encodeURIComponent(callback)+'&_='+Date.now();
         document.head.append(script);
       });
     }
     async function bulkCsvWaitForResult(requestId){
-      for(let i=0;i<24;i++){
-        await new Promise(r=>setTimeout(r,1500));
-        const value=await bulkCsvGetStatus(requestId);
-        if(value && ['done','error','unauthorized'].includes(value.status))return value;
-      }
+      for(let i=0;i<24;i++){await new Promise(r=>setTimeout(r,1500));const value=await bulkCsvGetStatus(requestId);
+        if(value&&['done','error','unauthorized'].includes(value.status))return value;}
       return null;
+    }
+    async function bulkCsvSaveToMyList(results,sourceMap,ownerUid,overwrite){
+      if(!results.length)return {saved:0,skipped:0,errors:0};
+      if(signedInUser?.uid!==ownerUid||auth.currentUser?.uid!==ownerUid)throw Error('ログインアカウントが変わりました。');
+      // Flush edits already in progress before we merge the imported data.
+      if(!(await saveMyListChanges()))throw Error('編集中のマイリストを保存できませんでした。');
+      const patch={},entries=[];let skipped=0,errors=0;
+      for(const result of results){
+        const item=sourceMap.get(result.sourceIndex);
+        if(!item||!result.songId||!['existing','added'].includes(result.result)||result.personalKey!==item.personalKey){errors++;continue;}
+        const prior=effectivePersonalSong(result.songId);
+        if(bulkCsvAlreadyPersonal(result.songId)&&!overwrite){skipped++;continue;}
+        const parts=getSelectedParts(prior);
+        const next={registered:true,excluded:false,liked:!!prior.liked,key:item.personalKey,
+          parts:parts.length?parts:(defaultPart?[defaultPart]:[]),part:parts[0]||defaultPart||''};
+        patch[`users/${ownerUid}/songs/${result.songId}`]=next;
+        entries.push([result.songId,next]);
+      }
+      if(entries.length){
+        // Multi-path update makes a chunk's personal registration atomic.
+        await db.ref().update(patch);
+        entries.forEach(([id,entry])=>{personalSongs[id]=entry;delete pendingSongs[id];});
+        // Newly published master CSV can lag. Show confirmed new UUIDs in this browser immediately.
+        results.filter(r=>r.result==='added'&&r.songId).forEach(r=>{
+          if(allData.some(song=>song._id===r.songId))return;
+          const item=sourceMap.get(r.sourceIndex);if(!item)return;
+          const row={_id:r.songId,'曲名':item.title,'アーティスト':item.artist,'コードwiki':item.originalUrl,
+            'BPM':item.bpm||'','タイアップ':item.tieup||'','検索':item.search||'','作詞':item.lyrics||'',
+            '作曲':item.composition||'','編曲':item.arrangement||''};
+          row[genre1Key||'ジャンル']=item.genre1||'';row[genre2Key||'ジャンル②']=item.genre2||'';
+          allData.push(row);
+        });
+        void queueFriendSharedSync(ownerUid);
+        renderTable();
+      }
+      return {saved:entries.length,skipped,errors};
     }
     async function submitBulkCsv(){
       if(bulkCsvBusy||!bulkCsvCandidates.length)return;
-      const feedback=document.getElementById('bulkCsvResult');const button=document.getElementById('bulkCsvSubmitBtn');
-      if(!signedInUser||signedInUser.isAnonymous){feedback.textContent='一括登録には管理者のGoogleログインが必要です。';return;}
-      if(!confirm(`新規候補${bulkCsvCandidates.length}曲をマスター登録しますか？ 最終重複判定はサーバー側で実行します。`))return;
-      bulkCsvBusy=true;button.disabled=true;let totals={added:0,duplicates:0,invalid:0};
+      const feedback=document.getElementById('bulkCsvResult'),button=document.getElementById('bulkCsvSubmitBtn');
+      const user=signedInUser;
+      if(!user||user.isAnonymous){feedback.textContent='Googleログイン後にCSVを取り込んでください。';return;}
+      const overwrite=document.getElementById('bulkCsvOverwriteKey').checked;
+      if(!confirm(`CSVの有効な${bulkCsvCandidates.length}曲を照合し、未登録曲をマスターへ登録した後、あなたのマイリストへ追加しますか？\n既存マイリストのKey：${overwrite?'CSVのKeyで上書き':'維持'}`))return;
+      bulkCsvBusy=true;button.disabled=true;
+      const totals={added:0,existing:0,invalid:0,ambiguous:0,saved:0,skipped:0,errors:0};
+      const sourceMap=new Map(bulkCsvCandidates.map(item=>[item.sourceIndex,item]));
       try{
         for(let start=0;start<bulkCsvCandidates.length;start+=BULK_CSV_CHUNK){
-          const subset=bulkCsvCandidates.slice(start,start+BULK_CSV_CHUNK);
-          const token=await signedInUser.getIdToken();
+          if(auth.currentUser?.uid!==user.uid)throw Error('途中でログインアカウントが変わりました。');
+          const subset=bulkCsvCandidates.slice(start,start+BULK_CSV_CHUNK).map(item=>({
+            ...item,codeUrl:item.originalUrl,sourceUrl:item.codeUrl
+          }));
           const requestId=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():String(Date.now())+'_'+Math.random().toString(36).slice(2);
-          feedback.textContent=`登録処理中… ${start+1}〜${start+subset.length}曲 / ${bulkCsvCandidates.length}曲`;
-          await fetch(SONG_ADD_API_URL,{method:'POST',mode:'no-cors',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'bulkImport',requestId,idToken:token,songs:subset})});
+          const token=await user.getIdToken();
+          feedback.textContent=`照合・登録中… ${start+1}〜${start+subset.length} / ${bulkCsvCandidates.length}曲`;
+          await fetch(SONG_ADD_API_URL,{method:'POST',mode:'no-cors',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'bulkMyListImport',requestId,idToken:token,userUid:user.uid,songs:subset})});
           const outcome=await bulkCsvWaitForResult(requestId);
-          if(!outcome){feedback.textContent='送信後の結果を確認できませんでした。重複登録防止のため再送せず、管理用シート／GASログを確認してください。';return;}
-          if(outcome.status==='unauthorized'){feedback.textContent='管理者権限がありません。GASの BULK_ADMIN_UID 設定とGoogleログインを確認してください。';return;}
-          if(outcome.status!=='done'){feedback.textContent='登録処理が停止しました：'+String(outcome.message||'GAS実行ログを確認してください。');return;}
-          totals.added+=Number(outcome.added)||0;totals.duplicates+=Number(outcome.duplicates)||0;totals.invalid+=Number(outcome.invalid)||0;
-          feedback.textContent=`進行状況 ${Math.min(start+subset.length,bulkCsvCandidates.length)}/${bulkCsvCandidates.length}曲：追加${totals.added}、最新マスターで重複${totals.duplicates}、不備${totals.invalid}`;
+          if(!outcome){feedback.textContent='サーバー側の結果を確認できませんでした。再送せず、シートとGASログを確認してください。処理済みのマイリスト登録は保持されます。';return;}
+          if(outcome.status==='unauthorized'){feedback.textContent='Google認証に失敗しました。再ログインしてください。';return;}
+          if(outcome.status!=='done'){feedback.textContent='取り込みが停止しました：'+String(outcome.message||'GAS実行ログを確認してください。');return;}
+          const rows=Array.isArray(outcome.rows)?outcome.rows:[];
+          if(rows.length!==subset.length){feedback.textContent='サーバー応答の件数が一致しません。GASログを確認してください。';return;}
+          const saved=await bulkCsvSaveToMyList(rows,sourceMap,user.uid,overwrite);
+          totals.saved+=saved.saved;totals.skipped+=saved.skipped;totals.errors+=saved.errors;
+          ['added','existing','invalid','ambiguous'].forEach(k=>totals[k]+=rows.filter(r=>r.result===k).length);
+          feedback.textContent=`進行 ${Math.min(start+subset.length,bulkCsvCandidates.length)}/${bulkCsvCandidates.length}曲 ｜ マスター新規${totals.added}・既存${totals.existing} ｜ マイリスト追加/更新${totals.saved}・維持${totals.skipped}・保留${totals.invalid+totals.ambiguous+totals.errors}`;
         }
-        feedback.textContent=`一括登録が完了しました。新規追加${totals.added}曲・重複除外${totals.duplicates}曲・入力不備${totals.invalid}曲。公開CSV反映には時間がかかるため、後ほど「最新情報を再読み込み」してください。`;
-        bulkCsvCandidates=[];
-      }catch(err){feedback.textContent='通信に失敗しました。重複登録を避けるため、登録用シートを確認してから再試行してください。';console.error('Bulk CSV import',err);}
+        feedback.textContent=`一括取り込み完了！マスター新規${totals.added}曲／既存${totals.existing}曲。マイリスト追加・Key更新${totals.saved}曲、登録済みKey維持${totals.skipped}曲、要確認${totals.invalid+totals.ambiguous+totals.errors}曲。新曲が全曲一覧へ表示されるまで公開CSVの更新をお待ちください。`;
+        bulkCsvCandidates=[];button.disabled=true;
+      }catch(err){console.error('CSV mylist import',err);feedback.textContent='途中で停止しました：'+String(err.message||err)+'。すでにマスターへ登録された曲は消えません。再試行の前に管理シートとマイリストを確認してください。';}
       finally{bulkCsvBusy=false;button.disabled=!bulkCsvCandidates.length;}
     }
 
