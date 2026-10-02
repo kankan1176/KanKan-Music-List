@@ -1071,6 +1071,16 @@ body.in-room #roomListPanel {display:flex}
         <span class="modal-close" onclick="closeModal(null, 'addSongModal')">&times;</span>
         <h2>➕ 楽曲を追加</h2>
         <p style="font-size:12px;line-height:1.5;opacity:.8;">入力した情報を共有楽曲リストに登録します。公開される情報のみ入力してください。</p>
+        <!-- 一括CSV登録を単曲フォームより上へ配置。クリック時は従来のCSVモーダルを開く。 -->
+        <div style="margin:10px 0 12px;">
+            <button type="button" id="bulkCsvOpenBtn" onclick="openBulkCsvModal()" style="width:100%;padding:10px 12px;background:#1976d2;border-color:#1976d2;color:#fff;font-weight:700;white-space:normal;">📄 登録用CSVアップロード</button>
+        </div>
+        <div class="song-entry-warning" role="note" style="color:#ff727c;font-size:12px;line-height:1.5;margin:0 0 13px;overflow-wrap:anywhere;">
+            <strong>⚠ 登録時の注意</strong><br>
+            曲名・アーティスト名・ChordWikiの原曲URLを正確に入力してください。移調済み・パラメータ付きのURLではなく、<strong>「/wiki/曲名」形式</strong>を使用してください。CSVの各行も同様です。
+            <div style="margin-top:5px;"><strong>❌ NG：</strong><code style="font:inherit;overflow-wrap:anywhere;">https://ja.chordwiki.org/wiki.cgi?c=view&amp;t=%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89&amp;key=0&amp;symbol=</code></div>
+            <div style="margin-top:4px;"><strong>⭕ OK：</strong><code style="font:inherit;overflow-wrap:anywhere;">https://ja.chordwiki.org/wiki/%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89</code></div>
+        </div>
         <form id="addSongForm" onsubmit="submitNewSong(event)">
             <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
             <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
@@ -1082,7 +1092,6 @@ body.in-room #roomListPanel {display:flex}
             <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;"><label for="newWebsite">Website</label><input id="newWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></div>
             <p id="addSongFeedback" role="status" aria-live="polite" style="font-size:12px;line-height:1.5;min-height:18px;"></p>
             <div style="display:flex;justify-content:flex-end;gap:8px;">
-                <button type="button" id="bulkCsvOpenBtn" onclick="openBulkCsvModal()" style="background:#1976d2;border-color:#1976d2;color:white;font-weight:700;">📄 登録用CSVアップロード</button>
                 <button type="button" onclick="closeModal(null,'addSongModal')">キャンセル</button>
                 <button type="submit" id="addSongSubmit" class="primary-btn">スプレッドシートに登録</button>
             </div>
@@ -1097,6 +1106,7 @@ body.in-room #roomListPanel {display:flex}
   <span class="modal-close" onclick="closeModal(null,'bulkCsvModal')">&times;</span>
   <h2 id="bulkCsvTitle">📄 登録用CSVを一括マスター登録</h2>
   <p style="font-size:13px;line-height:1.6;">指定スプレッドシートの<strong>「登録用」タブだけ</strong>を CSV（UTF-8）で保存して選択してください。公開楽曲一覧はアップロード不要です。マスターへの書き込みは管理者のGoogleアカウントのみ許可されます。</p>
+  <p style="font-size:12px;line-height:1.5;color:#ff727c;overflow-wrap:anywhere;">⚠ CSV内の曲名・アーティスト名・ChordWiki原曲URLを正確に入力してください。URLは <strong>https://ja.chordwiki.org/wiki/曲名</strong> 形式を使用し、<strong>wiki.cgi?c=view&amp;...&amp;key=0</strong> などのパラメータ付きURLは使わないでください。</p>
   <p style="font-size:12px;"><a href="https://docs.google.com/spreadsheets/d/1w2PAsqmlaUW1uBb_0MiXlqO6T5QTYKtpPalQsIE_SDE/edit?gid=262324724#gid=262324724" target="_blank" rel="noopener noreferrer">📑 「登録用」タブを開く ↗</a></p>
   <div class="setting-group"><label for="bulkCsvFile">登録用CSVファイル</label><input id="bulkCsvFile" type="file" accept=".csv,text/csv,text/plain" style="width:100%;box-sizing:border-box;" onchange="previewBulkCsv()"></div>
   <div id="bulkCsvSummary" role="status" aria-live="polite" style="font-size:13px;line-height:1.65;margin:10px 0;">CSVを選択すると既存マスター・ファイル内の重複を判定します。</div>
