@@ -556,6 +556,26 @@ body.in-room #roomListPanel {display:flex}
 #detailRoomMembers .member-row {padding:5px 0;border-bottom:1px dashed var(--border-color);font-size:12px}
 @media(max-width:600px){#roomListTabs button{max-width:135px} .room-overlap-tag{font-size:9px}}
 
+
+        /* Room table: 予約 → Key → 曲名 → アーティスト → BPM → ジャンル.
+           These widths apply only inside a room, leaving both personal/master lists untouched. */
+        body.in-room .data-table col.col-action { width:14%; }
+        body.in-room .data-table col.col-key { width:12%; }
+        body.in-room .data-table col.col-title { width:27%; }
+        body.in-room .data-table col.col-artist { width:22%; }
+        body.in-room .data-table col.col-bpm { width:8%; }
+        body.in-room .data-table col.col-genre { width:17%; }
+        body.in-room .data-table th.col-action { text-align:center; }
+        body.in-room .data-table td.col-action { text-align:center; }
+        @media(max-width:600px) {
+            body.in-room #tableBody .col-action { order:0; }
+            body.in-room #tableBody .col-key { order:1; }
+            body.in-room #tableBody .col-title { order:2; }
+            body.in-room #tableBody .col-artist { order:3; }
+            body.in-room #tableBody .col-bpm { order:4; }
+            body.in-room #tableBody .col-genre { order:5; }
+        }
+
 </style>
 </head>
 <body>
@@ -1062,12 +1082,23 @@ body.in-room #roomListPanel {display:flex}
         <th class="sortable col-genre" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
         <th class="col-part">担当パート</th><th class="col-select" title="複数選択">☑</th>
     </tr></thead>`;
-    let renderedMyListLayout = null;
+    // Room listing has six columns; master and personal list retain their own layout.
+    const roomColumns = '<colgroup><col class="col-action"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"></colgroup>';
+    const roomHeader = roomColumns + `<thead><tr>
+        <th class="col-action">予約</th>
+        <th class="col-key">Key</th>
+        <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
+        <th class="sortable col-artist" onclick="handleSort('アーティスト')">アーティスト <span class="sort-icon" id="icon-アーティスト"></span></th>
+        <th class="sortable col-bpm" onclick="handleSort('BPM')">BPM <span class="sort-icon" id="icon-BPM"></span></th>
+        <th class="sortable col-genre" onclick="handleSort('genre1')">ジャンル <span class="sort-icon" id="icon-genre1"></span></th>
+    </tr></thead>`;
+    let renderedListLayout = null;
     function ensureListLayout() {
-        if (renderedMyListLayout === myListMode) return;
-        tableHeaderTable.innerHTML = myListMode ? myListHeader : masterHeaderMarkup;
-        tableBodyTable.querySelector('colgroup').outerHTML = myListMode ? myListColumns : masterBodyColumns;
-        renderedMyListLayout = myListMode;
+        const layout = currentRoomId ? 'room' : myListMode ? 'mylist' : 'master';
+        if (renderedListLayout === layout) return;
+        tableHeaderTable.innerHTML = layout === 'room' ? roomHeader : layout === 'mylist' ? myListHeader : masterHeaderMarkup;
+        tableBodyTable.querySelector('colgroup').outerHTML = layout === 'room' ? roomColumns : layout === 'mylist' ? myListColumns : masterBodyColumns;
+        renderedListLayout = layout;
         if (typeof updateSortIcons === 'function') updateSortIcons();
     }
     async function saveDefaultPart() {
@@ -1272,7 +1303,7 @@ body.in-room #roomListPanel {display:flex}
         wrapper.style.display=signedInUser ? 'block':'none';
         if (!signedInUser) return;
         const controls=personalControlsHtml(song);
-        document.getElementById('detailPersonalControls').innerHTML=controls.part;
+        document.getElementById('detailPersonalControls').innerHTML=myListRegistrationButton(song) + controls.part;
     }
     async function saveMyListChanges() {
         clearTimeout(autoSaveTimer);
@@ -2813,7 +2844,15 @@ body.in-room #roomListPanel {display:flex}
             const personalUi = signedInUser ? personalControlsHtml(row) : {
                 part:'<span style="opacity:.4">－</span>', artist:''
             };
-            if (myListMode) {
+            if (currentRoomId) {
+                tr.innerHTML = `
+                    <td class="col-action nowrap-cell">${actionBtnHtml}</td>
+                    <td class="col-key nowrap-cell">${displayRoomKey}</td>
+                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
+                    <td class="col-artist col-main">${artistLinkHtml}</td>
+                    <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
+                    <td class="col-genre col-sub">${displayGenre}</td>`;
+            } else if (myListMode) {
                 tr.dataset.mySongId = row._id;
                 tr.classList.toggle('my-selected-row', selectedMySongIds.has(row._id));
                 tr.innerHTML = `
