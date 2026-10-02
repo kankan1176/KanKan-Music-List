@@ -1075,12 +1075,7 @@ body.in-room #roomListPanel {display:flex}
         <div style="margin:10px 0 12px;">
             <button type="button" id="bulkCsvOpenBtn" onclick="openBulkCsvModal()" style="width:100%;padding:10px 12px;background:#1976d2;border-color:#1976d2;color:#fff;font-weight:700;white-space:normal;">📄 CSV一括インポート（マスター照合＋マイリスト）</button>
         </div>
-        <div class="song-entry-warning" role="note" style="color:#ff727c;font-size:12px;line-height:1.5;margin:0 0 13px;overflow-wrap:anywhere;">
-            <strong>⚠ 登録時の注意</strong><br>
-            <strong>この下の1曲ずつの登録</strong>では曲名・アーティスト名・ChordWikiの原曲URLを正確に入力してください。原曲URLは<strong>「/wiki/曲名」形式</strong>です。上のCSV一括インポートでは移調済みURLも使用できます。
-            <div style="margin-top:5px;"><strong>❌ NG：</strong><code style="font:inherit;overflow-wrap:anywhere;">https://ja.chordwiki.org/wiki.cgi?c=view&amp;t=%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89&amp;key=0&amp;symbol=</code></div>
-            <div style="margin-top:4px;"><strong>⭕ OK：</strong><code style="font:inherit;overflow-wrap:anywhere;">https://ja.chordwiki.org/wiki/%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89</code></div>
-        </div>
+        <button type="button" id="songEntryNoticeBtn" onclick="openModal('songEntryNoticeModal')" style="display:block;width:100%;margin:0 0 13px;padding:8px 11px;text-align:left;white-space:normal;background:var(--btn-bg);border:1px solid var(--border-color);color:var(--text-color);font-size:13px;font-weight:700;">⚠ 登録時の注意事項を見る ↗</button>
         <form id="addSongForm" onsubmit="submitNewSong(event)">
             <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
             <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
@@ -1106,7 +1101,7 @@ body.in-room #roomListPanel {display:flex}
   <span class="modal-close" onclick="closeModal(null,'bulkCsvModal')">&times;</span>
   <h2 id="bulkCsvTitle">📄 CSVからマスター照合＋マイリスト登録</h2>
   <p style="font-size:13px;line-height:1.6;">Googleログインした本人のリストを取り込みます。指定スプレッドシートの<strong>「登録用」タブだけ</strong>をCSV（UTF-8）で保存してください。公開楽曲一覧は不要です。</p>
-  <p style="font-size:12px;line-height:1.55;color:#ff727c;">⚠ 曲名・アーティスト名・ChordWiki URLを正確に入力してください。<strong>CSVでは本人が普段演奏する移調済みURLをそのまま使用できます。</strong>URLの <code>key=3</code> をマイリストのKey＋3として抽出し、マスターへ新規登録する場合だけ原曲の <code>/wiki/曲名</code> に変換します。URLにkey指定がなければKey 0として扱います。</p>
+  <button type="button" onclick="openModal('songEntryNoticeModal')" style="margin:0 0 10px;text-align:left;white-space:normal;background:var(--btn-bg);color:var(--text-color);border:1px solid var(--border-color);">⚠ CSV登録時の注意事項を見る ↗</button>
   <p style="font-size:12px;"><a href="https://docs.google.com/spreadsheets/d/1w2PAsqmlaUW1uBb_0MiXlqO6T5QTYKtpPalQsIE_SDE/edit?gid=262324724#gid=262324724" target="_blank" rel="noopener noreferrer">📑 「登録用」タブを開く ↗</a></p>
   <div class="setting-group"><label for="bulkCsvFile">登録用CSVファイル</label><input id="bulkCsvFile" type="file" accept=".csv,text/csv,text/plain" style="width:100%;box-sizing:border-box;" onchange="previewBulkCsv()"></div>
   <div id="bulkCsvSummary" role="status" aria-live="polite" style="font-size:13px;line-height:1.65;margin:10px 0;">CSVを選択すると原曲URLと個人Keyを分離し、マスターを照合します。</div>
@@ -1119,6 +1114,29 @@ body.in-room #roomListPanel {display:flex}
   </div>
   <p id="bulkCsvResult" role="status" aria-live="polite" style="font-size:12px;line-height:1.6;min-height:22px;overflow-wrap:anywhere;"></p>
  </div>
+</div>
+
+<!-- 単曲・CSV共通の注意事項。登録フォームとは独立した確認ダイアログ -->
+<div class="modal-overlay" id="songEntryNoticeModal" onclick="closeModal(event,'songEntryNoticeModal')" style="z-index:1100;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="songEntryNoticeTitle" onclick="event.stopPropagation()" style="max-width:600px;box-sizing:border-box;max-height:calc(100dvh - 32px);overflow-y:auto;">
+    <span class="modal-close" role="button" tabindex="0" aria-label="閉じる" onclick="closeModal(null,'songEntryNoticeModal')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal(null,'songEntryNoticeModal');}">&times;</span>
+    <h2 id="songEntryNoticeTitle">⚠ 登録時の注意事項</h2>
+    <div style="font-size:13px;line-height:1.7;color:var(--text-color);overflow-wrap:anywhere;">
+      <p>曲名・アーティスト名・ChordWiki URLを<strong style="color:#ff828b;">正確に入力</strong>してください。表記の違いがあると、同一曲でも重複と判定できない場合があります。</p>
+      <h3 style="font-size:14px;margin:14px 0 5px;color:var(--text-color);">🎼 1曲ずつマスター登録する場合</h3>
+      <p style="margin:4px 0;">ChordWikiの<strong>原曲URL（/wiki/曲名 形式）</strong>を入力してください。移調後のKey付きURLは使用しません。</p>
+      <p style="margin:9px 0 4px;color:#ff828b;font-weight:700;">❌ NG：移調・表示パラメータ付きURL</p>
+      <code style="display:block;font-size:12px;line-height:1.6;white-space:normal;overflow-wrap:anywhere;color:var(--text-color);background:var(--bg-color);border:1px solid var(--border-color);padding:7px;border-radius:4px;">https://ja.chordwiki.org/wiki.cgi?c=view&amp;t=%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89&amp;key=0&amp;symbol=</code>
+      <p style="margin:9px 0 4px;font-weight:700;">⭕ OK：原曲URL</p>
+      <code style="display:block;font-size:12px;line-height:1.6;white-space:normal;overflow-wrap:anywhere;color:var(--text-color);background:var(--bg-color);border:1px solid var(--border-color);padding:7px;border-radius:4px;">https://ja.chordwiki.org/wiki/%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89</code>
+      <h3 style="font-size:14px;margin:15px 0 5px;color:var(--text-color);">📄 CSV一括インポートの場合</h3>
+      <p style="margin:4px 0;">CSVでは<strong>本人が普段演奏する移調済みURLも使用できます。</strong> 例えば <code>key=3</code> は本人のマイリストのKey＋3として抽出します。未登録曲をマスターへ新規登録するときだけ、原曲URLに変換します。</p>
+      <p style="margin:5px 0;color:#ff828b;">※ URLにKey指定がなければ、個人Keyは0として扱います。</p>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:15px;">
+      <button type="button" class="primary-btn" onclick="closeModal(null,'songEntryNoticeModal')">確認しました・閉じる</button>
+    </div>
+  </div>
 </div>
 
 <!-- マイアカウント：ユーザー名と基本担当パート（従来の保存先を維持） -->
