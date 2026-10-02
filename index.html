@@ -1549,7 +1549,9 @@ body.in-room #roomListPanel {display:flex}
             const data=snapshot.val();
             const clean={};
             for (const [id,item] of Object.entries(data.songs||{})){
-                if (!allData.some(song=>song._id===id) || !item || typeof item!=='object') continue;
+                // CSV may still be loading when the Firebase share arrives. Keep the saved UUIDs.
+                // The display layer resolves IDs against allData after CSV finishes loading.
+                if (!item || typeof item!=='object' || !/^[A-Za-z0-9_-]{1,80}$/.test(id)) continue;
                 clean[id]={key:Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0,
                     parts:Array.isArray(item.parts)?item.parts.filter(part=>PARTS.includes(part)&&part).slice(0,7):[]};
             }
@@ -1566,9 +1568,9 @@ body.in-room #roomListPanel {display:flex}
     function startRoomSharedListeners() {
         if(!currentRoomId || roomSharesListenerRef)return;
         roomSharesListenerRef=db.ref(`${ROOM_LIST_BASE}/${currentRoomId}`);
-        roomSharesListenerRef.on('value',snap=>{roomRawShares=snap.val()||{};rebuildRoomSharedLists();setRoomShareMessage('保存済みの曲・Key・担当パートを共有中。緑色は2人以上の共通曲です。');},err=>{console.error('ルーム共有閲覧失敗',err);setRoomShareMessage('共有リストを表示できません。Firebaseルールを確認してください。');});
+        roomSharesListenerRef.on('value',snap=>{roomRawShares=snap.val()||{};rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;setRoomShareMessage(sharing<2 ? `現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。` : '保存済みの曲・Key・担当パートを共有中。緑色は2人以上の共通曲です。');},err=>{console.error('ルーム共有閲覧失敗',err);setRoomShareMessage('共有リストを表示できません。Firebaseルールを確認してください。');});
         roomMemberListRef=db.ref(`rooms/${currentRoomId}/members`);
-        roomMemberListRef.on('value',snap=>{roomActiveMembers=snap.val()||{};rebuildRoomSharedLists();});
+        roomMemberListRef.on('value',snap=>{roomActiveMembers=snap.val()||{};rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
         startRoomOwnPublishing();
     }
     function renderRoomSongMembers(id) {
