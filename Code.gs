@@ -6,6 +6,34 @@
  */
 const SPREADSHEET_ID = '1YMACN6m-5tE3TSY4jNxVRdQieDCTwh7Zhted-z8zTl4';
 const SHEET_NAME = '全曲'; // タブ名が分かれば入力。空欄なら「曲名」と「楽曲ID」があるシートを自動検出。
+const FIREBASE_WEB_API_KEY = 'AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI';
+
+/** Firebase Auth REST APIへ照会して、投稿者の有効なIDトークンを確認する。 */
+function verifyGoogleUser_(idToken) {
+  const token = String(idToken || '');
+  if (!token || token.length > 8192) return null;
+  const url = 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(FIREBASE_WEB_API_KEY);
+  try {
+    const response = UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify({ idToken: token }),
+      muteHttpExceptions: true
+    });
+    if (response.getResponseCode() !== 200) return null;
+    const body = JSON.parse(response.getContentText());
+    const user = Array.isArray(body.users) ? body.users[0] : null;
+    if (!user || !user.localId || user.disabled) return null;
+    // 現段階はGoogleログインの登録者に限定。
+    const googleLinked = (user.providerUserInfo || []).some(p => p.providerId === 'google.com');
+    if (!googleLinked) return null;
+    return { uid: user.localId, name: user.displayName || user.email || '' };
+  } catch (error) {
+    console.error('Firebase投稿認証の照会に失敗:', error.message);
+    return null;
+  }
+}
+
 
 /** 新規投稿では原曲のChordWiki楽曲ページだけを受け付ける（Apps Script V8互換）。 */
 function isOriginalChordWikiUrl_(value) {
@@ -56,6 +84,9 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
     const data = JSON.parse((e.postData && e.postData.contents) || '{}');
+    // 公開されたURLへの直接POSTも、Firebaseログインを確認できなければ拒否する。
+    const verifiedUser = verifyGoogleUser_(data.idToken);
+    if (!verifiedUser) return reply_('unauthorized');
     // 自動入力 bot 向けのハニーポット
     if (data.website) return reply_('rejected');
     const artist = clean_(data.artist, 150);
