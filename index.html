@@ -631,6 +631,12 @@ body.in-room #roomListPanel {display:flex}
         @media(max-width:520px) { #obsModal .obs-style-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } #obsModal .modal { padding:11px 12px; } }
         @media(max-height:610px) { #obsModal .modal { overflow-y:auto; } #obsModal #obsCssTextarea { flex:none; height:75px; } }
         @media(max-width:520px) { #obsModal .obs-style-grid { grid-template-columns:1fr; } }
+
+        /* フォント設定：ブラウザにインストール済みの書体を優先。 */
+        body { --app-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; font-family:var(--app-font); }
+        body, button, input, select, textarea { font-family:var(--app-font); }
+        /* コード欄とURL欄は等幅を保ち、内容の読みやすさを優先する。 */
+        #obsCssTextarea, #obsUrlInput { font-family:ui-monospace,Consolas,monospace; }
 </style>
 </head>
 <body>
@@ -797,9 +803,10 @@ body.in-room #roomListPanel {display:flex}
     <h2 id="myPageTitle">👤 マイページ</h2>
     <p id="myPageAccountHint"></p>
     <div class="mypage-menu">
+      <button type="button" onclick="openMyPageSection('account')">👤 マイアカウント</button>
       <button type="button" onclick="openMyPageSection('friends')">👥 フレンド</button>
-      <button type="button" onclick="openMyPageSection('settings')">⚙️ 設定</button>
       <button type="button" onclick="openMyPageSection('manual')">📖 使い方ガイド</button>
+      <button type="button" onclick="openMyPageSection('settings')">⚙️ 設定</button>
     </div>
   </div>
 </div>
@@ -809,7 +816,13 @@ body.in-room #roomListPanel {display:flex}
   <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
     <span class="modal-close" onclick="closeModal(null,'friendsModal')">&times;</span>
     <h2>👥 フレンド管理</h2>
-    <p style="font-size:12px;opacity:.8;">フレンドIDはGoogleのメールアドレスやUIDではありません。申請は相手の承認後に成立します。</p>
+    <p style="font-size:12px;opacity:.8;">Googleログインしたユーザー同士で友達申請できます。承認済みの友達の持ち曲を閲覧できます。</p>
+    <h3 style="font-size:15px;margin-bottom:8px;">👥 フレンド一覧</h3>
+    <div id="friendsList" class="friends-section">読み込み中…</div>
+    <button type="button" onclick="refreshFriendsPanel()" style="margin:8px 0 13px;">↻ 一覧を更新</button>
+    <hr style="border:0;border-top:1px solid var(--border-color);margin:7px 0 14px;">
+    <h3 style="font-size:15px;margin-bottom:8px;">🔎 フレンド検索・新規追加</h3>
+    <p style="font-size:12px;opacity:.8;">相手のフレンドIDを入力して申請します。表示名検索ではなくID検索です。</p>
     <div class="setting-group"><label>自分のフレンドID</label>
       <div style="display:flex;gap:7px;align-items:center;">
         <input id="myFriendCode" class="setting-input" readonly placeholder="取得中…" style="flex:1;font-size:15px;font-weight:bold;">
@@ -823,10 +836,8 @@ body.in-room #roomListPanel {display:flex}
       </div>
     </div>
     <div id="friendFeedback" role="status" aria-live="polite" style="font-size:12px;min-height:18px;margin-bottom:8px;"></div>
-    <h3 style="font-size:15px;">届いた申請</h3><div id="incomingFriendRequests" class="friends-section">読み込み中…</div>
-    <h3 style="font-size:15px;">送った申請</h3><div id="outgoingFriendRequests" class="friends-section">読み込み中…</div>
-    <h3 style="font-size:15px;">フレンド一覧</h3><div id="friendsList" class="friends-section">読み込み中…</div>
-    <button type="button" onclick="refreshFriendsPanel()" style="margin-top:12px;">↻ 再読み込み</button>
+    <h3 style="font-size:14px;">届いた申請</h3><div id="incomingFriendRequests" class="friends-section">読み込み中…</div>
+    <h3 style="font-size:14px;">送った申請</h3><div id="outgoingFriendRequests" class="friends-section">読み込み中…</div>
   </div>
 </div>
 <!-- STEP 3-2: 承認済みフレンドの公開マイリスト（閲覧のみ） -->
@@ -874,13 +885,13 @@ body.in-room #roomListPanel {display:flex}
 <div class="modal-overlay" id="manualModal" onclick="closeModal(event, 'manualModal')">
     <div class="modal" onclick="event.stopPropagation()" style="max-width: 550px;">
         <span class="modal-close" onclick="closeModal(null, 'manualModal')">&times;</span>
-        <h2 id="manualTitle" style="color: var(--primary);">📖 使い方ガイド (1/5)</h2>
+        <h2 id="manualTitle" style="color: var(--primary);">📖 使い方ガイド (1/10)</h2>
         
         <div id="manualBody" style="font-size: 14px; line-height: 1.7; min-height: 200px; padding: 10px 0;"></div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
             <button id="prevManualBtn" onclick="changeManualPage(-1)" style="padding: 8px 16px;">◀ 前へ</button>
-            <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 5</span>
+            <span id="manualPageIndicator" style="font-size: 13px; font-weight: bold;">1 / 10</span>
             <button id="nextManualBtn" class="primary-btn" onclick="changeManualPage(1)" style="padding: 8px 16px;">次へ ▶</button>
         </div>
     </div>
@@ -893,8 +904,8 @@ body.in-room #roomListPanel {display:flex}
         <h2>➕ 楽曲を追加</h2>
         <p style="font-size:12px;line-height:1.5;opacity:.8;">入力した情報を共有楽曲リストに登録します。公開される情報のみ入力してください。</p>
         <form id="addSongForm" onsubmit="submitNewSong(event)">
-            <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
             <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
+            <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
             <div class="setting-group"><label for="newCodeUrl">ChordWiki 原曲URL *</label><input class="setting-input" id="newCodeUrl" name="codeUrl" type="url" placeholder="https://ja.chordwiki.org/wiki/..." maxlength="500" required><p id="newCodeUrlCheck" role="status" aria-live="polite" style="font-size:12px;line-height:1.4;margin:5px 0 0;"></p></div>
             <div class="setting-group"><label for="newBpm">BPM（任意）</label><input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK"></div>
             <div class="setting-group"><label for="newGenre1">ジャンル *</label><select id="newGenre1" name="genre1" required></select></div>
@@ -910,11 +921,12 @@ body.in-room #roomListPanel {display:flex}
     </div>
 </div>
 
-<div class="modal-overlay" id="settingsModal" onclick="closeModal(event, 'settingsModal')">
-    <div class="modal" onclick="event.stopPropagation()">
-        <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
-        <h2>設定</h2>
-        
+<!-- マイアカウント：ユーザー名と基本担当パート（従来の保存先を維持） -->
+<div class="modal-overlay" id="accountModal" onclick="closeModal(event, 'accountModal')">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="accountTitle" onclick="event.stopPropagation()" style="max-width:480px;">
+        <span class="modal-close" onclick="closeModal(null, 'accountModal')">&times;</span>
+        <h2 id="accountTitle">👤 マイアカウント</h2>
+        <p style="font-size:12px;opacity:.8;">ユーザー名と基本担当パートを設定します。Googleログイン中はアカウントに保存されます。</p>
         <div class="setting-group" style="margin-bottom: 25px;">
             <label>👤 ユーザー名 (セッション用)</label>
             <div style="display:flex; gap:10px;">
@@ -940,6 +952,14 @@ body.in-room #roomListPanel {display:flex}
             </div>
             <p style="font-size:11px;opacity:.75;">今後新たに登録する曲へ自動適用します。登録済みの曲は変更しません。</p>
         </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal" onclick="closeModal(event, 'settingsModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
+        <h2>⚙️ 設定</h2>
+        
         <div class="setting-group">
             <label>🎨 UIカラーテーマ</label>
             <select id="themeSelect" onchange="changeTheme()">
@@ -950,6 +970,21 @@ body.in-room #roomListPanel {display:flex}
                 <option value="eva00">零号機</option>
                 <option value="eva08">八号機</option>
             </select>
+        </div>
+        <div class="setting-group">
+            <label for="fontSelect">🔤 フォント変更</label>
+            <select id="fontSelect" class="setting-input" style="font-family:inherit;font-size:14px;" onchange="changeFont()">
+                <option value="system">標準（システム）</option>
+                <option value="gothic">ゴシック</option>
+                <option value="rounded">丸ゴシック</option>
+                <option value="mincho">明朝</option>
+            </select>
+            <p style="font-size:11px;opacity:.75;">端末に入っているフォントを使用します。環境によって見た目が異なります。</p>
+        </div>
+        <div class="setting-group">
+            <label>↻ 最新情報を再読み込み</label>
+            <p style="font-size:12px;opacity:.8;">表示が古いときに使います。マイリスト・フレンド・ログイン情報は削除しません。</p>
+            <button type="button" onclick="refreshAppData()">最新情報を再読み込み</button>
         </div>
     </div>
 </div>
@@ -1536,9 +1571,18 @@ body.in-room #roomListPanel {display:flex}
         await loadMyListForUser(user);
         if (user && auth.currentUser?.uid === user.uid) void startFriendsFeature(user);
 
+        const currentFontVersion = ++fontLoadVersion;
         if (!user) {
+            applyFont(localStorage.getItem(GUEST_FONT_STORAGE) || 'system');
             applyTheme(localStorage.getItem(GUEST_THEME_STORAGE) || 'dark');
             return;
+        }
+        try {
+            const fontSnapshot = await db.ref(`users/${user.uid}/preferences/font`).once('value');
+            if (currentFontVersion === fontLoadVersion && auth.currentUser?.uid === user.uid) applyFont(fontSnapshot.val() || 'system');
+        } catch(error) {
+            console.warn('フォントの読み込みに失敗:',error);
+            if (currentFontVersion === fontLoadVersion) applyFont('system');
         }
         try {
             const snapshot = await db.ref(`users/${user.uid}/preferences/theme`).once('value');
@@ -1853,68 +1897,18 @@ body.in-room #roomListPanel {display:flex}
     // マニュアル（使い方ガイド）のページ送り機能
     // =========================================
     let currentManualPage = 1;
-    const totalManualPages = 5;
-
+    const totalManualPages = 10;
     const manualData = {
-        1: {
-            title: "📖 使い方ガイド (1/5) - はじめに",
-            content: `
-                <p><b>シェアリスコア</b>は、ChordWiki対応の楽曲管理・マイリスト・セッション共有ツールです。</p>
-                <ul style="padding-left:20px;margin:8px 0;">
-                    <li><b>閲覧：</b>ログインなしでも全曲一覧を検索できます。</li>
-                    <li><b>Googleログイン：</b>個人マイリストの保存が使えます。楽曲追加はゲストも利用できます。</li>
-                    <li><b>⚙ 設定：</b>ユーザー名・基本担当パート・画面カラーを変更できます。ログイン中の個人設定はアカウントに保存されます。</li>
-                </ul>
-            `
-        },
-        2: {
-            title: "📖 使い方ガイド (2/5) - 全曲一覧",
-            content: `
-                <ul style="padding-left:20px;margin:8px 0;">
-                    <li><b>探す：</b>検索欄、ジャンルボタン、列見出しの並べ替えで絞り込みます。</li>
-                    <li><b>曲名をクリック：</b>詳細情報・ChordWikiを確認できます。</li>
-                    <li><b>アーティスト名をクリック：</b>確認画面の「はい」でそのアーティストに絞り込み。⭐で好きなアーティストにも登録できます。</li>
-                    <li><b>Key：</b>◀ ▶で原曲（0）から半音ずつ変更（-5～+6）。ChordWikiのない曲は変更できません。</li>
-                    <li><b>個人登録：</b>マイリストの担当パート・Keyの変更は自動保存されます。</li>
-                    <li><b>➕ 楽曲追加：</b>ログイン中のみ利用可能。ChordWikiの原曲URLなどを入力します。</li>
-                </ul>
-            `
-        },
-        3: {
-            title: "📖 使い方ガイド (3/5) - マイリスト",
-            content: `
-                <p>ログイン後、ヘッダーの<b>📁 マイリスト</b>で個人の登録曲を表示。<b>📚 全曲一覧</b>でマスターへ戻れます。</p>
-                <ul style="padding-left:20px;margin:8px 0;">
-                    <li><b>Key：</b>自分が使うKeyを◀ ▶で変更します。</li>
-                    <li><b>パート：</b>🎤 歌／🎸 ギター・ベース／🥁 打楽器／🎹 鍵盤／🎺 管楽器／🎻 弦楽器／🪈 笛から選択します。</li>
-                    <li><b>✕：</b>マイリストから削除（全曲マスターは消えません）。</li>
-                    <li><b>保存：</b>変更は自動保存されます。</li>
-                </ul>
-            `
-        },
-        4: {
-            title: "📖 使い方ガイド (4/5) - まとめて編集",
-            content: `
-                <p>マイリストでは曲の右端にある<b>チェックボックス</b>で複数曲を選べます。</p>
-                <ul style="padding-left:20px;margin:8px 0;">
-                    <li>「表示中を選択」または各曲のチェックで編集対象を指定します。</li>
-                    <li>上部の編集バーで<b>担当パート・パートON/OFF・Key</b>を指定し、「選択曲に適用」を押します。</li>
-                    <li>「選択曲を削除」で複数曲をまとめてマイリストから外せます。</li>
-                    <li><b>「選択曲に適用」</b>を押すと、個人の変更内容が自動保存されます。</li>
-                </ul>
-            `
-        },
-        5: {
-            title: "📖 使い方ガイド (5/5) - セッション",
-            content: `
-                <ul style="padding-left:20px;margin:8px 0;">
-                    <li><b>🌐 ルームを作る：</b>発行されたURLを参加者へ共有。ルーム上部で参加者を確認できます。</li>
-                    <li><b>📝 予約：</b>曲のKeyを選んで「＋追加」。予約時のKeyがセットリストに引き継がれます。▲▼で曲順変更もできます。</li>
-                    <li><b>🎸 確定 → ✅ 完了：</b>演奏する曲を確定し、演奏後に完了へ移動します。</li>
-                    <li><b>📸 画像保存：</b>完了一覧から本日のセットリストを画像にできます。</li>
-                </ul>
-            `
-        }
+        1: { title: "📖 使い方ガイド (1/10) - はじめに", content: `<p>シェアリスコアは、楽曲検索・個人マイリスト・フレンド共有・セッションルームを使えるセットリストツールです。</p><ul><li>全曲マスターの閲覧と楽曲追加はGoogleログインなしでも利用できます。</li><li>Googleログインするとマイリスト・フレンド機能が使えます。</li><li>ゲストもルームへ参加できます（匿名認証）。</li></ul>` },
+        2: { title: "📖 使い方ガイド (2/10) - 全曲マスターで探す", content: `<ul><li>検索欄で曲名・アーティスト名などを検索します。</li><li>ジャンルで絞り込み、見出しのクリックで並べ替えます。</li><li>曲名を押すと曲の詳細やChordWikiへのリンクが開きます。</li><li>アーティスト名から絞り込み、⭐でお気に入りアーティストを保存できます（ログイン時）。</li></ul>` },
+        3: { title: "📖 使い方ガイド (3/10) - 曲の追加とKey", content: `<ul><li>「＋楽曲追加」を開き、曲名・アーティスト名・ChordWiki原曲URL・ジャンルなどを入力します。</li><li>登録後、公開CSVへの反映には時間がかかる場合があります。</li><li>Keyの◀ ▶は半音単位です。未登録の曲はKeyを選んだ後で「＋登録」を押すとマイリストへ保存されます。</li></ul>` },
+        4: { title: "📖 使い方ガイド (4/10) - マイリスト", content: `<ul><li>Googleログイン後、ヘッダーの「マイリスト」で持ち曲一覧に切り替わります。</li><li>「＋登録」で追加、「解除」は確認画面の「はい」で実行します。</li><li>Keyや担当パートは自動保存され、1曲に複数パートを設定できます。</li><li>楽曲詳細画面からもマイリスト登録・解除ができます。</li></ul>` },
+        5: { title: "📖 使い方ガイド (5/10) - マイリストの一括編集", content: `<ul><li>チェックボックス、Shift＋クリック（範囲）、Ctrl＋クリック（個別）で複数曲を選択します。</li><li>担当パートを指定し、パートON/OFF・Keyを選んで「選択曲に適用」を押します。</li><li>「選択曲を削除」はマイリストからの解除です。全曲マスターからは消えません。</li></ul>` },
+        6: { title: "📖 使い方ガイド (6/10) - マイページと設定", content: `<ul><li>マイアカウント：ユーザー名・基本担当パートを登録します。</li><li>フレンド：自分のフレンドID確認・新規申請・承認・友達一覧を表示します。</li><li>設定：UIカラーテーマ、フォント変更、最新情報の再読み込みができます。</li><li>キャッシュ全消去は通常不要です。表示が古いときだけ再読み込みを試してください。</li></ul>` },
+        7: { title: "📖 使い方ガイド (7/10) - フレンド機能", content: `<ul><li>フレンドIDを相手に渡すか、相手のIDで申請します。</li><li>相手が承認すると、双方のフレンド一覧に表示されます。</li><li>「持ち曲を見る」では、相手の保存済みKey・担当パートも閲覧できます。</li><li>共通曲のみの抽出や、自分との共通曲の色付けにも対応しています。</li></ul>` },
+        8: { title: "📖 使い方ガイド (8/10) - ルームを作る・参加する", content: `<ul><li>「ルームを作る」でルームURLを発行し、仲間に共有します。</li><li>ルーム中は全曲マスターを使って予約でき、マイリスト起点でも全曲から選べます。</li><li>ゲストも参加可能です。個人マイリストの共有にはGoogleログインが必要です。</li><li>ルームを退出するとその参加者の共有リストが解除されます。</li></ul>` },
+        9: { title: "📖 使い方ガイド (9/10) - ルームの共通曲と演奏管理", content: `<ul><li>切り替えボタンで全曲一覧／共通曲／自分／各メンバーのマイリストを閲覧できます。</li><li>異なるGoogleログイン済みメンバー2人以上が同じ楽曲UUIDを登録すると共通曲に表示されます。</li><li>曲の詳細から登録者名・Key・担当パートを確認できます。</li><li>予約 → 確定 → 完了は全員共通でリアルタイム同期されます。</li></ul>` },
+        10: { title: "📖 使い方ガイド (10/10) - OBS表示と困ったとき", content: `<ul><li>ルーム参加中だけ「OBSカスタムCSS」が表示されます。</li><li>現在のルーム専用URLをOBSのブラウザソースへ設定してください。</li><li>表示デザインは色・背景透明度を選んで「①確定」→「表示を確認」→「②CSS生成」→「③コピー」で変更できます。</li><li>OBSには「完了」の曲が演奏順で表示されます。</li><li>情報が古い場合は設定の「最新情報を再読み込み」を試してください。</li></ul>` },
     };
 
     function openManualModal() {
@@ -2323,6 +2317,7 @@ body.in-room #roomListPanel {display:flex}
         }
         closeModal(null,'myPageModal');
         switch (section) {
+            case 'account': openModal('accountModal'); break;
             case 'friends': openFriendsModal(); break;
             case 'settings': openModal('settingsModal'); break;
             case 'manual': openManualModal(); break;
@@ -2614,6 +2609,41 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
 
+
+    // フォントはログイン中は本人のpreferences、ゲストは端末内だけに保存する。
+    const GUEST_FONT_STORAGE = 'sharelistscore_guest_font';
+    const FONT_OPTIONS = {
+        system: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif',
+        gothic: '"Yu Gothic","Hiragino Kaku Gothic ProN","Meiryo",sans-serif',
+        rounded: '"Hiragino Maru Gothic ProN","Yu Gothic","Meiryo",sans-serif',
+        mincho: '"Yu Mincho","Hiragino Mincho ProN","MS PMincho",serif'
+    };
+    let fontLoadVersion = 0;
+    function applyFont(value) {
+        const selected = Object.prototype.hasOwnProperty.call(FONT_OPTIONS,value) ? value : 'system';
+        document.body.style.setProperty('--app-font',FONT_OPTIONS[selected]);
+        document.getElementById('fontSelect').value = selected;
+    }
+    async function changeFont() {
+        const selected = document.getElementById('fontSelect').value;
+        if (!Object.prototype.hasOwnProperty.call(FONT_OPTIONS,selected)) return;
+        const version = ++fontLoadVersion;
+        applyFont(selected);
+        const user = signedInUser;
+        if (!user) { localStorage.setItem(GUEST_FONT_STORAGE,selected); return; }
+        try { await db.ref(`users/${user.uid}/preferences/font`).set(selected); }
+        catch(err) {
+            if(version===fontLoadVersion) alert('フォント設定を保存できませんでした。');
+            console.error('フォント保存エラー',err);
+        }
+    }
+    function refreshAppData() {
+        // localStorage.clear() や signOut() は行わず、URLの変更でCSVの古いキャッシュを避ける。
+        const url = new URL(location.href);
+        url.searchParams.set('_refresh',String(Date.now()));
+        location.assign(url.toString());
+    }
+
     // Apps Script を「ウェブアプリ」としてデプロイして /exec URL をここに設定。
     // 公開CSVのURLは書き込みに使えません。
     const SONG_ADD_API_URL = 'https://script.google.com/macros/s/AKfycbwAF4yXcQOM-JlRdOrLFrB1AYczZe1ks53ysx2UE1-ZgH87cjix_rHacJ55OYPzCpu5/exec';
@@ -2809,7 +2839,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         // 認証・ルーム参加者登録を終えてから曲表と予約リスナーを起動。
         if (!(await initRoomUI())) return;
 
-        Papa.parse(SHEET_CSV_URL, {
+        Papa.parse(SHEET_CSV_URL + (new URLSearchParams(location.search).has('_refresh') ? '&_refresh=' + encodeURIComponent(new URLSearchParams(location.search).get('_refresh')) : ''), {
             download: true,
             header: false,
             skipEmptyLines: true,
