@@ -547,7 +547,21 @@
 body.in-room #roomListPanel {display:flex}
 #roomListTabs {display:flex; flex-wrap:wrap;gap:5px;min-height:28px}
 #roomListTabs button {font-size:12px;padding:5px 9px;max-width:190px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
-#roomListTabs button.active {background:var(--primary);color:var(--primary-text);border-color:var(--primary);font-weight:700}
+/* ルーム内リスト切替：テーマ色に左右されない、役割・表示順固定の配色。 */
+#roomListTabs button.room-tab-colored {
+    background:var(--room-tab-bg); color:var(--room-tab-text);
+    border:1px solid var(--room-tab-border,var(--room-tab-bg)); font-weight:650;
+    transition:filter .15s, box-shadow .15s, transform .15s;
+}
+#roomListTabs button.room-tab-colored:hover {background:var(--room-tab-bg);color:var(--room-tab-text);filter:brightness(.94)}
+#roomListTabs button.room-tab-colored.active {
+    background:var(--room-tab-bg);color:var(--room-tab-text);
+    border-color:var(--room-tab-border,var(--room-tab-bg));font-weight:800;
+    box-shadow:inset 0 0 0 2px var(--room-tab-ring),0 0 0 2px var(--room-tab-bg);
+}
+#roomListTabs button.room-tab-colored:focus-visible {outline:2px solid var(--room-tab-bg);outline-offset:3px}
+#roomListTabs button.room-tab-colored[aria-pressed="false"] {opacity:.83}
+#roomListTabs button.room-tab-colored[aria-pressed="true"] {opacity:1}
 #roomShareNotice {font-size:11px;opacity:.78}
 #tableBody tr.room-overlap {background:color-mix(in srgb,#38b97f 16%, var(--panel-bg));box-shadow:inset 3px 0 #38b97f}
 .room-overlap-tag {display:inline-block;color:#fff;background:#247c54;padding:2px 5px;border-radius:4px;margin-left:5px;font-size:10px;white-space:nowrap}
@@ -1511,17 +1525,45 @@ body.in-room #roomListPanel {display:flex}
     function renderRoomListTabs() {
         const tabs = document.getElementById('roomListTabs'); if (!tabs || !currentRoomId) return;
         tabs.replaceChildren();
-        const add = (value,label) => {
+        // 全曲(青) → 共通曲(白) → 自分(赤) → 他のメンバー(黄・緑・紫・橙・水色・薄ピンク)。
+        // 背景色は全テーマ共通、選択状態は色の塗り替えではなく輪郭で区別する。
+        const palette = {
+            all:    {bg:'#268bea',text:'#ffffff',ring:'#ffffff'},
+            common: {bg:'#ffffff',text:'#222b36',ring:'#262626',border:'#bac3ce'},
+            mine:   {bg:'#dd4853',text:'#ffffff',ring:'#ffffff'},
+            members:[
+                {bg:'#f5cf4b',text:'#29230b',ring:'#29230b'}, // 黄
+                {bg:'#55c789',text:'#123822',ring:'#123822'}, // 緑
+                {bg:'#a985e8',text:'#231135',ring:'#231135'}, // 紫
+                {bg:'#efa148',text:'#35200b',ring:'#35200b'}, // 橙
+                {bg:'#72d7eb',text:'#10343d',ring:'#10343d'}, // 水色
+                {bg:'#f5bfd9',text:'#482037',ring:'#482037'}  // 薄ピンク
+            ]
+        };
+        const add = (value,label,color) => {
             const button=document.createElement('button');button.type='button';button.textContent=label;
+            button.classList.add('room-tab-colored');
+            button.style.setProperty('--room-tab-bg',color.bg);
+            button.style.setProperty('--room-tab-text',color.text);
+            button.style.setProperty('--room-tab-ring',color.ring);
+            if(color.border)button.style.setProperty('--room-tab-border',color.border);
             button.classList.toggle('active',roomListView===value);
             button.setAttribute('aria-pressed',String(roomListView===value));
             button.onclick=()=>{roomListView=value;renderRoomListTabs();renderTable();tableBodyWrapper.scrollTop=0;};tabs.append(button);
         };
-        add('all','🌐 全曲一覧');
-        Object.entries(roomSharedLists).sort((a,b)=>a[0]===signedInUser?.uid?-1:b[0]===signedInUser?.uid?1:a[1].name.localeCompare(b[1].name,'ja')).forEach(([uid,entry])=>{
-            add(uid,`📁 ${uid===signedInUser?.uid?'自分':entry.name}（${Object.keys(entry.songs||{}).length}曲）`);
-        });
-        add('common',`🤝 共通曲（${allData.filter(song=>roomOwnersOfSong(song._id).length>=2).length}曲）`);
+        add('all','🌐 全曲一覧',palette.all);
+        add('common',`🤝 共通曲（${allData.filter(song=>roomOwnersOfSong(song._id).length>=2).length}曲）`,palette.common);
+        const myUid=signedInUser && !signedInUser.isAnonymous ? signedInUser.uid : null;
+        if(myUid && roomSharedLists[myUid]) {
+            const mine=roomSharedLists[myUid];
+            add(myUid,`📁 自分（${Object.keys(mine.songs||{}).length}曲）`,palette.mine);
+        }
+        Object.entries(roomSharedLists)
+            .filter(([uid])=>uid!==myUid)
+            .sort((a,b)=>a[1].name.localeCompare(b[1].name,'ja') || a[0].localeCompare(b[0]))
+            .forEach(([uid,entry],index)=>{
+                add(uid,`📁 ${entry.name}（${Object.keys(entry.songs||{}).length}曲）`,palette.members[index % palette.members.length]);
+            });
     }
     function setRoomShareMessage(message) {const el=document.getElementById('roomShareNotice');if(el)el.textContent=message;}
     function stopRoomOwnSource() {
