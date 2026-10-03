@@ -2251,7 +2251,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     // ルーム状態とユーザー名の管理
     // =========================================
     const urlParams = new URLSearchParams(window.location.search);
-    const currentRoomId = urlParams.get('room');
+    const currentRoomId = (rid => (rid && /^[A-Za-z0-9]{4,32}$/.test(rid)) ? rid : null)(urlParams.get('room'));
     let myName = ''; 
     let mySessionId = ''; 
     // 旧版で保存された仮名も、ゲストの名前未設定として扱う。
@@ -2668,7 +2668,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             let newRoomId = '';
             for (let attempt = 0; attempt < 8; attempt++) {
                 let candidate = '';
-                for (let i = 0; i < 5; i++) candidate += chars.charAt(Math.floor(Math.random() * chars.length));
+                const rnd = new Uint8Array(8); crypto.getRandomValues(rnd);
+                for (let i = 0; i < 8; i++) candidate += chars.charAt(rnd[i] % chars.length);
                 const settingsRef = db.ref(`rooms/${candidate}/settings`);
                 const result = await settingsRef.transaction(existing => {
                     if (existing !== null) return;
@@ -3621,7 +3622,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             if (!user) throw Error('認証を開始できませんでした');
             const payload = {
                 type:'newSong', requestedBy:user.uid, title, artist,
-                chordwiki:String(data.codeUrl||'').trim(), bpm:String(data.bpm||''),
+                chordwiki:String(data.codeUrl||'').trim().slice(0,2048), bpm:String(data.bpm||''),
                 genre:String(data.genre1||''), genre2:String(data.genre2||''), genre3:'',
                 tieup:'', search:'', lyrics:'', composition:'', arrangement:'',
                 status:'pending', createdAt:firebase.database.ServerValue.TIMESTAMP
@@ -3850,8 +3851,8 @@ html, body { background: transparent !important; color: ${text} !important; }
             try{
               if(auth.currentUser?.uid!==user.uid)throw Error('ログインアカウントが変更されました');
               await db.ref(`songEditRequests/${row.songId}/${user.uid}`).set({
-                type:'artistFill',songId:row.songId,title:row.title,artist:row.artist,
-                sourceUrl:row.rawUrl,requestedBy:user.uid,status:'pending',
+                type:'artistFill',songId:row.songId,title:String(row.title||'').slice(0,240),artist:String(row.artist||'').slice(0,240),
+                sourceUrl:String(row.rawUrl||'').slice(0,2048),requestedBy:user.uid,status:'pending',
                 createdAt:firebase.database.ServerValue.TIMESTAMP
               });
               proposed++;
@@ -3926,7 +3927,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         button.disabled=true;msg.textContent='送信中…';
         try{
             await db.ref(`songEditRequests/${song._id}/${user.uid}`).set({
-                type:'edit',songId:song._id,title:String(song['曲名']||''),requestedBy:user.uid,
+                type:'edit',songId:song._id,title:String(song['曲名']||'').slice(0,240),requestedBy:user.uid,
                 status:'pending',createdAt:firebase.database.ServerValue.TIMESTAMP,changes
             });
             msg.textContent='修正申請を受け付けました。管理者の確認待ちです。';
@@ -4088,13 +4089,32 @@ html, body { background: transparent !important; color: ${text} !important; }
         const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲'];
         const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
         const rows=[headers];
+        let skipped=0;
         for(const [id,song] of Object.entries(master)){
-            if(!song||typeof song!=='object'||(song.id&&song.id!==id)||!song.title)
-                throw Error('公開マスターの楽曲形式を確認してください: '+id);
+            // 1曲の不備で全員が読み込めなくならないよう、不正な曲・不正なID(HTML/JSへ埋め込めない文字)は除外する。
+            if(!/^[A-Za-z0-9_-]{1,80}$/.test(id)||!song||typeof song!=='object'||Array.isArray(song)||
+               (song.id&&song.id!==id)||typeof song.title!=='string'||!song.title.trim()){
+                skipped++;
+                if(skipped<=20)console.warn('公開マスターの不正な楽曲を除外しました:',id);
+                continue;
+            }
             rows.push(fields.map(field=>field==='id'?id:String(song[field]??'')));
         }
+        if(skipped)console.warn(`公開マスターの不正な楽曲を ${skipped} 件除外しました。管理者はFirebaseのsongsを確認してください。`);
+        if(rows.length<=1)throw Error('有効な楽曲が公開マスターにありません。Realtime Databaseルールとデータを確認してください。');
         return rows;
     }
+    // Firebaseのpush keyは先頭8文字に作成時刻(ms)を持つ。管理画面が発行した更新番号の「発行時刻」を取り出す。
+    function revisionTimestamp(revision) {
+        const chars='-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+        if(typeof revision!=='string'||revision.length!==20)return null;
+        let t=0;
+        for(let i=0;i<8;i++){const n=chars.indexOf(revision.charAt(i));if(n<0)return null;t=t*64+n;}
+        return t;
+    }
+    // GitHub Actionsの同期は約10分間隔。更新直後の一定時間だけ、少し古い公開JSONを許容して
+    // 全員がFirebaseから全曲(約27,000曲)を直接取得する事態(通信量・課金)を避ける。
+    const STATIC_LAG_TOLERANCE_MS = 30 * 60 * 1000;
     async function readStaticMaster(expectedRevision) {
         if(!expectedRevision)throw Error('Firebase更新番号が未設定です');
         // revisionをURLにつけ、GitHub Pages/CDN/ブラウザの古いレスポンスを回避する。
@@ -4103,12 +4123,21 @@ html, body { background: transparent !important; color: ${text} !important; }
         const response=await fetch(url.toString(),{cache:'no-store'});
         if(!response.ok)throw Error('静的JSON HTTP '+response.status);
         const payload=await response.json();
-        if(!payload || payload.schema!==3 || payload.revision!==expectedRevision)
-            throw Error('静的JSONの版がFirebaseと一致しません（未公開または更新途中）');
+        if(!payload || payload.schema!==3 || typeof payload.revision!=='string' || !payload.revision)
+            throw Error('静的JSONの形式が不正です');
         rowsFromFirebaseMaster(payload.songs);
-        // ダウンロードの最中に管理者が更新していたら採用しない。
-        if(await readMasterRevision()!==expectedRevision)throw Error('静的JSON取得中にマスターが更新されました');
-        return {revision:expectedRevision,master:payload.songs};
+        if(payload.revision===expectedRevision){
+            // ダウンロードの最中に管理者が更新していたら採用しない。
+            if(await readMasterRevision()!==expectedRevision)throw Error('静的JSON取得中にマスターが更新されました');
+            return {revision:expectedRevision,master:payload.songs,stale:false};
+        }
+        // 版が違う場合：更新番号の発行から30分以内（同期待ち）なら、古い公開JSONを暫定採用する。
+        // 発行から長時間たっても追いついていない場合は同期停止とみなし、Firebaseから直接取得する。
+        const issuedAt=revisionTimestamp(expectedRevision);
+        const age=issuedAt===null?null:Date.now()-issuedAt;
+        if(age!==null&&age>=-600000&&age<=STATIC_LAG_TOLERANCE_MS)
+            return {revision:payload.revision,master:payload.songs,stale:true};
+        throw Error('静的JSONの版がFirebaseと一致しません（未公開または更新途中）');
     }
     async function readConsistentFirebaseMaster(initialRevision) {
         // 大きなCSV取込の途中に変更が入った場合は旧版をキャッシュせず、更新後を取り直す。
@@ -4173,7 +4202,7 @@ html, body { background: transparent !important; color: ${text} !important; }
                     try{
                         masterLoadNotice('公開JSONから最新の楽曲マスターを取得中…');
                         result=await readStaticMaster(revision);
-                        masterLoadNotice('✅ 公開JSONから最新の楽曲マスターを取得しました。');
+                        masterLoadNotice(result.stale?'✅ 公開JSONから取得しました（直近の更新は最大約10分で反映されます）。':'✅ 公開JSONから最新の楽曲マスターを取得しました。');
                     }catch(staticError){
                         console.warn('公開JSONを利用できないため、Firebaseの最新版へ切り替えます。管理者は public/songs.json の更新を確認してください。',staticError);
                     }
@@ -4187,7 +4216,7 @@ html, body { background: transparent !important; color: ${text} !important; }
                 if(result.revision){
                     void savePublicMasterCache(result.revision,result.master)
                         .catch(error=>console.warn('公開マスターのキャッシュ保存ができません。次回は通常取得します。',error));
-                    masterLoadNotice('✅ 最新の楽曲マスターを取得しました。');
+                    if(!result.stale)masterLoadNotice('✅ 最新の楽曲マスターを取得しました。');
                 }else{
                     masterLoadNotice('⚠ 更新番号が未設定のため、キャッシュせず最新マスターを取得しました。');
                 }
@@ -4330,8 +4359,9 @@ html, body { background: transparent !important; color: ${text} !important; }
         const song = allData.find(r => r._id === String(songId));
         if (!song) return;
         const selectedKey = getQueueKeyForCurrentView(song);
-        const qId = 'q_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-        const data = { songId: songId, status: 'reserved', addedBy: myName, order: Date.now(), keyOffset: selectedKey };
+        const qId = newQueueId();
+        const safeKeyOffset = Number.isInteger(selectedKey) && selectedKey >= -5 && selectedKey <= 6 ? selectedKey : 0;
+        const data = { songId: String(songId), status: 'reserved', addedBy: String(myName || '').slice(0, 80), order: currentRoomId ? firebase.database.ServerValue.TIMESTAMP : Date.now(), keyOffset: safeKeyOffset };
         if (currentRoomId) {
             db.ref('rooms/' + currentRoomId + '/queue/' + qId).set(data);
         } else {
@@ -4340,8 +4370,16 @@ html, body { background: transparent !important; color: ${text} !important; }
         }
     }
 
+    // キューIDは onclick 属性へ埋め込むため、英数字・_・- のみを許可する（Firebaseルールと同じ条件）。
+    function isSafeQueueId(id) { return /^[A-Za-z0-9_-]{1,40}$/.test(String(id)); }
+    function newQueueId() {
+        const buf = new Uint32Array(2);
+        crypto.getRandomValues(buf);
+        return 'q_' + Date.now().toString(36) + '_' + buf[0].toString(36) + buf[1].toString(36);
+    }
+
     function changeStatus(qId, newStatus) {
-        const newOrder = Date.now(); 
+        const newOrder = currentRoomId ? firebase.database.ServerValue.TIMESTAMP : Date.now();
         if(currentRoomId) {
             db.ref(`rooms/${currentRoomId}/queue/${qId}`).update({status: newStatus, order: newOrder});
         } else {
@@ -4362,7 +4400,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             db.ref(`rooms/${currentRoomId}/queue/${qId1}`).update({order: order2});
             db.ref(`rooms/${currentRoomId}/queue/${qId2}`).update({order: order1});
         } else {
-            roomQueue[qId1].order = order2; roomQueue[qId1].order = order1;
+            roomQueue[qId1].order = order2; roomQueue[qId2].order = order1;
             updateQueueUI();
         }
     }
@@ -4372,6 +4410,8 @@ html, body { background: transparent !important; color: ${text} !important; }
         
         Object.keys(roomQueue).forEach(qId => {
             const data = roomQueue[qId];
+            // 不正なキー・形式の項目はHTMLへ出さない（XSS対策）。
+            if (!isSafeQueueId(qId) || !data || typeof data !== 'object') return;
             const songData = allData.find(r => r._id === String(data.songId)) || (/^\d+$/.test(String(data.songId)) ? allData.find(r => r._legacyId === String(data.songId)) : null);
             if(!songData) return;
             const item = { qId: qId, ...data, songData: songData };
