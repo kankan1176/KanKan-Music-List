@@ -1271,8 +1271,18 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <span class="modal-close" onclick="closeFriendSharedList()">&times;</span>
     <h2 id="friendSharedTitle">📁 フレンドのマイリスト</h2>
     <div id="friendSharedMeta" class="shared-list-meta">読み込み中…</div>
-    <div class="shared-list-tools"><label><input type="checkbox" id="friendCommonOnly" onchange="renderFriendSharedList()"> 🤝 自分との共通曲のみ</label><span id="friendCommonCount"></span></div>
-    <div id="friendSharedSongs" class="shared-list-scroll" aria-live="polite">読み込み中…</div>
+    <div style="display:flex;gap:7px;margin:10px 0;flex-wrap:wrap;" role="group" aria-label="フレンドの共有情報を切り替える">
+      <button type="button" id="friendSongsTab" class="primary-btn" onclick="switchFriendShareTab('songs')">📁 マイリスト</button>
+      <button type="button" id="friendArtistsTab" onclick="switchFriendShareTab('artists')">⭐ お気に入りアーティスト</button>
+    </div>
+    <div id="friendSongsPanel">
+      <div class="shared-list-tools"><label><input type="checkbox" id="friendCommonOnly" onchange="renderFriendSharedList()"> 🤝 自分との共通曲のみ</label><span id="friendCommonCount"></span></div>
+      <div id="friendSharedSongs" class="shared-list-scroll" aria-live="polite">読み込み中…</div>
+    </div>
+    <div id="friendArtistsPanel" hidden style="display:none;">
+      <div class="shared-list-tools"><label><input type="checkbox" id="friendCommonArtistsOnly" onchange="renderFriendFavoriteArtists()"> 🤝 共通のお気に入りアーティストのみ</label><span id="friendFavoriteArtistCount"></span></div>
+      <div id="friendFavoriteArtists" class="shared-list-scroll" aria-live="polite">読み込み中…</div>
+    </div>
   </div>
 </div>
 
@@ -2238,6 +2248,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                 });
                 // 保存済みの内容だけを友達用スナップショットへ同期。失敗しても個人保存は取り消さない。
                 void queueFriendSharedSync(user.uid);
+                if (friendSharedUid) renderFriendFavoriteArtists();
                 // 変更途中のスクロール位置・複数選択状態を壊さず、残りは次の保存へ。
                 return true;
             } catch (error) {
@@ -3236,6 +3247,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     let friendSharedSyncQueue = Promise.resolve();
     let friendSharedUid = '';
     let friendSharedSongs = {};
+    let friendSharedArtists = {};
+    let friendShareTab = 'songs';
     let friendSharedRef = null;
     let friendSharedListener = null;
     let friendSharedVersion = 0;
@@ -3249,7 +3262,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             if (item.excluded || !(item.registered || item.part || parts.length || item.liked)) continue;
             songs[id] = {key: Number.isInteger(item.key) && item.key>=-5 && item.key<=6 ? item.key : 0, parts};
         }
-        return {songs, updatedAt: Date.now()};
+        // Only saved favorite flags are shared, never uncommitted local changes.
+        const artists = Object.fromEntries(Object.entries(favoriteArtists).filter(([key, value]) => /^a_(?:[0-9a-f]{2})+$/i.test(key) && value === true).map(([key]) => [key, true]));
+        return {songs, favoriteArtists: artists, updatedAt: Date.now()};
     }
     function queueFriendSharedSync(uid) {
         if (!uid || sharedListReadyUid !== uid || !allData.length) return friendSharedSyncQueue;
@@ -3269,7 +3284,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         if (event && event.target !== event.currentTarget) return;
         friendSharedVersion++;
         if (friendSharedRef && friendSharedListener) friendSharedRef.off('value',friendSharedListener);
-        friendSharedRef = null; friendSharedListener = null; friendSharedUid = ''; friendSharedSongs = {};
+        friendSharedRef = null; friendSharedListener = null; friendSharedUid = ''; friendSharedSongs = {}; friendSharedArtists = {};
         closeModal(null,'friendSharedModal');
     }
     async function openFriendSharedList(uid) {
@@ -3277,8 +3292,10 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         closeFriendSharedList();
         const version = ++friendSharedVersion;
         friendSharedUid=uid;
-        friendSharedSongs={};
+        friendSharedSongs={};friendSharedArtists={};
         document.getElementById('friendCommonOnly').checked=false;
+        document.getElementById('friendCommonArtistsOnly').checked=false;
+        switchFriendShareTab('songs');
         document.getElementById('friendSharedTitle').textContent='📁 フレンドのマイリスト';
         document.getElementById('friendSharedMeta').textContent='読み込み中…';
         document.getElementById('friendSharedSongs').textContent='読み込み中…';
@@ -3290,6 +3307,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         friendSharedListener=snap=>{
             if (version!==friendSharedVersion || friendUser()?.uid!==u.uid) return;
             const shared=snap.val();friendSharedSongs=shared?.songs || {};
+            friendSharedArtists=shared?.favoriteArtists || {};
+            renderFriendFavoriteArtists();
             document.getElementById('friendSharedMeta').textContent=shared?'保存済みのマイリストを共有中（変更は自動反映されます）':'まだ共有リストがありません。相手の再ログイン後に同期されます。';
             renderFriendSharedList();
         };
@@ -3299,6 +3318,38 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             document.getElementById('friendSharedMeta').textContent='閲覧できません。相手とのフレンド関係・共有設定を確認してください。';
             document.getElementById('friendSharedSongs').replaceChildren();
         });
+    }
+    function switchFriendShareTab(tab) {
+        friendShareTab=tab==='artists'?'artists':'songs';
+        document.getElementById('friendSongsPanel').style.display=friendShareTab==='songs'?'block':'none';
+        document.getElementById('friendArtistsPanel').style.display=friendShareTab==='artists'?'block':'none';
+        document.getElementById('friendSongsTab').classList.toggle('primary-btn',friendShareTab==='songs');
+        document.getElementById('friendArtistsTab').classList.toggle('primary-btn',friendShareTab==='artists');
+        if(friendShareTab==='artists')renderFriendFavoriteArtists();
+    }
+    function renderFriendFavoriteArtists() {
+        const target=document.getElementById('friendFavoriteArtists');
+        if(!target)return;
+        target.replaceChildren();
+        // Compare stable UTF-8 keys, avoiding differing display-name normalization.
+        const valid=k=>/^a_(?:[0-9a-f]{2})+$/i.test(k);
+        const names=Object.keys(friendSharedArtists).filter(k=>valid(k)&&friendSharedArtists[k]===true).sort();
+        const mine=new Set(Object.keys(favoriteArtists).filter(k=>valid(k)&&favoriteArtists[k]===true));
+        const common=names.filter(k=>mine.has(k));
+        document.getElementById('friendFavoriteArtistCount').textContent=`🤝 共通 ${common.length}組 / 全${names.length}組`;
+        const onlyCommon=document.getElementById('friendCommonArtistsOnly').checked;
+        const decoder=new TextDecoder('utf-8',{fatal:true});
+        const decode=k=>{try{return decoder.decode(Uint8Array.from(k.slice(2).match(/.{2}/g),x=>parseInt(x,16)));}catch{return '';}};
+        const entries=(onlyCommon?common:names).map(k=>({key:k,name:decode(k)})).filter(x=>x.name).sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+        for(const item of entries){
+            const row=document.createElement('div');row.className='shared-song'+(mine.has(item.key)?' common':'');
+            row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;';
+            const name=document.createElement('span');name.textContent='⭐ '+item.name;name.style.overflowWrap='anywhere';
+            row.append(name);
+            if(mine.has(item.key)){const tag=document.createElement('span');tag.className='shared-common-tag';tag.textContent='🤝 共通のお気に入り';row.append(tag);}
+            target.append(row);
+        }
+        if(!entries.length)target.textContent=onlyCommon?'共通のお気に入りアーティストはいません。':'公開されているお気に入りアーティストはありません。';
     }
     // フレンドの共有データは閲覧専用。既存の楽曲詳細を開き、閉じたら元の一覧へ戻す。
     let returnToFriendListFromDetail = false;
