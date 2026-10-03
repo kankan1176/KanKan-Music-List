@@ -945,7 +945,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                 <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;">📁 マイリスト</button>
                 <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
                 <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 新規楽曲追加</button>
-                <button id="myPageBtn" type="button" onclick="openSiteMenu()" aria-haspopup="dialog" aria-controls="siteMenuModal">🌟 メニュー</button>
+                <button id="myPageBtn" type="button" onclick="openSiteMenu()" aria-haspopup="dialog" aria-controls="siteMenuModal">📝 メニュー</button>
                 <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
                 <button id="googleLoginBtn" onclick="loginWithGoogle()" style="background:#fff;color:#333;border:1px solid #bbb;">
                     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -965,7 +965,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             <div class="mobile-main-actions">
                 <button type="button" id="mobileAllBtn" onclick="mobileGoAll()">🌐 全曲一覧</button>
                 <button type="button" id="mobileMyBtn" onclick="mobileGoMyList()">📁 マイリスト</button>
-                <button type="button" id="mobileMyPageBtn" onclick="openSiteMenu()">🌟 メニュー</button>
+                <button type="button" id="mobileMyPageBtn" onclick="openSiteMenu()">📝 メニュー</button>
                 <button type="button" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-expanded="false" aria-controls="mobileMorePanel" aria-label="その他の操作">☰</button>
             </div>
             <div id="mobileMorePanel" hidden>
@@ -1131,7 +1131,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 <div class="modal-overlay" id="siteMenuModal" onclick="closeModal(event,'siteMenuModal')">
   <div class="modal" role="dialog" aria-modal="true" aria-label="メニュー" onclick="event.stopPropagation()" style="max-width:430px;">
     <span class="modal-close" role="button" tabindex="0" onclick="closeModal(null,'siteMenuModal')">&times;</span>
-    <h2>🌟 メニュー</h2>
+    <h2>📝 メニュー</h2>
     <div class="mypage-menu">
       <button type="button" onclick="closeModal(null,'siteMenuModal');openMyPage()">👤 マイページ</button>
       <button type="button" onclick="closeModal(null,'siteMenuModal');openFriendsModal()">👥 フレンド</button>
