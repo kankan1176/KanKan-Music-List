@@ -1222,6 +1222,14 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <span class="modal-close" role="button" tabindex="0" aria-label="閉じる" onclick="closeModal(null,'myPageModal')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal(null,'myPageModal')}">&times;</span>
     <h2 id="myPageTitle">👤 マイページ</h2>
     <p id="myPageAccountHint"></p>
+    <div id="profileVisibilitySection" style="border:1px solid var(--border-color);border-radius:7px;padding:12px;margin:0 0 13px;">
+      <label for="profileVisibilitySelect" style="display:block;font-weight:700;margin-bottom:7px;">🌐 プロフィール公開設定</label>
+      <select id="profileVisibilitySelect" class="setting-input" onchange="saveProfileVisibility(this.value)" style="width:100%;">
+        <option value="public">公開する</option><option value="private">公開しない</option>
+      </select>
+      <p style="font-size:12px;opacity:.83;line-height:1.5;margin:7px 0 0;">非公開にすると、公開プロフィール検索に表示されず、ゲスト・他ユーザーから公開マイリストとお気に入りアーティストを閲覧できなくなります。自分の登録内容は消えません。</p>
+      <p id="profileVisibilityFeedback" style="font-size:12px;margin:5px 0 0;"></p>
+    </div>
     <div class="mypage-menu">
       <button type="button" onclick="openMyPageSection('account')">👤 マイアカウント</button>
       <button type="button" onclick="openMyPageSection('favoriteArtists')">⭐ お気に入りアーティスト一覧 <span id="favoriteArtistCount"></span></button>
@@ -2779,7 +2787,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             try {
                 // 匿名ゲストの表示名は端末内に保存。Google本人のみFirebaseプロフィールへ保存。
                 await db.ref(`users/${user.uid}/profile/displayName`).set(newName);
-                if (friendCodeForUser && auth.currentUser?.uid === user.uid) db.ref(`friendProfiles/${user.uid}/displayName`).set(newName).catch(err => console.warn('フレンド公開名の同期失敗',err));
+                if (friendCodeForUser && auth.currentUser?.uid === user.uid) { const changes={[`friendProfiles/${user.uid}/displayName`]:newName};if(currentProfileVisibility==='public')changes[`publicProfiles/${user.uid}/displayName`]=newName;db.ref().update(changes).catch(err=>console.warn('プロフィール名の同期失敗',err)); }
                 if (auth.currentUser?.uid !== user.uid) return;
             } catch(error) {
                 console.error('ユーザー名の保存に失敗:', error);
@@ -3043,6 +3051,24 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         const ref=db.ref(path); const fn=()=>{ if (friendUser()?.uid===uid) void refreshFriendsPanel(); };
         ref.on('value',fn,err=>console.warn('フレンド同期',err)); friendListeners.push([ref,fn]);
     }
+    let currentProfileVisibility='public';
+    async function saveProfileVisibility(value){
+        const u=friendUser(),el=document.getElementById('profileVisibilitySelect'),feedback=document.getElementById('profileVisibilityFeedback');
+        if(!u){if(el)el.value=currentProfileVisibility;return;}
+        if(value!=='public'&&value!=='private')return;
+        if(el)el.disabled=true;
+        if(feedback)feedback.textContent='公開設定を保存しています…';
+        try{
+            const profile={displayName:String(myName||u.displayName||'ユーザー').trim().slice(0,40)||'ユーザー',code:friendCodeForUser};
+            if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(profile.code))throw Error('公開IDの初期化を待ってください');
+            // One atomic update: the public directory is removed immediately on opt-out.
+            await db.ref().update({[`users/${u.uid}/profile/publicVisibility`]:value,[`publicProfiles/${u.uid}`]:value==='public'?profile:null});
+            currentProfileVisibility=value;
+            if(feedback)feedback.textContent=value==='public'?'プロフィールを公開しました。':'プロフィールを非公開にしました。';
+            void refreshFriendsPanel();
+        }catch(err){console.warn('プロフィール公開設定の変更失敗',err);if(el)el.value=currentProfileVisibility;if(feedback)feedback.textContent='保存できませんでした。Firebaseルールをご確認ください。';}
+        finally{if(el)el.disabled=false;}
+    }
     // Public profile directory and one-way follows. Existing mutual friendships migrate once per user.
     async function startFriendsFeature(user) {
         if(!user || friendFeatureUid===user.uid)return;
@@ -3061,7 +3087,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                 await db.ref(`users/${user.uid}/profile/friendCode`).set(code);
             }
             friendCodeForUser=code;
-            await db.ref(`friendProfiles/${user.uid}`).set({displayName:String(myName||user.displayName||'ユーザー').trim().slice(0,40)||'ユーザー',code});
+            const visibilitySnap=await db.ref(`users/${user.uid}/profile/publicVisibility`).once('value');
+            currentProfileVisibility=visibilitySnap.val()==='private'?'private':'public';
+            const ownProfile={displayName:String(myName||user.displayName||'ユーザー').trim().slice(0,40)||'ユーザー',code};
+            // Existing accounts default to public, without resetting a previously saved private preference.
+            await db.ref().update({[`friendProfiles/${user.uid}`]:ownProfile,[`publicProfiles/${user.uid}`]:currentProfileVisibility==='public'?ownProfile:null});
+            const visibilityControl=document.getElementById('profileVisibilitySelect');if(visibilityControl)visibilityControl.value=currentProfileVisibility;
             const migrated=await db.ref(`followMigrations/${user.uid}`).once('value');
             if(!migrated.val()) {
                 const [old,currentFollows]=await Promise.all([db.ref(`friendships/${user.uid}`).once('value'),db.ref('follows').once('value')]);
@@ -3099,7 +3130,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     }
     async function getFriendDisplayName(uid){
         if(friendNameCache[uid])return friendNameCache[uid];
-        try{const v=await db.ref(`friendProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(v.val()||'ユーザー').slice(0,40);}catch{return 'ユーザー';}
+        try{const v=await db.ref(`publicProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(v.val()||'ユーザー').slice(0,40);}catch{return 'ユーザー';}
     }
     function friendItem(name,buttons){
         const row=document.createElement('div');row.className='friend-item';
@@ -3112,7 +3143,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         const isLatest=()=>seq===friendRefreshSeq;
         const list=document.getElementById('friendsList'),followers=document.getElementById('followersList');
         try{
-            const [profilesSnap,allFollowsSnap]=await Promise.all([db.ref('friendProfiles').once('value'),db.ref('follows').once('value')]);
+            const [profilesSnap,allFollowsSnap]=await Promise.all([db.ref('publicProfiles').once('value'),db.ref('follows').once('value')]);
             if(!isLatest())return;
             const profiles=profilesSnap.val()||{}, edges=allFollowsSnap.val()||{},uid=u?.uid||'';
             const myFollows=edges[uid]||{};
@@ -3144,6 +3175,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         try{
             const snap=await db.ref(`friendCodes/${code}`).once('value');const other=snap.val();
             if(!other||other===u.uid)return friendNotice('対象が見つからないか、自分自身のIDです。',true);
+            if(!(await db.ref(`publicProfiles/${other}`).once('value')).exists())return friendNotice('このユーザーは現在公開されていません。',true);
             await db.ref(`follows/${u.uid}/${other}`).set(true);
             document.getElementById('friendCodeInput').value='';friendNotice('フォローしました。');void refreshFriendsPanel();
         }catch(err){console.warn('フォロー失敗',err);friendNotice('フォローできませんでした。',true);}
@@ -3406,6 +3438,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         else if (currentRoomId) hint.textContent = 'ルーム参加中です。';
         else hint.textContent = `${signedInUser.displayName || signedInUser.email || 'Googleログイン中'} でログイン中`;
         const count=document.getElementById('favoriteArtistCount');if(count)count.textContent=`（${favoriteArtistNames().length}件）`;
+        const vis=document.getElementById('profileVisibilitySection');if(vis)vis.hidden=!friendUser();
+        const select=document.getElementById('profileVisibilitySelect');if(select)select.value=currentProfileVisibility;
+        const feedback=document.getElementById('profileVisibilityFeedback');if(feedback)feedback.textContent='';
         openModal('myPageModal');
     }
     function openMyPageSection(section) {
