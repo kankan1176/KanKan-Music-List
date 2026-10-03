@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>シェアリスコア-Share List Score-</title>
+    <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
+    <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
     <!-- ブックマーク用アイコンの設定（PNG用） -->
     <link rel="icon" type="image/png" sizes="512x512" href="favicon.png?v=20261002-2">
@@ -817,9 +819,77 @@ body.in-room #roomListPanel {display:flex}
 .clipboard-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:12px;}
 .clipboard-key-conflict{display:block;margin-top:6px;max-width:100%;color:var(--text-color);background:var(--panel-bg);border:1px solid var(--border-color);border-radius:4px;padding:5px;}
 @media(max-width:600px){#clipboardImportModal .modal,#clipboardConfirmModal .modal,#clipboardResultModal .modal{width:calc(100% - 16px);padding:13px;box-sizing:border-box;max-height:calc(100dvh - 18px);overflow:auto}#clipboardImportInput{min-height:130px}}
+
+/* ================= トップページ ================= */
+#homeLanding {display:none;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:clamp(16px,3vw,42px) 16px max(24px,env(safe-area-inset-bottom));box-sizing:border-box;width:100%;}
+html.entry-home #homeLanding {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,3vh,32px);}
+html.entry-home .container,html.entry-home .side-guide,html.entry-home #sideGuideToggle {display:none!important;}
+.home-inner {width:min(100%,850px);margin:auto;display:flex;flex-direction:column;gap:24px;}
+.home-brand {text-align:center;display:flex;flex-direction:column;align-items:center;gap:9px;}
+.home-brand img {display:block;max-width:min(85%,310px);max-height:94px;object-fit:contain;}
+.home-brand h1 {font-size:clamp(23px,4.5vw,33px);letter-spacing:.015em;line-height:1.3;margin:2px 0 0;}
+.home-brand p {font-size:clamp(12px,2.6vw,14px);opacity:.76;margin:0;}
+.home-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.home-card {min-width:0;min-height:130px;text-align:left;white-space:normal;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 21px;border-radius:13px;border:1px solid var(--border-color);background:var(--panel-bg);color:var(--text-color);box-shadow:0 4px 18px #00000012;transition:transform .16s,border-color .16s,background .16s;}
+.home-card:hover,.home-card:focus-visible {transform:translateY(-2px);border-color:var(--primary);background:var(--btn-hover);outline-offset:2px;}
+.home-card-icon {font-size:29px;line-height:1;}
+.home-card-heading {font-size:17px;line-height:1.3;font-weight:750;display:block;}
+.home-card-caption {display:block;font-size:11px;line-height:1.55;opacity:.73;margin-top:4px;}
+.home-account {display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:12px;min-height:36px;}
+#homeLoginState {opacity:.84;overflow-wrap:anywhere;max-width:100%;}
+#homeLoginBtn {background:#fff;color:#333;border-color:#bbb;font-weight:700;}
+#homeLogoutBtn {font-size:12px;}
+#homeLoadingStatus {text-align:center;min-height:19px;font-size:12px;opacity:.8;}
+#homeBackBtn {font-weight:700;}
+body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
+@media(max-width:600px){
+  #homeLanding {padding:20px 12px max(18px,env(safe-area-inset-bottom));}
+  .home-inner {gap:19px;}
+  .home-brand img {max-height:60px;max-width:190px;}
+  .home-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+  .home-card {min-height:115px;padding:15px 13px;gap:11px;border-radius:10px;}
+  .home-card-icon {font-size:25px;}
+  .home-card-heading {font-size:15px;}
+  .home-card-caption {font-size:10px;}
+}
+@media(max-height:650px){html.entry-home #homeLanding {justify-content:flex-start;}}
+@media(prefers-reduced-motion:reduce){.home-card{transition:none}.home-card:hover{transform:none}}
+
+/* 楽曲一覧: 100件固定のページ切り替え。テーブルとは別領域に操作を固定する。 */
+#songPagination {display:flex;flex:none;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:48px;padding:7px 12px;box-sizing:border-box;background:var(--panel-bg);border-top:1px solid var(--border-color);color:var(--text-color);font-size:13px;}
+#songPagination button {min-width:94px;min-height:34px;padding:5px 11px;border:1px solid var(--border-color);border-radius:6px;background:var(--btn-bg);color:var(--text-color);font-weight:600;cursor:pointer;}
+#songPagination button:hover:not(:disabled) {background:var(--btn-hover);border-color:var(--primary);}
+#songPagination button:disabled {opacity:.35;cursor:default;}
+#songPageStatus {min-width:180px;text-align:center;font-variant-numeric:tabular-nums;line-height:1.5;}
+@media(max-width:600px) {#songPagination {gap:7px;padding:7px 5px;min-height:49px;font-size:11px;flex-wrap:nowrap;}#songPagination button {min-width:69px;min-height:34px;padding:5px 7px;font-size:12px;}#songPageStatus {min-width:0;flex:1;}}
 </style>
 </head>
 <body>
+
+<!-- ランディング: 通常URLから最初に開くメニュー。ここでは楽曲マスターを取得しない。 -->
+<main id="homeLanding" aria-label="シェアリスコア トップページ">
+  <div class="home-inner">
+    <div class="home-brand">
+      <img src="logo2.png" alt="" onerror="this.style.display='none'">
+      <h1>シェアリスコア</h1>
+      <p>Share List Score · セッションと音楽を、もっとつなぐ。</p>
+    </div>
+    <nav class="home-grid" aria-label="メインメニュー">
+      <button type="button" class="home-card" onclick="openHomeDestination('all')"><span class="home-card-icon" aria-hidden="true">🎼</span><span><span class="home-card-heading">楽曲一覧</span><span class="home-card-caption">登録曲を検索・閲覧</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('mylist')"><span class="home-card-icon" aria-hidden="true">📁</span><span><span class="home-card-heading">マイリスト</span><span class="home-card-caption">自分の登録曲とKeyを管理</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('room')"><span class="home-card-icon" aria-hidden="true">🌐</span><span><span class="home-card-heading">ルームを作る</span><span class="home-card-caption">仲間とセットリストを共有</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント・フレンドなど</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
+    </nav>
+    <div class="home-account" aria-live="polite">
+      <span id="homeLoginState">ゲスト利用中</span>
+      <button type="button" id="homeLoginBtn" onclick="loginWithGoogle()">Googleでログイン</button>
+      <button type="button" id="homeLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
+    </div>
+    <div id="homeLoadingStatus" role="status" aria-live="polite"></div>
+  </div>
+</main>
 
 
 <!-- ガイド付箋：画面左下のボタンで全件まとめて表示／非表示 -->
@@ -845,6 +915,7 @@ body.in-room #roomListPanel {display:flex}
             </div>
 
             <div class="header-buttons">
+                <button type="button" id="homeBackBtn" onclick="goHome()">🏠 トップ</button>
                 <button id="googleLoginBtn" onclick="loginWithGoogle()" style="background:#fff;color:#333;border:1px solid #bbb;">
                     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path fill="#4285F4" d="M21.35 12.24c0-.71-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.26z"/>
@@ -874,6 +945,7 @@ body.in-room #roomListPanel {display:flex}
             </div>
             <div id="mobileMorePanel" hidden>
                 <div id="mobileIdentity" aria-live="polite">ゲスト利用中</div>
+                <button type="button" id="mobileHomeItem" onclick="closeMobileMenu();goHome()">🏠 トップ</button>
                 <button type="button" id="mobileLoginItem" onclick="closeMobileMenu();loginWithGoogle()">Googleでログイン</button>
                 <button type="button" id="mobileLogoutItem" onclick="closeMobileMenu();logoutGoogle()">ログアウト</button>
                 <button type="button" id="mobileCreateRoomItem" onclick="closeMobileMenu();createRoom()">🌐 ルームを作る</button>
@@ -935,7 +1007,7 @@ body.in-room #roomListPanel {display:flex}
         <div id="myListBulkBar" aria-label="選択したマイリストの一括編集">
             <span id="selectedSongCount">選択：0曲</span>
             <span title="チェックボックスまたは行で操作できます" style="opacity:.7;font-size:11px;">Shift＋クリック：範囲 / Ctrl＋クリック：個別</span>
-            <button type="button" onclick="selectVisibleMySongs(true)">表示中を選択</button>
+            <button type="button" onclick="selectVisibleMySongs(true)" title="現在のページ（最大100曲）を選択">表示中を選択</button>
             <button type="button" onclick="selectVisibleMySongs(false)">選択解除</button>
             <select id="bulkPartSelect" aria-label="一括担当パート">
                 <option value="">担当パートを指定</option>
@@ -988,8 +1060,12 @@ body.in-room #roomListPanel {display:flex}
                 <colgroup><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-action"></colgroup>
                 <tbody id="tableBody"></tbody>
             </table>
-            <div id="songRenderProgress" style="display:none;text-align:center;padding:12px;color:var(--text-color);font-size:12px;"></div>
         </div>
+        <nav id="songPagination" aria-label="楽曲一覧のページ切り替え">
+            <button id="songPrevPageBtn" type="button" onclick="changeSongPage(-1)" disabled>◀ 前へ</button>
+            <span id="songPageStatus" role="status" aria-live="polite">0 / 0曲</span>
+            <button id="songNextPageBtn" type="button" onclick="changeSongPage(1)" disabled>次へ ▶</button>
+        </nav>
     </div>
 </div>
 
@@ -1429,6 +1505,15 @@ body.in-room #roomListPanel {display:flex}
     let activeLanguage = 'ja', languageLoadVersion = 0, languageObserver = null, languageFontReady = false, languageManualReady = false, languageAppReady = false;
     const translatedNodes = new WeakMap();
     Object.assign(UI_I18N, {
+      "楽曲一覧":{ko:"전체 곡",en:"Song catalog","zh-TW":"歌曲列表"},
+      "登録曲を検索・閲覧":{ko:"등록된 곡 검색 · 보기",en:"Browse and search songs","zh-TW":"瀏覽及搜尋歌曲"},
+      "自分の登録曲とKeyを管理":{ko:"내 곡과 키 관리",en:"Manage your songs and keys","zh-TW":"管理我的歌曲和調性"},
+      "仲間とセットリストを共有":{ko:"함께 세트리스트 공유",en:"Share setlists with friends","zh-TW":"與朋友分享歌單"},
+      "新しい楽曲の登録申請":{ko:"새 곡 등록 신청",en:"Request a new song","zh-TW":"申請新增歌曲"},
+      "アカウント・フレンドなど":{ko:"계정 · 친구 등",en:"Account, friends and more","zh-TW":"帳戶、好友及更多"},
+      "テーマ・言語・フォント":{ko:"테마 · 언어 · 글꼴",en:"Theme, language and font","zh-TW":"主題、語言及字體"},
+      "🏠 トップ":{ko:"🏠 홈",en:"🏠 Home","zh-TW":"🏠 首頁"},
+      "Share List Score · セッションと音楽を、もっとつなぐ。":{ko:"Share List Score · 세션과 음악을 더 가깝게.",en:"Share List Score · Connecting sessions and music.","zh-TW":"Share List Score · 連結音樂與合奏。"},
       "📋 貼り付け一括登録": {ko:"📋 붙여넣기로 일괄 등록",en:"📋 Paste bulk import","zh-TW":"📋 貼上批次加入"},
       "📋 文章を貼り付けてマイリスト一括登録": {ko:"📋 텍스트 붙여넣기로 일괄 등록",en:"📋 Paste text to import into My list","zh-TW":"📋 貼上文字批次加入個人清單"},
       "📋 貼り付けからマイリスト一括登録": {ko:"📋 붙여넣기로 마이리스트 일괄 등록",en:"📋 Bulk import pasted songs","zh-TW":"📋 貼上批次加入個人清單"},
@@ -1613,7 +1698,7 @@ body.in-room #roomListPanel {display:flex}
         handleMySongSelection(id, event, event.currentTarget.checked);
     }
     function selectVisibleMySongs(checked) {
-        if (checked) lastFilteredMySongIds.forEach(id=>selectedMySongIds.add(id));
+        if (checked) lastFilteredMySongIds.slice(songPageIndex * SONG_PAGE_SIZE, (songPageIndex + 1) * SONG_PAGE_SIZE).forEach(id=>selectedMySongIds.add(id));
         else { selectedMySongIds.clear(); lastMySelectionAnchorId = null; }
         updateSelectedMySongCount();
     }
@@ -2067,6 +2152,12 @@ body.in-room #roomListPanel {display:flex}
             } else {stopRoomOwnSource();}
         }
         const version = ++themeLoadVersion;
+        const homeLoginState=document.getElementById('homeLoginState');
+        if(homeLoginState)homeLoginState.textContent=user ? (user.displayName || user.email || 'ログイン中') : 'ゲスト利用中';
+        const homeLoginBtn=document.getElementById('homeLoginBtn');
+        const homeLogoutBtn=document.getElementById('homeLogoutBtn');
+        if(homeLoginBtn)homeLoginBtn.style.display=user?'none':'inline-block';
+        if(homeLogoutBtn)homeLogoutBtn.style.display=user?'inline-block':'none';
         document.getElementById('loginStatus').textContent = user ? (user.displayName || user.email || 'ログイン中') : 'ゲスト利用中';
         document.getElementById('loginStatus').title = user ? (user.email || '') : '';
         document.getElementById('loginStatus').classList.toggle('logged-in', !!user);
@@ -2098,6 +2189,7 @@ body.in-room #roomListPanel {display:flex}
         document.getElementById('detailPersonalEdit').style.display = 'none';
         currentDetailSongId = null;
         await loadMyListForUser(user);
+        if (user && pendingHomeMyList) { pendingHomeMyList=false; void openHomeDestination('mylist'); }
         if (user && auth.currentUser?.uid === user.uid) void startFriendsFeature(user);
 
         const currentFontVersion = ++fontLoadVersion;
@@ -3986,28 +4078,89 @@ html, body { background: transparent !important; color: ${text} !important; }
         document.getElementById('retryBtn').onclick = () => location.reload();
     }
 
+    // トップ表示だけでは27,332曲のマスターをダウンロードしない。
+    // 初回の楽曲一覧・マイリスト・楽曲追加、またはルーム招待URLからの入室時だけ取得する。
+    let masterLoadPromise = null;
+    let masterLoaded = false;
+    let pendingHomeMyList = false;
+    async function ensureMasterLoaded() {
+        if (masterLoaded) return;
+        if (masterLoadPromise) return masterLoadPromise;
+        masterLoadPromise = (async () => {
+            loadingArea.style.display = 'flex';
+            try {
+                const snapshot = await db.ref(MASTER_DB_PATH).once('value');
+                const master = snapshot.val();
+                if (!master || typeof master !== 'object') throw Error('songs に公開楽曲がありません。移管用JSONとRealtime Databaseルールを確認してください。');
+                const headers = ['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲'];
+                const fields = ['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
+                const rows = [headers];
+                for (const [id, song] of Object.entries(master)) {
+                    if (!song || typeof song !== 'object' || (song.id && song.id !== id)) {
+                        throw Error('データ不整合: UUID と id が一致しません: ' + id);
+                    }
+                    rows.push(fields.map(field => field === 'id' ? id : String(song[field] ?? '')));
+                }
+                loadRowsIntoApp(rows);
+                masterLoaded = true;
+            } catch (error) {
+                console.error('Firebaseマスター取得エラー', error);
+                showCsvLoadError('Firebaseマスターを読み込めませんでした: ' + (error.message || 'ネットワーク・権限を確認してください。'));
+                throw error;
+            }
+        })();
+        try {await masterLoadPromise;}
+        catch(error) {masterLoadPromise=null;throw error;}
+    }
+    function goHome() {
+        if (currentRoomId) return; // ルーム退出は既存の退出処理を使う
+        closeMobileMenu();
+        document.documentElement.classList.add('entry-home');
+        document.getElementById('homeLoadingStatus').textContent='';
+        // 一度読み込んだマスターは保持。再訪時に再ダウンロードしない。
+    }
+    async function openHomeDestination(destination) {
+        const status=document.getElementById('homeLoadingStatus');
+        if(destination==='settings'){openModal('settingsModal');return;}
+        if(destination==='mypage'){openMyPage();return;}
+        if(destination==='room'){
+            status.textContent='ルームを作成しています…';
+            try{await createRoom();}finally{status.textContent='';}
+            return;
+        }
+        if(destination==='mylist' && !signedInUser){
+            pendingHomeMyList=true;
+            status.textContent='マイリストを開くにはGoogleログインが必要です。';
+            await loginWithGoogle();
+            // 認証リスナーでマイリストを読み込んだ後に続行する。
+            if(!auth.currentUser || auth.currentUser.isAnonymous)pendingHomeMyList=false;
+            return;
+        }
+        if(destination==='all' || destination==='mylist'){
+            document.documentElement.classList.remove('entry-home');
+            if(destination==='mylist' && !myListMode) toggleMyList();
+            if(destination==='all' && myListMode) toggleMyList();
+            try {await ensureMasterLoaded();}
+            catch(error){/* エラー画面と再読み込みボタンは既存の処理で表示する */}
+            return;
+        }
+        if(destination==='add'){
+            status.textContent='楽曲登録フォームを準備しています…';
+            try {await ensureMasterLoaded();openAddSongModal();}
+            catch(error){document.documentElement.classList.remove('entry-home');}
+            finally{status.textContent='';}
+        }
+    }
     window.addEventListener('DOMContentLoaded', async () => {
         syncMobileNav();
-        // 認証・ルーム参加者登録を終えてから曲表と予約リスナーを起動。
-        if (!(await initRoomUI())) return;
-
-        try {
-            const snapshot = await db.ref(MASTER_DB_PATH).once('value');
-            const master = snapshot.val();
-            if (!master || typeof master !== 'object') throw Error('songs に公開楽曲がありません。移管用JSONとRealtime Databaseルールを確認してください。');
-            const headers = ['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲'];
-            const fields = ['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
-            const rows = [headers];
-            for (const [id, song] of Object.entries(master)) {
-                if (!song || typeof song !== 'object' || (song.id && song.id !== id)) {
-                    throw Error('データ不整合: UUID と id が一致しません: ' + id);
-                }
-                rows.push(fields.map(field => field === 'id' ? id : String(song[field] ?? '')));
-            }
-            loadRowsIntoApp(rows);
-        } catch (error) {
-            console.error('Firebaseマスター取得エラー', error);
-            showCsvLoadError('Firebaseマスターを読み込めませんでした: ' + (error.message || 'ネットワーク・権限を確認してください。'));
+        // room=... はホームを飛ばして従来どおり入室し、マスターを読む。
+        if (currentRoomId) {
+            document.documentElement.classList.remove('entry-home');
+            if (!(await initRoomUI())) return;
+            try {await ensureMasterLoaded();}catch(error){}
+        } else {
+            await initRoomUI();
+            // 通常URLではトップだけを表示。全曲取得はメニュー選択後。
         }
     });
 
@@ -4230,35 +4383,37 @@ html, body { background: transparent !important; color: ${text} !important; }
         openModal('songDetailsModal');
     }
 
-    // 大量のDOM要素を一度に作らず、120曲ずつ描画する。検索・ソートは全曲が対象。
-    const SONG_RENDER_BATCH = 120;
-    let visibleSongRows = SONG_RENDER_BATCH;
+    // 検索・ソートは全楽曲が対象。DOMへ描画するのは現在のページの100曲だけ。
+    const SONG_PAGE_SIZE = 100;
+    let songPageIndex = 0;
     let lastTableQuerySignature = '';
     let cachedFilteredSongRows = [];
-    let renderedSongRowCount = 0;
-    let appendingSongRows = false;
-    const songRenderProgress = document.getElementById('songRenderProgress');
-    function updateSongRenderProgress() {
-        if (!songRenderProgress) return;
+    const songPageStatus = document.getElementById('songPageStatus');
+    const songPrevPageBtn = document.getElementById('songPrevPageBtn');
+    const songNextPageBtn = document.getElementById('songNextPageBtn');
+    function renderCurrentSongPage(resetScroll = false) {
         const total = cachedFilteredSongRows.length;
-        songRenderProgress.style.display = total > renderedSongRowCount ? 'block' : 'none';
-        songRenderProgress.textContent = total > renderedSongRowCount
-            ? `表示中 ${renderedSongRowCount.toLocaleString()} / ${total.toLocaleString()} 曲　↓ スクロールすると続きを表示` : '';
+        const totalPages = Math.max(1, Math.ceil(total / SONG_PAGE_SIZE));
+        songPageIndex = Math.max(0, Math.min(songPageIndex, totalPages - 1));
+        const start = songPageIndex * SONG_PAGE_SIZE;
+        const end = Math.min(start + SONG_PAGE_SIZE, total);
+        tableBody.replaceChildren();
+        appendRenderedSongRows(cachedFilteredSongRows.slice(start, end));
+        // 最後のページが100曲未満でも、件数・ページ番号を正確に表示。
+        songPageStatus.textContent = total
+            ? `${songPageIndex + 1} / ${totalPages} ページ　（${(start + 1).toLocaleString()}～${end.toLocaleString()} / ${total.toLocaleString()}曲）`
+            : '0 / 0 曲';
+        songPrevPageBtn.disabled = songPageIndex === 0;
+        songNextPageBtn.disabled = songPageIndex >= totalPages - 1 || total === 0;
+        if (resetScroll) tableBodyWrapper.scrollTop = 0;
     }
-    function appendMoreSongRows() {
-        if (appendingSongRows || renderedSongRowCount >= cachedFilteredSongRows.length) return;
-        appendingSongRows = true;
-        try {
-            const end = Math.min(renderedSongRowCount + SONG_RENDER_BATCH, cachedFilteredSongRows.length);
-            appendRenderedSongRows(cachedFilteredSongRows.slice(renderedSongRowCount, end));
-            renderedSongRowCount = end;
-            visibleSongRows = Math.max(visibleSongRows, end);
-            updateSongRenderProgress();
-        } finally { appendingSongRows = false; }
+    function changeSongPage(direction) {
+        if (!Number.isInteger(direction) || !direction) return;
+        const nextIndex = songPageIndex + (direction > 0 ? 1 : -1);
+        if (nextIndex < 0 || nextIndex >= Math.ceil(cachedFilteredSongRows.length / SONG_PAGE_SIZE)) return;
+        songPageIndex = nextIndex;
+        renderCurrentSongPage(true);
     }
-    tableBodyWrapper.addEventListener('scroll', () => {
-        if (tableBodyWrapper.scrollTop + tableBodyWrapper.clientHeight >= tableBodyWrapper.scrollHeight - 340) appendMoreSongRows();
-    }, {passive:true});
 
     function renderTable() {
         syncMobileNav();
@@ -4270,7 +4425,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             searchInput.value.trim().toLowerCase(),currentSortKey,currentSortOrder,
             canExcludeRegistered && excludeRegisteredCheckbox.checked]);
         if (lastTableQuerySignature !== querySignature) {
-            visibleSongRows = SONG_RENDER_BATCH;
+            songPageIndex = 0;
             lastTableQuerySignature = querySignature;
             tableBodyWrapper.scrollTop = 0;
         }
@@ -4306,9 +4461,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
         cachedFilteredSongRows = filteredData;
-        renderedSongRowCount = Math.min(visibleSongRows, filteredData.length);
-        appendRenderedSongRows(filteredData.slice(0, renderedSongRowCount));
-        updateSongRenderProgress();
+        renderCurrentSongPage();
     }
 
     function appendRenderedSongRows(rows) {
