@@ -988,6 +988,7 @@ body.in-room #roomListPanel {display:flex}
                 <colgroup><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-action"></colgroup>
                 <tbody id="tableBody"></tbody>
             </table>
+            <div id="songRenderProgress" style="display:none;text-align:center;padding:12px;color:var(--text-color);font-size:12px;"></div>
         </div>
     </div>
 </div>
@@ -3953,6 +3954,9 @@ html, body { background: transparent !important; color: ${text} !important; }
                 if (Object.prototype.hasOwnProperty.call(obj, headerName) && obj[headerName]) return;
                 obj[headerName] = row[index] || '';
             });
+            // 検索対象文字列はマスター読込時に一度だけ生成（検索ごとの27,000曲再結合を防ぐ）。
+            obj._searchText = ['曲名','アーティスト',genre1Key,genre2Key,'ジャンル③','タイアップ情報','作詞','作曲','編曲','検索']
+                .map(k => String(obj[k] || '')).join(' ').toLowerCase();
             return obj;
         });
 
@@ -4226,14 +4230,52 @@ html, body { background: transparent !important; color: ${text} !important; }
         openModal('songDetailsModal');
     }
 
+    // 大量のDOM要素を一度に作らず、120曲ずつ描画する。検索・ソートは全曲が対象。
+    const SONG_RENDER_BATCH = 120;
+    let visibleSongRows = SONG_RENDER_BATCH;
+    let lastTableQuerySignature = '';
+    let cachedFilteredSongRows = [];
+    let renderedSongRowCount = 0;
+    let appendingSongRows = false;
+    const songRenderProgress = document.getElementById('songRenderProgress');
+    function updateSongRenderProgress() {
+        if (!songRenderProgress) return;
+        const total = cachedFilteredSongRows.length;
+        songRenderProgress.style.display = total > renderedSongRowCount ? 'block' : 'none';
+        songRenderProgress.textContent = total > renderedSongRowCount
+            ? `表示中 ${renderedSongRowCount.toLocaleString()} / ${total.toLocaleString()} 曲　↓ スクロールすると続きを表示` : '';
+    }
+    function appendMoreSongRows() {
+        if (appendingSongRows || renderedSongRowCount >= cachedFilteredSongRows.length) return;
+        appendingSongRows = true;
+        try {
+            const end = Math.min(renderedSongRowCount + SONG_RENDER_BATCH, cachedFilteredSongRows.length);
+            appendRenderedSongRows(cachedFilteredSongRows.slice(renderedSongRowCount, end));
+            renderedSongRowCount = end;
+            visibleSongRows = Math.max(visibleSongRows, end);
+            updateSongRenderProgress();
+        } finally { appendingSongRows = false; }
+    }
+    tableBodyWrapper.addEventListener('scroll', () => {
+        if (tableBodyWrapper.scrollTop + tableBodyWrapper.clientHeight >= tableBodyWrapper.scrollHeight - 340) appendMoreSongRows();
+    }, {passive:true});
+
     function renderTable() {
         syncMobileNav();
         ensureListLayout();
         // マイリスト・ルームやゲスト閲覧にフィルターを適用しない。
         const canExcludeRegistered = !currentRoomId && !myListMode && !!signedInUser;
         excludeRegisteredFilter.hidden = !canExcludeRegistered;
-        tableBody.innerHTML = '';
-        const keywords = searchInput.value.toLowerCase().trim().split(/\s+/);
+        const querySignature = JSON.stringify([currentRoomId,roomListView,myListMode,currentGenre,selectedArtist,
+            searchInput.value.trim().toLowerCase(),currentSortKey,currentSortOrder,
+            canExcludeRegistered && excludeRegisteredCheckbox.checked]);
+        if (lastTableQuerySignature !== querySignature) {
+            visibleSongRows = SONG_RENDER_BATCH;
+            lastTableQuerySignature = querySignature;
+            tableBodyWrapper.scrollTop = 0;
+        }
+        tableBody.replaceChildren();
+        const keywords = searchInput.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
         
         let filteredData = allData.filter(row => {
             if (currentRoomId && (roomListView === 'common' ? roomOwnersOfSong(row._id).length < 2 : roomListView !== 'all' && !roomSharedLists[roomListView]?.songs?.[row._id])) return false;
@@ -4245,9 +4287,8 @@ html, body { background: transparent !important; color: ${text} !important; }
             
             const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre || g3 === currentGenre;
             
-            const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${g3} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
             const matchArtist = !selectedArtist || String(row['アーティスト'] || '').trim() === selectedArtist;
-            return matchGenre && matchArtist && keywords.every(kw => searchStr.includes(kw));
+            return matchGenre && matchArtist && (!keywords.length || keywords.every(kw => row._searchText.includes(kw)));
         });
 
         if (currentSortKey) {
@@ -4264,8 +4305,15 @@ html, body { background: transparent !important; color: ${text} !important; }
         songCountDisplay.textContent = (!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`;
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
+        cachedFilteredSongRows = filteredData;
+        renderedSongRowCount = Math.min(visibleSongRows, filteredData.length);
+        appendRenderedSongRows(filteredData.slice(0, renderedSongRowCount));
+        updateSongRenderProgress();
+    }
 
-        filteredData.forEach(row => {
+    function appendRenderedSongRows(rows) {
+        const batchFragment = document.createDocumentFragment();
+        rows.forEach(row => {
             const tr = document.createElement('tr');
             const roomMatches=currentRoomId?roomOwnersOfSong(row._id):[];
             if(roomMatches.length>=2)tr.classList.add('room-overlap');
@@ -4346,9 +4394,9 @@ html, body { background: transparent !important; color: ${text} !important; }
                 <td class="col-genre col-sub">${displayGenre}</td>
                 <td class="col-action nowrap-cell">${actionBtnHtml}</td>
             `;
-            tableBody.appendChild(tr);
+            batchFragment.appendChild(tr);
         });
-
+        tableBody.appendChild(batchFragment);
     }
 
 
