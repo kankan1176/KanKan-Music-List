@@ -1281,20 +1281,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clipboardImportTitle" onclick="event.stopPropagation()" style="max-width:730px;box-sizing:border-box;max-height:calc(100dvh - 30px);overflow:auto;">
   <span class="modal-close" onclick="closeModal(null,'clipboardImportModal')">&times;</span>
   <h2 id="clipboardImportTitle">📋 貼り付けからマイリスト一括登録</h2>
-  <p style="font-size:13px;line-height:1.7;">Excel・スプレッドシートのセル範囲をコピーして、そのまま貼り付けできます。貼り付け後、列ごとに「曲名・アーティスト・URL（任意）・Key・使用しない」を選んでください。従来の項目名付き文章も使用できます。</p>
-  <div style="font-size:12px;line-height:1.65;padding:10px;border:1px solid var(--border-color);border-radius:6px;margin-bottom:8px;background:var(--btn-bg);">
-    <strong>📋 文章で入力する場合のフォーマット（表の貼り付けなら不要）</strong><pre style="white-space:pre-wrap;margin:6px 0;font:inherit;user-select:text;">曲名：曲名を貼り付け
-アーティスト：アーティスト名を貼り付け
-URL：https://ja.chordwiki.org/wiki/... （任意）</pre>
-    <button type="button" onclick="clipboardCopyTemplate()">📄 入力テンプレートをコピー</button>
-  </div>
-  <textarea id="clipboardImportInput" oninput="clipboardEnsureMapping(this.value)" spellcheck="false" aria-label="曲名・アーティスト・URLを曲ごとに貼り付け" placeholder="曲名：
-アーティスト：
-URL："></textarea>
+  <p style="font-size:13px;line-height:1.7;">Excel・スプレッドシートのセル範囲をコピーして、そのまま貼り付けできます。貼り付け後、列ごとに「曲名・アーティスト・URL（任意）・Key・使用しない」を選んでください。表形式のみ対応しています。</p>
+<textarea id="clipboardImportInput" oninput="clipboardEnsureMapping(this.value)" spellcheck="false" aria-label="Excel・スプレッドシートからコピーした表データ" placeholder="Excel・スプレッドシートで2列以上のセル範囲をコピーし、ここにCtrl+Vで貼り付けてください。"></textarea>
   <div id="clipboardColumnMapping" style="display:none;margin-top:10px;"></div>
   <div class="clipboard-actions" style="justify-content:flex-start;"><button type="button" onclick="clipboardReadFromSystem()">📋 クリップボードから貼り付け</button><button type="button" onclick="clipboardPreview()">🔍 照合結果を表示</button></div>
   <p style="font-size:12px;opacity:.82;line-height:1.55;">URLを省略した場合は曲名・アーティスト名の完全一致だけを登録。Keyが未記載ならURLのkeyを使い、両方未記載なら0（原曲）です。既存マイリスト曲はKeyを更新し、担当パートは維持します。マスター側のアーティストが空欄で、曲名＋ChordWiki URLが一意に一致した場合は、貼り付けたアーティスト名を管理者へ補完申請します。承認までは公開マスターを変更しません。</p>
-  <div id="clipboardImportSummary" role="status" aria-live="polite">曲名・アーティスト・URL（任意）を貼り付け、「照合結果を表示」を押してください。</div>
+  <div id="clipboardImportSummary" role="status" aria-live="polite">コピーした表を貼り付け、列を割り当ててから「照合結果を表示」を押してください。</div>
   <div id="clipboardImportPreview" aria-label="貼り付け楽曲の照合結果"></div>
   <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardImportModal')">閉じる</button><button type="button" class="primary-btn" id="clipboardImportRegister" onclick="clipboardOpenConfirmation()">✅ 登録内容を確認</button></div>
  </div>
@@ -3750,54 +3742,12 @@ html, body { background: transparent !important; color: ${text} !important; }
       return {specified:true,key};
     }
     function clipboardIsHeader(fields){const xs=fields.map(v=>bulkCsvHeader(v));return xs.some(v=>bulkCsvAliases.title.includes(v))&&xs.some(v=>bulkCsvAliases.artist.includes(v));}
-    function clipboardInputRecords(raw){
-      const lines=String(raw||'').replace(/\r\n?/g,'\n').split('\n');
-      const output=[];let labelled={};let labelledStart=0;
-      function flush(){if(Object.keys(labelled).length)output.push({fields:[labelled.title||'',labelled.artist||'',labelled.key||'',labelled.url||''],line:labelledStart});labelled={};labelledStart=0;}
-      for(let i=0;i<lines.length;i++){
-        const line=lines[i].trim();if(!line){flush();continue;}
-        const label=line.match(/^(曲名|タイトル|アーティスト(?:名)?|歌手|key|キー|移調|url|コードwiki(?:\s*url)?|chordwiki)\s*[:：]\s*(.*)$/i);
-        if(label && !/[\t|]/.test(line)){
-          const name=label[1].toLocaleLowerCase();const field=/^(曲名|タイトル)$/.test(name)?'title':/^(アーティスト|アーティスト名|歌手)$/.test(name)?'artist':/^(key|キー|移調)$/.test(name)?'key':'url';
-          if(field==='title' && labelled.title)flush();if(!labelledStart)labelledStart=i+1;
-          labelled[field]=label[2];continue;
-        }
-        flush();let fields;
-        if(line.includes('\t'))fields=line.split('\t');
-        else if(line.includes('|')||line.includes('｜'))fields=line.split(/\s*\|\s*|\s*｜\s*/);
-        else if(line.includes(',')){
-          try{fields=Papa.parse(line,{header:false,skipEmptyLines:false}).data[0];}catch(_){fields=[line];}
-        } else fields=[line];
-        output.push({fields:fields.map(clipboardTrim),line:i+1});
-      }
-      flush();
-      // Optional header row (columns may be in arbitrary order, including Key and URL).
-      let columns=null;
-      return output.filter(rec=>rec.fields.some(Boolean)).map(rec=>{
-        if(clipboardIsHeader(rec.fields)){
-          columns={};const hdr=rec.fields.map(bulkCsvHeader);
-          for(const [field,names] of Object.entries({title:bulkCsvAliases.title,artist:bulkCsvAliases.artist,key:['key','キー','移調'],url:bulkCsvAliases.codeUrl}))columns[field]=hdr.findIndex(x=>names.includes(x));
-          return null;
-        }
-        const f=rec.fields;let title,artist,key='',url='';
-        if(columns){title=f[columns.title]||'';artist=f[columns.artist]||'';key=columns.key>=0?(f[columns.key]||''):'';url=columns.url>=0?(f[columns.url]||''):'';}
-        else{
-          [title='',artist='']=f;
-          for(const cell of f.slice(2)){
-            if(!cell)continue;
-            if(/^https?:\/\//i.test(cell)){if(url)url+=' '+cell;else url=cell;}
-            else if(!key)key=cell;
-            else key+=' '+cell;
-          }
-        }
-        return {line:rec.line,title:clipboardTrim(title),artist:clipboardTrim(artist),rawKey:clipboardTrim(key),rawUrl:clipboardTrim(url)};
-      }).filter(Boolean);
-    }
     function clipboardAnalyze(text){
       const table=clipboardEnsureMapping(text);
       const mapped=table?clipboardMappedRecords(table):null;
       if(mapped?.error)return mapped;
-      const records=table?mapped:clipboardInputRecords(text);
+      if(!table)return {error:'Excel・スプレッドシートからコピーした、2列以上の表データを貼り付けてください（文章形式には対応していません）。',rows:[]};
+      const records=mapped;
       if(records.length>CLIPBOARD_IMPORT_MAX)return {error:`一度に登録できるのは${CLIPBOARD_IMPORT_MAX}曲までです。分割してください。`,rows:[]};
       const byPair=new Map(),byUrl=new Map();
       for(const song of allData){
@@ -3859,11 +3809,6 @@ html, body { background: transparent !important; color: ${text} !important; }
       if(currentRoomId)return alert('マイリストへの一括登録はルーム外で行ってください。');
       closeModal(null,'addSongModal');openModal('clipboardImportModal');
     }
-    async function clipboardCopyTemplate(){
-      const template='曲名：\nアーティスト：\nURL：';
-      try{await navigator.clipboard.writeText(template);document.getElementById('clipboardImportSummary').textContent='入力テンプレートをコピーしました。曲名・アーティストを入力し、URLがない場合は空欄にしてください。';}
-      catch(_){const area=document.getElementById('clipboardImportInput');area.value=template;area.focus();document.getElementById('clipboardImportSummary').textContent='テンプレートを入力欄に表示しました。各項目を埋めてください。';}
-    }
     async function clipboardReadFromSystem(){
       const area=document.getElementById('clipboardImportInput');
       try{if(!navigator.clipboard?.readText)throw Error('未対応');area.value=await navigator.clipboard.readText();clipboardImportRows=[];clipboardPreview();}
@@ -3875,7 +3820,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       clipboardImportRows=result.rows;area.innerHTML=result.rows.map(r=>clipboardRowHtml(r)).join('');
       const ok=result.rows.filter(r=>['ok','conflict'].includes(r.status)).length,conflicts=result.rows.filter(r=>r.conflict).length,proposals=result.rows.filter(r=>r.artistProposal&&['ok','conflict'].includes(r.status)).length;
       summary.textContent=result.error||`解析 ${result.rows.length}曲｜一致 ${ok}曲｜アーティスト補完申請 ${proposals}曲｜Key差異 ${conflicts}曲｜エラー・未一致 ${result.rows.length-ok}曲`;
-      if(!result.rows.length&&!result.error)summary.textContent='曲名・アーティスト名を含む楽曲情報を貼り付けてください。';
+      if(!result.rows.length&&!result.error)summary.textContent='Excel・スプレッドシートの2列以上の表を貼り付けてください。';
       document.getElementById('clipboardImportRegister').disabled=!ok;
       return result;
     }
