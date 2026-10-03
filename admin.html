@@ -24,8 +24,12 @@ body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items
  <section><h2>🔄 公開マスターのキャッシュ更新通知</h2>
  <p class="muted">Firebase ConsoleからsongsへJSONを直接インポートした場合や、この管理画面以外から楽曲を修正した場合に押してください。これによりユーザー端末の古いマスターが次回閲覧時に更新されます。管理画面でCSVを確定・新曲/修正申請を承認した際は自動通知します。</p>
  <div class="bar"><button id="bumpRevision" class="primary">公開マスターの更新を通知する</button><span id="revisionInfo" class="status"></span></div>
- </section>
- <section><h2>✅ 承認操作について</h2><p class="muted">申請内容を確認して承認すると、その曲UUIDのマスター更新と申請の承認済みステータスを同時にFirebaseへ保存します。却下の場合、マスターは変更されません。複数の管理画面を同時に開いて処理しないでください。</p></section>
+   </section>
+  <section><h2>🌐 第3段階：公開用JSONを書き出す</h2>
+  <p class="muted">承認・CSV更新・Firebase Consoleでの変更が完了した後に実行してください。Firebaseから全曲と更新番号を再取得し、取得中に更新が入っていないか照合して書き出します。GitHubの <code>public/songs.json</code> に同名でアップロードしてください。管理者のユーザー情報や申請は含みません。</p>
+  <div class="bar"><button id="exportStatic" class="primary">公開用 songs.json をダウンロード</button><span id="exportStaticStatus" class="status"></span></div>
+  </section>
+  <section><h2>✅ 承認操作について</h2><p class="muted">申請内容を確認して承認すると、その曲UUIDのマスター更新と申請の承認済みステータスを同時にFirebaseへ保存します。却下の場合、マスターは変更されません。複数の管理画面を同時に開いて処理しないでください。</p></section>
 </main>
 <script>
 'use strict';
@@ -62,6 +66,33 @@ el('bumpRevision').addEventListener('click',async()=>{
  finally{busy=false;el('bumpRevision').disabled=false;}
 });
 
+el('exportStatic').addEventListener('click',async()=>{
+ if(!admin||busy)return;
+ busy=true;el('exportStatic').disabled=true;
+ try{
+  msg('exportStaticStatus','Firebaseの全曲を検証中…');
+  let snapshot=null,revision='';
+  for(let i=0;i<3;i++){
+   const before=(await db.ref('masterMeta/revision').once('value')).val();
+   if(typeof before!=='string'||!before)throw Error('masterMeta/revision が未設定です。先に更新通知を実行してください。');
+   snapshot=(await db.ref('songs').once('value')).val();
+   const after=(await db.ref('masterMeta/revision').once('value')).val();
+   if(before===after){revision=after;break;}
+  }
+  if(!revision)throw Error('取得中に楽曲が更新されました。操作終了後に再度実行してください。');
+  if(!snapshot||typeof snapshot!=='object'||Array.isArray(snapshot))throw Error('songs が不正です。');
+  const entries=Object.entries(snapshot);
+  if(!entries.length)throw Error('楽曲が0件です。');
+  for(const [id,song] of entries){if(!song||typeof song!=='object'||!song.title||(song.id&&song.id!==id))throw Error('楽曲データ不正: '+id);}
+  // 書き出すのは公開マスターのみ。既存UUIDは songs オブジェクトのキーをそのまま保持する。
+  const blob=new Blob([JSON.stringify({schema:3,revision,songs:snapshot})],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob),link=document.createElement('a');
+  link.href=url;link.download='songs.json';document.body.append(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  msg('exportStaticStatus',`✅ ${entries.length.toLocaleString()}曲を書き出しました。GitHubの public/songs.json にアップロードしてください。`);
+ }catch(error){msg('exportStaticStatus','⚠ '+humanErr(error));}
+ finally{busy=false;el('exportStatic').disabled=false;}
+});
 async function loadMaster(){const v=await db.ref('songs').once('value');master=v.val()||{};msg('csvInfo',`Firebase公開マスター：${Object.keys(master).length.toLocaleString()}曲。CSVを選択して照合してください。`);}
 async function login(){try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());}catch(e){msg('authStatus','Googleログインに失敗：'+humanErr(e));}}
 el('login').addEventListener('click',login);el('logout').addEventListener('click',()=>auth.signOut());
