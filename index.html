@@ -2695,7 +2695,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             }
             if (!newRoomId) throw new Error('ルームIDを発行できませんでした。');
             status.textContent = '作成完了。ルームへ移動します…';
-            window.location.href = '?room=' + encodeURIComponent(newRoomId);
+            window.location.replace(window.location.pathname + '?room=' + encodeURIComponent(newRoomId));
         } catch (error) {
             console.error('ルーム作成に失敗:', error);
             status.textContent = 'ルームを作成できませんでした。通信状況とFirebaseの権限を確認し、再試行してください。';
@@ -2712,7 +2712,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         if (currentRoomId && mySessionId) {
             try { await db.ref(`rooms/${currentRoomId}/members/${mySessionId}`).remove(); } catch(err){console.warn('退出時の参加者情報削除失敗',err);}
         }
-        window.location.href=window.location.pathname;
+        window.location.replace(window.location.pathname);
     }
 
     function copyRoomLink() {
@@ -2729,6 +2729,20 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         textArea.focus(); textArea.select();
         try { document.execCommand('copy') ? alert('ルームのURLをコピーしました！') : alert('自動コピーできません。URLを直接コピーしてください。'); } catch (err) {}
         document.body.removeChild(textArea);
+    }
+
+    // ルームを表示していたページから別URLへ離れる際は、Firebase接続を明示的に切断する。
+    // onDisconnect に登録済みの参加者と共有マイリストが削除される。ルーム本体や予約は消さない。
+    if (currentRoomId) {
+        window.addEventListener('pagehide', () => {
+            stopRoomPresence();
+            stopRoomOwnSource();
+            try { db.goOffline(); } catch (error) { console.warn('ルーム接続の切断:', error); }
+        });
+        // BFCacheに保存された古いルーム画面をブラウザの戻る/進むで復活させない。
+        window.addEventListener('pageshow', event => {
+            if (event.persisted) window.location.replace(window.location.pathname);
+        });
     }
 
     // =========================================
@@ -4342,6 +4356,29 @@ html, body { background: transparent !important; color: ${text} !important; }
         })();
         try{await masterLoadPromise;}catch(error){masterLoadPromise=null;throw error;}
     }
+    // 一覧画面は同一URLでも履歴を持つ。ブラウザの「戻る」はまずトップへ戻す。
+    const APP_HISTORY_KEY = 'shareliscorePage';
+    function setAppHistory(view, push=false) {
+        if (currentRoomId) return;
+        const state = { ...(history.state || {}), [APP_HISTORY_KEY]:view };
+        if (push) history.pushState(state, '', location.pathname + location.search + location.hash);
+        else history.replaceState(state, '', location.pathname + location.search + location.hash);
+    }
+    window.addEventListener('popstate', event => {
+        if (currentRoomId) return;
+        const view=event.state?.[APP_HISTORY_KEY];
+        closeMobileMenu();
+        if (view === 'all' || view === 'mylist') {
+            rememberListView(view);
+            document.documentElement.classList.remove('entry-home');
+            if (view==='mylist' && !myListMode) toggleMyList();
+            if (view==='all' && myListMode) toggleMyList();
+            void ensureMasterLoaded().catch(error=>console.warn('履歴からの一覧復帰に失敗:',error));
+        } else {
+            forgetListView();
+            document.documentElement.classList.add('entry-home');
+        }
+    });
     const LIST_VIEW_SESSION_KEY = 'shareliscore_list_view_v2';
     function rememberListView(view) {
         try { if (!currentRoomId) sessionStorage.setItem(LIST_VIEW_SESSION_KEY, view); } catch (_) {}
@@ -4363,10 +4400,11 @@ html, body { background: transparent !important; color: ${text} !important; }
         closeMobileMenu();
         forgetListView();
         document.documentElement.classList.add('entry-home');
+        setAppHistory('home');
         document.getElementById('homeLoadingStatus').textContent='';
         // 一度読み込んだマスターは保持。再訪時に再ダウンロードしない。
     }
-    async function openHomeDestination(destination) {
+    async function openHomeDestination(destination, restoring=false) {
         const status=document.getElementById('homeLoadingStatus');
         if(destination==='settings'){openModal('settingsModal');return;}
         if(destination==='manual'){openManualModal();return;}
@@ -4385,7 +4423,10 @@ html, body { background: transparent !important; color: ${text} !important; }
             return;
         }
         if(destination==='all' || destination==='mylist'){
+            // トップから進むときだけ履歴を追加。F5復帰時は同じ履歴項目を使用。
+            const fromHome=document.documentElement.classList.contains('entry-home');
             rememberListView(destination);
+            setAppHistory(destination, fromHome && !restoring);
             document.documentElement.classList.remove('entry-home');
             if(destination==='mylist' && !myListMode) toggleMyList();
             if(destination==='all' && myListMode) toggleMyList();
@@ -4409,9 +4450,10 @@ html, body { background: transparent !important; color: ${text} !important; }
             try {await ensureMasterLoaded();}catch(error){}
         } else {
             await initRoomUI();
+            if (!history.state?.[APP_HISTORY_KEY]) setAppHistory('home');
             // F5/ブラウザー再読み込みだけ直前の一覧へ復帰。通常の新規アクセスはホーム。
             const previousView = reloadedListView();
-            if (previousView) await openHomeDestination(previousView);
+            if (previousView) await openHomeDestination(previousView, true);
             // ホーム表示の間はsongs全曲を取得しない。
         }
     });
