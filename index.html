@@ -3475,7 +3475,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         }
     }
     function refreshAppData() {
-        // localStorage.clear() や signOut() は行わず、URLの変更でCSVの古いキャッシュを避ける。
+        // ログイン状態や個人データは保持し、_refresh指定で公開マスターのキャッシュを迂回する。
         const url = new URL(location.href);
         url.searchParams.set('_refresh',String(Date.now()));
         location.assign(url.toString());
@@ -4078,39 +4078,160 @@ html, body { background: transparent !important; color: ${text} !important; }
         document.getElementById('retryBtn').onclick = () => location.reload();
     }
 
+    // 公開マスターだけをIndexedDBへ保持。UIDや個人マイリストは保存しない。
+    // 公開版更新番号(masterMeta/revision)が無ければ、誤った古いキャッシュを使わず毎回Firebaseから取得する。
+    const MASTER_REVISION_PATH = 'masterMeta/revision';
+    const MASTER_CACHE_DB = 'share-list-score-public-master-v2';
+    const MASTER_CACHE_STORE = 'snapshots';
+    const MASTER_CACHE_KEY = 'songs-v2';
+    function openPublicMasterCache() {
+        return new Promise((resolve, reject) => {
+            if (!('indexedDB' in window)) { reject(Error('IndexedDBに対応していません')); return; }
+            const request = indexedDB.open(MASTER_CACHE_DB, 1);
+            request.onupgradeneeded = () => {
+                const storeDB=request.result;
+                if(!storeDB.objectStoreNames.contains(MASTER_CACHE_STORE))storeDB.createObjectStore(MASTER_CACHE_STORE);
+            };
+            request.onsuccess=()=>resolve(request.result);
+            request.onerror=()=>reject(request.error||Error('IndexedDBを開けません'));
+            request.onblocked=()=>reject(Error('IndexedDBがほかのタブで利用中です'));
+        });
+    }
+    async function readPublicMasterCache() {
+        let cacheDB;
+        try {
+            cacheDB=await openPublicMasterCache();
+            return await new Promise((resolve,reject)=>{
+                const tx=cacheDB.transaction(MASTER_CACHE_STORE,'readonly');
+                const req=tx.objectStore(MASTER_CACHE_STORE).get(MASTER_CACHE_KEY);
+                req.onsuccess=()=>resolve(req.result||null);
+                req.onerror=()=>reject(req.error||Error('キャッシュを読めません'));
+            });
+        } finally {if(cacheDB)cacheDB.close();}
+    }
+    async function savePublicMasterCache(revision, master) {
+        let cacheDB;
+        try {
+            cacheDB=await openPublicMasterCache();
+            return await new Promise((resolve,reject)=>{
+                const tx=cacheDB.transaction(MASTER_CACHE_STORE,'readwrite');
+                tx.objectStore(MASTER_CACHE_STORE).put({revision,master,schema:2,savedAt:Date.now()},MASTER_CACHE_KEY);
+                tx.oncomplete=()=>resolve();
+                tx.onerror=()=>reject(tx.error||Error('キャッシュの保存に失敗'));
+                tx.onabort=()=>reject(tx.error||Error('キャッシュ保存が中断'));
+            });
+        } finally {if(cacheDB)cacheDB.close();}
+    }
+    function validPublicMasterCache(cache) {
+        return !!(cache&&cache.schema===2&&typeof cache.revision==='string'&&
+            cache.master&&typeof cache.master==='object'&&!Array.isArray(cache.master)&&
+            Object.keys(cache.master).length>0);
+    }
+    async function readMasterRevision() {
+        const snap=await db.ref(MASTER_REVISION_PATH).once('value');
+        const value=snap.val();
+        return typeof value==='string'&&value.length>0?value:null;
+    }
+    function masterLoadNotice(message) {
+        const status=document.getElementById('homeLoadingStatus');
+        if(status&&!currentRoomId)status.textContent=message;
+        console.info('[公開マスター]',message);
+    }
+    function rowsFromFirebaseMaster(master) {
+        if (!master||typeof master!=='object'||Array.isArray(master)||!Object.keys(master).length)
+            throw Error('songs に公開楽曲がありません。移管用JSONとRealtime Databaseルールを確認してください。');
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲'];
+        const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
+        const rows=[headers];
+        for(const [id,song] of Object.entries(master)){
+            if(!song||typeof song!=='object'||(song.id&&song.id!==id)||!song.title)
+                throw Error('公開マスターの楽曲形式を確認してください: '+id);
+            rows.push(fields.map(field=>field==='id'?id:String(song[field]??'')));
+        }
+        return rows;
+    }
+    async function readConsistentFirebaseMaster(initialRevision) {
+        // 大きなCSV取込の途中に変更が入った場合は旧版をキャッシュせず、更新後を取り直す。
+        for(let attempt=0;attempt<3;attempt++){
+            const before=attempt===0?initialRevision:await readMasterRevision();
+            const snapshot=await db.ref(MASTER_DB_PATH).once('value');
+            const master=snapshot.val();
+            // 不整合の場合はキャッシュに保存する前に停止。
+            rowsFromFirebaseMaster(master);
+            if(!before)return {revision:null,master}; // 更新番号未設定中はキャッシュしない。
+            const after=await readMasterRevision();
+            if(before===after)return {revision:after,master};
+            console.warn('取得中にマスターが更新されました。最新版を再取得します。',attempt+1);
+        }
+        throw Error('マスター更新と取得が重なりました。少し待って再読み込みしてください。');
+    }
+
     // トップ表示だけでは27,332曲のマスターをダウンロードしない。
     // 初回の楽曲一覧・マイリスト・楽曲追加、またはルーム招待URLからの入室時だけ取得する。
     let masterLoadPromise = null;
     let masterLoaded = false;
     let pendingHomeMyList = false;
     async function ensureMasterLoaded() {
-        if (masterLoaded) return;
-        if (masterLoadPromise) return masterLoadPromise;
-        masterLoadPromise = (async () => {
-            loadingArea.style.display = 'flex';
-            try {
-                const snapshot = await db.ref(MASTER_DB_PATH).once('value');
-                const master = snapshot.val();
-                if (!master || typeof master !== 'object') throw Error('songs に公開楽曲がありません。移管用JSONとRealtime Databaseルールを確認してください。');
-                const headers = ['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲'];
-                const fields = ['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
-                const rows = [headers];
-                for (const [id, song] of Object.entries(master)) {
-                    if (!song || typeof song !== 'object' || (song.id && song.id !== id)) {
-                        throw Error('データ不整合: UUID と id が一致しません: ' + id);
-                    }
-                    rows.push(fields.map(field => field === 'id' ? id : String(song[field] ?? '')));
+        if(masterLoaded)return;
+        if(masterLoadPromise)return masterLoadPromise;
+        masterLoadPromise=(async()=>{
+            loadingArea.style.display='flex';
+            const forced=new URLSearchParams(location.search).has('_refresh');
+            // 強制更新は一度限り。_refreshをURLに残すと次回起動も毎回全曲取得してしまう。
+            if(forced && typeof history !== 'undefined'){
+                const cleanUrl=new URL(location.href);
+                cleanUrl.searchParams.delete('_refresh');
+                history.replaceState(history.state,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
+            }
+            let cached=null;
+            if(!forced){
+                try{cached=await readPublicMasterCache();}catch(error){console.warn('公開マスターのキャッシュが使えません。通常取得を行います。',error);}
+            }
+            if(!validPublicMasterCache(cached))cached=null;
+            let revision;
+            try{revision=await readMasterRevision();}
+            catch(error){
+                if(cached){
+                    console.warn('更新番号を確認できないため、オフライン用の前回データを表示します。',error);
+                    loadRowsIntoApp(rowsFromFirebaseMaster(cached.master));masterLoaded=true;
+                    masterLoadNotice('⚠ 接続確認ができません。前回保存した楽曲マスターを表示中です。');
+                    return;
                 }
-                loadRowsIntoApp(rows);
-                masterLoaded = true;
-            } catch (error) {
-                console.error('Firebaseマスター取得エラー', error);
-                showCsvLoadError('Firebaseマスターを読み込めませんでした: ' + (error.message || 'ネットワーク・権限を確認してください。'));
+                console.warn('更新番号を確認できません。全曲取得を試します。',error);
+                revision=null;
+            }
+            try{
+                if(!forced&&revision&&cached&&cached.revision===revision){
+                    masterLoadNotice('端末に保存した楽曲マスターを読み込み中…');
+                    loadRowsIntoApp(rowsFromFirebaseMaster(cached.master));
+                    masterLoaded=true;
+                    masterLoadNotice('✅ 楽曲マスター：キャッシュから表示（最新版を確認済み）');
+                    return;
+                }
+                masterLoadNotice('Firebaseから最新の楽曲マスターを取得中…');
+                const result=await readConsistentFirebaseMaster(revision);
+                loadRowsIntoApp(rowsFromFirebaseMaster(result.master));
+                masterLoaded=true;
+                if(result.revision){
+                    void savePublicMasterCache(result.revision,result.master)
+                        .catch(error=>console.warn('公開マスターのキャッシュ保存ができません。次回は通常取得します。',error));
+                    masterLoadNotice('✅ 最新の楽曲マスターを取得しました。');
+                }else{
+                    masterLoadNotice('⚠ 更新番号が未設定のため、キャッシュせず最新マスターを取得しました。');
+                }
+            }catch(error){
+                if(cached){
+                    console.warn('最新版の取得に失敗したため前回保存した楽曲マスターを表示します。',error);
+                    loadRowsIntoApp(rowsFromFirebaseMaster(cached.master));masterLoaded=true;
+                    masterLoadNotice('⚠ 最新版を取得できません。前回保存したマスターを表示中です。');
+                    return;
+                }
+                console.error('Firebaseマスター取得エラー',error);
+                showCsvLoadError('Firebaseマスターを読み込めませんでした: '+(error.message||'ネットワーク・権限を確認してください。'));
                 throw error;
             }
         })();
-        try {await masterLoadPromise;}
-        catch(error) {masterLoadPromise=null;throw error;}
+        try{await masterLoadPromise;}catch(error){masterLoadPromise=null;throw error;}
     }
     function goHome() {
         if (currentRoomId) return; // ルーム退出は既存の退出処理を使う
