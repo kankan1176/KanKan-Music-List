@@ -881,7 +881,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <div class="home-brand">
       <img src="site-logo.png?v=20261003-3" alt="" onerror="this.style.display='none'">
       <h1>シェアリスコア</h1>
-      <p>Share List Score · セッションと音楽を、もっとつなぐ。</p>
+      <p>Share List Score  セッションで繋がるマイリスト</p>
     </div>
     <nav class="home-grid" aria-label="メインメニュー">
       <button type="button" class="home-card" onclick="openHomeDestination('all')"><span class="home-card-icon" aria-hidden="true">🎼</span><span><span class="home-card-heading">楽曲一覧</span><span class="home-card-caption">登録曲を検索・閲覧</span></span></button>
@@ -890,6 +890,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント・フレンドなど</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('manual')"><span class="home-card-icon" aria-hidden="true">📖</span><span><span class="home-card-heading">使い方ガイド</span><span class="home-card-caption">基本操作と機能の説明</span></span></button>
     </nav>
     <div class="home-account" aria-live="polite">
       <span id="homeLoginState">ゲスト利用中</span>
@@ -1129,7 +1130,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <div class="mypage-menu">
       <button type="button" onclick="openMyPageSection('account')">👤 マイアカウント</button>
       <button type="button" onclick="openMyPageSection('friends')">👥 フレンド</button>
-      <button type="button" onclick="openMyPageSection('manual')">📖 使い方ガイド</button>
       <button type="button" onclick="openMyPageSection('settings')">⚙️ 設定</button>
       <a href="admin.html" id="adminPageLink" style="display:none;padding:10px;border:1px solid var(--border-color);border-radius:6px;text-align:center;text-decoration:none;color:var(--text-color);">🛡️ 楽曲データ管理（管理者）</a>
     </div>
@@ -4346,6 +4346,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     async function openHomeDestination(destination) {
         const status=document.getElementById('homeLoadingStatus');
         if(destination==='settings'){openModal('settingsModal');return;}
+        if(destination==='manual'){openManualModal();return;}
         if(destination==='mypage'){openMyPage();return;}
         if(destination==='room'){
             createRoom();
