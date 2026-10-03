@@ -4094,6 +4094,8 @@ html, body { background: transparent !important; color: ${text} !important; }
     // 公開マスターだけをIndexedDBへ保持。UIDや個人マイリストは保存しない。
     // 公開版更新番号(masterMeta/revision)が無ければ、誤った古いキャッシュを使わず毎回Firebaseから取得する。
     const MASTER_REVISION_PATH = 'masterMeta/revision';
+    // 第3段階：同一オリジンに置く公開スナップショット。Firebaseの更新番号と一致するときだけ採用。
+    const STATIC_MASTER_URL = 'public/songs.json';
     const MASTER_CACHE_DB = 'share-list-score-public-master-v2';
     const MASTER_CACHE_STORE = 'snapshots';
     const MASTER_CACHE_KEY = 'songs-v2';
@@ -4163,6 +4165,21 @@ html, body { background: transparent !important; color: ${text} !important; }
         }
         return rows;
     }
+    async function readStaticMaster(expectedRevision) {
+        if(!expectedRevision)throw Error('Firebase更新番号が未設定です');
+        // revisionをURLにつけ、GitHub Pages/CDN/ブラウザの古いレスポンスを回避する。
+        const url=new URL(STATIC_MASTER_URL, location.href);
+        url.searchParams.set('revision',expectedRevision);
+        const response=await fetch(url.toString(),{cache:'no-store'});
+        if(!response.ok)throw Error('静的JSON HTTP '+response.status);
+        const payload=await response.json();
+        if(!payload || payload.schema!==3 || payload.revision!==expectedRevision)
+            throw Error('静的JSONの版がFirebaseと一致しません（未公開または更新途中）');
+        rowsFromFirebaseMaster(payload.songs);
+        // ダウンロードの最中に管理者が更新していたら採用しない。
+        if(await readMasterRevision()!==expectedRevision)throw Error('静的JSON取得中にマスターが更新されました');
+        return {revision:expectedRevision,master:payload.songs};
+    }
     async function readConsistentFirebaseMaster(initialRevision) {
         // 大きなCSV取込の途中に変更が入った場合は旧版をキャッシュせず、更新後を取り直す。
         for(let attempt=0;attempt<3;attempt++){
@@ -4221,8 +4238,20 @@ html, body { background: transparent !important; color: ${text} !important; }
                     masterLoadNotice('✅ 楽曲マスター：キャッシュから表示（最新版を確認済み）');
                     return;
                 }
-                masterLoadNotice('Firebaseから最新の楽曲マスターを取得中…');
-                const result=await readConsistentFirebaseMaster(revision);
+                let result=null;
+                if(revision){
+                    try{
+                        masterLoadNotice('公開JSONから最新の楽曲マスターを取得中…');
+                        result=await readStaticMaster(revision);
+                        masterLoadNotice('✅ 公開JSONから最新の楽曲マスターを取得しました。');
+                    }catch(staticError){
+                        console.warn('公開JSONを利用できないため、Firebaseの最新版へ切り替えます。管理者は public/songs.json の更新を確認してください。',staticError);
+                    }
+                }
+                if(!result){
+                    masterLoadNotice('Firebaseから最新の楽曲マスターを取得中…');
+                    result=await readConsistentFirebaseMaster(revision);
+                }
                 loadRowsIntoApp(rowsFromFirebaseMaster(result.master));
                 masterLoaded=true;
                 if(result.revision){
