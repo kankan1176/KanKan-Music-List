@@ -805,7 +805,7 @@ body.in-room #roomListPanel {display:flex}
         @media(max-width:600px) {#masterActionsBar {gap:7px;padding:6px 8px;min-height:39px;}#excludeRegisteredFilter {font-size:12px;min-height:29px;}#masterKeyResetBtn {min-height:33px;}}
 
 /* Clipboard text -> personal My List; deliberately separate from master/CSV submission. */
-#clipboardImportInput{display:block;width:100%;box-sizing:border-box;min-height:155px;resize:vertical;background:var(--input-bg,var(--panel-bg));color:var(--text-color);border:1px solid var(--border-color);border-radius:6px;padding:9px;font:13px/1.6 inherit;}
+
 #clipboardImportSummary,#clipboardImportResult{font-size:12px;line-height:1.65;margin:8px 0;white-space:pre-line;overflow-wrap:anywhere;}
 #clipboardImportPreview,#clipboardConfirmRows{max-height:35dvh;overflow:auto;border:1px solid var(--border-color);border-radius:6px;margin:8px 0;}
 .clipboard-row{padding:8px 10px;border-bottom:1px solid var(--border-color);font-size:12px;line-height:1.55;overflow-wrap:anywhere;}
@@ -813,7 +813,7 @@ body.in-room #roomListPanel {display:flex}
 .clipboard-row.error{border-left:3px solid #ce5763}.clipboard-row.warning{border-left:3px solid #d6a33d}.clipboard-row.ok{border-left:3px solid #439a79}
 .clipboard-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:12px;}
 .clipboard-key-conflict{display:block;margin-top:6px;max-width:100%;color:var(--text-color);background:var(--panel-bg);border:1px solid var(--border-color);border-radius:4px;padding:5px;}
-@media(max-width:600px){#clipboardImportModal .modal,#clipboardConfirmModal .modal,#clipboardResultModal .modal{width:calc(100% - 16px);padding:13px;box-sizing:border-box;max-height:calc(100dvh - 18px);overflow:auto}#clipboardImportInput{min-height:130px}}
+@media(max-width:600px){#clipboardImportModal .modal,#clipboardConfirmModal .modal,#clipboardResultModal .modal{width:calc(100% - 16px);padding:13px;box-sizing:border-box;max-height:calc(100dvh - 18px);overflow:auto}}
 
 
 /* 一覧の通し番号：表示順を基準に全ページで連続採番する。 */
@@ -1282,13 +1282,13 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
   <span class="modal-close" onclick="closeModal(null,'clipboardImportModal')">&times;</span>
   <h2 id="clipboardImportTitle">📋 貼り付けからマイリスト一括登録</h2>
   <p style="font-size:13px;line-height:1.7;">Excel・スプレッドシートのセル範囲をコピーして、そのまま貼り付けできます。貼り付け後、列ごとに「曲名・アーティスト・URL（任意）・Key・使用しない」を選んでください。表形式のみ対応しています。</p>
-<textarea id="clipboardImportInput" oninput="clipboardEnsureMapping(this.value)" spellcheck="false" aria-label="Excel・スプレッドシートからコピーした表データ" placeholder="Excel・スプレッドシートで2列以上のセル範囲をコピーし、ここにCtrl+Vで貼り付けてください。"></textarea>
+
+  <div class="clipboard-actions" style="justify-content:flex-start;"><button type="button" class="primary-btn" onclick="clipboardReadFromSystem()">📋 クリップボードの表を読み取る</button><button type="button" onclick="clipboardPreview()">🔍 照合結果を表示</button></div>
   <div id="clipboardColumnMapping" style="display:none;margin-top:10px;"></div>
-  <div class="clipboard-actions" style="justify-content:flex-start;"><button type="button" onclick="clipboardReadFromSystem()">📋 クリップボードから貼り付け</button><button type="button" onclick="clipboardPreview()">🔍 照合結果を表示</button></div>
   <p style="font-size:12px;opacity:.82;line-height:1.55;">URLを省略した場合は曲名・アーティスト名の完全一致だけを登録。Keyが未記載ならURLのkeyを使い、両方未記載なら0（原曲）です。既存マイリスト曲はKeyを更新し、担当パートは維持します。マスター側のアーティストが空欄で、曲名＋ChordWiki URLが一意に一致した場合は、貼り付けたアーティスト名を管理者へ補完申請します。承認までは公開マスターを変更しません。</p>
-  <div id="clipboardImportSummary" role="status" aria-live="polite">コピーした表を貼り付け、列を割り当ててから「照合結果を表示」を押してください。</div>
+  <div id="clipboardImportSummary" role="status" aria-live="polite">Excel・スプレッドシートで2列以上をコピーし、「クリップボードの表を読み取る」を押してください。</div>
   <div id="clipboardImportPreview" aria-label="貼り付け楽曲の照合結果"></div>
-  <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardImportModal')">閉じる</button><button type="button" class="primary-btn" id="clipboardImportRegister" onclick="clipboardOpenConfirmation()">✅ 登録内容を確認</button></div>
+  <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardImportModal')">閉じる</button><button type="button" class="primary-btn" id="clipboardImportRegister" disabled onclick="clipboardOpenConfirmation()">✅ 登録内容を確認</button></div>
  </div>
 </div>
 <div class="modal-overlay" id="clipboardConfirmModal" onclick="closeModal(event,'clipboardConfirmModal')" style="z-index:1110;">
@@ -1298,7 +1298,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
   <div id="clipboardConfirmRows" aria-label="一致状況とKeyの確認"></div>
   <p style="font-size:12px;">KeyとURLのKeyが異なる曲は、どちらで登録するか選択してください。エラー・未一致・重複行は登録されません。</p>
   <div id="clipboardConfirmFeedback" role="status" aria-live="polite" style="font-size:12px;min-height:16px;"></div>
-  <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardConfirmModal')">入力に戻る</button><button type="button" class="primary-btn" id="clipboardConfirmApply" onclick="clipboardCommit()">✅ 確定して登録</button></div>
+  <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardConfirmModal')">照合結果に戻る</button><button type="button" class="primary-btn" id="clipboardConfirmApply" onclick="clipboardCommit()">✅ 確定して登録</button></div>
  </div>
 </div>
 <div class="modal-overlay" id="clipboardResultModal" onclick="closeModal(event,'clipboardResultModal')" style="z-index:1120;">
@@ -3728,7 +3728,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       const take=(r,key)=>{const i=map.indexOf(key);return i<0?'':String(r[i]??'').trim();};
       return table.rows.map((r,i)=>({line:i+(table.header?2:1),title:take(r,'title'),artist:take(r,'artist'),rawUrl:take(r,'url'),rawKey:take(r,'key')})).filter(r=>r.title||r.artist||r.rawUrl||r.rawKey);
     }
-    let clipboardImportRows=[],clipboardImportBusy=false,clipboardImportText='';
+    let clipboardImportRows=[],clipboardImportBusy=false,clipboardImportText='',clipboardRawText='';
     function clipboardTrim(x){return String(x??'').trim();}
     function clipboardExactPair(t,a){return clipboardTrim(t)+'\u001f'+clipboardTrim(a);}
     function clipboardParseKey(raw){
@@ -3810,17 +3810,30 @@ html, body { background: transparent !important; color: ${text} !important; }
       closeModal(null,'addSongModal');openModal('clipboardImportModal');
     }
     async function clipboardReadFromSystem(){
-      const area=document.getElementById('clipboardImportInput');
-      try{if(!navigator.clipboard?.readText)throw Error('未対応');area.value=await navigator.clipboard.readText();clipboardImportRows=[];clipboardPreview();}
-      catch(_){area.focus();document.getElementById('clipboardImportSummary').textContent='自動取得できないため、入力欄を長押しして「ペースト」を選ぶか、Ctrl+V / ⌘Vで貼り付けてください。';}
+      const summary=document.getElementById('clipboardImportSummary');
+      try{
+        if(!navigator.clipboard?.readText)throw Error('このブラウザではクリップボードの自動読み取りに対応していません。');
+        const raw=await navigator.clipboard.readText();
+        // Do not replace previously detected data when an invalid clipboard is supplied.
+        if(!clipboardReadTable(raw)){
+          summary.textContent='表を検出できませんでした。Excel・スプレッドシートで2列以上のセル範囲をコピーしてから、もう一度押してください。';
+          return;
+        }
+        clipboardRawText=raw;
+        clipboardImportRows=[];
+        clipboardEnsureMapping(raw);
+        clipboardPreview();
+      }catch(error){
+        summary.textContent='クリップボードを読み取れませんでした。ブラウザのクリップボードへのアクセスを許可し、HTTPSで開いて再度お試しください。'+(error?.message?'（'+error.message+'）':'');
+      }
     }
     function clipboardPreview(){
-      const raw=document.getElementById('clipboardImportInput').value;clipboardImportText=raw+'\u001e'+JSON.stringify(clipboardTableMapping);
+      const raw=clipboardRawText;clipboardImportText=raw+'\u001e'+JSON.stringify(clipboardTableMapping);
       const result=clipboardAnalyze(raw),area=document.getElementById('clipboardImportPreview'),summary=document.getElementById('clipboardImportSummary');
       clipboardImportRows=result.rows;area.innerHTML=result.rows.map(r=>clipboardRowHtml(r)).join('');
       const ok=result.rows.filter(r=>['ok','conflict'].includes(r.status)).length,conflicts=result.rows.filter(r=>r.conflict).length,proposals=result.rows.filter(r=>r.artistProposal&&['ok','conflict'].includes(r.status)).length;
       summary.textContent=result.error||`解析 ${result.rows.length}曲｜一致 ${ok}曲｜アーティスト補完申請 ${proposals}曲｜Key差異 ${conflicts}曲｜エラー・未一致 ${result.rows.length-ok}曲`;
-      if(!result.rows.length&&!result.error)summary.textContent='Excel・スプレッドシートの2列以上の表を貼り付けてください。';
+      if(!result.rows.length&&!result.error)summary.textContent='Excel・スプレッドシートの2列以上の表をコピーし、読み取りボタンを押してください。';
       document.getElementById('clipboardImportRegister').disabled=!ok;
       return result;
     }
@@ -3834,7 +3847,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     async function clipboardCommit(){
       if(clipboardImportBusy)return;const button=document.getElementById('clipboardConfirmApply'),feedback=document.getElementById('clipboardConfirmFeedback');
       const user=signedInUser;if(!user||user.isAnonymous||currentRoomId){feedback.textContent='Googleログイン後、ルーム外で登録してください。';return;}
-      if(document.getElementById('clipboardImportInput').value+'\u001e'+JSON.stringify(clipboardTableMapping)!==clipboardImportText){feedback.textContent='入力が変更されました。再度「登録内容を確認」からやり直してください。';return;}
+      if(clipboardRawText+'\u001e'+JSON.stringify(clipboardTableMapping)!==clipboardImportText){feedback.textContent='入力が変更されました。再度「登録内容を確認」からやり直してください。';return;}
       clipboardImportBusy=true;button.disabled=true;const candidates=clipboardImportRows.filter(r=>['ok','conflict'].includes(r.status));
       try{
         feedback.textContent='マイリストを保存中…';
