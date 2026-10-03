@@ -35,7 +35,16 @@ function humanErr(err){return String(err?.message||err||'不明なエラー');}
 function canonicalUrl(value){const raw=String(value||'').trim();if(!raw)return '';try{const u=new URL(raw);if(u.protocol!=='https:'||u.hostname!=='ja.chordwiki.org')return null;if(u.pathname==='/wiki.cgi'&&u.searchParams.get('c')==='view'&&u.searchParams.get('t'))return u.origin+'/wiki/'+encodeURIComponent(u.searchParams.get('t'));if(u.pathname.startsWith('/wiki/'))return u.origin+u.pathname;return null;}catch{return null;}}
 function blankSong(){return Object.fromEntries(FIELDS.map(f=>[f,'']));}
 function normalized(song){const x=blankSong();FIELDS.forEach(field=>x[field]=String(song?.[field]??'').trim());return x;}
-function sameSong(a,b){return FIELDS.every(k=>String(a?.[k]??'')===String(b?.[k]??''));}
+function compactSong(song){
+ const normalizedSong=normalized(song), out={};
+ for(const field of FIELDS){
+  if(field==='id')continue; // Firebase songs/{UUID} itself provides the immutable ID.
+  if(normalizedSong[field]!=='')out[field]=normalizedSong[field];
+ }
+ if(!out.title)throw Error('曲名を空欄にはできません。');
+ return out;
+}
+function sameSong(a,b){return FIELDS.every(k=>k==='id'||String(a?.[k]??'')===String(b?.[k]??''));}
 function identity(song){return [song.title.trim(),song.artist.trim(),canonicalUrl(song.chordwiki)||song.chordwiki.trim()].join('\u0001');}
 async function loadMaster(){const v=await db.ref('songs').once('value');master=v.val()||{};msg('csvInfo',`Firebase公開マスター：${Object.keys(master).length.toLocaleString()}曲。CSVを選択して照合してください。`);}
 async function login(){try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());}catch(e){msg('authStatus','Googleログインに失敗：'+humanErr(e));}}
@@ -86,7 +95,7 @@ el('applyCsv').addEventListener('click',async()=>{
  if(!admin||busy)return;const target=preview.filter(item=>item.type==='add'||item.type==='update');if(!target.length)return;
  if(!confirm(`${target.length}曲をFirebase本番のsongsへ追加・更新します。CSVにない曲は削除しません。バックアップを取りましたか？`))return;
  busy=true;el('applyCsv').disabled=true;el('previewCsv').disabled=true;let done=0;
- try{for(let i=0;i<target.length;i+=50){if(auth.currentUser?.uid!==admin.uid)throw Error('途中でログインアカウントが変更されました');const chunk=target.slice(i,i+50);const updates={};chunk.forEach(item=>updates['songs/'+item.song.id]=item.song);await db.ref().update(updates);chunk.forEach(item=>master[item.song.id]=item.song);done+=chunk.length;msg('csvProgress',`Firebaseへ保存済み：${done}/${target.length}曲`);}msg('csvInfo',`✅ ${done}曲の保存が完了しました。既存UUIDを維持し、未掲載楽曲は削除していません。`);preview=[];el('csvPreview').hidden=true;}
+ try{for(let i=0;i<target.length;i+=50){if(auth.currentUser?.uid!==admin.uid)throw Error('途中でログインアカウントが変更されました');const chunk=target.slice(i,i+50);const updates={};chunk.forEach(item=>updates['songs/'+item.song.id]=compactSong(item.song));await db.ref().update(updates);chunk.forEach(item=>master[item.song.id]=compactSong(item.song));done+=chunk.length;msg('csvProgress',`Firebaseへ保存済み：${done}/${target.length}曲`);}msg('csvInfo',`✅ ${done}曲の保存が完了しました。既存UUIDを維持し、未掲載楽曲は削除していません。`);preview=[];el('csvPreview').hidden=true;}
  catch(e){msg('csvInfo',`⚠ ${done}曲まで保存しました。エラー：${humanErr(e)}。再取込前にFirebaseとCSVを照合してください。`);}finally{busy=false;el('previewCsv').disabled=false;}
 });
 el('refreshRequests').addEventListener('click',loadRequests);
@@ -120,7 +129,7 @@ async function decide(record,kind,approved){if(!admin||busy)return;const data=re
   if(!title||!artist||chordwiki===null)throw Error('曲名・アーティスト・ChordWiki URLを確認してください。');
   const duplicate=Object.entries(master).find(([,item])=>item.title===title&&item.artist===artist);
   if(duplicate)throw Error('同名・同アーティストが既に登録済み：'+duplicate[0]+'。申請は必要に応じて却下してください。');
-  songId=crypto.randomUUID();const song=normalized({...data,id:songId,chordwiki});updates['songs/'+songId]=song;updates[record.path+'/approvedSongId']=songId;
+  songId=crypto.randomUUID();const song=normalized({...data,id:songId,chordwiki});updates['songs/'+songId]=compactSong(song);updates[record.path+'/approvedSongId']=songId;
  }else if(approved&&kind==='edit'){
   songId=String(data.songId||'');const live=(await db.ref('songs/'+songId).once('value')).val();if(!live)throw Error('対象UUIDがsongsにありません。');
   let song=normalized(live);
@@ -134,7 +143,7 @@ async function decide(record,kind,approved){if(!admin||busy)return;const data=re
    }
    if(!song.title)throw Error('曲名を空欄にはできません。');
   }else throw Error('不明な申請種類');
-  updates['songs/'+songId]=song;
+  updates['songs/'+songId]=compactSong(song);
  }
  await db.ref().update(updates);
  if(approved&&songId){master[songId]=updates['songs/'+songId];}
