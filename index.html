@@ -888,8 +888,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       <button type="button" class="home-card" onclick="openHomeDestination('mylist')"><span class="home-card-icon" aria-hidden="true">📁</span><span><span class="home-card-heading">マイリスト</span><span class="home-card-caption">自分の登録曲とKeyを管理</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('room')"><span class="home-card-icon" aria-hidden="true">🌐</span><span><span class="home-card-heading">ルームを作る</span><span class="home-card-caption">仲間とセットリストを共有</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
-      <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント・フレンドなど</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント管理</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true">👥</span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">フレンド一覧・検索・新規追加</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('manual')"><span class="home-card-icon" aria-hidden="true">📖</span><span><span class="home-card-heading">使い方ガイド</span><span class="home-card-caption">基本操作と機能の説明</span></span></button>
     </nav>
     <div class="home-account" aria-live="polite">
@@ -906,8 +907,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 <div class="modal-overlay" id="roomCreateModal" style="z-index:1600;" onclick="closeRoomCreateModal(event)" role="dialog" aria-modal="true" aria-labelledby="roomCreateHeading">
   <div class="modal" style="max-width:460px;">
     <h2 id="roomCreateHeading">🌐 ルームを作成</h2>
-    <p style="font-size:14px;line-height:1.7;">セッション用の新しい共有ルームを作成します。作成後は自動的にルームへ入室します。</p>
-    <p style="font-size:13px;opacity:.85;">選曲元：全曲マスター<br>発行されたルームURLを仲間に共有すると、同じセットリストを利用できます。</p>
+    <p style="font-size:14px;line-height:1.7;">セッション用の新しい共有ルームを作成します。作成後は自動的にルームへ入室します。<br>作成後ルームURLを仲間に共有すると、マイリストを共有できます。</p>
     <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px;margin-top:20px;">
       <button type="button" id="cancelRoomCreation" onclick="closeRoomCreateModal()">キャンセル</button>
       <button type="button" id="confirmRoomCreation" class="primary-btn" onclick="confirmCreateRoom()" style="background:#007bff;color:white;border-color:#007bff;">作成して入室 →</button>
@@ -1129,7 +1129,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <p id="myPageAccountHint"></p>
     <div class="mypage-menu">
       <button type="button" onclick="openMyPageSection('account')">👤 マイアカウント</button>
-      <button type="button" onclick="openMyPageSection('friends')">👥 フレンド</button>
       <button type="button" onclick="openMyPageSection('settings')">⚙️ 設定</button>
       <a href="admin.html" id="adminPageLink" style="display:none;padding:10px;border:1px solid var(--border-color);border-radius:6px;text-align:center;text-decoration:none;color:var(--text-color);">🛡️ 楽曲データ管理（管理者）</a>
     </div>
@@ -1142,7 +1141,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <span class="modal-close" onclick="closeModal(null,'friendsModal')">&times;</span>
     <h2>👥 フレンド管理</h2>
     <p style="font-size:12px;opacity:.8;">Googleログインしたユーザー同士で友達申請できます。承認済みの友達のマイリストを閲覧できます。</p>
-    <h3 style="font-size:15px;margin-bottom:8px;">👥 フレンド一覧</h3>
+    <h3 id="friendsListHeading" style="font-size:15px;margin-bottom:8px;">👥 フレンド一覧（0人）</h3>
     <div id="friendsList" class="friends-section">読み込み中…</div>
     <button type="button" onclick="refreshFriendsPanel()" style="margin:8px 0 13px;">↻ 一覧を更新</button>
     <hr style="border:0;border-top:1px solid var(--border-color);margin:7px 0 14px;">
@@ -2724,7 +2723,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         3: { title: "📖 使い方ガイド (3/10) - 曲の追加とKey", content: `<ul><li>「＋楽曲追加」を開き、曲名・アーティスト名・ChordWiki原曲URL・ジャンルなどを入力します。</li><li>登録後、公開CSVへの反映には時間がかかる場合があります。</li><li>Keyの◀ ▶は半音単位です。未登録の曲はKeyを選んだ後で「＋登録」を押すとマイリストへ保存されます。</li></ul>` },
         4: { title: "📖 使い方ガイド (4/10) - マイリスト", content: `<ul><li>Googleログイン後、ヘッダーの「マイリスト」でマイリスト一覧に切り替わります。</li><li>「＋登録」で追加、「解除」は確認画面の「はい」で実行します。</li><li>Keyや担当パートは自動保存され、1曲に複数パートを設定できます。</li><li>楽曲詳細画面からもマイリスト登録・解除ができます。</li></ul>` },
         5: { title: "📖 使い方ガイド (5/10) - マイリストの一括編集", content: `<ul><li>チェックボックス、Shift＋クリック（範囲）、Ctrl＋クリック（個別）で複数曲を選択します。</li><li>担当パートを指定し、パートON/OFF・Keyを選んで「選択曲に適用」を押します。</li><li>「選択曲を削除」はマイリストからの解除です。全曲一覧の楽曲データからは消えません。</li></ul>` },
-        6: { title: "📖 使い方ガイド (6/10) - マイページと設定", content: `<ul><li>マイアカウント：ユーザー名・基本担当パートを登録します。</li><li>フレンド：自分のフレンドID確認・新規申請・承認・友達一覧を表示します。</li><li>設定：UIカラーテーマ、フォント変更、最新情報の再読み込みができます。</li><li>キャッシュ全消去は通常不要です。表示が古いときだけ再読み込みを試してください。</li></ul>` },
+        6: { title: "📖 使い方ガイド (6/10) - マイページと設定", content: `<ul><li>マイアカウント：ユーザー名・基本担当パートを登録します。</li><li>トップの「フレンド」でID確認・新規申請・承認・友達一覧を表示します。</li><li>設定：UIカラーテーマ、フォント変更、最新情報の再読み込みができます。</li><li>キャッシュ全消去は通常不要です。表示が古いときだけ再読み込みを試してください。</li></ul>` },
         7: { title: "📖 使い方ガイド (7/10) - フレンド機能", content: `<ul><li>フレンドIDを相手に渡すか、相手のIDで申請します。</li><li>相手が承認すると、双方のフレンド一覧に表示されます。</li><li>「マイリストを見る」では、相手の保存済みKey・担当パートも閲覧できます。</li><li>共通曲のみの抽出や、自分との共通曲の色付けにも対応しています。</li></ul>` },
         8: { title: "📖 使い方ガイド (8/10) - ルームを作る・参加する", content: `<ul><li>「ルームを作る」でルームURLを発行し、仲間に共有します。</li><li>ルーム中は全曲一覧を使って予約でき、マイリスト起点でも全曲から選べます。</li><li>ゲストも参加可能です。個人マイリストの共有にはGoogleログインが必要です。</li><li>ルームを退出するとその参加者の共有リストが解除されます。</li></ul>` },
         9: { title: "📖 使い方ガイド (9/10) - ルームの共通曲と演奏管理", content: `<ul><li>切り替えボタンで全曲一覧／共通曲／自分／各メンバーのマイリストを閲覧できます。</li><li>異なるGoogleログイン済みメンバー2人以上が同じ楽曲UUIDを登録すると共通曲に表示されます。</li><li>曲の詳細から登録者名・Key・担当パートを確認できます。</li><li>予約 → 確定 → 完了は全員共通でリアルタイム同期されます。</li></ul>` },
@@ -2864,6 +2863,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         friendListeners.forEach(([ref,fn]) => ref.off('value',fn)); friendListeners=[];
         friendFeatureUid=''; friendCodeForUser=''; friendRefreshSeq++;
         document.getElementById('myFriendCode').value='';
+        updateFriendCount(null);
         closeModal(null,'friendsModal');
     }
     function attachFriendListener(path,uid) {
@@ -2904,6 +2904,13 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             attachFriendListener(`friendships/${user.uid}`,user.uid);
             void refreshFriendsPanel();
         } catch(err) {console.error('フレンド初期化失敗',err);friendNotice('フレンド機能の初期化に失敗しました。Firebaseルールを確認してください。',true);}
+    }
+    function updateFriendCount(count) {
+        const label=count===null?'−人':`${count}人`;
+        const home=document.getElementById('homeFriendCount');
+        const heading=document.getElementById('friendsListHeading');
+        if(home)home.textContent=`(${label})`;
+        if(heading)heading.textContent=`👥 フレンド一覧（${label}）`;
     }
     function openFriendsModal() {
         if(!friendUser())return alert(FRIEND_GOOGLE_ONLY);
@@ -2981,6 +2988,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             fr.replaceChildren(...friendRows);
             if(!receivedRows.length)inc.textContent='現在、申請はありません。';
             if(!sentRows.length)out.textContent='送信中の申請はありません。';
+            updateFriendCount(friendRows.length);
             if(!friendRows.length)fr.textContent='まだフレンドはいません。';
         }catch(err){
             if(!isLatest())return;
@@ -3196,14 +3204,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         openModal('myPageModal');
     }
     function openMyPageSection(section) {
-        if (section === 'friends' && !signedInUser) {
-            alert('この機能はGoogleログインが必要です。');
-            return;
-        }
         closeModal(null,'myPageModal');
         switch (section) {
             case 'account': openModal('accountModal'); break;
-            case 'friends': openFriendsModal(); break;
             case 'settings': openModal('settingsModal'); break;
             case 'manual': openManualModal(); break;
         }
@@ -4347,6 +4350,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         const status=document.getElementById('homeLoadingStatus');
         if(destination==='settings'){openModal('settingsModal');return;}
         if(destination==='manual'){openManualModal();return;}
+        if(destination==='friends'){openFriendsModal();return;}
         if(destination==='mypage'){openMyPage();return;}
         if(destination==='room'){
             createRoom();
