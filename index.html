@@ -833,13 +833,15 @@ body.in-room #roomListPanel {display:flex}
 #homeLanding {display:none;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:clamp(16px,3vw,42px) 16px max(24px,env(safe-area-inset-bottom));box-sizing:border-box;width:100%;}
 html.entry-home #homeLanding {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,3vh,32px);}
 html.entry-home .container,html.entry-home .side-guide,html.entry-home #sideGuideToggle {display:none!important;}
-.home-inner {width:min(100%,850px);margin:auto;display:flex;flex-direction:column;gap:24px;}
+.home-inner {width:min(100%,1040px);margin:auto;display:flex;flex-direction:column;gap:24px;}
 .home-brand {text-align:center;display:flex;flex-direction:column;align-items:center;gap:9px;}
 .home-brand img {display:block;max-width:min(85%,310px);max-height:94px;object-fit:contain;}
 .home-brand h1 {font-size:clamp(23px,4.5vw,33px);letter-spacing:.015em;line-height:1.3;margin:2px 0 0;}
 .home-brand p {font-size:clamp(12px,2.6vw,14px);opacity:.76;margin:0;}
-.home-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.home-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
 .home-card {min-width:0;min-height:130px;text-align:left;white-space:normal;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 21px;border-radius:13px;border:1px solid var(--border-color);background:var(--panel-bg);color:var(--text-color);box-shadow:0 4px 18px #00000012;transition:transform .16s,border-color .16s,background .16s;}
+.home-friends-card .home-card-icon {color:#ffd84d;filter:drop-shadow(0 0 3px #e2a80066);}
+.home-friends-card {border-color:#cba934;}
 .home-card:hover,.home-card:focus-visible {transform:translateY(-2px);border-color:var(--primary);background:var(--btn-hover);outline-offset:2px;}
 .home-card-icon {font-size:29px;line-height:1;}
 .home-card-heading {font-size:17px;line-height:1.3;font-weight:750;display:block;}
@@ -887,11 +889,11 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       <button type="button" class="home-card" onclick="openHomeDestination('all')"><span class="home-card-icon" aria-hidden="true">🎼</span><span><span class="home-card-heading">楽曲一覧</span><span class="home-card-caption">登録曲を検索・閲覧</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('mylist')"><span class="home-card-icon" aria-hidden="true">📁</span><span><span class="home-card-heading">マイリスト</span><span class="home-card-caption">自分の登録曲とKeyを管理</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('room')"><span class="home-card-icon" aria-hidden="true">🌐</span><span><span class="home-card-heading">ルームを作る</span><span class="home-card-caption">仲間とセットリストを共有</span></span></button>
-      <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">新規楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント管理</span></span></button>
-      <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
-      <button type="button" class="home-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true">👥</span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">フレンド一覧・検索・新規追加</span></span></button>
+      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true">👥</span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">フレンド一覧・検索・新規追加</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('manual')"><span class="home-card-icon" aria-hidden="true">📖</span><span><span class="home-card-heading">使い方ガイド</span><span class="home-card-caption">基本操作と機能の説明</span></span></button>
+      <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
     </nav>
     <div class="home-account" aria-live="polite">
       <span id="homeLoginState">ゲスト利用中</span>
@@ -942,8 +944,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                 <button type="button" id="homeBackBtn" onclick="goHome()">🏠 トップ</button>
                 <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;">📁 マイリスト</button>
                 <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
-                <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 楽曲追加</button>
-                <button id="myPageBtn" type="button" onclick="openMyPage()" aria-haspopup="dialog" aria-controls="myPageModal">👤 マイページ</button>
+                <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 新規楽曲追加</button>
+                <button id="myPageBtn" type="button" onclick="openSiteMenu()" aria-haspopup="dialog" aria-controls="siteMenuModal">🌟 メニュー</button>
                 <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
                 <button id="googleLoginBtn" onclick="loginWithGoogle()" style="background:#fff;color:#333;border:1px solid #bbb;">
                     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -963,16 +965,20 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             <div class="mobile-main-actions">
                 <button type="button" id="mobileAllBtn" onclick="mobileGoAll()">🌐 全曲一覧</button>
                 <button type="button" id="mobileMyBtn" onclick="mobileGoMyList()">📁 マイリスト</button>
-                <button type="button" id="mobileMyPageBtn" onclick="openMyPage()">👤 マイページ</button>
+                <button type="button" id="mobileMyPageBtn" onclick="openSiteMenu()">🌟 メニュー</button>
                 <button type="button" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-expanded="false" aria-controls="mobileMorePanel" aria-label="その他の操作">☰</button>
             </div>
             <div id="mobileMorePanel" hidden>
                 <div id="mobileIdentity" aria-live="polite">ゲスト利用中</div>
                 <button type="button" id="mobileHomeItem" onclick="closeMobileMenu();goHome()">🏠 トップ</button>
+                <button type="button" onclick="closeMobileMenu();openMyPage()">👤 マイページ</button>
+                <button type="button" onclick="closeMobileMenu();openFriendsModal()">👥 フレンド</button>
+                <button type="button" onclick="closeMobileMenu();openManualModal()">📖 使い方ガイド</button>
+                <button type="button" onclick="closeMobileMenu();openModal('settingsModal')">⚙ 設定</button>
                 <button type="button" id="mobileLoginItem" onclick="closeMobileMenu();loginWithGoogle()">Googleでログイン</button>
                 <button type="button" id="mobileLogoutItem" onclick="closeMobileMenu();logoutGoogle()">ログアウト</button>
                 <button type="button" id="mobileCreateRoomItem" onclick="closeMobileMenu();createRoom()">🌐 ルームを作る</button>
-                <button type="button" onclick="closeMobileMenu();openAddSongModal()">➕ 楽曲追加</button>
+                <button type="button" onclick="closeMobileMenu();openAddSongModal()">➕ 新規楽曲追加</button>
                 <button type="button" id="mobileObsItem" onclick="closeMobileMenu();openObsModal()">📺 OBSカスタムCSS</button>
                 <button type="button" id="mobileRoomLinkItem" onclick="closeMobileMenu();copyRoomLink()">🔗 ルームURLをコピー</button>
                 <button type="button" id="mobileLeaveItem" onclick="closeMobileMenu();leaveRoom()">🚪 ルーム退出</button>
@@ -1121,6 +1127,19 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     </div>
 </div>
 
+<!-- ヘッダーのメニュー：機能は既存の各画面へ接続 -->
+<div class="modal-overlay" id="siteMenuModal" onclick="closeModal(event,'siteMenuModal')">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="メニュー" onclick="event.stopPropagation()" style="max-width:430px;">
+    <span class="modal-close" role="button" tabindex="0" onclick="closeModal(null,'siteMenuModal')">&times;</span>
+    <h2>🌟 メニュー</h2>
+    <div class="mypage-menu">
+      <button type="button" onclick="closeModal(null,'siteMenuModal');openMyPage()">👤 マイページ</button>
+      <button type="button" onclick="closeModal(null,'siteMenuModal');openFriendsModal()">👥 フレンド</button>
+      <button type="button" onclick="closeModal(null,'siteMenuModal');openManualModal()">📖 使い方ガイド</button>
+      <button type="button" onclick="closeModal(null,'siteMenuModal');openModal('settingsModal')">⚙ 設定</button>
+    </div>
+  </div>
+</div>
 <!-- マイページ: 各機能の入口をまとめ、既存の個別モーダルと保存処理は維持する -->
 <div class="modal-overlay" id="myPageModal" onclick="closeModal(event,'myPageModal')">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="myPageTitle" onclick="event.stopPropagation()" style="max-width:430px;">
@@ -3196,6 +3215,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     // ===== STEP 3-2ここまで =====
     // ===== フレンド機能ここまで =====
     // マイページはナビゲーション専用。個人マイリスト・フレンド・設定の保存形式は変更しない。
+    function openSiteMenu() {openModal('siteMenuModal');}
     function openMyPage() {
         const hint = document.getElementById('myPageAccountHint');
         if (!signedInUser) hint.textContent = 'ゲスト利用中：フレンドはGoogleログイン後に利用できます。';
