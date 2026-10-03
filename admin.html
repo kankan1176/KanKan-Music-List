@@ -25,6 +25,10 @@ body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items
  <p class="muted">Firebase ConsoleからsongsへJSONを直接インポートした場合や、この管理画面以外から楽曲を修正した場合に押してください。これによりユーザー端末の古いマスターが次回閲覧時に更新されます。管理画面でCSVを確定・新曲/修正申請を承認した際は自動通知します。</p>
  <div class="bar"><button id="bumpRevision" class="primary">公開マスターの更新を通知する</button><span id="revisionInfo" class="status"></span></div>
    </section>
+  <section><h2>📥 楽曲マスターをCSV出力</h2>
+  <p class="muted">Firebaseの正式マスター /songs を最新状態で再取得し、全楽曲・全13項目をCSVで出力します。既存の楽曲UUIDを「楽曲ID」列に保持し、未設定項目は空欄にします。データは変更しません。Excelで開けるUTF-8（BOM付き）形式です。CSVの文字列は再インポート時に意図せず変更しないでください。</p>
+  <div class="bar"><button type="button" id="exportCsv" class="primary">📥 全楽曲マスターをCSVダウンロード</button><span id="exportCsvStatus" class="status" role="status" aria-live="polite"></span></div>
+  </section>
   <section><h2>🌐 第3段階：公開用JSONを書き出す</h2>
   <p class="muted">承認・CSV更新・Firebase Consoleでの変更が完了した後に実行してください。Firebaseから全曲と更新番号を再取得し、取得中に更新が入っていないか照合して書き出します。通常はGitHub Actionsが約10分ごとに <code>public/songs.json</code> を自動更新するため、ダウンロードは不要です。自動同期が止まっている場合の予備として、このファイルをGitHubの <code>public/songs.json</code> に同名でアップロードできます。管理者のユーザー情報や申請は含みません。</p>
   <div class="bar"><button id="exportStatic" class="primary">公開用 songs.json をダウンロード</button><span id="exportStaticStatus" class="status"></span></div>
@@ -36,6 +40,37 @@ body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items
 const firebaseConfig={apiKey:'AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI',authDomain:'kankan-session-room.firebaseapp.com',databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'kankan-session-room',storageBucket:'kankan-session-room.firebasestorage.app',messagingSenderId:'759342880820',appId:'1:759342880820:web:9af0af755e35926a281261'};
 firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database();
 const FIELDS=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
+const CSV_EXPORT_HEADERS=[['楽曲ID','id'],['曲名','title'],['アーティスト','artist'],['コードwiki','chordwiki'],['BPM','bpm'],['ジャンル①','genre'],['ジャンル②','genre2'],['ジャンル③','genre3'],['タイアップ','tieup'],['検索','search'],['作詞','lyrics'],['作曲','composition'],['編曲','arrangement']];
+// Export from the live source, not the in-memory preview, so recently approved edits are included.
+document.getElementById('exportCsv').addEventListener('click',async()=>{
+ if(!admin||busy)return;
+ const button=el('exportCsv');busy=true;button.disabled=true;
+ try{
+  msg('exportCsvStatus','Firebaseから最新の楽曲マスターを読み込み中…');
+  let songs=null,revision=null;
+  for(let attempt=0;attempt<3;attempt++){
+   const before=(await db.ref('masterMeta/revision').once('value')).val();
+   const snapshot=await db.ref('songs').once('value');
+   const after=(await db.ref('masterMeta/revision').once('value')).val();
+   if(before===after){songs=snapshot.val();revision=after;break;}
+  }
+  if(!songs||typeof songs!=='object'||Array.isArray(songs))throw Error('楽曲マスターを取得できませんでした。');
+  if(revision===null)throw Error('取得中にマスターが更新されました。再度お試しください。');
+  const rows=Object.entries(songs).map(([id,song])=>{
+   if(!song||typeof song!=='object'||typeof song.title!=='string'||!song.title.trim()||(song.id&&song.id!==id))throw Error('不正な楽曲データ：'+id);
+   return CSV_EXPORT_HEADERS.map(([,field])=>field==='id'?id:String(song[field]??''));
+  });
+  if(!rows.length)throw Error('楽曲マスターが空です。');
+  const csv=Papa.unparse({fields:CSV_EXPORT_HEADERS.map(([header])=>header),data:rows},{newline:'\r\n',quotes:true});
+  const blob=new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob),link=document.createElement('a');
+  const date=new Date();const stamp=[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('');
+  link.href=url;link.download='シェアリスコア_楽曲マスター_'+stamp+'.csv';document.body.append(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  msg('exportCsvStatus','✅ '+rows.length.toLocaleString()+'曲・13項目をCSV出力しました（UUID維持）。');
+ }catch(error){msg('exportCsvStatus','⚠ CSV出力に失敗：'+humanErr(error));}
+ finally{button.disabled=false;busy=false;}
+});
 const HEADERS={'楽曲ID':'id','曲名':'title','アーティスト':'artist','コードwiki':'chordwiki','コードWiki':'chordwiki','BPM':'bpm','ジャンル':'genre','ジャンル①':'genre','ジャンル②':'genre2','ジャンル③':'genre3','タイアップ':'tieup','タイアップ情報':'tieup','検索':'search','作詞':'lyrics','作曲':'composition','編曲':'arrangement'};
 const el=id=>document.getElementById(id);let admin=null,master={},preview=[],busy=false;
 function msg(id,t){el(id).textContent=t;}
