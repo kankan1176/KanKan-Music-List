@@ -21,6 +21,10 @@ body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items
  </section>
  <section><div class="bar"><h2 style="flex:1">📝 新曲登録申請</h2><button id="refreshRequests">申請を再読込</button></div><div id="addRequests" class="scroll"></div></section>
  <section><h2>✏️ 楽曲情報の修正申請・アーティスト補完</h2><div id="editRequests" class="scroll"></div></section>
+ <section><h2>🔄 公開マスターのキャッシュ更新通知</h2>
+ <p class="muted">Firebase ConsoleからsongsへJSONを直接インポートした場合や、この管理画面以外から楽曲を修正した場合に押してください。これによりユーザー端末の古いマスターが次回閲覧時に更新されます。管理画面でCSVを確定・新曲/修正申請を承認した際は自動通知します。</p>
+ <div class="bar"><button id="bumpRevision" class="primary">公開マスターの更新を通知する</button><span id="revisionInfo" class="status"></span></div>
+ </section>
  <section><h2>✅ 承認操作について</h2><p class="muted">申請内容を確認して承認すると、その曲UUIDのマスター更新と申請の承認済みステータスを同時にFirebaseへ保存します。却下の場合、マスターは変更されません。複数の管理画面を同時に開いて処理しないでください。</p></section>
 </main>
 <script>
@@ -46,6 +50,18 @@ function compactSong(song){
 }
 function sameSong(a,b){return FIELDS.every(k=>k==='id'||String(a?.[k]??'')===String(b?.[k]??''));}
 function identity(song){return [song.title.trim(),song.artist.trim(),canonicalUrl(song.chordwiki)||song.chordwiki.trim()].join('\u0001');}
+// Push key is only used as a unique revision token, not as a stored child path.
+function newMasterRevision(){return db.ref('masterMeta').push().key;}
+async function showMasterRevision(){const snap=await db.ref('masterMeta/revision').once('value');msg('revisionInfo','現在の更新番号：'+(snap.val()||'未設定'));}
+el('bumpRevision').addEventListener('click',async()=>{
+ if(!admin||busy)return;
+ if(!confirm('現在のsongsが本番の最新データであることを確認しましたか？ ユーザーのキャッシュ更新を通知します。'))return;
+ busy=true;el('bumpRevision').disabled=true;
+ try{await db.ref('masterMeta/revision').set(newMasterRevision());await showMasterRevision();msg('revisionInfo','✅ 更新通知を保存しました。');}
+ catch(error){msg('revisionInfo','⚠ 更新通知に失敗：'+humanErr(error));}
+ finally{busy=false;el('bumpRevision').disabled=false;}
+});
+
 async function loadMaster(){const v=await db.ref('songs').once('value');master=v.val()||{};msg('csvInfo',`Firebase公開マスター：${Object.keys(master).length.toLocaleString()}曲。CSVを選択して照合してください。`);}
 async function login(){try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());}catch(e){msg('authStatus','Googleログインに失敗：'+humanErr(e));}}
 el('login').addEventListener('click',login);el('logout').addEventListener('click',()=>auth.signOut());
@@ -57,7 +73,7 @@ auth.onAuthStateChanged(async user=>{
  if(auth.currentUser?.uid!==user.uid)return;
  if(check.val()!==user.uid){msg('authStatus','管理者権限がありません。認証したGoogle UIDと '+ADMIN_CODE+' の登録先が一致していません。');return;}
  admin=user;msg('authStatus','✅ 管理者として認証しました：'+(user.displayName||user.email||ADMIN_CODE));el('workspace').style.display='block';
- await Promise.all([loadMaster(),loadRequests()]);}catch(e){msg('authStatus','管理者権限の確認に失敗：'+humanErr(e)+'。Realtime Databaseルールが公開済みか確認してください。');}
+ await Promise.all([loadMaster(),loadRequests(),showMasterRevision()]);}catch(e){msg('authStatus','管理者権限の確認に失敗：'+humanErr(e)+'。Realtime Databaseルールが公開済みか確認してください。');}
 });
 el('refreshMaster').addEventListener('click',async()=>{if(!admin||busy)return;try{await loadMaster();preview=[];el('applyCsv').disabled=true;el('csvPreview').hidden=true;}catch(e){msg('csvInfo',humanErr(e));}});
 el('previewCsv').addEventListener('click',async()=>{
@@ -95,7 +111,7 @@ el('applyCsv').addEventListener('click',async()=>{
  if(!admin||busy)return;const target=preview.filter(item=>item.type==='add'||item.type==='update');if(!target.length)return;
  if(!confirm(`${target.length}曲をFirebase本番のsongsへ追加・更新します。CSVにない曲は削除しません。バックアップを取りましたか？`))return;
  busy=true;el('applyCsv').disabled=true;el('previewCsv').disabled=true;let done=0;
- try{for(let i=0;i<target.length;i+=50){if(auth.currentUser?.uid!==admin.uid)throw Error('途中でログインアカウントが変更されました');const chunk=target.slice(i,i+50);const updates={};chunk.forEach(item=>updates['songs/'+item.song.id]=compactSong(item.song));await db.ref().update(updates);chunk.forEach(item=>master[item.song.id]=compactSong(item.song));done+=chunk.length;msg('csvProgress',`Firebaseへ保存済み：${done}/${target.length}曲`);}msg('csvInfo',`✅ ${done}曲の保存が完了しました。既存UUIDを維持し、未掲載楽曲は削除していません。`);preview=[];el('csvPreview').hidden=true;}
+ try{for(let i=0;i<target.length;i+=50){if(auth.currentUser?.uid!==admin.uid)throw Error('途中でログインアカウントが変更されました');const chunk=target.slice(i,i+50);const updates={};chunk.forEach(item=>updates['songs/'+item.song.id]=compactSong(item.song));updates['masterMeta/revision']=newMasterRevision();await db.ref().update(updates);chunk.forEach(item=>master[item.song.id]=compactSong(item.song));done+=chunk.length;msg('csvProgress',`Firebaseへ保存済み：${done}/${target.length}曲`);}msg('csvInfo',`✅ ${done}曲の保存が完了しました。既存UUIDを維持し、未掲載楽曲は削除していません。`);preview=[];el('csvPreview').hidden=true;}
  catch(e){msg('csvInfo',`⚠ ${done}曲まで保存しました。エラー：${humanErr(e)}。再取込前にFirebaseとCSVを照合してください。`);}finally{busy=false;el('previewCsv').disabled=false;}
 });
 el('refreshRequests').addEventListener('click',loadRequests);
@@ -145,6 +161,7 @@ async function decide(record,kind,approved){if(!admin||busy)return;const data=re
   }else throw Error('不明な申請種類');
   updates['songs/'+songId]=compactSong(song);
  }
+ if(approved&&songId)updates['masterMeta/revision']=newMasterRevision();
  await db.ref().update(updates);
  if(approved&&songId){master[songId]=updates['songs/'+songId];}
  await loadRequests();
