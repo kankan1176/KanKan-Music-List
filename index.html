@@ -1179,7 +1179,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         <h2>🎤 アーティスト検索</h2>
         <p style="font-size: 14px; line-height: 1.6;"><strong id="confirmArtistName"></strong> の曲に絞りますか？</p>
         <div class="artist-confirm-actions">
-            <button type="button" id="artistModalStar" class="personal-toggle favorite-artist-modal" style="font-size:12px;white-space:nowrap;padding:6px 8px;" title="お気に入りアーティストに登録・解除（自動保存）" onclick="toggleConfirmedArtist()">お気に入りアーティスト☆</button>
+            <button type="button" id="artistModalStar" class="personal-toggle favorite-artist-modal" style="font-size:12px;white-space:nowrap;padding:6px 8px;" title="お気に入りアーティストに登録・解除（自動保存）" onclick="toggleConfirmedArtist()">お気に入りアーティスト登録 👉 ☆</button>
             <button type="button" onclick="closeModal(null, 'artistConfirmModal')">いいえ</button>
             <button type="button" class="primary-btn" onclick="confirmArtistFilter()">はい</button>
         </div>
@@ -1907,7 +1907,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         btn.classList.toggle('selected',selected);
         btn.setAttribute('aria-pressed',String(selected));
         btn.title=selected?'⭐ お気に入りアーティストを解除':'☆ お気に入りアーティストに登録';
-        btn.textContent=selected?'お気に入りアーティスト★':'お気に入りアーティスト☆';
+        btn.textContent=selected?'お気に入りアーティスト登録 👉 ★':'お気に入りアーティスト登録 👉 ☆';
     }
     let defaultPart = '';
     const tableHeaderTable = document.querySelector('.table-header-wrapper .data-table');
