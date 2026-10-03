@@ -3714,6 +3714,8 @@ html, body { background: transparent !important; color: ${text} !important; }
             form.reset(); newCodeUrlInput.setCustomValidity('');
             document.getElementById('newCodeUrlCheck').textContent = '';
             feedback.textContent = '申請を受け付けました。管理者の承認後に全曲一覧へ反映されます。';
+            closeModal(null, 'addSongModal');
+            document.getElementById('addSongModal').style.zIndex = '';
         } catch (error) {
             console.error('楽曲追加申請の失敗',error);
             feedback.textContent = '申請を送信できませんでした: '+String(error.message||error);
@@ -4089,6 +4091,7 @@ html, body { background: transparent !important; color: ${text} !important; }
                 status:'pending',createdAt:firebase.database.ServerValue.TIMESTAMP,changes
             });
             msg.textContent='修正申請を受け付けました。管理者の確認待ちです。';
+            closeModal(null, 'songEditRequestModal');
         }catch(err){console.error('修正申請',err);msg.textContent='申請に失敗しました：'+String(err.message||err);}
         finally{button.disabled=false;}
     }
