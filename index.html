@@ -1285,18 +1285,10 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
   <div style="font-size:12px;line-height:1.65;padding:10px;border:1px solid var(--border-color);border-radius:6px;margin-bottom:8px;background:var(--btn-bg);">
     <strong>📋 文章で入力する場合のフォーマット（表の貼り付けなら不要）</strong><pre style="white-space:pre-wrap;margin:6px 0;font:inherit;user-select:text;">曲名：曲名を貼り付け
 アーティスト：アーティスト名を貼り付け
-URL：https://ja.chordwiki.org/wiki/... （任意）
-
-曲名：2曲目の曲名
-アーティスト：2曲目のアーティスト
-URL：</pre>
+URL：https://ja.chordwiki.org/wiki/... （任意）</pre>
     <button type="button" onclick="clipboardCopyTemplate()">📄 入力テンプレートをコピー</button>
   </div>
   <textarea id="clipboardImportInput" oninput="clipboardEnsureMapping(this.value)" spellcheck="false" aria-label="曲名・アーティスト・URLを曲ごとに貼り付け" placeholder="曲名：
-アーティスト：
-URL：
-
-曲名：
 アーティスト：
 URL："></textarea>
   <div id="clipboardColumnMapping" style="display:none;margin-top:10px;"></div>
@@ -3868,7 +3860,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       closeModal(null,'addSongModal');openModal('clipboardImportModal');
     }
     async function clipboardCopyTemplate(){
-      const template='曲名：\nアーティスト：\nURL：\n\n曲名：\nアーティスト：\nURL：';
+      const template='曲名：\nアーティスト：\nURL：';
       try{await navigator.clipboard.writeText(template);document.getElementById('clipboardImportSummary').textContent='入力テンプレートをコピーしました。曲名・アーティストを入力し、URLがない場合は空欄にしてください。';}
       catch(_){const area=document.getElementById('clipboardImportInput');area.value=template;area.focus();document.getElementById('clipboardImportSummary').textContent='テンプレートを入力欄に表示しました。各項目を埋めてください。';}
     }
