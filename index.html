@@ -1281,15 +1281,27 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clipboardImportTitle" onclick="event.stopPropagation()" style="max-width:730px;box-sizing:border-box;max-height:calc(100dvh - 30px);overflow:auto;">
   <span class="modal-close" onclick="closeModal(null,'clipboardImportModal')">&times;</span>
   <h2 id="clipboardImportTitle">📋 貼り付けからマイリスト一括登録</h2>
-  <p style="font-size:12px;line-height:1.6;">1行1曲で <b>曲名｜アーティスト｜Key｜ChordWiki URL</b> の順に貼り付けます。タブ・「 | 」・CSVカンマ区切りに対応。Key・URLは省略できます。列見出し付き表や、項目名付きの複数行も使用できます。</p>
-  <textarea id="clipboardImportInput" spellcheck="false" aria-label="登録する楽曲情報を貼り付け" placeholder="例：
-曲名 | アーティスト | Key | URL
-楽曲A | アーティストA | +2 | https://ja.chordwiki.org/wiki/...
-楽曲B | アーティストB | | 
-楽曲C | アーティストC | | https://ja.chordwiki.org/wiki.cgi?c=view&amp;t=...&amp;key=-1"></textarea>
+  <p style="font-size:13px;line-height:1.7;">曲ごとに下記の<b>3項目を1行ずつ</b>貼り付けてください。<b>URLは任意</b>です。複数曲は空行で区切ります。</p>
+  <div style="font-size:12px;line-height:1.65;padding:10px;border:1px solid var(--border-color);border-radius:6px;margin-bottom:8px;background:var(--btn-bg);">
+    <strong>📋 入力フォーマット</strong><pre style="white-space:pre-wrap;margin:6px 0;font:inherit;user-select:text;">曲名：曲名を貼り付け
+アーティスト：アーティスト名を貼り付け
+URL：https://ja.chordwiki.org/wiki/... （任意）
+
+曲名：2曲目の曲名
+アーティスト：2曲目のアーティスト
+URL：</pre>
+    <button type="button" onclick="clipboardCopyTemplate()">📄 入力テンプレートをコピー</button>
+  </div>
+  <textarea id="clipboardImportInput" spellcheck="false" aria-label="曲名・アーティスト・URLを曲ごとに貼り付け" placeholder="曲名：
+アーティスト：
+URL：
+
+曲名：
+アーティスト：
+URL："></textarea>
   <div class="clipboard-actions" style="justify-content:flex-start;"><button type="button" onclick="clipboardReadFromSystem()">📋 クリップボードから貼り付け</button><button type="button" onclick="clipboardPreview()">🔍 照合結果を表示</button></div>
   <p style="font-size:12px;opacity:.82;line-height:1.55;">URLを省略した場合は曲名・アーティスト名の完全一致だけを登録。Keyが未記載ならURLのkeyを使い、両方未記載なら0（原曲）です。既存マイリスト曲はKeyを更新し、担当パートは維持します。マスター側のアーティストが空欄で、曲名＋ChordWiki URLが一意に一致した場合は、貼り付けたアーティスト名を管理者へ補完申請します。承認までは公開マスターを変更しません。</p>
-  <div id="clipboardImportSummary" role="status" aria-live="polite">テキストを貼り付けて「登録内容を確認」を押してください。</div>
+  <div id="clipboardImportSummary" role="status" aria-live="polite">曲名・アーティスト・URL（任意）を貼り付け、「照合結果を表示」を押してください。</div>
   <div id="clipboardImportPreview" aria-label="貼り付け楽曲の照合結果"></div>
   <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardImportModal')">閉じる</button><button type="button" class="primary-btn" id="clipboardImportRegister" onclick="clipboardOpenConfirmation()">✅ 登録内容を確認</button></div>
  </div>
@@ -3797,6 +3809,11 @@ html, body { background: transparent !important; color: ${text} !important; }
       if(!signedInUser||signedInUser.isAnonymous)return alert('貼り付け登録にはGoogleログインが必要です。');
       if(currentRoomId)return alert('マイリストへの一括登録はルーム外で行ってください。');
       closeModal(null,'addSongModal');openModal('clipboardImportModal');
+    }
+    async function clipboardCopyTemplate(){
+      const template='曲名：\nアーティスト：\nURL：\n\n曲名：\nアーティスト：\nURL：';
+      try{await navigator.clipboard.writeText(template);document.getElementById('clipboardImportSummary').textContent='入力テンプレートをコピーしました。曲名・アーティストを入力し、URLがない場合は空欄にしてください。';}
+      catch(_){const area=document.getElementById('clipboardImportInput');area.value=template;area.focus();document.getElementById('clipboardImportSummary').textContent='テンプレートを入力欄に表示しました。各項目を埋めてください。';}
     }
     async function clipboardReadFromSystem(){
       const area=document.getElementById('clipboardImportInput');
