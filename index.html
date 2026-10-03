@@ -965,7 +965,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       <button type="button" class="home-card" onclick="openHomeDestination('room')"><span class="home-card-icon" aria-hidden="true">🌐</span><span><span class="home-card-heading">ルームを作る</span><span class="home-card-caption">仲間とセットリストを共有</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">新規楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント管理</span></span></button>
-      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="10" r="5"/><path d="M2 26v-2c0-4.7 4.2-8 10-8s10 3.3 10 8v2H2z"/><circle cx="24" cy="11" r="4" opacity=".9"/><path d="M22 17.3c4.8-.4 8 2.5 8 6.7v2h-6v-2c0-2.6-.7-4.9-2-6.7z" opacity=".9"/></svg></span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">フレンド一覧・検索・新規追加</span></span></button>
+      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="10" r="5"/><path d="M2 26v-2c0-4.7 4.2-8 10-8s10 3.3 10 8v2H2z"/><circle cx="24" cy="11" r="4" opacity=".9"/><path d="M22 17.3c4.8-.4 8 2.5 8 6.7v2h-6v-2c0-2.6-.7-4.9-2-6.7z" opacity=".9"/></svg></span><span><span class="home-card-heading">フォロー <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">公開プロフィール・フォロー</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('manual')"><span class="home-card-icon" aria-hidden="true">📖</span><span><span class="home-card-heading">使い方ガイド</span><span class="home-card-caption">基本操作と機能の説明</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
     </nav>
@@ -1046,7 +1046,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                 <div id="mobileIdentity" aria-live="polite">ゲスト利用中</div>
                 <button type="button" id="mobileHomeItem" onclick="closeMobileMenu();goHome()">🏠 トップ</button>
                 <button type="button" onclick="closeMobileMenu();openMyPage()">👤 マイページ</button>
-                <button type="button" onclick="closeMobileMenu();openFriendsModal()">👥 フレンド</button>
+                <button type="button" onclick="closeMobileMenu();openFriendsModal()">👥 フォロー</button>
                 <button type="button" onclick="closeMobileMenu();openManualModal()">📖 使い方ガイド</button>
                 <button type="button" onclick="closeMobileMenu();openModal('settingsModal')">⚙ 設定</button>
                 <button type="button" id="mobileLoginItem" onclick="closeMobileMenu();loginWithGoogle()">Googleでログイン</button>
@@ -1208,7 +1208,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <h2>📝 メニュー</h2>
     <div class="mypage-menu">
       <button type="button" onclick="closeModal(null,'siteMenuModal');openMyPage()">👤 マイページ</button>
-      <button type="button" onclick="closeModal(null,'siteMenuModal');openFriendsModal()">👥 フレンド</button>
+      <button type="button" onclick="closeModal(null,'siteMenuModal');openFriendsModal()">👥 フォロー</button>
       <button type="button" onclick="closeModal(null,'siteMenuModal');openManualModal()">📖 使い方ガイド</button>
       <button type="button" onclick="closeModal(null,'siteMenuModal');openModal('settingsModal')">⚙ 設定</button>
     </div>
@@ -1239,40 +1239,34 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
   <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button type="button" onclick="closeModal(null,'favoriteArtistsModal')">閉じる</button></div>
  </div>
 </div>
-<!-- STEP 3-1: Google認証利用者専用・フレンド申請と承認 -->
+<!-- 公開プロフィールと一方向フォロー。ゲストも閲覧可能 -->
 <div class="modal-overlay" id="friendsModal" onclick="closeModal(event,'friendsModal')">
-  <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
-    <span class="modal-close" onclick="closeModal(null,'friendsModal')">&times;</span>
-    <h2>👥 フレンド管理</h2>
-    <p style="font-size:12px;opacity:.8;">Googleログインしたユーザー同士で友達申請できます。承認済みの友達のマイリストを閲覧できます。</p>
-    <h3 id="friendsListHeading" style="font-size:15px;margin-bottom:8px;">👥 フレンド一覧（0人）</h3>
-    <div id="friendsList" class="friends-section">読み込み中…</div>
-    <button type="button" onclick="refreshFriendsPanel()" style="margin:8px 0 13px;">↻ 一覧を更新</button>
-    <hr style="border:0;border-top:1px solid var(--border-color);margin:7px 0 14px;">
-    <h3 style="font-size:15px;margin-bottom:8px;">🔎 フレンド検索・新規追加</h3>
-    <p style="font-size:12px;opacity:.8;">相手のフレンドIDを入力して申請します。表示名検索ではなくID検索です。</p>
-    <div class="setting-group"><label>自分のフレンドID</label>
-      <div style="display:flex;gap:7px;align-items:center;">
-        <input id="myFriendCode" class="setting-input" readonly placeholder="取得中…" style="flex:1;font-size:15px;font-weight:bold;">
-        <button type="button" onclick="copyMyFriendCode()">コピー</button>
-      </div>
-    </div>
-    <div class="setting-group"><label for="friendCodeInput">友達のフレンドID</label>
-      <div style="display:flex;gap:7px;align-items:center;">
-        <input id="friendCodeInput" class="setting-input" maxlength="13" placeholder="SL-XXXXXXXXXX" style="flex:1;" autocomplete="off">
-        <button type="button" class="primary-btn" id="sendFriendRequestBtn" onclick="sendFriendRequest()">申請</button>
-      </div>
-    </div>
-    <div id="friendFeedback" role="status" aria-live="polite" style="font-size:12px;min-height:18px;margin-bottom:8px;"></div>
-    <h3 style="font-size:14px;">届いた申請</h3><div id="incomingFriendRequests" class="friends-section">読み込み中…</div>
-    <h3 style="font-size:14px;">送った申請</h3><div id="outgoingFriendRequests" class="friends-section">読み込み中…</div>
+ <div class="modal" onclick="event.stopPropagation()" style="max-width:620px;max-height:88dvh;">
+  <span class="modal-close" onclick="closeModal(null,'friendsModal')">&times;</span>
+  <h2>👥 フォロー・公開プロフィール</h2>
+  <p style="font-size:12px;line-height:1.6;">マイリストとお気に入りアーティストはゲストを含めて誰でも閲覧できます。フォローはGoogleログイン後に利用できます。</p>
+  <h3 id="friendsListHeading">👥 フォロー中（0人）</h3><div id="friendsList" class="friends-section"></div>
+  <h3 id="followersHeading">フォロワー（0人）</h3><div id="followersList" class="friends-section"></div>
+  <hr style="border:0;border-top:1px solid var(--border-color);margin:14px 0;">
+  <h3>🔎 公開プロフィールを探す</h3>
+  <input id="publicProfileSearch" class="setting-input" placeholder="表示名・公開IDで検索" oninput="refreshFriendsPanel()" autocomplete="off">
+  <div id="publicProfilesList" class="friends-section" style="max-height:30dvh;overflow:auto;margin:9px 0;"></div>
+  <div id="followControls">
+   <p style="font-size:12px;">自分の公開ID（URLや検索でも共有できます）</p>
+   <div style="display:flex;gap:6px;"><input id="myFriendCode" class="setting-input" readonly><button onclick="copyMyFriendCode()">コピー</button></div>
+   <p style="font-size:12px;">公開IDを指定してフォロー</p>
+   <div style="display:flex;gap:6px;"><input id="friendCodeInput" class="setting-input" placeholder="SL-XXXXXXXXXX" maxlength="13"><button id="sendFriendRequestBtn" class="primary-btn" onclick="sendFriendRequest()">フォロー</button></div>
   </div>
+  <div id="friendFeedback" role="status" aria-live="polite" style="font-size:12px;margin:10px 0;"></div>
+  <div id="friendSyncStatus" role="status" aria-live="polite" hidden style="font-size:12px;padding:8px;border:1px solid var(--border-color);border-radius:5px;"><span id="friendSyncStatusText"></span><button id="friendSyncRetry" onclick="retryFriendSharedSync()">↻ 再試行</button></div>
+  <button onclick="refreshFriendsPanel()">↻ 更新</button>
+ </div>
 </div>
 <!-- STEP 3-2: 承認済みフレンドの公開マイリスト（閲覧のみ） -->
 <div class="modal-overlay" id="friendSharedModal" onclick="closeFriendSharedList(event)">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="friendSharedTitle" onclick="event.stopPropagation()" style="max-width:650px;">
     <span class="modal-close" onclick="closeFriendSharedList()">&times;</span>
-    <h2 id="friendSharedTitle">📁 フレンドのマイリスト</h2>
+    <h2 id="friendSharedTitle">📁 公開マイリスト</h2>
     <div id="friendSharedMeta" class="shared-list-meta">読み込み中…</div>
     <div style="display:flex;gap:7px;margin:10px 0;flex-wrap:wrap;" role="group" aria-label="フレンドの共有情報を切り替える">
       <button type="button" id="friendSongsTab" class="primary-btn" onclick="switchFriendShareTab('songs')">📁 マイリスト</button>
@@ -3047,172 +3041,116 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         const ref=db.ref(path); const fn=()=>{ if (friendUser()?.uid===uid) void refreshFriendsPanel(); };
         ref.on('value',fn,err=>console.warn('フレンド同期',err)); friendListeners.push([ref,fn]);
     }
+    // Public profile directory and one-way follows. Existing mutual friendships migrate once per user.
     async function startFriendsFeature(user) {
-        if (!user || friendFeatureUid===user.uid) return;
+        if(!user || friendFeatureUid===user.uid)return;
         stopFriendsFeature();friendFeatureUid=user.uid;
         try {
-            // 公開IDはランダムな10桁。既存コードとの競合はトランザクションで回避。
-            let codeSnap=await db.ref(`users/${user.uid}/profile/friendCode`).once('value');
-            if (friendUser()?.uid!==user.uid) return;
-            let code=String(codeSnap.val()||'');
-            if (!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code)) {
-                const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-                let registered=false;
-                for(let attempt=0; attempt<8 && !registered; attempt++) {
-                    const values=new Uint8Array(10);crypto.getRandomValues(values);
-                    code='SL-'+Array.from(values,n=>alphabet[n%alphabet.length]).join('');
-                    const result=await db.ref(`friendCodes/${code}`).transaction(old=>old===null?user.uid:undefined,undefined,false);
-                    registered=result.committed;
+            let snap=await db.ref(`users/${user.uid}/profile/friendCode`).once('value');
+            let code=String(snap.val()||'');
+            if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code)) {
+                const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let done=false;
+                for(let i=0;i<8&&!done;i++){
+                    const bytes=new Uint8Array(10);crypto.getRandomValues(bytes);
+                    code='SL-'+Array.from(bytes,n=>alphabet[n%alphabet.length]).join('');
+                    const r=await db.ref(`friendCodes/${code}`).transaction(v=>v===null?user.uid:undefined,undefined,false);done=r.committed;
                 }
-                if (!registered) throw Error('フレンドIDの発行ができませんでした');
-                if (friendUser()?.uid!==user.uid) return;
+                if(!done)throw Error('公開IDを発行できません');
                 await db.ref(`users/${user.uid}/profile/friendCode`).set(code);
-            } else {
-                const mapped=await db.ref(`friendCodes/${code}`).once('value');
-                if(mapped.val()!==user.uid) throw Error('フレンドIDの登録情報が一致しません');
             }
             friendCodeForUser=code;
-            const name=String(myName || user.displayName || 'ユーザー').trim().slice(0,40) || 'ユーザー';
-            await db.ref(`friendProfiles/${user.uid}`).set({displayName:name,code});
+            await db.ref(`friendProfiles/${user.uid}`).set({displayName:String(myName||user.displayName||'ユーザー').trim().slice(0,40)||'ユーザー',code});
+            const migrated=await db.ref(`followMigrations/${user.uid}`).once('value');
+            if(!migrated.val()) {
+                const [old,currentFollows]=await Promise.all([db.ref(`friendships/${user.uid}`).once('value'),db.ref('follows').once('value')]);
+                const existing=currentFollows.val()||{};
+                const updates={};
+                for(const [other,active] of Object.entries(old.val()||{}))if(active===true&&other!==user.uid){
+                    if(existing[user.uid]?.[other]!==true)updates[`follows/${user.uid}/${other}`]=true;
+                    // Historical friendship is reciprocal; only migrate missing reverse edges.
+                    if(existing[other]?.[user.uid]!==true)updates[`follows/${other}/${user.uid}`]=true;
+                }
+                updates[`followMigrations/${user.uid}`]=true;
+                await db.ref().update(updates);
+            }
             if(friendUser()?.uid!==user.uid)return;
             document.getElementById('myFriendCode').value=code;
-            attachFriendListener(`friendRequests/${user.uid}`,user.uid);
-            attachFriendListener(`sentRequests/${user.uid}`,user.uid);
-            attachFriendListener(`friendships/${user.uid}`,user.uid);
+            attachFriendListener(`follows/${user.uid}`,user.uid);
+            attachFriendListener('follows',user.uid);
             void refreshFriendsPanel();
-        } catch(err) {console.error('フレンド初期化失敗',err);friendNotice('フレンド機能の初期化に失敗しました。Firebaseルールを確認してください。',true);}
+        }catch(err){console.error('フォロー機能初期化失敗',err);friendNotice('プロフィールの準備に失敗しました。Firebaseルールを確認してください。',true);}
     }
-    function updateFriendCount(count) {
-        const label=count===null?'−人':`${count}人`;
-        const home=document.getElementById('homeFriendCount');
-        const heading=document.getElementById('friendsListHeading');
-        if(home)home.textContent=`(${label})`;
-        if(heading)heading.textContent=`👥 フレンド一覧（${label}）`;
+    function updateFriendCount(count){
+        const n=count===null?'−':String(count);
+        const home=document.getElementById('homeFriendCount');if(home)home.textContent=`(${n}人)`;
+        const heading=document.getElementById('friendsListHeading');if(heading)heading.textContent=`👥 フォロー中（${n}人）`;
     }
-    function openFriendsModal() {
-        if(!friendUser())return alert(FRIEND_GOOGLE_ONLY);
-        openModal('friendsModal');document.getElementById('myFriendCode').value=friendCodeForUser;
+    function openFriendsModal(){
+        friendNotice('');renderFriendSyncStatus();openModal('friendsModal');
+        document.getElementById('myFriendCode').value=friendCodeForUser || 'ゲストは閲覧のみ';
+        document.getElementById('followControls').hidden=!friendUser();
         void refreshFriendsPanel();
     }
-    function copyMyFriendCode() {
-        if(!friendCodeForUser)return friendNotice('フレンドIDを取得中です。',true);
-        navigator.clipboard.writeText(friendCodeForUser).then(()=>friendNotice('フレンドIDをコピーしました。')).catch(()=>{document.getElementById('myFriendCode').select();friendNotice('IDを選択しました。Ctrl+Cでコピーしてください。');});
+    function copyMyFriendCode(){
+        if(!friendCodeForUser)return friendNotice('Googleログイン後に公開IDを発行できます。',true);
+        navigator.clipboard.writeText(friendCodeForUser).then(()=>friendNotice('公開IDをコピーしました。')).catch(()=>friendNotice('コピーできませんでした。',true));
     }
-    async function getFriendDisplayName(uid) {
+    async function getFriendDisplayName(uid){
         if(friendNameCache[uid])return friendNameCache[uid];
-        try{const snap=await db.ref(`friendProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(snap.val()||'ユーザー').slice(0,40);}
-        catch{return 'ユーザー';}
+        try{const v=await db.ref(`friendProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(v.val()||'ユーザー').slice(0,40);}catch{return 'ユーザー';}
     }
-    function friendItem(name,buttons) {
+    function friendItem(name,buttons){
         const row=document.createElement('div');row.className='friend-item';
         const label=document.createElement('span');label.className='friend-name';label.textContent=name;row.append(label);
-        const commands=document.createElement('div');commands.className='friend-commands';
-        for(const [title,fn,danger] of buttons){const button=document.createElement('button');button.type='button';button.textContent=title;if(danger)button.className='friend-danger';button.onclick=fn;commands.append(button);}
-        row.append(commands);return row;
+        const actions=document.createElement('div');actions.className='friend-commands';
+        for(const [title,handler,danger] of buttons){const btn=document.createElement('button');btn.type='button';btn.textContent=title;if(danger)btn.className='friend-danger';btn.onclick=handler;actions.append(btn);}row.append(actions);return row;
     }
-    async function refreshFriendsPanel() {
-        const user=friendUser(); if(!user)return;
-        const uid=user.uid, seq=++friendRefreshSeq;
-        // Firebase の複数リスナーが続けて発火しても、最新の取得結果だけを描画する。
-        const isLatest=()=>seq===friendRefreshSeq && friendUser()?.uid===uid;
-        try {
-            const [incoming,outgoing,friendship]=await Promise.all([
-                db.ref(`friendRequests/${uid}`).once('value'),
-                db.ref(`sentRequests/${uid}`).once('value'),
-                db.ref(`friendships/${uid}`).once('value')
-            ]);
-            if(!isLatest())return;
-            const inc=document.getElementById('incomingFriendRequests');
-            const out=document.getElementById('outgoingFriendRequests');
-            const fr=document.getElementById('friendsList');
-            // 名前ではなく UID で重複排除。同じ表示名の別アカウントを誤って統合しない。
-            const acceptedUids=new Set(Object.entries(friendship.val()||{})
-                .filter(([other,active])=>other!==uid && !!active).map(([other])=>other));
-            const received=Object.entries(incoming.val()||{})
-                .filter(([sender,r])=>sender!==uid && r?.status==='pending' && !acceptedUids.has(sender));
-            const receivedRows=await Promise.all(received.map(async ([sender,r])=>
-                friendItem(String(r.fromName||await getFriendDisplayName(sender)),[
-                    ['承認',()=>void respondFriendRequest(uid,sender,r,true)],
-                    ['拒否',()=>void respondFriendRequest(uid,sender,r,false),true]
-                ])
-            ));
-            if(!isLatest())return;
-            const sentUids=[...new Set(Object.keys(outgoing.val()||{}))]
-                .filter(target=>target!==uid && !acceptedUids.has(target));
-            const sentRows=(await Promise.all(sentUids.map(async target=>{
-                const request=await db.ref(`friendRequests/${target}/${uid}`).once('value');
-                if(request.val()?.status!=='pending')return null;
-                const row=friendItem(await getFriendDisplayName(target),[['申請中',()=>{},false]]);
-                const button=row.querySelector('button');if(button)button.disabled=true;
-                return row;
-            }))).filter(Boolean);
-            if(!isLatest())return;
-            const friendRows=(await Promise.all([...acceptedUids].map(async other=>{
-                const [a,b]=await Promise.all([
-                    db.ref(`friendRequests/${uid}/${other}/status`).once('value'),
-                    db.ref(`friendRequests/${other}/${uid}/status`).once('value')
-                ]);
-                if(a.val()!=='accepted' && b.val()!=='accepted')return null;
-                return friendItem(await getFriendDisplayName(other),[
-                    ['📁 マイリストを見る',()=>openFriendSharedList(other)],
-                    ['解除',()=>void unfriendUser(other),true]
-                ]);
-            }))).filter(Boolean);
-            if(!isLatest())return;
-            // 待機中には画面へ追加せず、全データが揃ってから一度だけ置き換える。
-            inc.replaceChildren(...receivedRows);
-            out.replaceChildren(...sentRows);
-            fr.replaceChildren(...friendRows);
-            if(!receivedRows.length)inc.textContent='現在、申請はありません。';
-            if(!sentRows.length)out.textContent='送信中の申請はありません。';
-            updateFriendCount(friendRows.length);
-            if(!friendRows.length)fr.textContent='まだフレンドはいません。';
-        }catch(err){
-            if(!isLatest())return;
-            console.error('フレンド一覧読込失敗',err);
-            friendNotice('一覧を読み込めませんでした。Firebaseルールを確認してください。',true);
-        }
-    }
-    async function sendFriendRequest() {
-        const user=friendUser();if(!user)return alert(FRIEND_GOOGLE_ONLY);
-        const code=String(document.getElementById('friendCodeInput').value||'').trim().toUpperCase().replace(/\s/g,'');
-        if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code))return friendNotice('フレンドIDは SL- から始まる10桁のコードです。',true);
-        const button=document.getElementById('sendFriendRequestBtn');button.disabled=true;
+    async function refreshFriendsPanel(){
+        const u=friendUser(),seq=++friendRefreshSeq;
+        const isLatest=()=>seq===friendRefreshSeq;
+        const list=document.getElementById('friendsList'),followers=document.getElementById('followersList');
         try{
-            const mapping=await db.ref(`friendCodes/${code}`).once('value');const target=String(mapping.val()||'');
-            if(!target)return friendNotice('該当するフレンドIDがありません。',true);
-            if(target===user.uid)return friendNotice('自分自身には申請できません。',true);
-            const [mine,theirs,existing]=await Promise.all([
-                db.ref(`friendRequests/${user.uid}/${target}/status`).once('value'),db.ref(`friendRequests/${target}/${user.uid}`).once('value'),db.ref(`friendships/${user.uid}/${target}`).once('value')]);
-            if(mine.val()==='accepted'||theirs.val()?.status==='accepted'||existing.val())return friendNotice('すでにフレンドです。',true);
-            if(mine.val()==='pending')return friendNotice('相手から申請が届いています。届いた申請から承認してください。',true);
-            if(theirs.val()?.status==='pending')return friendNotice('すでに申請を送信しています。',true);
-            const fromName=String(myName||user.displayName||'ユーザー').trim().slice(0,40)||'ユーザー';
-            await db.ref(`friendRequests/${target}/${user.uid}`).set({fromUid:user.uid,toUid:target,fromName,createdAt:Date.now(),status:'pending'});
-            await db.ref(`sentRequests/${user.uid}/${target}`).set(true);
-            document.getElementById('friendCodeInput').value='';friendNotice('友達申請を送信しました。');void refreshFriendsPanel();
-        }catch(err){console.error('友達申請失敗',err);friendNotice('申請に失敗しました。時間をおいて再試行してください。',true);}
-        finally{button.disabled=false;}
+            const [profilesSnap,allFollowsSnap]=await Promise.all([db.ref('friendProfiles').once('value'),db.ref('follows').once('value')]);
+            if(!isLatest())return;
+            const profiles=profilesSnap.val()||{}, edges=allFollowsSnap.val()||{},uid=u?.uid||'';
+            const myFollows=edges[uid]||{};
+            const makeRow=(other,following)=>{
+                const name=String(profiles[other]?.displayName||'ユーザー').slice(0,40);
+                const actions=[['📁 公開リストを見る',()=>openFriendSharedList(other)]];
+                if(u && other!==uid) actions.push([following?'フォロー解除':'フォロー',()=>void toggleFollow(other,following),following]);
+                return friendItem(name,actions);
+            };
+            const following=Object.keys(myFollows).filter(id=>myFollows[id]===true&&id!==uid&&profiles[id]);
+            const followerIds=uid?Object.keys(edges).filter(id=>id!==uid&&edges[id]?.[uid]===true&&profiles[id]):[];
+            list.replaceChildren(...following.map(id=>makeRow(id,true)));
+            followers.replaceChildren(...followerIds.map(id=>makeRow(id,myFollows[id]===true)));
+            if(!following.length)list.textContent=u?'まだ誰もフォローしていません。':'Googleログインするとフォローできます。';
+            if(!followerIds.length)followers.textContent='フォロワーはいません。';
+            document.getElementById('followersHeading').textContent=`フォロワー（${followerIds.length}人）`;
+            const directory=document.getElementById('publicProfilesList');directory.replaceChildren();
+            const term=String(document.getElementById('publicProfileSearch')?.value||'').trim().toLocaleLowerCase();
+            const matches=Object.entries(profiles).filter(([id,p])=>id!==uid && (!term || String(p.displayName||'').toLocaleLowerCase().includes(term)||String(p.code||'').toLocaleLowerCase().includes(term))).slice(0,100);
+            directory.replaceChildren(...matches.map(([id,p])=>makeRow(id,myFollows[id]===true)));
+            if(!matches.length)directory.textContent='該当する公開プロフィールはありません。';
+            updateFriendCount(following.length);
+        }catch(err){if(isLatest()){console.warn('公開プロフィール取得失敗',err);friendNotice('公開プロフィールを取得できませんでした。ルールを確認してください。',true);}}
     }
-    async function respondFriendRequest(target,sender,request,accept) {
-        const user=friendUser();if(!user||user.uid!==target)return;
+    async function sendFriendRequest(){
+        const u=friendUser();if(!u)return friendNotice('フォローにはGoogleログインが必要です。',true);
+        const code=String(document.getElementById('friendCodeInput').value||'').trim().toUpperCase();
+        if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code))return friendNotice('公開IDは SL- から始まる10桁のコードです。',true);
         try{
-            await db.ref(`friendRequests/${target}/${sender}`).set({...request,status:accept?'accepted':'rejected'});
-            if(accept)await db.ref().update({[`friendships/${target}/${sender}`]:true,[`friendships/${sender}/${target}`]:true});
-            friendNotice(accept?'フレンドになりました！':'申請を拒否しました。');void refreshFriendsPanel();
-        }catch(err){console.error('申請処理失敗',err);friendNotice('処理に失敗しました。再読み込みして確認してください。',true);}
+            const snap=await db.ref(`friendCodes/${code}`).once('value');const other=snap.val();
+            if(!other||other===u.uid)return friendNotice('対象が見つからないか、自分自身のIDです。',true);
+            await db.ref(`follows/${u.uid}/${other}`).set(true);
+            document.getElementById('friendCodeInput').value='';friendNotice('フォローしました。');void refreshFriendsPanel();
+        }catch(err){console.warn('フォロー失敗',err);friendNotice('フォローできませんでした。',true);}
     }
-    async function unfriendUser(other) {
-        const user=friendUser();if(!user||!confirm('このフレンドを解除しますか？'))return;
-        try{
-            const uid=user.uid;const a=db.ref(`friendRequests/${uid}/${other}`),b=db.ref(`friendRequests/${other}/${uid}`);
-            const [sa,sb]=await Promise.all([a.once('value'),b.once('value')]);
-            const ref=sa.val()?.status==='accepted'?a:sb.val()?.status==='accepted'?b:null;
-            if(ref){const item=ref===a?sa.val():sb.val();await ref.set({...item,status:'removed'});}
-            await db.ref().update({[`friendships/${uid}/${other}`]:null,[`friendships/${other}/${uid}`]:null});
-            if (friendSharedUid === other) closeFriendSharedList();
-            friendNotice('フレンドを解除しました。');void refreshFriendsPanel();
-        }catch(err){console.error('フレンド解除失敗',err);friendNotice('解除に失敗しました。再読み込みして確認してください。',true);}
+    async function toggleFollow(other,following){
+        const u=friendUser();if(!u)return friendNotice('フォローにはGoogleログインが必要です。',true);
+        if(following&&!confirm('フォローを解除しますか？ 相手からのフォローには影響しません。'))return;
+        try{await db.ref(`follows/${u.uid}/${other}`).set(following?null:true);friendNotice(following?'フォローを解除しました。':'フォローしました。');void refreshFriendsPanel();}
+        catch(err){console.warn('フォロー変更失敗',err);friendNotice('変更できませんでした。',true);}
     }
     // ===== STEP 3-2: 保存済みリストの共有・閲覧 =====
     let sharedListReadyUid = '';
@@ -3249,6 +3187,39 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         });
     }
     let friendSharedSyncQueue = Promise.resolve();
+    // フレンド操作の通知と、非同期共有の状態を別管理する（閉じた画面に古いエラーを残さない）。
+    let friendSyncState = {status:'idle',message:''};
+    function renderFriendSyncStatus() {
+        const panel=document.getElementById('friendSyncStatus');
+        const label=document.getElementById('friendSyncStatusText');
+        if (!panel || !label) return;
+        panel.hidden = friendSyncState.status !== 'error' && friendSyncState.status !== 'working';
+        label.textContent=friendSyncState.message;
+        panel.style.borderColor=friendSyncState.status==='error'?'#d66c75':'var(--border-color)';
+        label.style.color=friendSyncState.status==='error'?'#f08b93':'var(--text-color)';
+        document.getElementById('friendSyncRetry').disabled=friendSyncState.status==='working';
+    }
+    function setFriendSyncState(status,message='') {
+        friendSyncState={status,message};renderFriendSyncStatus();
+    }
+    function retryFriendSharedSync() {
+        const uid=friendUser()?.uid;
+        if(uid && sharedListReadyUid===uid) void queueFriendSharedSync(uid);
+    }
+    // 本番ルールの制約に合わせた送信前検査。データを消去せず、問題を同期前に発見する。
+    function validateFriendSharePayload(payload) {
+        const problems=[];
+        if(!Number.isFinite(payload.updatedAt)) problems.push('updatedAt が数値ではありません');
+        for(const [id,song] of Object.entries(payload.songs||{})) {
+            if(id.length>80 || !song || !Number.isFinite(song.key) || song.key < -5 || song.key > 6)
+                problems.push('楽曲IDまたはKeyの形式に問題があります');
+        }
+        for(const [key,value] of Object.entries(payload.favoriteArtists||{})) {
+            if(!/^a_(?:[0-9a-f]{2})+$/.test(key) || value!==true)
+                problems.push('お気に入りアーティストの識別キーに問題があります');
+        }
+        return [...new Set(problems)];
+    }
     let friendSharedUid = '';
     let friendSharedSongs = {};
     let friendSharedArtists = {};
@@ -3267,7 +3238,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             songs[id] = {key: Number.isInteger(item.key) && item.key>=-5 && item.key<=6 ? item.key : 0, parts};
         }
         // Only saved favorite flags are shared, never uncommitted local changes.
-        const artists = Object.fromEntries(Object.entries(favoriteArtists).filter(([key, value]) => /^a_(?:[0-9a-f]{2})+$/i.test(key) && value === true).map(([key]) => [key, true]));
+        const artists = Object.fromEntries(Object.entries(favoriteArtists).filter(([key, value]) => /^a_(?:[0-9a-f]{2})+$/i.test(key) && value === true).map(([key]) => [key.toLowerCase(), true]));
         return {songs, favoriteArtists: artists, updatedAt: Date.now()};
     }
     function queueFriendSharedSync(uid) {
@@ -3275,12 +3246,25 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         // 同時更新の逆転を防ぐため同じユーザーの同期を直列化。
         friendSharedSyncQueue = friendSharedSyncQueue.catch(()=>{}).then(async()=>{
             if (friendUser()?.uid !== uid || sharedListReadyUid !== uid) return;
+            setFriendSyncState('working','フレンド共有情報を同期中…');
             try {
-                await db.ref(`friendSharedLists/${uid}`).set(buildSavedFriendShare());
+                const payload=buildSavedFriendShare();
+                const problems=validateFriendSharePayload(payload);
+                if(problems.length) throw new Error('送信データ形式: '+problems.join(' / '));
+                await db.ref(`friendSharedLists/${uid}`).set(payload);
+                if (friendUser()?.uid===uid) setFriendSyncState('success');
                 // 自分のリスト保存だけでも開いているフレンド画面へ反映する。
                 if (friendSharedUid) renderFriendSharedList();
+            } catch(err) {
+                console.warn('フレンド共有同期失敗（個人マイリストは別保存）',{
+                    code:err?.code||'',message:err?.message||String(err),
+                    counts:(()=>{const p=buildSavedFriendShare();return {songs:Object.keys(p.songs).length,favoriteArtists:Object.keys(p.favoriteArtists).length};})()
+                });
+                if(friendUser()?.uid===uid) setFriendSyncState('error',
+                    String(err?.code||'').toUpperCase().includes('PERMISSION_DENIED') || /permission.denied/i.test(err?.message||'')
+                    ? 'Firebaseの権限検証で共有同期が拒否されました。個人マイリストは保持されています。ルールと送信形式を確認してください。'
+                    : 'フレンド共有情報を同期できませんでした。個人マイリストは保持されています。');
             }
-            catch(err) {console.warn('フレンド向けリストの同期に失敗。個人マイリストの保存は成功しています。',err);friendNotice('フレンド向けリストの同期に失敗しました。再読み込みで再試行します。',true);}
         });
         return friendSharedSyncQueue;
     }
@@ -3292,7 +3276,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         closeModal(null,'friendSharedModal');
     }
     async function openFriendSharedList(uid) {
-        const u=friendUser(); if (!u || !uid || uid === u.uid) return;
+        const u=friendUser(); if (!uid) return;
         closeFriendSharedList();
         const version = ++friendSharedVersion;
         friendSharedUid=uid;
@@ -3300,16 +3284,18 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         document.getElementById('friendCommonOnly').checked=false;
         document.getElementById('friendCommonArtistsOnly').checked=false;
         switchFriendShareTab('songs');
-        document.getElementById('friendSharedTitle').textContent='📁 フレンドのマイリスト';
+        document.getElementById('friendSharedTitle').textContent='📁 公開マイリスト';
         document.getElementById('friendSharedMeta').textContent='読み込み中…';
         document.getElementById('friendSharedSongs').textContent='読み込み中…';
         openModal('friendSharedModal');
         const name = await getFriendDisplayName(uid);
-        if (version!==friendSharedVersion || friendUser()?.uid!==u.uid) return;
+        if (version!==friendSharedVersion) return;
         document.getElementById('friendSharedTitle').textContent=`📁 ${name} のマイリスト`;
+        if(!allData.length){try{await ensureMasterLoaded();}catch(err){console.warn('公開リスト用の楽曲マスター取得失敗',err);}}
+        if(version!==friendSharedVersion)return;
         friendSharedRef=db.ref(`friendSharedLists/${uid}`);
         friendSharedListener=snap=>{
-            if (version!==friendSharedVersion || friendUser()?.uid!==u.uid) return;
+            if (version!==friendSharedVersion) return;
             const shared=snap.val();friendSharedSongs=shared?.songs || {};
             friendSharedArtists=shared?.favoriteArtists || {};
             renderFriendFavoriteArtists();
@@ -3319,7 +3305,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         friendSharedRef.on('value',friendSharedListener,err=>{
             if(version!==friendSharedVersion)return;
             console.warn('共有マイリスト読込失敗',err);
-            document.getElementById('friendSharedMeta').textContent='閲覧できません。相手とのフレンド関係・共有設定を確認してください。';
+            document.getElementById('friendSharedMeta').textContent='公開リストを読み込めません。ネットワークまたはFirebaseルールを確認してください。';
             document.getElementById('friendSharedSongs').replaceChildren();
         });
     }
