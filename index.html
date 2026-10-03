@@ -772,110 +772,21 @@ body.in-room #roomListPanel {display:flex}
         html[lang="zh-TW"] body { font-synthesis:weight; overflow-wrap:anywhere; }
         #languageSelect option { font-family:"Noto Sans CJK KR","Noto Sans CJK TC","Malgun Gothic","Microsoft JhengHei",sans-serif; }
 
-/* CSV一括登録：スマホでもファイル確認と結果が読めるようにする */
-#bulkCsvRows .bulk-csv-row { padding:5px 9px; border-bottom:1px solid var(--border-color);display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.45; }
-#bulkCsvRows .bulk-csv-row:last-child {border-bottom:0;}
-#bulkCsvRows .bulk-csv-status {min-width:94px;flex-shrink:0;font-weight:700;}
-#bulkCsvRows .bulk-csv-detail {min-width:0;overflow-wrap:anywhere;}
-@media(max-width:600px){ #bulkCsvModal .modal{width:calc(100% - 16px);max-height:calc(100dvh - 20px);padding:14px;} #bulkCsvRows{max-height:25dvh!important;} #bulkCsvRows .bulk-csv-status{min-width:78px;} #bulkCsvOpenBtn{white-space:normal;} }
 
-        /* Keyセレクター：全曲／マイリスト／ルーム／詳細で共通。PC版の列配置は維持 */
-        .key-dropdown {
-            display:block; width:100%; min-width:0; max-width:100%; box-sizing:border-box;
-            padding:5px 19px 5px 7px; min-height:31px; border:1px solid var(--border-color);
-            border-radius:5px; background:var(--btn-bg); color:var(--text-color);
-            font:inherit; font-size:13px; font-weight:700; text-align:center;
-            text-align-last:left; cursor:pointer; color-scheme:dark;
-        }
-        body.theme-white .key-dropdown,body.theme-eva00 .key-dropdown,body.theme-eva08 .key-dropdown {color-scheme:light;}
-        .key-dropdown:focus-visible {outline:2px solid var(--primary);outline-offset:2px;}
-        .key-dropdown:disabled {opacity:.75; cursor:default;}
-        .table-key-picker {max-width:100%;min-width:0;}
-        .table-key-picker .key-dropdown {width:min(100%,108px);margin:auto;}
-        #detailKeyPicker {width:100%;}
-        #detailKeyPicker .key-dropdown {max-width:230px;min-height:41px;font-size:15px;}
-        @media(max-width:600px) {
-          #tableBody .table-key-picker .key-dropdown {width:min(100%,108px);min-height:38px;font-size:13px;}
-          #detailKeyPicker .key-dropdown {max-width:100%;}
-        }
-
-        /* 全曲一覧専用の操作バー。検索/ジャンル欄と一覧枠の間に独立配置する。 */
-        #masterActionsBar {display:none;align-items:center;gap:11px;flex-wrap:wrap;flex-shrink:0;min-height:34px;padding:5px 9px;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:6px;box-sizing:border-box;font-size:12px;}
-        body:not(.in-room):not(.my-list-mode) #masterActionsBar {display:flex;}
-        #excludeRegisteredFilter {display:inline-flex;align-items:center;gap:6px;width:max-content;max-width:100%;font-size:12px;line-height:1.45;cursor:pointer;box-sizing:border-box;}
-        #excludeRegisteredFilter[hidden] {display:none!important;}
-        #excludeRegisteredCheckbox {width:17px;height:17px;accent-color:var(--primary);margin:0;flex-shrink:0;cursor:pointer;}
-        #masterKeyResetBtn {padding:5px 10px;font-size:12px;font-weight:650;min-height:29px;}
-        #masterKeyResetNotice {font-size:11px;opacity:.76;min-width:0;}
-        @media(max-width:600px) {#masterActionsBar {gap:7px;padding:6px 8px;min-height:39px;}#excludeRegisteredFilter {font-size:12px;min-height:29px;}#masterKeyResetBtn {min-height:33px;}}
-
-/* Clipboard text -> personal My List; deliberately separate from master/CSV submission. */
-#clipboardImportInput{display:block;width:100%;box-sizing:border-box;min-height:155px;resize:vertical;background:var(--input-bg,var(--panel-bg));color:var(--text-color);border:1px solid var(--border-color);border-radius:6px;padding:9px;font:13px/1.6 inherit;}
-#clipboardImportSummary,#clipboardImportResult{font-size:12px;line-height:1.65;margin:8px 0;white-space:pre-line;overflow-wrap:anywhere;}
-#clipboardImportPreview,#clipboardConfirmRows{max-height:35dvh;overflow:auto;border:1px solid var(--border-color);border-radius:6px;margin:8px 0;}
-.clipboard-row{padding:8px 10px;border-bottom:1px solid var(--border-color);font-size:12px;line-height:1.55;overflow-wrap:anywhere;}
-.clipboard-row:last-child{border-bottom:0;}.clipboard-row strong{display:block;}.clipboard-row small{opacity:.86;display:block;}
-.clipboard-row.error{border-left:3px solid #ce5763}.clipboard-row.warning{border-left:3px solid #d6a33d}.clipboard-row.ok{border-left:3px solid #439a79}
-.clipboard-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:12px;}
-.clipboard-key-conflict{display:block;margin-top:6px;max-width:100%;color:var(--text-color);background:var(--panel-bg);border:1px solid var(--border-color);border-radius:4px;padding:5px;}
-@media(max-width:600px){#clipboardImportModal .modal,#clipboardConfirmModal .modal,#clipboardResultModal .modal{width:calc(100% - 16px);padding:13px;box-sizing:border-box;max-height:calc(100dvh - 18px);overflow:auto}#clipboardImportInput{min-height:130px}}
-
-
-/* 一覧の通し番号：表示順を基準に全ページで連続採番する。 */
-.data-table .col-rownum{width:48px;min-width:48px;text-align:center;padding-left:4px;padding-right:4px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--text-color);opacity:.76;white-space:nowrap;}
-@media(max-width:600px){
-  #tableBody tr{grid-template-columns:34px minmax(0,1fr) auto!important;grid-template-areas:"num title title" "artist artist artist" "key key register" "bpm bpm genre" "part part part" "select select select"!important;}
-  #tableBody td.col-rownum{grid-area:num!important;align-self:start;justify-self:start;font-size:12px!important;padding-top:3px!important;opacity:.72;}
-  #tableBody td.col-title{grid-area:title!important;}
-}
-
-/* ================= トップページ ================= */
-#homeLanding {display:none;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:clamp(16px,3vw,42px) 16px max(24px,env(safe-area-inset-bottom));box-sizing:border-box;width:100%;}
-html.entry-home #homeLanding {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,3vh,32px);}
-html.entry-home .container,html.entry-home .side-guide,html.entry-home #sideGuideToggle {display:none!important;}
-.home-inner {width:min(100%,1040px);margin:auto;display:flex;flex-direction:column;gap:24px;}
-.home-brand {text-align:center;display:flex;flex-direction:column;align-items:center;gap:9px;}
-.home-brand img {display:block;max-width:min(85%,310px);max-height:94px;object-fit:contain;}
-.home-brand h1 {font-size:clamp(23px,4.5vw,33px);letter-spacing:.015em;line-height:1.3;margin:2px 0 0;}
-.home-brand p {font-size:clamp(12px,2.6vw,14px);opacity:.76;margin:0;}
-.home-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
-.home-card {min-width:0;min-height:130px;text-align:left;white-space:normal;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 21px;border-radius:13px;border:1px solid var(--border-color);background:var(--panel-bg);color:var(--text-color);box-shadow:0 4px 18px #00000012;transition:transform .16s,border-color .16s,background .16s;}
-.home-friends-card .home-card-icon {color:#ffd84d;}
-.home-friends-card .home-card-icon svg {width:29px;height:29px;display:block;fill:currentColor;}
-.home-card:hover,.home-card:focus-visible {transform:translateY(-2px);border-color:var(--primary);background:var(--btn-hover);outline-offset:2px;}
-.home-card-icon {font-size:29px;line-height:1;}
-.home-card-heading {font-size:17px;line-height:1.3;font-weight:750;display:block;}
-.home-card-caption {display:block;font-size:11px;line-height:1.55;opacity:.73;margin-top:4px;}
-.home-account {display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:12px;min-height:36px;}
-#homeLoginState {opacity:.84;overflow-wrap:anywhere;max-width:100%;}
-#homeLoginBtn {background:#fff;color:#333;border-color:#bbb;font-weight:700;}
-#homeLogoutBtn {font-size:12px;}
-#homeLoadingStatus {text-align:center;min-height:19px;font-size:12px;opacity:.8;}
-#homeBackBtn {font-weight:700;}
-body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
-@media(max-width:600px){
-  #homeLanding {padding:20px 12px max(18px,env(safe-area-inset-bottom));}
-  .home-inner {gap:19px;}
-  .home-brand img {max-height:60px;max-width:190px;}
-  .home-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
-  .home-card {min-height:115px;padding:15px 13px;gap:11px;border-radius:10px;}
-  .home-card-icon {font-size:25px;}
-  .home-card-heading {font-size:15px;}
-  .home-card-caption {font-size:10px;}
-}
-@media(max-height:650px){html.entry-home #homeLanding {justify-content:flex-start;}}
-@media(prefers-reduced-motion:reduce){.home-card{transition:none}.home-card:hover{transform:none}}
-
-/* 楽曲一覧: 100件固定のページ切り替え。テーブルとは別領域に操作を固定する。 */
-#songPagination {display:flex;flex:none;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:48px;padding:7px 12px;box-sizing:border-box;background:var(--panel-bg);border-top:1px solid var(--border-color);color:var(--text-color);font-size:13px;}
-#songPagination button {min-width:94px;min-height:34px;padding:5px 11px;border:1px solid var(--border-color);border-radius:6px;background:var(--btn-bg);color:var(--text-color);font-weight:600;cursor:pointer;}
-#songPagination button:hover:not(:disabled) {background:var(--btn-hover);border-color:var(--primary);}
-#songPagination button:disabled {opacity:.35;cursor:default;}
-#songPageStatus {min-width:180px;text-align:center;font-variant-numeric:tabular-nums;line-height:1.5;}
-@media(max-width:600px) {#songPagination {gap:7px;padding:7px 5px;min-height:49px;font-size:11px;flex-wrap:nowrap;}#songPagination button {min-width:69px;min-height:34px;padding:5px 7px;font-size:12px;}#songPageStatus {min-width:0;flex:1;}}
 </style>
 </head>
 <body>
+<script>
+// 描画開始前に端末の直近テーマを適用し、Firebase設定取得までの色のちらつきを防ぐ。
+(function () {
+    try {
+        var theme = localStorage.getItem('sharelistscore_last_theme') || localStorage.getItem('sharelistscore_guest_theme') || 'dark';
+        if (['white','eva01','eva02','eva00','eva08'].includes(theme)) {
+            document.body.classList.add('theme-' + theme);
+        }
+    } catch (error) { /* 保存が使えない環境は標準テーマで継続 */ }
+})();
+</script>
 
 <!-- ランディング: 通常URLから最初に開くメニュー。ここでは楽曲マスターを取得しない。 -->
 <main id="homeLanding" aria-label="シェアリスコア トップページ">
@@ -1246,10 +1157,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         <span class="modal-close" onclick="closeModal(null, 'addSongModal')">&times;</span>
         <h2>➕ 楽曲を追加</h2>
         <p style="font-size:12px;line-height:1.5;opacity:.8;">登録申請を管理者へ送信します。承認されるまで公開マスターは変更されません。</p>
-        <!-- 一括CSV登録を単曲フォームより上へ配置。クリック時は従来のCSVモーダルを開く。 -->
         <div style="margin:10px 0 12px;">
-            <button type="button" id="bulkCsvOpenBtn" onclick="openBulkCsvModal()" style="width:100%;padding:10px 12px;background:#1976d2;border-color:#1976d2;color:#fff;font-weight:700;white-space:normal;">📄 CSVからマイリストに一括登録（マスター一致曲のみ）</button>
-            <button type="button" onclick="openClipboardImportModal()" style="width:100%;margin-top:7px;padding:10px 12px;background:var(--btn-bg);color:var(--text-color);border:1px solid var(--border-color);font-weight:700;white-space:normal;">📋 文章を貼り付けてマイリスト一括登録</button>
+            <button type="button" onclick="openClipboardImportModal()" style="width:100%;padding:10px 12px;background:var(--btn-bg);color:var(--text-color);border:1px solid var(--border-color);font-weight:700;white-space:normal;">📋 文章を貼り付けてマイリスト一括登録</button>
         </div>
         <button type="button" id="songEntryNoticeBtn" onclick="openModal('songEntryNoticeModal')" style="display:block;width:100%;margin:0 0 13px;padding:8px 11px;text-align:left;white-space:normal;background:var(--btn-bg);border:1px solid var(--border-color);color:var(--text-color);font-size:13px;font-weight:700;">⚠ 登録時の注意事項を見る ↗</button>
         <form id="addSongForm" onsubmit="submitNewSong(event)">
@@ -1268,28 +1177,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             </div>
         </form>
     </div>
-</div>
-
-
-<!-- CSV: match only existing Firebase master songs; never write new public songs. -->
-<div class="modal-overlay" id="bulkCsvModal" onclick="closeModal(event,'bulkCsvModal')">
- <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bulkCsvTitle" onclick="event.stopPropagation()" style="max-width:760px;box-sizing:border-box;">
-  <span class="modal-close" onclick="closeModal(null,'bulkCsvModal')">&times;</span>
-  <h2 id="bulkCsvTitle">📄 CSVからマスター照合＋マイリスト登録</h2>
-  <p style="font-size:13px;line-height:1.6;">Googleログインした本人のリストを取り込みます。指定スプレッドシートの<strong>「登録用」タブだけ</strong>をCSV（UTF-8）で保存してください。公開楽曲一覧は不要です。</p>
-  <button type="button" onclick="openModal('songEntryNoticeModal')" style="margin:0 0 10px;text-align:left;white-space:normal;background:var(--btn-bg);color:var(--text-color);border:1px solid var(--border-color);">⚠ CSV登録時の注意事項を見る ↗</button>
-  <p style="font-size:12px;"><a href="https://docs.google.com/spreadsheets/d/1w2PAsqmlaUW1uBb_0MiXlqO6T5QTYKtpPalQsIE_SDE/edit?gid=262324724#gid=262324724" target="_blank" rel="noopener noreferrer">📑 「登録用」タブを開く ↗</a></p>
-  <div class="setting-group"><label for="bulkCsvFile">登録用CSVファイル</label><input id="bulkCsvFile" type="file" accept=".csv,text/csv,text/plain" style="width:100%;box-sizing:border-box;" onchange="previewBulkCsv()"></div>
-  <div id="bulkCsvSummary" role="status" aria-live="polite" style="font-size:13px;line-height:1.65;margin:10px 0;">CSVを選択すると原曲URLと個人Keyを分離し、マスターを照合します。</div>
-  <div id="bulkCsvRows" style="max-height:235px;overflow:auto;border:1px solid var(--border-color);border-radius:5px;" aria-label="CSV取り込み確認結果"></div>
-  <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.5;margin:10px 0;"><input type="checkbox" id="bulkCsvOverwriteKey" style="width:17px;height:17px;flex:0 0 auto;" onchange="previewBulkCsvSummary()"><span>既に自分のマイリストにある楽曲も、CSVから抽出したKeyで上書きする（未チェックなら既存Key・担当パートを維持）。</span></label>
-  <p style="font-size:12px;line-height:1.55;opacity:.85;">照合条件：正規化した「曲名＋アーティスト名」またはChordWikiの原曲URL。一致先が食い違う曖昧な曲は自動登録しません。書き込む直前にもGAS側で最新マスターを再確認します。入力不備の曲は除外します。</p>
-  <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;">
-   <button type="button" onclick="closeModal(null,'bulkCsvModal')">閉じる</button>
-   <button type="button" id="bulkCsvSubmitBtn" class="primary-btn" onclick="submitBulkCsv()" disabled>✅ 確認した曲をマイリストに取り込む</button>
-  </div>
-  <p id="bulkCsvResult" role="status" aria-live="polite" style="font-size:12px;line-height:1.6;min-height:22px;overflow-wrap:anywhere;"></p>
- </div>
 </div>
 
 
@@ -3517,6 +3404,8 @@ html, body { background: transparent !important; color: ${text} !important; }
         // body.classNameを丸ごと書き換えると、ルーム参加状態(in-room)が消えるためテーマクラスだけ変更する。
         document.body.classList.remove(...VALID_THEMES.filter(value => value !== 'dark').map(value => `theme-${value}`));
         if (selected !== 'dark') document.body.classList.add(`theme-${selected}`);
+        // Googleユーザーのテーマも端末に記憶。次回は初回描画前から同じ色で表示する。
+        try { localStorage.setItem('sharelistscore_last_theme', selected); } catch(error) { /* 保存不可でもFirebase設定は利用可能 */ }
         document.getElementById('themeSelect').value = selected;
     }
     async function changeTheme() {
@@ -3651,10 +3540,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         } finally {button.disabled = false;}
     }
 
-    // CSV Import v2: the source URL may contain the uploader's personal key.
-    // Never place a transposed CGI URL into the master. The GAS endpoint independently parses it.
-    const BULK_CSV_LIMIT=250, BULK_CSV_CHUNK=60;
-    let bulkCsvCandidates=[],bulkCsvPreviewTotals={},bulkCsvBusy=false;
+    // Shared text-import parsing helpers (clipboard input may contain CSV-style comma-separated text).
     const bulkCsvAliases={
       title:['曲名','タイトル','楽曲名','songtitle','title'],artist:['アーティスト','アーティスト名','歌手','artist'],
       codeUrl:['コードwiki','コードwikiurl','コードwiki原曲url','コードwiki原曲','コード譜url','chordwiki','chordwikiurl','原曲url','コードurl','url'],
@@ -3664,7 +3550,6 @@ html, body { background: transparent !important; color: ${text} !important; }
     };
     function bulkCsvHeader(value){return String(value||'').normalize('NFKC').toLocaleLowerCase().replace(/[\s_　:：()（）・／/\-]/g,'');}
     function bulkCsvText(value){return String(value||'').normalize('NFKC').trim().replace(/[\s\u3000]+/g,' ').toLocaleLowerCase();}
-    function bulkCsvPair(row){return bulkCsvText(row.title)+'\u001f'+bulkCsvText(row.artist);}
     function bulkCsvWikiTitle(value){return 'chordwiki:'+bulkCsvText(value);}
     // Fail closed for unexpected parameters, out-of-range keys, unknown pages or ambiguous key values.
     function bulkCsvParseUrl(value){
@@ -3886,139 +3771,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     function clipboardFinish(){closeModal(null,'clipboardResultModal');clipboardImportRows=[];clipboardImportText='';}
 
-    function bulkCsvMasterRows(){return allData.map(song=>({id:song._id,title:song['曲名']||'',artist:song['アーティスト']||'',urlKey:bulkCsvParseUrl(song['コードwiki']||song['コードWiki']||'')?.urlKey||''}));}
-    function bulkCsvFindMatch(row,known){
-      const pairs=known.filter(other=>bulkCsvPair(row)===bulkCsvPair(other));
-      const urls=known.filter(other=>row.urlKey&&other.urlKey===row.urlKey);
-      const ids=new Set([...pairs,...urls].map(other=>other.id||other.sourceIndex));
-      if(ids.size>1)return {status:'ambiguous'};
-      const found=pairs[0]||urls[0];return found?{status:'existing',id:found.id||'',sourceIndex:found.sourceIndex}:{status:'new'};
-    }
-    function openBulkCsvModal(){
-      closeModal(null,'addSongModal');
-      document.getElementById('bulkCsvResult').textContent='';
-      openModal('bulkCsvModal');
-    }
     function bulkCsvAlreadyPersonal(id){const p=effectivePersonalSong(id);return !p.excluded&&!!(p.registered||p.part||getSelectedParts(p).length||p.liked);}
-    function previewBulkCsvSummary(){
-      const total=bulkCsvPreviewTotals;
-      if(!total.all)return;
-      const overwriting=document.getElementById('bulkCsvOverwriteKey').checked;
-      const inList=bulkCsvCandidates.filter(item=>item.masterId&&bulkCsvAlreadyPersonal(item.masterId)).length;
-      document.getElementById('bulkCsvSummary').textContent=`全${total.all}曲｜マスター未登録・保留${total.new}｜マスター登録済${total.existing}｜曖昧${total.ambiguous}｜CSV内重複${total.duplicate}｜入力不備${total.invalid}｜既存マイリスト${inList}曲（${overwriting?'Key上書き':'Key維持'}）`;
-    }
-    function previewBulkCsv(){
-      const input=document.getElementById('bulkCsvFile'),summary=document.getElementById('bulkCsvSummary'),output=document.getElementById('bulkCsvRows');
-      document.getElementById('bulkCsvResult').textContent='';
-      document.getElementById('bulkCsvSubmitBtn').disabled=true;
-      bulkCsvCandidates=[];bulkCsvPreviewTotals={};output.replaceChildren();
-      if(!signedInUser||signedInUser.isAnonymous){summary.textContent='マイリストへの一括登録にはGoogleログインが必要です。';return;}
-      const file=input.files?.[0];if(!file)return;
-      if(!/\.csv$/i.test(file.name)){summary.textContent='CSV（.csv）を選択してください。';return;}
-      if(file.size>1024*1024){summary.textContent='CSVは1MB以下に分けてください。';return;}
-      if(!allData.length){summary.textContent='公開マスターの読み込み後にCSVを選択してください。';return;}
-      summary.textContent='CSVを読み込み中…';
-      Papa.parse(file,{header:false,skipEmptyLines:'greedy',encoding:'UTF-8',complete:res=>{
-        if(res.errors?.length){summary.textContent='CSV解析エラー：'+res.errors[0].message;return;}
-        const rows=res.data;
-        const headerAt=rows.findIndex(row=>Array.isArray(row)&&row.some(v=>bulkCsvAliases.title.includes(bulkCsvHeader(v)))&&row.some(v=>bulkCsvAliases.artist.includes(bulkCsvHeader(v))));
-        if(headerAt<0){summary.textContent='見出し「曲名」「アーティスト」が見つかりません。';return;}
-        const hdr=rows[headerAt].map(bulkCsvHeader),columns={};
-        for(const [field,aliases] of Object.entries(bulkCsvAliases))columns[field]=hdr.findIndex(h=>aliases.includes(h));
-        if(['title','artist','codeUrl','genre1'].some(k=>columns[k]<0)){summary.textContent='必須列（曲名・アーティスト・コードwiki・ジャンル）が足りません。';return;}
-        const inputs=rows.slice(headerAt+1).filter(row=>row.some(v=>String(v||'').trim()));
-        if(inputs.length>BULK_CSV_LIMIT){summary.textContent=`1回最大${BULK_CSV_LIMIT}曲です（現在${inputs.length}曲）。`;return;}
-        const known=bulkCsvMasterRows(),seen=[],allowed=new Set(allData.flatMap(song=>[song[genre1Key],song[genre2Key]]).filter(Boolean).map(s=>String(s).trim()));
-        const total={all:inputs.length,new:0,existing:0,ambiguous:0,duplicate:0,invalid:0};
-        const fragment=document.createDocumentFragment();
-        inputs.forEach((cells,i)=>{
-          const song={sourceIndex:i};for(const [field,col] of Object.entries(columns))song[field]=col>=0?String(cells[col]||'').trim():'';
-          const parsed=bulkCsvParseUrl(song.codeUrl),bpm=String(song.bpm||'').trim();
-          const invalidBasic=!song.title||!song.artist||!parsed||
-            (bpm&&(!/^\d+$/.test(bpm)||+bpm<1||+bpm>400))||(song.genre2&&song.genre1===song.genre2);
-          let result=invalidBasic?{status:'invalid'}:bulkCsvFindMatch({...song,urlKey:parsed.urlKey},known);
-          // A known master song needs only identity + valid URL. Genre validation is needed for *new* master entries.
-          if(!invalidBasic&&result.status==='new'&&(!song.genre1||!allowed.has(song.genre1)||(song.genre2&&!allowed.has(song.genre2))))result={status:'invalid'};
-          if(!invalidBasic&&result.status!=='invalid'&&result.status!=='ambiguous'){
-            const previous=bulkCsvFindMatch({...song,urlKey:parsed.urlKey},seen);
-            if(previous.status!=='new')result={status:previous.status==='ambiguous'?'ambiguous':'duplicate'};
-          }
-          let label='',detail='',color='#39a874';
-          if(result.status==='invalid'){total.invalid++;label='⚠ 入力不備';detail='URL・必須項目・ジャンル・BPMを確認';color='#e57872';}
-          else if(result.status==='ambiguous'){total.ambiguous++;label='⚠ 照合保留';detail='曲名とURLが異なるマスター曲に一致するなど、対応が曖昧';color='#e57872';}
-          else if(result.status==='duplicate'){total.duplicate++;label='⏭ CSV内重複';detail='先の行と同一曲（先の行のKeyを使用）';color='#d6a44e';}
-          else {
-            const candidate={...song,originalUrl:parsed.originalUrl,personalKey:parsed.key,urlKey:parsed.urlKey,masterId:result.id||''};
-            bulkCsvCandidates.push(candidate);
-            seen.push({...candidate,id:'csv_'+String(i)});
-            total[result.status]++;label=result.status==='existing'?'📁 マスター登録済':'⚠ マスター未登録（保留）';
-          }
-          const el=document.createElement('div');el.className='bulk-csv-row';
-          const left=document.createElement('span');left.className='bulk-csv-status';left.style.color=color;left.textContent=label;
-          const right=document.createElement('span');right.className='bulk-csv-detail';
-          right.textContent=`${i+1}. ${song.title||'（曲名未記入）'} / ${song.artist||'（アーティスト未記入）'}｜個人Key ${parsed?displayKey(parsed.key):'取得不可'}${parsed&&!parsed.keySpecified?'（URLに指定なし）':''}${detail?' ｜ '+detail:''}${parsed?' ｜ 原曲URL '+parsed.originalUrl:''}`;
-          el.append(left,right);fragment.append(el);
-        });
-        output.append(fragment);bulkCsvPreviewTotals=total;previewBulkCsvSummary();
-        document.getElementById('bulkCsvSubmitBtn').disabled=!bulkCsvCandidates.length;
-      },error:err=>{summary.textContent='CSVを読めません：'+String(err?.message||err);}});
-    }
-    async function bulkCsvSaveToMyList(results,sourceMap,ownerUid,overwrite){
-      if(!results.length)return {saved:0,skipped:0,errors:0};
-      if(signedInUser?.uid!==ownerUid||auth.currentUser?.uid!==ownerUid)throw Error('ログインアカウントが変わりました。');
-      // Flush edits already in progress before we merge the imported data.
-      if(!(await saveMyListChanges()))throw Error('編集中のマイリストを保存できませんでした。');
-      const patch={},entries=[];let skipped=0,errors=0;
-      for(const result of results){
-        const item=sourceMap.get(result.sourceIndex);
-        if(!item||!result.songId||!['existing','added'].includes(result.result)||result.personalKey!==item.personalKey){errors++;continue;}
-        const prior=effectivePersonalSong(result.songId);
-        if(bulkCsvAlreadyPersonal(result.songId)&&!overwrite){skipped++;continue;}
-        const parts=getSelectedParts(prior);
-        const next={registered:true,excluded:false,liked:!!prior.liked,key:item.personalKey,
-          parts:parts.length?parts:(defaultPart?[defaultPart]:[]),part:parts[0]||defaultPart||''};
-        patch[`users/${ownerUid}/songs/${result.songId}`]=next;
-        entries.push([result.songId,next]);
-      }
-      if(entries.length){
-        // Multi-path update makes a chunk's personal registration atomic.
-        await db.ref().update(patch);
-        entries.forEach(([id,entry])=>{personalSongs[id]=entry;delete pendingSongs[id];});
-        // Newly published master CSV can lag. Show confirmed new UUIDs in this browser immediately.
-        results.filter(r=>r.result==='added'&&r.songId).forEach(r=>{
-          if(allData.some(song=>song._id===r.songId))return;
-          const item=sourceMap.get(r.sourceIndex);if(!item)return;
-          const row={_id:r.songId,'曲名':item.title,'アーティスト':item.artist,'コードwiki':item.originalUrl,
-            'BPM':item.bpm||'','タイアップ':item.tieup||'','検索':item.search||'','作詞':item.lyrics||'',
-            '作曲':item.composition||'','編曲':item.arrangement||''};
-          row[genre1Key||'ジャンル']=item.genre1||'';row[genre2Key||'ジャンル②']=item.genre2||'';
-          allData.push(row);
-        });
-        void queueFriendSharedSync(ownerUid);
-        renderTable();
-      }
-      return {saved:entries.length,skipped,errors};
-    }
-    async function submitBulkCsv(){
-      if(bulkCsvBusy||!bulkCsvCandidates.length)return;
-      const feedback=document.getElementById('bulkCsvResult'),button=document.getElementById('bulkCsvSubmitBtn');
-      const user=signedInUser;
-      if(!user||user.isAnonymous){feedback.textContent='Googleログイン後にCSVを取り込んでください。';return;}
-      const existing=bulkCsvCandidates.filter(item=>item.masterId);
-      const unmatched=bulkCsvCandidates.length-existing.length;
-      if(!existing.length){feedback.textContent='公開マスターと一致する曲がありません。未登録曲は「楽曲追加」から申請してください。';return;}
-      const overwrite=document.getElementById('bulkCsvOverwriteKey').checked;
-      if(!confirm(`マスターと照合できた${existing.length}曲だけをマイリストに登録しますか？\nマスター未登録${unmatched}曲は登録せず保留します。\n既存登録曲のKey：${overwrite?'CSVで更新':'変更しない'}`))return;
-      bulkCsvBusy=true;button.disabled=true;
-      try {
-        const rows=existing.map(item=>({sourceIndex:item.sourceIndex, songId:item.masterId, result:'existing', personalKey:item.personalKey}));
-        const sourceMap=new Map(existing.map(item=>[item.sourceIndex,item]));
-        const saved=await bulkCsvSaveToMyList(rows,sourceMap,user.uid,overwrite);
-        feedback.textContent=`マイリスト一括登録完了：保存 ${saved.saved}曲、既存Key維持 ${saved.skipped}曲、エラー ${saved.errors}曲、マスター未登録につき保留 ${unmatched}曲。\n新しい曲の追加は、楽曲追加フォームから管理者へ申請してください。`;
-        bulkCsvCandidates=[];button.disabled=true;
-      }catch(err){console.error('CSV mylist import',err);feedback.textContent='登録が停止しました：'+String(err.message||err);}
-      finally{bulkCsvBusy=false;button.disabled=!bulkCsvCandidates.length;}
-    }
 
     // ジャンルボタン生成
     function populateGenreButtons() {
