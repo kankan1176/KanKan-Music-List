@@ -840,8 +840,8 @@ html.entry-home .container,html.entry-home .side-guide,html.entry-home #sideGuid
 .home-brand p {font-size:clamp(12px,2.6vw,14px);opacity:.76;margin:0;}
 .home-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
 .home-card {min-width:0;min-height:130px;text-align:left;white-space:normal;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 21px;border-radius:13px;border:1px solid var(--border-color);background:var(--panel-bg);color:var(--text-color);box-shadow:0 4px 18px #00000012;transition:transform .16s,border-color .16s,background .16s;}
-.home-friends-card .home-card-icon {color:#ffd84d;filter:drop-shadow(0 0 3px #e2a80066);}
-.home-friends-card {border-color:#cba934;}
+.home-friends-card .home-card-icon {color:#ffd84d;}
+.home-friends-card .home-card-icon svg {width:29px;height:29px;display:block;fill:currentColor;}
 .home-card:hover,.home-card:focus-visible {transform:translateY(-2px);border-color:var(--primary);background:var(--btn-hover);outline-offset:2px;}
 .home-card-icon {font-size:29px;line-height:1;}
 .home-card-heading {font-size:17px;line-height:1.3;font-weight:750;display:block;}
@@ -891,7 +891,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       <button type="button" class="home-card" onclick="openHomeDestination('room')"><span class="home-card-icon" aria-hidden="true">🌐</span><span><span class="home-card-heading">ルームを作る</span><span class="home-card-caption">仲間とセットリストを共有</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">新規楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント管理</span></span></button>
-      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true">👥</span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">フレンド一覧・検索・新規追加</span></span></button>
+      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="10" r="5"/><path d="M2 26v-2c0-4.7 4.2-8 10-8s10 3.3 10 8v2H2z"/><circle cx="24" cy="11" r="4" opacity=".9"/><path d="M22 17.3c4.8-.4 8 2.5 8 6.7v2h-6v-2c0-2.6-.7-4.9-2-6.7z" opacity=".9"/></svg></span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">フレンド一覧・検索・新規追加</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('manual')"><span class="home-card-icon" aria-hidden="true">📖</span><span><span class="home-card-heading">使い方ガイド</span><span class="home-card-caption">基本操作と機能の説明</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
     </nav>
