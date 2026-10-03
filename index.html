@@ -816,6 +816,48 @@ body.in-room #roomListPanel {display:flex}
 @media(max-width:600px){#clipboardImportModal .modal,#clipboardConfirmModal .modal,#clipboardResultModal .modal{width:calc(100% - 16px);padding:13px;box-sizing:border-box;max-height:calc(100dvh - 18px);overflow:auto}}
 
 
+/* Clipboard dialog: keep the frame/footer stationary; scroll only data areas. */
+#clipboardImportModal .modal,
+#clipboardConfirmModal .modal {
+  display:flex;
+  flex-direction:column;
+  height:calc(100dvh - 30px);
+  max-height:calc(100dvh - 30px);
+  min-height:0;
+  overflow:hidden;
+  position:relative;
+}
+#clipboardImportModal .modal > h2,
+#clipboardConfirmModal .modal > h2 {flex:0 0 auto;margin-bottom:8px;}
+#clipboardImportModal .modal > p,
+#clipboardConfirmModal .modal > p {flex:0 0 auto;margin:5px 0;line-height:1.45!important;}
+#clipboardImportModal .clipboard-actions,
+#clipboardConfirmModal .clipboard-actions {flex:0 0 auto;margin-top:7px;}
+#clipboardImportModal .modal > .clipboard-actions:last-child,
+#clipboardConfirmModal .modal > .clipboard-actions:last-child {
+  padding-top:8px;border-top:1px solid var(--border-color);margin-top:auto;
+}
+#clipboardImportModal #clipboardColumnMapping {
+  flex:0 1 auto;min-height:0;max-height:min(33dvh,220px);overflow:auto;
+}
+#clipboardImportModal #clipboardColumnMapping p {margin:4px 0;}
+#clipboardImportModal #clipboardColumnMapping > div {max-height:150px!important;}
+#clipboardImportModal #clipboardImportSummary,
+#clipboardConfirmModal #clipboardConfirmSummary,
+#clipboardConfirmModal #clipboardConfirmFeedback {flex:0 0 auto;margin:5px 0;}
+#clipboardImportModal #clipboardImportPreview,
+#clipboardConfirmModal #clipboardConfirmRows {
+  flex:1 1 auto;min-height:60px;max-height:none;
+  overflow-y:auto;overscroll-behavior:contain;margin:5px 0;
+}
+@media(max-width:600px){
+  #clipboardImportModal .modal,#clipboardConfirmModal .modal {
+    height:calc(100dvh - 18px);max-height:calc(100dvh - 18px);overflow:hidden;
+  }
+  #clipboardImportModal #clipboardColumnMapping {max-height:min(28dvh,165px);}
+  #clipboardImportModal #clipboardColumnMapping > div {max-height:110px!important;}
+}
+
 /* 一覧の通し番号：表示順を基準に全ページで連続採番する。 */
 .data-table .col-rownum{width:48px;min-width:48px;text-align:center;padding-left:4px;padding-right:4px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--text-color);opacity:.76;white-space:nowrap;}
 @media(max-width:600px){
@@ -1278,7 +1320,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 
 <!-- Clipboard import may additionally submit an artist-fill review request; it never changes the public master directly. -->
 <div class="modal-overlay" id="clipboardImportModal" onclick="closeModal(event,'clipboardImportModal')">
- <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clipboardImportTitle" onclick="event.stopPropagation()" style="max-width:730px;box-sizing:border-box;max-height:calc(100dvh - 30px);overflow:auto;">
+ <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clipboardImportTitle" onclick="event.stopPropagation()" style="max-width:730px;box-sizing:border-box;">
   <span class="modal-close" onclick="closeModal(null,'clipboardImportModal')">&times;</span>
   <h2 id="clipboardImportTitle">📋 貼り付けからマイリスト一括登録</h2>
   <p style="font-size:13px;line-height:1.7;">Excel・スプレッドシートのセル範囲をコピーして、そのまま貼り付けできます。貼り付け後、列ごとに「曲名・アーティスト・URL（任意）・Key・使用しない」を選んでください。表形式のみ対応しています。</p>
@@ -1292,7 +1334,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
  </div>
 </div>
 <div class="modal-overlay" id="clipboardConfirmModal" onclick="closeModal(event,'clipboardConfirmModal')" style="z-index:1110;">
- <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clipboardConfirmTitle" onclick="event.stopPropagation()" style="max-width:660px;box-sizing:border-box;max-height:calc(100dvh - 30px);overflow:auto;">
+ <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clipboardConfirmTitle" onclick="event.stopPropagation()" style="max-width:660px;box-sizing:border-box;">
   <h2 id="clipboardConfirmTitle">🔍 一括登録の確認</h2>
   <div id="clipboardConfirmSummary" style="font-size:13px;line-height:1.6;"></div>
   <div id="clipboardConfirmRows" aria-label="一致状況とKeyの確認"></div>
