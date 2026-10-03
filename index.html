@@ -925,6 +925,11 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 
             <div class="header-buttons">
                 <button type="button" id="homeBackBtn" onclick="goHome()">🏠 トップ</button>
+                <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;">📁 マイリスト</button>
+                <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
+                <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 楽曲追加</button>
+                <button id="myPageBtn" type="button" onclick="openMyPage()" aria-haspopup="dialog" aria-controls="myPageModal">👤 マイページ</button>
+                <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
                 <button id="googleLoginBtn" onclick="loginWithGoogle()" style="background:#fff;color:#333;border:1px solid #bbb;">
                     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path fill="#4285F4" d="M21.35 12.24c0-.71-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.26z"/>
@@ -934,12 +939,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                     </svg>
                     <span>Googleでログイン</span>
                 </button>
-                <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
-                <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;">📁 マイリスト</button>
-                <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
-                <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 楽曲追加</button>
-                <button id="obsCustomCssBtn" type="button" onclick="openObsModal()" aria-haspopup="dialog" aria-controls="obsModal">📺 OBSカスタムCSS</button>
-                <button id="myPageBtn" type="button" onclick="openMyPage()" aria-haspopup="dialog" aria-controls="myPageModal">👤 マイページ</button>
                 <button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
             </div>
         </div>
@@ -969,6 +968,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             <div class="room-status-bar">
                 <div id="roomStatusText"></div>
                 <div class="room-actions">
+                <button id="obsCustomCssBtn" type="button" onclick="openObsModal()" aria-haspopup="dialog" aria-controls="obsModal">📺 OBSカスタムCSS</button>
                     <button onclick="copyRoomLink()">🔗 URLをコピー</button>
                     <button class="btn-danger" onclick="leaveRoom()">🚪 退出</button>
                 </div>
