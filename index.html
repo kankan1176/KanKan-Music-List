@@ -325,7 +325,10 @@
         th.col-key, td.col-key { text-align:center; }
         .table-key-picker { width:100%; justify-content:center; box-sizing:border-box; }
         .artist-confirm-actions {display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:18px;}
-        .artist-confirm-actions .favorite-artist-modal {font-size:23px;line-height:1;}
+        .artist-confirm-actions {flex-wrap:wrap;}
+        #artistFavoriteControl {display:inline-flex;align-items:center;gap:7px;min-height:32px;white-space:nowrap;margin-right:auto;}
+        #artistFavoriteControl > span {display:inline-flex;align-items:center;height:32px;line-height:32px;font-size:12px;}
+        .artist-confirm-actions .favorite-artist-modal {display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:0 0 32px;padding:0;font-size:23px;line-height:1;vertical-align:middle;}
         #myListBulkBar {display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 9px;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:6px;font-size:12px;}
         body.my-list-mode #myListBulkBar {display:flex;}
         #myListBulkBar select {width:auto;max-width:125px;font-size:12px;padding:4px;}
@@ -1179,7 +1182,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         <h2>🎤 アーティスト検索</h2>
         <p style="font-size: 14px; line-height: 1.6;"><strong id="confirmArtistName"></strong> の曲に絞りますか？</p>
         <div class="artist-confirm-actions">
-            <span id="artistFavoriteControl" style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><span style="font-size:12px;">お気に入りアーティスト登録</span><button type="button" id="artistModalStar" class="personal-toggle favorite-artist-modal" style="font-size:23px;line-height:1;padding:2px 5px;" title="お気に入りアーティストに登録・解除（自動保存）" aria-label="お気に入りアーティストに登録" aria-pressed="false" onclick="toggleConfirmedArtist()">☆</button></span>
+            <span id="artistFavoriteControl" style="display:inline-flex;align-items:center;gap:7px;white-space:nowrap;min-height:32px;"><span style="display:inline-flex;align-items:center;height:32px;font-size:12px;line-height:1;">お気に入りアーティスト登録</span><button type="button" id="artistModalStar" class="personal-toggle favorite-artist-modal" style="display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;font-size:23px;line-height:1;padding:0;vertical-align:middle;" title="お気に入りアーティストに登録・解除（自動保存）" aria-label="お気に入りアーティストに登録" aria-pressed="false" onclick="toggleConfirmedArtist()">☆</button></span>
             <button type="button" onclick="closeModal(null, 'artistConfirmModal')">いいえ</button>
             <button type="button" class="primary-btn" onclick="confirmArtistFilter()">はい</button>
         </div>
