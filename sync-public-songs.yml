@@ -4,9 +4,15 @@ on:
   schedule:
     - cron: '*/10 * * * *'
   workflow_dispatch:
+    inputs:
+      allow_shrink:
+        description: '曲数が現在の50%未満になる更新も公開する（意図した大量削除のときだけ）'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: sync-public-songs
@@ -26,16 +32,47 @@ jobs:
         with:
           node-version: '22'
       - name: Download consistent public master from Firebase
+        env:
+          ALLOW_SHRINK: ${{ inputs.allow_shrink }}
         run: node scripts/sync-public-songs.mjs
       - name: Commit and push only when changed
         shell: bash
+        env:
+          ALLOW_SHRINK: ${{ inputs.allow_shrink }}
         run: |
-          git add -- public/songs.json
-          if git diff --cached --quiet; then
-            echo 'No change in public master.'
-            exit 0
-          fi
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'chore: sync public song master from Firebase'
-          git push
+          branch="${GITHUB_REF_NAME}"
+          for attempt in 1 2 3; do
+            git add -- public/songs.json
+            if git diff --cached --quiet; then
+              echo 'No change in public master.'
+              exit 0
+            fi
+            git commit -m 'chore: sync public song master from Firebase'
+            if git push origin "HEAD:${branch}"; then
+              exit 0
+            fi
+            echo "Push failed (attempt ${attempt}/3); re-syncing from the latest remote."
+            git fetch origin "${branch}"
+            git reset --hard "origin/${branch}"
+            node scripts/sync-public-songs.mjs
+          done
+          echo 'Push failed after 3 attempts.' >&2
+          exit 1
+      - name: Open an issue when the scheduled sync fails
+        if: failure() && github.event_name == 'schedule'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create sync-failure --color B60205 --description 'Public songs sync failed' 2>/dev/null || true
+          open="$(gh issue list --label sync-failure --state open --json number --jq 'length' || echo 0)"
+          if [ "${open}" = "0" ]; then
+            gh issue create --label sync-failure \
+              --title '公開楽曲JSON(public/songs.json)の同期に失敗しました' \
+              --body "定期同期が失敗しました。ログを確認してください: ${RUN_URL}"$'\n\n'"原因を解消して同期が成功したら、このIssueを閉じてください。" || true
+          fi
