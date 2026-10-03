@@ -879,7 +879,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 <main id="homeLanding" aria-label="シェアリスコア トップページ">
   <div class="home-inner">
     <div class="home-brand">
-      <img src="site-logo.png?v=20261003-2" alt="" onerror="this.style.display='none'">
+      <img src="site-logo.png?v=20261003-3" alt="" onerror="this.style.display='none'">
       <h1>シェアリスコア</h1>
       <p>Share List Score · セッションと音楽を、もっとつなぐ。</p>
     </div>
@@ -901,6 +901,20 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 </main>
 
 
+<!-- ルーム作成確認：確定するまではFirebaseへ書き込まない -->
+<div class="modal-overlay" id="roomCreateModal" style="z-index:1600;" onclick="closeRoomCreateModal(event)" role="dialog" aria-modal="true" aria-labelledby="roomCreateHeading">
+  <div class="modal" style="max-width:460px;">
+    <h2 id="roomCreateHeading">🌐 ルームを作成</h2>
+    <p style="font-size:14px;line-height:1.7;">セッション用の新しい共有ルームを作成します。作成後は自動的にルームへ入室します。</p>
+    <p style="font-size:13px;opacity:.85;">選曲元：全曲マスター<br>発行されたルームURLを仲間に共有すると、同じセットリストを利用できます。</p>
+    <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px;margin-top:20px;">
+      <button type="button" id="cancelRoomCreation" onclick="closeRoomCreateModal()">キャンセル</button>
+      <button type="button" id="confirmRoomCreation" class="primary-btn" onclick="confirmCreateRoom()" style="background:#007bff;color:white;border-color:#007bff;">作成して入室 →</button>
+    </div>
+    <p id="roomCreateMessage" role="status" aria-live="polite" style="font-size:12px;min-height:1em;"></p>
+  </div>
+</div>
+
 <!-- ガイド付箋：画面左下のボタンで全件まとめて表示／非表示 -->
 <aside class="side-guide side-guide--left" id="guideLeft" aria-label="操作ガイド 左">
   <section class="side-guide-card" data-guide-id="flow"><strong>📝 セッションの流れ</strong><p>演奏候補を「予約」→曲を決めて「確定」→演奏したら「完了」。ルーム全員にリアルタイム反映！</p></section>
@@ -919,7 +933,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <div class="top-area">
         <div class="header">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <img src="site-logo.png?v=20261003-2" alt="" class="logo-img" style="max-height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+                <img src="site-logo.png?v=20261003-3" alt="" class="logo-img" style="max-height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
                 <h1 style="margin: 0; font-size: 20px;">シェアリスコア-Share List Score-</h1>
             </div>
 
@@ -2623,24 +2637,54 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         alert('ユーザー名を変更しました！');
     }
 
-    async function createRoom() {
-        // 新しいルームは、作成時にどちらの一覧を開いていても全曲マスターから予約可能。
-        const button = document.getElementById('createRoomBtn');
+    // ルーム作成は先に専用画面を表示する。確認まではルームを発行しない。
+    function createRoom() {
+        if (currentRoomId) return;
+        document.getElementById('roomCreateMessage').textContent = '';
+        document.getElementById('confirmRoomCreation').disabled = false;
+        document.getElementById('cancelRoomCreation').disabled = false;
+        document.getElementById('roomCreateModal').style.display = 'flex';
+    }
+    let roomCreationBusy = false;
+    function closeRoomCreateModal(event) {
+        if (event && event.target.id !== 'roomCreateModal') return;
+        if (roomCreationBusy) return;
+        document.getElementById('roomCreateModal').style.display = 'none';
+    }
+    async function confirmCreateRoom() {
+        if (roomCreationBusy || currentRoomId) return;
+        roomCreationBusy = true;
+        const button = document.getElementById('confirmRoomCreation');
+        const cancel = document.getElementById('cancelRoomCreation');
+        const status = document.getElementById('roomCreateMessage');
         button.disabled = true;
+        cancel.disabled = true;
+        status.textContent = 'ルームを作成しています…';
         try {
             const roomUser = await ensureRoomAuth();
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            // Firebaseの既存ルームを誤って上書きしないようtransactionで新規作成。
             let newRoomId = '';
-            for (let i = 0; i < 5; i++) newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
-            await db.ref(`rooms/${newRoomId}/settings`).set({
-                source: 'master', songIds: [], createdAt: firebase.database.ServerValue.TIMESTAMP,
-                createdByUid: roomUser.uid
-            });
+            for (let attempt = 0; attempt < 8; attempt++) {
+                let candidate = '';
+                for (let i = 0; i < 5; i++) candidate += chars.charAt(Math.floor(Math.random() * chars.length));
+                const settingsRef = db.ref(`rooms/${candidate}/settings`);
+                const result = await settingsRef.transaction(existing => {
+                    if (existing !== null) return;
+                    return {source:'master',songIds:[],createdAt:firebase.database.ServerValue.TIMESTAMP,createdByUid:roomUser.uid};
+                }, undefined, false);
+                if (result.committed) { newRoomId = candidate; break; }
+            }
+            if (!newRoomId) throw new Error('ルームIDを発行できませんでした。');
+            status.textContent = '作成完了。ルームへ移動します…';
             window.location.href = '?room=' + encodeURIComponent(newRoomId);
         } catch (error) {
-            console.error('ルーム作成時の選曲元保存に失敗:', error);
-            alert('ルームを作成できませんでした。Firebaseのroomsへの書き込み権限を確認してください。');
+            console.error('ルーム作成に失敗:', error);
+            status.textContent = 'ルームを作成できませんでした。通信状況とFirebaseの権限を確認し、再試行してください。';
             button.disabled = false;
+            cancel.disabled = false;
+        } finally {
+            roomCreationBusy = false;
         }
     }
 
@@ -4304,8 +4348,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         if(destination==='settings'){openModal('settingsModal');return;}
         if(destination==='mypage'){openMyPage();return;}
         if(destination==='room'){
-            status.textContent='ルームを作成しています…';
-            try{await createRoom();}finally{status.textContent='';}
+            createRoom();
             return;
         }
         if(destination==='mylist' && !signedInUser){
