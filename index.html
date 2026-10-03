@@ -966,7 +966,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       <button type="button" class="home-card" onclick="openHomeDestination('room')"><span class="home-card-icon" aria-hidden="true">🌐</span><span><span class="home-card-heading">ルームを作る</span><span class="home-card-caption">仲間とセットリストを共有</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">新規楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント管理</span></span></button>
-      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="10" r="5"/><path d="M2 26v-2c0-4.7 4.2-8 10-8s10 3.3 10 8v2H2z"/><circle cx="24" cy="11" r="4" opacity=".9"/><path d="M22 17.3c4.8-.4 8 2.5 8 6.7v2h-6v-2c0-2.6-.7-4.9-2-6.7z" opacity=".9"/></svg></span><span><span class="home-card-heading">フォロー <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">公開プロフィール・フォロー</span></span></button>
+      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="10" r="5"/><path d="M2 26v-2c0-4.7 4.2-8 10-8s10 3.3 10 8v2H2z"/><circle cx="24" cy="11" r="4" opacity=".9"/><path d="M22 17.3c4.8-.4 8 2.5 8 6.7v2h-6v-2c0-2.6-.7-4.9-2-6.7z" opacity=".9"/></svg></span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">お気に入りユーザー・UID検索</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('manual')"><span class="home-card-icon" aria-hidden="true">📖</span><span><span class="home-card-heading">使い方ガイド</span><span class="home-card-caption">基本操作と機能の説明</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
     </nav>
@@ -1048,7 +1048,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                 <div id="mobileIdentity" aria-live="polite">ゲスト利用中</div>
                 <button type="button" id="mobileHomeItem" onclick="closeMobileMenu();goHome()">🏠 トップ</button>
                 <button type="button" onclick="closeMobileMenu();openMyPage()">👤 マイページ</button>
-                <button type="button" onclick="closeMobileMenu();openFriendsModal()">👥 フォロー</button>
+                <button type="button" onclick="closeMobileMenu();openFriendsModal()">👥 フレンド</button>
                 <button type="button" onclick="closeMobileMenu();openManualModal()">📖 使い方ガイド</button>
                 <button type="button" onclick="closeMobileMenu();openModal('settingsModal')">⚙ 設定</button>
                 <button type="button" id="mobileLoginItem" onclick="closeMobileMenu();loginWithGoogle()">Googleでログイン</button>
@@ -1210,7 +1210,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <h2>📝 メニュー</h2>
     <div class="mypage-menu">
       <button type="button" onclick="closeModal(null,'siteMenuModal');openMyPage()">👤 マイページ</button>
-      <button type="button" onclick="closeModal(null,'siteMenuModal');openFriendsModal()">👥 フォロー</button>
+      <button type="button" onclick="closeModal(null,'siteMenuModal');openFriendsModal()">👥 フレンド</button>
       <button type="button" onclick="closeModal(null,'siteMenuModal');openManualModal()">📖 使い方ガイド</button>
       <button type="button" onclick="closeModal(null,'siteMenuModal');openModal('settingsModal')">⚙ 設定</button>
     </div>
@@ -1222,14 +1222,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <span class="modal-close" role="button" tabindex="0" aria-label="閉じる" onclick="closeModal(null,'myPageModal')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal(null,'myPageModal')}">&times;</span>
     <h2 id="myPageTitle">👤 マイページ</h2>
     <p id="myPageAccountHint"></p>
-    <div id="profileVisibilitySection" style="border:1px solid var(--border-color);border-radius:7px;padding:12px;margin:0 0 13px;">
-      <label for="profileVisibilitySelect" style="display:block;font-weight:700;margin-bottom:7px;">🌐 プロフィール公開設定</label>
-      <select id="profileVisibilitySelect" class="setting-input" onchange="saveProfileVisibility(this.value)" style="width:100%;">
-        <option value="public">公開する</option><option value="private">公開しない</option>
-      </select>
-      <p style="font-size:12px;opacity:.83;line-height:1.5;margin:7px 0 0;">非公開にすると、公開プロフィール検索に表示されず、ゲスト・他ユーザーから公開マイリストとお気に入りアーティストを閲覧できなくなります。自分の登録内容は消えません。</p>
-      <p id="profileVisibilityFeedback" style="font-size:12px;margin:5px 0 0;"></p>
-    </div>
     <div class="mypage-menu">
       <button type="button" onclick="openMyPageSection('account')">👤 マイアカウント</button>
       <button type="button" onclick="openMyPageSection('favoriteArtists')">⭐ お気に入りアーティスト一覧 <span id="favoriteArtistCount"></span></button>
@@ -1249,24 +1241,24 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
   <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button type="button" onclick="closeModal(null,'favoriteArtistsModal')">閉じる</button></div>
  </div>
 </div>
-<!-- 公開プロフィールと一方向フォロー。ゲストも閲覧可能 -->
+<!-- お気に入りユーザー・UID検索・セッション履歴 -->
 <div class="modal-overlay" id="friendsModal" onclick="closeModal(event,'friendsModal')">
- <div class="modal" onclick="event.stopPropagation()" style="max-width:620px;max-height:88dvh;">
+ <div class="modal" onclick="event.stopPropagation()" style="max-width:620px;max-height:88dvh;overflow:auto;">
   <span class="modal-close" onclick="closeModal(null,'friendsModal')">&times;</span>
-  <h2>👥 フォロー・公開プロフィール</h2>
-  <p style="font-size:12px;line-height:1.6;">マイリストとお気に入りアーティストはゲストを含めて誰でも閲覧できます。フォローはGoogleログイン後に利用できます。</p>
-  <h3 id="friendsListHeading">👥 フォロー中（0人）</h3><div id="friendsList" class="friends-section"></div>
-  <h3 id="followersHeading">フォロワー（0人）</h3><div id="followersList" class="friends-section"></div>
+  <h2>👥 フレンド</h2>
+  <p style="font-size:12px;line-height:1.6;">承認不要でユーザーを自分のお気に入りに登録できます。公開マイリスト・お気に入りアーティストはゲストも閲覧できます。</p>
+  <h3 id="friendsListHeading">⭐ お気に入り中ユーザー（0人）</h3><div id="friendsList" class="friends-section"></div>
   <hr style="border:0;border-top:1px solid var(--border-color);margin:14px 0;">
-  <h3>🔎 公開プロフィールを探す</h3>
-  <input id="publicProfileSearch" class="setting-input" placeholder="表示名・公開IDで検索" oninput="refreshFriendsPanel()" autocomplete="off">
-  <div id="publicProfilesList" class="friends-section" style="max-height:30dvh;overflow:auto;margin:9px 0;"></div>
-  <div id="followControls">
-   <p style="font-size:12px;">自分の公開ID（URLや検索でも共有できます）</p>
-   <div style="display:flex;gap:6px;"><input id="myFriendCode" class="setting-input" readonly><button onclick="copyMyFriendCode()">コピー</button></div>
-   <p style="font-size:12px;">公開IDを指定してフォロー</p>
-   <div style="display:flex;gap:6px;"><input id="friendCodeInput" class="setting-input" placeholder="SL-XXXXXXXXXX" maxlength="13"><button id="sendFriendRequestBtn" class="primary-btn" onclick="sendFriendRequest()">フォロー</button></div>
-  </div>
+  <h3>🔎 フレンド検索</h3>
+  <p style="font-size:12px;">自分のUID（Googleログイン時に表示）</p>
+  <div style="display:flex;gap:6px;"><input id="myFriendCode" class="setting-input" readonly style="flex:1;min-width:0;"><button onclick="copyMyFriendCode()">コピー</button></div>
+  <p style="font-size:12px;">UID検索（従来のSL-公開IDにも対応）</p>
+  <div style="display:flex;gap:6px;"><input id="friendCodeInput" class="setting-input" placeholder="ユーザーのUIDを入力" style="flex:1;min-width:0;"><button id="sendFriendRequestBtn" class="primary-btn" onclick="sendFriendRequest()">検索</button></div>
+  <div id="publicProfilesList" class="friends-section" style="margin:9px 0;"></div>
+  <hr style="border:0;border-top:1px solid var(--border-color);margin:14px 0;">
+  <h3>🎵 セッション履歴ユーザー</h3>
+  <p style="font-size:12px;">同じルームに参加したGoogleアカウント登録済みユーザーのみ表示します。ゲストは記録しません。</p>
+  <div id="sessionHistoryUsersList" class="friends-section"></div>
   <div id="friendFeedback" role="status" aria-live="polite" style="font-size:12px;margin:10px 0;"></div>
   <div id="friendSyncStatus" role="status" aria-live="polite" hidden style="font-size:12px;padding:8px;border:1px solid var(--border-color);border-radius:5px;"><span id="friendSyncStatusText"></span><button id="friendSyncRetry" onclick="retryFriendSharedSync()">↻ 再試行</button></div>
   <button onclick="refreshFriendsPanel()">↻ 更新</button>
@@ -2681,7 +2673,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         roomSharesListenerRef=db.ref(`${ROOM_LIST_BASE}/${currentRoomId}`);
         roomSharesListenerRef.on('value',snap=>{roomRawShares=snap.val()||{};rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;setRoomShareMessage(sharing<2 ? `現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。` : '保存済みの曲・Key・担当パートを共有中。緑色は2人以上の共通曲です。');},err=>{console.error('ルーム共有閲覧失敗',err);setRoomShareMessage('共有リストを表示できません。Firebaseルールを確認してください。');});
         roomMemberListRef=db.ref(`rooms/${currentRoomId}/members`);
-        roomMemberListRef.on('value',snap=>{roomMembersRaw=snap.val()||{};refreshVisibleRoomMembers();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
+        roomMemberListRef.on('value',snap=>{roomMembersRaw=snap.val()||{};refreshVisibleRoomMembers();void rememberSessionGoogleUsers();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
         startRoomOwnPublishing();
     }
     function renderRoomSongMembers(id) {
@@ -2787,7 +2779,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             try {
                 // 匿名ゲストの表示名は端末内に保存。Google本人のみFirebaseプロフィールへ保存。
                 await db.ref(`users/${user.uid}/profile/displayName`).set(newName);
-                if (friendCodeForUser && auth.currentUser?.uid === user.uid) { const changes={[`friendProfiles/${user.uid}/displayName`]:newName};if(currentProfileVisibility==='public')changes[`publicProfiles/${user.uid}/displayName`]=newName;db.ref().update(changes).catch(err=>console.warn('プロフィール名の同期失敗',err)); }
+                if (friendCodeForUser && auth.currentUser?.uid === user.uid) { const changes={[`friendProfiles/${user.uid}/displayName`]:newName};changes[`publicProfiles/${user.uid}/displayName`]=newName;db.ref().update(changes).catch(err=>console.warn('プロフィール名の同期失敗',err)); }
                 if (auth.currentUser?.uid !== user.uid) return;
             } catch(error) {
                 console.error('ユーザー名の保存に失敗:', error);
@@ -3028,163 +3020,99 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     });
     
     tableBodyWrapper.addEventListener('scroll', (e) => { tableHeaderWrapper.scrollLeft = e.target.scrollLeft; });
-    // ===== STEP 3-1 フレンドID・申請・承認・拒否・解除 =====
-    const FRIEND_GOOGLE_ONLY = 'フレンド機能はGoogleログインが必要です。';
-    let friendCodeForUser = '';
-    let friendFeatureUid = '';
-    let friendRefreshSeq = 0;
-    let friendListeners = [];
-    const friendNameCache = {};
-    function friendUser() { const u = auth.currentUser; return u && !u.isAnonymous && signedInUser?.uid === u.uid ? u : null; }
-    function friendNotice(message,isError=false) {
-        const el=document.getElementById('friendFeedback');
-        el.textContent=message;el.style.color=isError?'#eb7777':'var(--text-color)';
-    }
-    function stopFriendsFeature() {
-        friendListeners.forEach(([ref,fn]) => ref.off('value',fn)); friendListeners=[];
-        friendFeatureUid=''; friendCodeForUser=''; friendRefreshSeq++;
-        document.getElementById('myFriendCode').value='';
-        updateFriendCount(null);
-        closeModal(null,'friendsModal');
-    }
-    function attachFriendListener(path,uid) {
-        const ref=db.ref(path); const fn=()=>{ if (friendUser()?.uid===uid) void refreshFriendsPanel(); };
-        ref.on('value',fn,err=>console.warn('フレンド同期',err)); friendListeners.push([ref,fn]);
-    }
-    let currentProfileVisibility='public';
-    async function saveProfileVisibility(value){
-        const u=friendUser(),el=document.getElementById('profileVisibilitySelect'),feedback=document.getElementById('profileVisibilityFeedback');
-        if(!u){if(el)el.value=currentProfileVisibility;return;}
-        if(value!=='public'&&value!=='private')return;
-        if(el)el.disabled=true;
-        if(feedback)feedback.textContent='公開設定を保存しています…';
-        try{
-            const profile={displayName:String(myName||u.displayName||'ユーザー').trim().slice(0,40)||'ユーザー',code:friendCodeForUser};
-            if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(profile.code))throw Error('公開IDの初期化を待ってください');
-            // One atomic update: the public directory is removed immediately on opt-out.
-            await db.ref().update({[`users/${u.uid}/profile/publicVisibility`]:value,[`publicProfiles/${u.uid}`]:value==='public'?profile:null});
-            currentProfileVisibility=value;
-            if(feedback)feedback.textContent=value==='public'?'プロフィールを公開しました。':'プロフィールを非公開にしました。';
-            void refreshFriendsPanel();
-        }catch(err){console.warn('プロフィール公開設定の変更失敗',err);if(el)el.value=currentProfileVisibility;if(feedback)feedback.textContent='保存できませんでした。Firebaseルールをご確認ください。';}
-        finally{if(el)el.disabled=false;}
-    }
-    // Public profile directory and one-way follows. Existing mutual friendships migrate once per user.
-    async function startFriendsFeature(user) {
-        if(!user || friendFeatureUid===user.uid)return;
-        stopFriendsFeature();friendFeatureUid=user.uid;
-        try {
-            let snap=await db.ref(`users/${user.uid}/profile/friendCode`).once('value');
-            let code=String(snap.val()||'');
-            if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code)) {
-                const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let done=false;
-                for(let i=0;i<8&&!done;i++){
-                    const bytes=new Uint8Array(10);crypto.getRandomValues(bytes);
-                    code='SL-'+Array.from(bytes,n=>alphabet[n%alphabet.length]).join('');
-                    const r=await db.ref(`friendCodes/${code}`).transaction(v=>v===null?user.uid:undefined,undefined,false);done=r.committed;
-                }
-                if(!done)throw Error('公開IDを発行できません');
-                await db.ref(`users/${user.uid}/profile/friendCode`).set(code);
-            }
-            friendCodeForUser=code;
-            const visibilitySnap=await db.ref(`users/${user.uid}/profile/publicVisibility`).once('value');
-            currentProfileVisibility=visibilitySnap.val()==='private'?'private':'public';
-            const ownProfile={displayName:String(myName||user.displayName||'ユーザー').trim().slice(0,40)||'ユーザー',code};
-            // Existing accounts default to public, without resetting a previously saved private preference.
-            await db.ref().update({[`friendProfiles/${user.uid}`]:ownProfile,[`publicProfiles/${user.uid}`]:currentProfileVisibility==='public'?ownProfile:null});
-            const visibilityControl=document.getElementById('profileVisibilitySelect');if(visibilityControl)visibilityControl.value=currentProfileVisibility;
-            const migrated=await db.ref(`followMigrations/${user.uid}`).once('value');
-            if(!migrated.val()) {
-                const [old,currentFollows]=await Promise.all([db.ref(`friendships/${user.uid}`).once('value'),db.ref('follows').once('value')]);
-                const existing=currentFollows.val()||{};
-                const updates={};
-                for(const [other,active] of Object.entries(old.val()||{}))if(active===true&&other!==user.uid){
-                    if(existing[user.uid]?.[other]!==true)updates[`follows/${user.uid}/${other}`]=true;
-                    // Historical friendship is reciprocal; only migrate missing reverse edges.
-                    if(existing[other]?.[user.uid]!==true)updates[`follows/${other}/${user.uid}`]=true;
-                }
-                updates[`followMigrations/${user.uid}`]=true;
-                await db.ref().update(updates);
-            }
-            if(friendUser()?.uid!==user.uid)return;
-            document.getElementById('myFriendCode').value=code;
-            attachFriendListener(`follows/${user.uid}`,user.uid);
-            attachFriendListener('follows',user.uid);
-            void refreshFriendsPanel();
-        }catch(err){console.error('フォロー機能初期化失敗',err);friendNotice('プロフィールの準備に失敗しました。Firebaseルールを確認してください。',true);}
-    }
-    function updateFriendCount(count){
-        const n=count===null?'−':String(count);
-        const home=document.getElementById('homeFriendCount');if(home)home.textContent=`(${n}人)`;
-        const heading=document.getElementById('friendsListHeading');if(heading)heading.textContent=`👥 フォロー中（${n}人）`;
-    }
-    function openFriendsModal(){
-        friendNotice('');renderFriendSyncStatus();openModal('friendsModal');
-        document.getElementById('myFriendCode').value=friendCodeForUser || 'ゲストは閲覧のみ';
-        document.getElementById('followControls').hidden=!friendUser();
+    // ===== お気に入りユーザー管理：承認・フォロワー・公開設定は使用しない =====
+    let friendCodeForUser='',friendFeatureUid='',friendRefreshSeq=0;
+    let friendListeners=[];
+    const friendNameCache={};
+    function friendUser(){const u=auth.currentUser;return u&&!u.isAnonymous&&signedInUser?.uid===u.uid?u:null;}
+    function friendNotice(message,isError=false){const el=document.getElementById('friendFeedback');if(el){el.textContent=message;el.style.color=isError?'#eb7777':'var(--text-color)';}}
+    function stopFriendsFeature(){friendListeners.forEach(([r,fn])=>r.off('value',fn));friendListeners=[];friendFeatureUid='';friendCodeForUser='';friendRefreshSeq++;const e=document.getElementById('myFriendCode');if(e)e.value='';updateFriendCount(null);closeModal(null,'friendsModal');}
+    function attachFriendListener(path,uid){const r=db.ref(path),fn=()=>{if(friendUser()?.uid===uid)void refreshFriendsPanel();};r.on('value',fn,err=>console.warn('お気に入りユーザー同期',err));friendListeners.push([r,fn]);}
+    async function startFriendsFeature(user){
+      if(!user||friendFeatureUid===user.uid)return;
+      stopFriendsFeature();friendFeatureUid=user.uid;
+      try{
+        // The legacy SL code remains as a compatibility alias, but UID is primary.
+        const codeSnap=await db.ref(`users/${user.uid}/profile/friendCode`).once('value');
+        let code=String(codeSnap.val()||'');
+        if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code)){
+          const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let assigned=false;
+          for(let i=0;i<8&&!assigned;i++){
+            const bytes=new Uint8Array(10);crypto.getRandomValues(bytes);
+            code='SL-'+Array.from(bytes,n=>alphabet[n%alphabet.length]).join('');
+            const r=await db.ref(`friendCodes/${code}`).transaction(v=>v===null?user.uid:undefined,undefined,false);assigned=r.committed;
+          }
+          if(!assigned)throw Error('公開IDを発行できません');
+          await db.ref(`users/${user.uid}/profile/friendCode`).set(code);
+        }
+        friendCodeForUser=code;
+        const ownProfile={displayName:String(myName||user.displayName||'ユーザー').trim().slice(0,40)||'ユーザー',code};
+        // Restore public profile for accounts previously marked private. Do not erase any personal data.
+        await db.ref().update({[`friendProfiles/${user.uid}`]:ownProfile,[`publicProfiles/${user.uid}`]:ownProfile});
+        // Preserve old followed users as own favorites once, but never create reverse relationships.
+        const migrated=await db.ref(`userFavoriteMigrations/${user.uid}`).once('value');
+        if(!migrated.val()){
+          const [oldFollow,oldFriend,existing]=await Promise.all([
+            db.ref(`follows/${user.uid}`).once('value'),db.ref(`friendships/${user.uid}`).once('value'),db.ref(`userFavorites/${user.uid}`).once('value')]);
+          const updates={};const oldIds=new Set([...Object.keys(oldFollow.val()||{}),...Object.keys(oldFriend.val()||{})]);
+          for(const target of oldIds)if(target!==user.uid && (oldFollow.val()?.[target]===true||oldFriend.val()?.[target]===true) && existing.val()?.[target]!==true)updates[`userFavorites/${user.uid}/${target}`]=true;
+          updates[`userFavoriteMigrations/${user.uid}`]=true;
+          await db.ref().update(updates);
+        }
+        if(friendUser()?.uid!==user.uid)return;
+        attachFriendListener(`userFavorites/${user.uid}`,user.uid);
+        attachFriendListener(`users/${user.uid}/sessionUsers`,user.uid);
         void refreshFriendsPanel();
+      }catch(err){console.error('ユーザーお気に入り初期化失敗',err);friendNotice('ユーザー情報の準備に失敗しました。Firebaseルールを確認してください。',true);}
     }
-    function copyMyFriendCode(){
-        if(!friendCodeForUser)return friendNotice('Googleログイン後に公開IDを発行できます。',true);
-        navigator.clipboard.writeText(friendCodeForUser).then(()=>friendNotice('公開IDをコピーしました。')).catch(()=>friendNotice('コピーできませんでした。',true));
-    }
-    async function getFriendDisplayName(uid){
-        if(friendNameCache[uid])return friendNameCache[uid];
-        try{const v=await db.ref(`publicProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(v.val()||'ユーザー').slice(0,40);}catch{return 'ユーザー';}
-    }
-    function friendItem(name,buttons){
-        const row=document.createElement('div');row.className='friend-item';
-        const label=document.createElement('span');label.className='friend-name';label.textContent=name;row.append(label);
-        const actions=document.createElement('div');actions.className='friend-commands';
-        for(const [title,handler,danger] of buttons){const btn=document.createElement('button');btn.type='button';btn.textContent=title;if(danger)btn.className='friend-danger';btn.onclick=handler;actions.append(btn);}row.append(actions);return row;
-    }
+    function updateFriendCount(count){const n=count===null?'−':String(count);const h=document.getElementById('homeFriendCount');if(h)h.textContent=`(${n}人)`;const t=document.getElementById('friendsListHeading');if(t)t.textContent=`⭐ お気に入り中ユーザー（${n}人）`;}
+    function openFriendsModal(){friendNotice('');renderFriendSyncStatus();openModal('friendsModal');const u=friendUser();document.getElementById('myFriendCode').value=u?.uid||'Googleログイン後に表示';void refreshFriendsPanel();}
+    function copyMyFriendCode(){const uid=friendUser()?.uid;if(!uid)return friendNotice('Googleログインが必要です。',true);navigator.clipboard.writeText(uid).then(()=>friendNotice('UIDをコピーしました。')).catch(()=>friendNotice('コピーできませんでした。',true));}
+    async function getFriendDisplayName(uid){if(friendNameCache[uid])return friendNameCache[uid];try{const v=await db.ref(`publicProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(v.val()||'ユーザー').slice(0,40);}catch{return 'ユーザー';}}
+    function friendItem(name,buttons){const row=document.createElement('div');row.className='friend-item';const label=document.createElement('span');label.className='friend-name';label.textContent=name;row.append(label);const actions=document.createElement('div');actions.className='friend-commands';for(const [title,handler,danger] of buttons){const btn=document.createElement('button');btn.type='button';btn.textContent=title;if(danger)btn.className='friend-danger';btn.onclick=handler;actions.append(btn);}row.append(actions);return row;}
+    function favoriteUserRow(id,profiles,favorites){const u=friendUser();const name=String(profiles[id]?.displayName||'ユーザー').slice(0,40);const saved=favorites[id]===true;const actions=[['📁 公開リストを見る',()=>openFriendSharedList(id)]];if(u&&id!==u.uid)actions.push([saved?'お気に入り解除':'☆ お気に入り登録',()=>void toggleUserFavorite(id,saved),saved]);return friendItem(name,actions);}
+    let cachedFavoriteProfiles={},cachedUserFavorites={};
     async function refreshFriendsPanel(){
-        const u=friendUser(),seq=++friendRefreshSeq;
-        const isLatest=()=>seq===friendRefreshSeq;
-        const list=document.getElementById('friendsList'),followers=document.getElementById('followersList');
-        try{
-            const [profilesSnap,allFollowsSnap]=await Promise.all([db.ref('publicProfiles').once('value'),db.ref('follows').once('value')]);
-            if(!isLatest())return;
-            const profiles=profilesSnap.val()||{}, edges=allFollowsSnap.val()||{},uid=u?.uid||'';
-            const myFollows=edges[uid]||{};
-            const makeRow=(other,following)=>{
-                const name=String(profiles[other]?.displayName||'ユーザー').slice(0,40);
-                const actions=[['📁 公開リストを見る',()=>openFriendSharedList(other)]];
-                if(u && other!==uid) actions.push([following?'フォロー解除':'フォロー',()=>void toggleFollow(other,following),following]);
-                return friendItem(name,actions);
-            };
-            const following=Object.keys(myFollows).filter(id=>myFollows[id]===true&&id!==uid&&profiles[id]);
-            const followerIds=uid?Object.keys(edges).filter(id=>id!==uid&&edges[id]?.[uid]===true&&profiles[id]):[];
-            list.replaceChildren(...following.map(id=>makeRow(id,true)));
-            followers.replaceChildren(...followerIds.map(id=>makeRow(id,myFollows[id]===true)));
-            if(!following.length)list.textContent=u?'まだ誰もフォローしていません。':'Googleログインするとフォローできます。';
-            if(!followerIds.length)followers.textContent='フォロワーはいません。';
-            document.getElementById('followersHeading').textContent=`フォロワー（${followerIds.length}人）`;
-            const directory=document.getElementById('publicProfilesList');directory.replaceChildren();
-            const term=String(document.getElementById('publicProfileSearch')?.value||'').trim().toLocaleLowerCase();
-            const matches=Object.entries(profiles).filter(([id,p])=>id!==uid && (!term || String(p.displayName||'').toLocaleLowerCase().includes(term)||String(p.code||'').toLocaleLowerCase().includes(term))).slice(0,100);
-            directory.replaceChildren(...matches.map(([id,p])=>makeRow(id,myFollows[id]===true)));
-            if(!matches.length)directory.textContent='該当する公開プロフィールはありません。';
-            updateFriendCount(following.length);
-        }catch(err){if(isLatest()){console.warn('公開プロフィール取得失敗',err);friendNotice('公開プロフィールを取得できませんでした。ルールを確認してください。',true);}}
+      const u=friendUser(),seq=++friendRefreshSeq,isLatest=()=>seq===friendRefreshSeq;
+      const list=document.getElementById('friendsList'),results=document.getElementById('publicProfilesList'),hist=document.getElementById('sessionHistoryUsersList');
+      try{
+        const [profilesSnap,favSnap,historySnap]=await Promise.all([db.ref('publicProfiles').once('value'),u?db.ref(`userFavorites/${u.uid}`).once('value'):Promise.resolve(null),u?db.ref(`users/${u.uid}/sessionUsers`).once('value'):Promise.resolve(null)]);
+        if(!isLatest())return;
+        const profiles=profilesSnap.val()||{},favorites=favSnap?.val()||{},history=historySnap?.val()||{};cachedFavoriteProfiles=profiles;cachedUserFavorites=favorites;
+        const ids=Object.keys(favorites).filter(id=>favorites[id]===true&&id!==u?.uid&&profiles[id]);
+        list.replaceChildren(...ids.map(id=>favoriteUserRow(id,profiles,favorites)));
+        if(!ids.length)list.textContent=u?'お気に入り中のユーザーはいません。':'お気に入り登録にはGoogleログインが必要です。';
+        updateFriendCount(ids.length);
+        hist.replaceChildren(...Object.entries(history).filter(([id,v])=>id!==u?.uid&&v&&profiles[id]).sort((a,b)=>(b[1].lastSeen||0)-(a[1].lastSeen||0)).slice(0,100).map(([id])=>favoriteUserRow(id,profiles,favorites)));
+        if(!hist.childElementCount)hist.textContent=u?'セッション履歴はまだありません。':'履歴はGoogleログイン後に表示されます。';
+      }catch(err){if(isLatest()){console.warn('お気に入りユーザー取得失敗',err);friendNotice('ユーザー情報を取得できませんでした。Firebaseルールを確認してください。',true);}}
     }
     async function sendFriendRequest(){
-        const u=friendUser();if(!u)return friendNotice('フォローにはGoogleログインが必要です。',true);
-        const code=String(document.getElementById('friendCodeInput').value||'').trim().toUpperCase();
-        if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code))return friendNotice('公開IDは SL- から始まる10桁のコードです。',true);
-        try{
-            const snap=await db.ref(`friendCodes/${code}`).once('value');const other=snap.val();
-            if(!other||other===u.uid)return friendNotice('対象が見つからないか、自分自身のIDです。',true);
-            if(!(await db.ref(`publicProfiles/${other}`).once('value')).exists())return friendNotice('このユーザーは現在公開されていません。',true);
-            await db.ref(`follows/${u.uid}/${other}`).set(true);
-            document.getElementById('friendCodeInput').value='';friendNotice('フォローしました。');void refreshFriendsPanel();
-        }catch(err){console.warn('フォロー失敗',err);friendNotice('フォローできませんでした。',true);}
+      const raw=String(document.getElementById('friendCodeInput').value||'').trim();const panel=document.getElementById('publicProfilesList');panel.textContent='検索中…';
+      if(!raw||/[.#$\/\[\]]/.test(raw)||raw.length>128){panel.textContent='有効なUIDを入力してください。';return;}
+      try{let id=raw;if(/^SL-[A-HJ-NP-Z2-9]{10}$/i.test(raw)){const snap=await db.ref(`friendCodes/${raw.toUpperCase()}`).once('value');id=String(snap.val()||'');}
+        const profile=id?cachedFavoriteProfiles[id]||(await db.ref(`publicProfiles/${id}`).once('value')).val():null;
+        if(!profile){panel.textContent='該当するGoogle登録ユーザーは見つかりません。';return;}
+        if(id===friendUser()?.uid){panel.textContent='これは自分のUIDです。';return;}
+        panel.replaceChildren(favoriteUserRow(id,{[id]:profile},cachedUserFavorites));
+      }catch(err){console.warn('UID検索失敗',err);panel.textContent='検索できませんでした。';}
     }
-    async function toggleFollow(other,following){
-        const u=friendUser();if(!u)return friendNotice('フォローにはGoogleログインが必要です。',true);
-        if(following&&!confirm('フォローを解除しますか？ 相手からのフォローには影響しません。'))return;
-        try{await db.ref(`follows/${u.uid}/${other}`).set(following?null:true);friendNotice(following?'フォローを解除しました。':'フォローしました。');void refreshFriendsPanel();}
-        catch(err){console.warn('フォロー変更失敗',err);friendNotice('変更できませんでした。',true);}
+    async function toggleUserFavorite(id,saved){const u=friendUser();if(!u)return friendNotice('お気に入り登録にはGoogleログインが必要です。',true);if(saved&&!confirm('このユーザーのお気に入り登録を解除しますか？'))return;try{await db.ref(`userFavorites/${u.uid}/${id}`).set(saved?null:true);friendNotice(saved?'お気に入りを解除しました。':'ユーザーをお気に入りに登録しました。');void refreshFriendsPanel();}catch(err){console.warn('ユーザーお気に入り変更失敗',err);friendNotice('変更できませんでした。',true);}}
+    // A private recent co-session list, populated only while a Google user is in a live room.
+    const observedSessionUsers=new Set();let sessionHistoryBusy=false;
+    async function rememberSessionGoogleUsers(){
+      const self=friendUser();if(!self||!currentRoomId||sessionHistoryBusy)return;
+      sessionHistoryBusy=true;
+      try{
+        const profiles=(await db.ref('publicProfiles').once('value')).val()||{};const updates={};
+        for(const member of Object.values(roomMembersRaw||{})){
+          const id=String(member?.uid||'');
+          if(member?.guest!==false||!id||id===self.uid||!profiles[id]||observedSessionUsers.has(id))continue;
+          observedSessionUsers.add(id);
+          updates[`users/${self.uid}/sessionUsers/${id}`]={lastSeen:firebase.database.ServerValue.TIMESTAMP};
+        }
+        if(Object.keys(updates).length)await db.ref().update(updates);
+      }catch(err){console.warn('セッション履歴保存失敗',err);}finally{sessionHistoryBusy=false;}
     }
     // ===== STEP 3-2: 保存済みリストの共有・閲覧 =====
     let sharedListReadyUid = '';
@@ -3438,9 +3366,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         else if (currentRoomId) hint.textContent = 'ルーム参加中です。';
         else hint.textContent = `${signedInUser.displayName || signedInUser.email || 'Googleログイン中'} でログイン中`;
         const count=document.getElementById('favoriteArtistCount');if(count)count.textContent=`（${favoriteArtistNames().length}件）`;
-        const vis=document.getElementById('profileVisibilitySection');if(vis)vis.hidden=!friendUser();
-        const select=document.getElementById('profileVisibilitySelect');if(select)select.value=currentProfileVisibility;
-        const feedback=document.getElementById('profileVisibilityFeedback');if(feedback)feedback.textContent='';
         openModal('myPageModal');
     }
     function openMyPageSection(section) {
