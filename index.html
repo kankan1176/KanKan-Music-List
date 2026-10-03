@@ -963,7 +963,7 @@ body.in-room #roomListPanel {display:flex}
     <!-- ローディング画面 -->
     <div class="loading-area" id="loadingArea">
         <div class="spinner"></div>
-        <div>スプレッドシートからデータを取得中...</div>
+        <div>Firebaseから楽曲データを取得中...</div>
     </div>
 
     <div id="tableWrapper">
@@ -1030,6 +1030,7 @@ body.in-room #roomListPanel {display:flex}
       <button type="button" onclick="openMyPageSection('friends')">👥 フレンド</button>
       <button type="button" onclick="openMyPageSection('manual')">📖 使い方ガイド</button>
       <button type="button" onclick="openMyPageSection('settings')">⚙️ 設定</button>
+      <a href="admin.html" id="adminPageLink" style="display:none;padding:10px;border:1px solid var(--border-color);border-radius:6px;text-align:center;text-decoration:none;color:var(--text-color);">🛡️ 楽曲データ管理（管理者）</a>
     </div>
   </div>
 </div>
@@ -1120,15 +1121,15 @@ body.in-room #roomListPanel {display:flex}
     </div>
 </div>
 
-<!-- 楽曲追加フォーム：スプレッドシートへの書込は Apps Script 側で実行 -->
+<!-- 楽曲追加フォーム：Firebaseの管理者承認待ち申請へ保存 -->
 <div class="modal-overlay" id="addSongModal" onclick="closeModal(event, 'addSongModal')">
     <div class="modal" onclick="event.stopPropagation()" style="max-width:520px;">
         <span class="modal-close" onclick="closeModal(null, 'addSongModal')">&times;</span>
         <h2>➕ 楽曲を追加</h2>
-        <p style="font-size:12px;line-height:1.5;opacity:.8;">入力した情報を共有楽曲リストに登録します。公開される情報のみ入力してください。</p>
+        <p style="font-size:12px;line-height:1.5;opacity:.8;">登録申請を管理者へ送信します。承認されるまで公開マスターは変更されません。</p>
         <!-- 一括CSV登録を単曲フォームより上へ配置。クリック時は従来のCSVモーダルを開く。 -->
         <div style="margin:10px 0 12px;">
-            <button type="button" id="bulkCsvOpenBtn" onclick="openBulkCsvModal()" style="width:100%;padding:10px 12px;background:#1976d2;border-color:#1976d2;color:#fff;font-weight:700;white-space:normal;">📄 CSV一括インポート（マスター照合＋マイリスト）</button>
+            <button type="button" id="bulkCsvOpenBtn" onclick="openBulkCsvModal()" style="width:100%;padding:10px 12px;background:#1976d2;border-color:#1976d2;color:#fff;font-weight:700;white-space:normal;">📄 CSVからマイリストに一括登録（マスター一致曲のみ）</button>
             <button type="button" onclick="openClipboardImportModal()" style="width:100%;margin-top:7px;padding:10px 12px;background:var(--btn-bg);color:var(--text-color);border:1px solid var(--border-color);font-weight:700;white-space:normal;">📋 文章を貼り付けてマイリスト一括登録</button>
         </div>
         <button type="button" id="songEntryNoticeBtn" onclick="openModal('songEntryNoticeModal')" style="display:block;width:100%;margin:0 0 13px;padding:8px 11px;text-align:left;white-space:normal;background:var(--btn-bg);border:1px solid var(--border-color);color:var(--text-color);font-size:13px;font-weight:700;">⚠ 登録時の注意事項を見る ↗</button>
@@ -1144,14 +1145,14 @@ body.in-room #roomListPanel {display:flex}
             <p id="addSongFeedback" role="status" aria-live="polite" style="font-size:12px;line-height:1.5;min-height:18px;"></p>
             <div style="display:flex;justify-content:flex-end;gap:8px;">
                 <button type="button" onclick="closeModal(null,'addSongModal')">キャンセル</button>
-                <button type="submit" id="addSongSubmit" class="primary-btn">スプレッドシートに登録</button>
+                <button type="submit" id="addSongSubmit" class="primary-btn">管理者へ登録申請</button>
             </div>
         </form>
     </div>
 </div>
 
 
-<!-- CSV: master matching + personal My List (source CSV is the user's own setlist). -->
+<!-- CSV: match only existing Firebase master songs; never write new public songs. -->
 <div class="modal-overlay" id="bulkCsvModal" onclick="closeModal(event,'bulkCsvModal')">
  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bulkCsvTitle" onclick="event.stopPropagation()" style="max-width:760px;box-sizing:border-box;">
   <span class="modal-close" onclick="closeModal(null,'bulkCsvModal')">&times;</span>
@@ -1173,7 +1174,7 @@ body.in-room #roomListPanel {display:flex}
 </div>
 
 
-<!-- Text import only adds/updates personal Firebase records for matched master UUIDs. -->
+<!-- Clipboard import may additionally submit an artist-fill review request; it never changes the public master directly. -->
 <div class="modal-overlay" id="clipboardImportModal" onclick="closeModal(event,'clipboardImportModal')">
  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clipboardImportTitle" onclick="event.stopPropagation()" style="max-width:730px;box-sizing:border-box;max-height:calc(100dvh - 30px);overflow:auto;">
   <span class="modal-close" onclick="closeModal(null,'clipboardImportModal')">&times;</span>
@@ -1185,7 +1186,7 @@ body.in-room #roomListPanel {display:flex}
 楽曲B | アーティストB | | 
 楽曲C | アーティストC | | https://ja.chordwiki.org/wiki.cgi?c=view&amp;t=...&amp;key=-1"></textarea>
   <div class="clipboard-actions" style="justify-content:flex-start;"><button type="button" onclick="clipboardReadFromSystem()">📋 クリップボードから貼り付け</button><button type="button" onclick="clipboardPreview()">🔍 照合結果を表示</button></div>
-  <p style="font-size:12px;opacity:.82;line-height:1.55;">URLを省略した場合は曲名・アーティスト名の完全一致だけを登録。Keyが未記載ならURLのkeyを使い、両方未記載なら0（原曲）です。既存マイリスト曲はKeyを更新し、担当パートは維持します。マスターデータの新規追加・修正は行いません。</p>
+  <p style="font-size:12px;opacity:.82;line-height:1.55;">URLを省略した場合は曲名・アーティスト名の完全一致だけを登録。Keyが未記載ならURLのkeyを使い、両方未記載なら0（原曲）です。既存マイリスト曲はKeyを更新し、担当パートは維持します。マスター側のアーティストが空欄で、曲名＋ChordWiki URLが一意に一致した場合は、貼り付けたアーティスト名を管理者へ補完申請します。承認までは公開マスターを変更しません。</p>
   <div id="clipboardImportSummary" role="status" aria-live="polite">テキストを貼り付けて「登録内容を確認」を押してください。</div>
   <div id="clipboardImportPreview" aria-label="貼り付け楽曲の照合結果"></div>
   <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardImportModal')">閉じる</button><button type="button" class="primary-btn" id="clipboardImportRegister" onclick="clipboardOpenConfirmation()">✅ 登録内容を確認</button></div>
@@ -1319,6 +1320,7 @@ body.in-room #roomListPanel {display:flex}
         <div class="detail-item"><span class="detail-label">BPM</span><span id="detailBPM"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル①</span><span id="detailGenre1"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
+        <div class="detail-item"><span class="detail-label">ジャンル③</span><span id="detailGenre3"></span></div>
         <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
         <div class="detail-item" id="detailFriendShared" style="display:none;">
             <b id="detailFriendOwner">👥 フレンドの登録情報（閲覧のみ）</b>
@@ -1331,8 +1333,9 @@ body.in-room #roomListPanel {display:flex}
             <div class="key-picker" id="detailKeyPicker"></div>
             <div id="detailKeyStatus" style="font-size:12px; opacity:0.85; margin-top:7px;" aria-live="polite"></div>
             <a id="detailKeyLink" target="_blank" rel="noopener noreferrer">🎸 選択したKeyでChordWikiを開く ↗</a>
-            <div style="font-size:11px; opacity:0.7; margin-top:6px;">自分用Keyの変更です。元のスプレッドシートのURLは変更しません。</div>
+            <div style="font-size:11px; opacity:0.7; margin-top:6px;">自分用Keyの変更です。マスターのChordWiki原曲URLは変更しません。</div>
         </div>
+        <div class="detail-item"><button type="button" onclick="openSongEditRequestModal()" style="width:100%;">✏️ この曲の情報修正を申請</button></div>
         <div class="detail-item" id="detailRoomShared"><b>🤝 ルーム内でこの曲を登録しているメンバー</b><div id="detailRoomMembers"></div></div>
         <div id="detailPersonalEdit" class="detail-item" style="display:none;">
             <label style="display:block;font-weight:bold;margin-bottom:7px;">マイリスト登録（本人のみ）</label>
@@ -1342,6 +1345,24 @@ body.in-room #roomListPanel {display:flex}
     </div>
 </div>
 
+<div class="modal-overlay" id="songEditRequestModal" onclick="closeModal(event,'songEditRequestModal')" style="z-index:1090;">
+ <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
+  <span class="modal-close" onclick="closeModal(null,'songEditRequestModal')">&times;</span>
+  <h2>✏️ 楽曲情報の修正申請</h2>
+  <p style="font-size:12px;">変更した項目だけ管理者へ送信します。承認までは公開マスターに反映されません。Googleログインが必要です。</p>
+  <form id="songEditRequestForm" onsubmit="submitSongEditRequest(event)">
+   <div class="setting-group"><label>曲名</label><input name="title" class="setting-input" maxlength="240" required></div>
+   <div class="setting-group"><label>アーティスト</label><input name="artist" class="setting-input" maxlength="240"></div>
+   <div class="setting-group"><label>ChordWiki原曲URL</label><input name="chordwiki" class="setting-input" maxlength="2048"></div>
+   <div class="setting-group"><label>BPM</label><input name="bpm" class="setting-input" maxlength="30"></div>
+   <div class="setting-group"><label>ジャンル① / ジャンル② / ジャンル③</label><input name="genre" class="setting-input" placeholder="ジャンル①" maxlength="100"><input name="genre2" class="setting-input" placeholder="ジャンル②" maxlength="100"><input name="genre3" class="setting-input" placeholder="ジャンル③" maxlength="100"></div>
+   <div class="setting-group"><label>タイアップ / 検索用語</label><input name="tieup" class="setting-input" placeholder="タイアップ" maxlength="240"><input name="search" class="setting-input" placeholder="検索用語" maxlength="500"></div>
+   <div class="setting-group"><label>作詞 / 作曲 / 編曲</label><input name="lyrics" class="setting-input" placeholder="作詞" maxlength="240"><input name="composition" class="setting-input" placeholder="作曲" maxlength="240"><input name="arrangement" class="setting-input" placeholder="編曲" maxlength="240"></div>
+   <p id="songEditRequestFeedback" aria-live="polite" style="font-size:12px;"></p>
+   <button type="submit" class="primary-btn" id="songEditRequestSubmit">管理者へ修正申請</button>
+  </form>
+ </div>
+</div>
 <!-- 予約モーダル -->
 <div class="modal-overlay" id="reservedModal" onclick="closeModal(event, 'reservedModal')">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1401,7 +1422,7 @@ body.in-room #roomListPanel {display:flex}
     let signedInUser = null;
 
     // Four-language interface translations. Song metadata, UIDs, URLs and Firebase keys are never translated.
-    const UI_I18N = {"↺ Key一括リセット":{"ko":"↺ 키 일괄 초기화","en":"↺ Reset all keys","zh-TW":"↺ 批次重設調性"},"登録済み・未登録を含む全曲のKeyを0（原曲）に戻しました。":{"ko":"등록 여부와 관계없이 모든 곡의 키를 원곡(0)으로 초기화했습니다.","en":"All keys, including saved and unsaved songs, were reset to the original key (0).","zh-TW":"所有歌曲（含已加入與未加入清單）的調性均已重設為原調（0）。"},"📁 マイリスト登録済みを除外":{"ko":"📁 마이리스트 등록곡 제외","en":"📁 Hide songs in My list","zh-TW":"📁 排除已加入個人清單的歌曲"},"Googleでログイン":{"ko":"Google로 로그인","en":"Sign in with Google","zh-TW":"使用 Google 登入"},"ゲスト利用中":{"ko":"게스트로 이용 중","en":"Using as guest","zh-TW":"訪客模式"},"ログイン中":{"ko":"로그인 중","en":"Signed in","zh-TW":"已登入"},"Googleログイン中":{"ko":"Google 로그인 중","en":"Google signed in","zh-TW":"已透過 Google 登入"},"ログアウト":{"ko":"로그아웃","en":"Sign out","zh-TW":"登出"},"ログアウトしますか？":{"ko":"로그아웃할까요?","en":"Do you want to sign out?","zh-TW":"確定要登出嗎？"},"ログアウトできませんでした。":{"ko":"로그아웃하지 못했습니다.","en":"Could not sign out.","zh-TW":"無法登出。"},"全曲一覧":{"ko":"全部 곡","en":"All songs","zh-TW":"所有歌曲"},"総登録楽曲数":{"ko":"총 등록 곡 수","en":"Total registered songs","zh-TW":"歌曲總登錄數"},"自分のマイリスト":{"ko":"내 곡 목록","en":"My song list","zh-TW":"我的歌曲清單"},"マイリスト":{"ko":"마이리스트","en":"My list","zh-TW":"我的清單"},"ルームを作る":{"ko":"방 만들기","en":"Create room","zh-TW":"建立房間"},"楽曲追加":{"ko":"곡 추가","en":"Add song","zh-TW":"新增歌曲"},"OBSカスタムCSS":{"ko":"OBS 사용자 CSS","en":"OBS custom CSS","zh-TW":"OBS 自訂 CSS"},"マイページ":{"ko":"마이페이지","en":"My page","zh-TW":"個人頁面"},"マイアカウント":{"ko":"내 계정","en":"My account","zh-TW":"我的帳戶"},"フレンド":{"ko":"친구","en":"Friends","zh-TW":"好友"},"使い方ガイド":{"ko":"사용 가이드","en":"User guide","zh-TW":"使用指南"},"設定":{"ko":"설정","en":"Settings","zh-TW":"設定"},"言語 / Language":{"ko":"언어 / Language","en":"Language","zh-TW":"語言 / Language"},"日本語":{"ko":"일본어","en":"Japanese","zh-TW":"日文"},"韓国語（ハングル）":{"ko":"한국어","en":"Korean (Hangul)","zh-TW":"韓文"},"英語":{"ko":"영어","en":"English","zh-TW":"英文"},"台湾華語（繁体字）":{"ko":"繁體中文（台灣）","en":"Traditional Chinese (Taiwan)","zh-TW":"繁體中文（台灣）"},"ルーム退出":{"ko":"방 나가기","en":"Leave room","zh-TW":"離開房間"},"退出":{"ko":"나가기","en":"Leave","zh-TW":"離開"},"ルームURLをコピー":{"ko":"방 URL 복사","en":"Copy room URL","zh-TW":"複製房間網址"},"URLをコピー":{"ko":"URL 복사","en":"Copy URL","zh-TW":"複製網址"},"参加中:":{"ko":"참가 중:","en":"Participants:","zh-TW":"參與者："},"読み込み中...":{"ko":"불러오는 중...","en":"Loading...","zh-TW":"載入中..."},"読み込み中…":{"ko":"불러오는 중…","en":"Loading…","zh-TW":"載入中…"},"ルームの共有マイリストを読み込み中…":{"ko":"방 공유 목록을 불러오는 중…","en":"Loading shared room lists…","zh-TW":"正在載入房間共享清單…"},"検索":{"ko":"검색","en":"Search","zh-TW":"搜尋"},"曲名、アーティスト、アニメ名などで検索...":{"ko":"곡명, 아티스트, 애니메이션 등으로 검색...","en":"Search titles, artists, anime, etc...","zh-TW":"搜尋歌名、歌手、動畫名稱等…"},"予約":{"ko":"예약","en":"Queue","zh-TW":"預約"},"確定":{"ko":"확정","en":"Confirm","zh-TW":"確認"},"完了":{"ko":"완료","en":"Completed","zh-TW":"完成"},"表示中: 0 曲":{"ko":"표시 중: 0곡","en":"Showing: 0 songs","zh-TW":"顯示中：0 首"},"表示中:":{"ko":"표시 중:","en":"Showing:","zh-TW":"顯示中："},"アーティスト：":{"ko":"아티스트:","en":"Artist:","zh-TW":"藝人："},"絞り込み解除":{"ko":"필터 해제","en":"Clear filter","zh-TW":"清除篩選"},"ジャンル":{"ko":"장르","en":"Genre","zh-TW":"曲風"},"選択：0曲":{"ko":"선택: 0곡","en":"Selected: 0 songs","zh-TW":"已選：0 首"},"選択：":{"ko":"선택:","en":"Selected:","zh-TW":"已選："},"表示中を選択":{"ko":"표시 중인 곡 선택","en":"Select visible","zh-TW":"選取目前顯示"},"選択解除":{"ko":"선택 해제","en":"Clear selection","zh-TW":"取消選取"},"担当パートを指定":{"ko":"연주 파트 선택","en":"Select instrument","zh-TW":"選擇演奏樂器"},"パートON":{"ko":"파트 켜기","en":"Part ON","zh-TW":"啟用樂器"},"パートOFF":{"ko":"파트 끄기","en":"Part OFF","zh-TW":"停用樂器"},"Keyを指定":{"ko":"키 선택","en":"Select key","zh-TW":"選擇調性"},"選択曲に適用":{"ko":"선택한 곡에 적용","en":"Apply to selected","zh-TW":"套用至所選歌曲"},"選択曲を削除":{"ko":"선택한 곡 삭제","en":"Remove selected songs","zh-TW":"移除所選歌曲"},"スプレッドシートからデータを取得中...":{"ko":"스프레드시트에서 데이터를 불러오는 중...","en":"Loading spreadsheet data...","zh-TW":"正在載入試算表資料…"},"曲名":{"ko":"곡명","en":"Song title","zh-TW":"歌名"},"アーティスト名":{"ko":"아티스트 이름","en":"Artist name","zh-TW":"藝人名稱"},"アーティスト":{"ko":"아티스트","en":"Artist","zh-TW":"藝人"},"作詞者":{"ko":"작사가","en":"Lyricist","zh-TW":"作詞者"},"作曲者":{"ko":"작곡가","en":"Composer","zh-TW":"作曲者"},"編曲者":{"ko":"편곡자","en":"Arranger","zh-TW":"編曲者"},"ジャンル①":{"ko":"장르 ①","en":"Genre 1","zh-TW":"曲風①"},"ジャンル②":{"ko":"장르 ②","en":"Genre 2","zh-TW":"曲風②"},"タイアップ":{"ko":"타이업 / 작품명","en":"Related work","zh-TW":"搭配作品"},"マイリストから解除しますか？":{"ko":"마이리스트에서 삭제할까요?","en":"Remove from your list?","zh-TW":"確定從清單移除嗎？"},"いいえ":{"ko":"아니요","en":"No","zh-TW":"否"},"はい":{"ko":"예","en":"Yes","zh-TW":"是"},"閉じる":{"ko":"닫기","en":"Close","zh-TW":"關閉"},"フレンド管理":{"ko":"친구 관리","en":"Manage friends","zh-TW":"好友管理"},"フレンド一覧":{"ko":"친구 목록","en":"Friend list","zh-TW":"好友清單"},"一覧を更新":{"ko":"목록 새로고침","en":"Refresh list","zh-TW":"重新整理清單"},"フレンド検索・新規追加":{"ko":"친구 검색 및 추가","en":"Find / add friends","zh-TW":"搜尋／新增好友"},"相手のフレンドIDを入力して申請します。表示名検索ではなくID検索です。":{"ko":"상대방의 친구 ID를 입력해 신청하세요. 이름이 아닌 ID로 검색합니다.","en":"Enter a friend's ID to send a request. Search uses IDs, not display names.","zh-TW":"輸入對方的好友 ID 送出邀請；此功能依 ID 搜尋，而非暱稱。"},"自分のフレンドID":{"ko":"내 친구 ID","en":"My friend ID","zh-TW":"我的好友 ID"},"友達のフレンドID":{"ko":"상대방의 친구 ID","en":"Friend's ID","zh-TW":"好友的 ID"},"コピー":{"ko":"복사","en":"Copy","zh-TW":"複製"},"申請":{"ko":"신청","en":"Send request","zh-TW":"送出邀請"},"届いた申請":{"ko":"받은 신청","en":"Incoming requests","zh-TW":"收到的邀請"},"送った申請":{"ko":"보낸 신청","en":"Sent requests","zh-TW":"已送出的邀請"},"フレンドのマイリスト":{"ko":"친구의 마이리스트","en":"Friend's list","zh-TW":"好友的清單"},"自分との共通曲のみ":{"ko":"나와 겹치는 곡만","en":"Common songs only","zh-TW":"僅顯示共同歌曲"},"マイリストを見る":{"ko":"마이리스트 보기","en":"View list","zh-TW":"查看清單"},"解除":{"ko":"해제","en":"Remove","zh-TW":"移除"},"申請中":{"ko":"신청 중","en":"Pending","zh-TW":"申請中"},"承認":{"ko":"수락","en":"Accept","zh-TW":"接受"},"拒否":{"ko":"거절","en":"Decline","zh-TW":"拒絕"},"フレンドとマイリストを共有！ 共通の登録曲を自動抽出し、お互いのKey・担当パートも確認できます。":{"ko":"친구와 마이리스트를 공유하고 공통곡, 키와 연주 파트를 확인할 수 있어요!","en":"Share lists with friends, detect common songs and see each other's key and instruments.","zh-TW":"與好友分享歌單，自動找出共同歌曲，並查看彼此的調性與演奏樂器！"},"現在のルーム用URL":{"ko":"현재 방 URL","en":"Current room URL","zh-TW":"目前房間網址"},"表示を確認":{"ko":"미리보기","en":"Preview","zh-TW":"預覽畫面"},"OBSに映るセットリストのデザイン":{"ko":"OBS에 표시할 세트리스트 디자인","en":"OBS setlist design","zh-TW":"OBS 歌單外觀"},"枠色":{"ko":"테두리 색","en":"Border color","zh-TW":"邊框顏色"},"文字色":{"ko":"글자 색","en":"Text color","zh-TW":"文字顏色"},"背景色":{"ko":"배경 색","en":"Background color","zh-TW":"背景顏色"},"背景透明度（0%：不透明 / 100%：透明）":{"ko":"배경 투명도 (0% 불투명 / 100% 투명)","en":"Background transparency (0% opaque / 100% clear)","zh-TW":"背景透明度（0% 不透明／100% 全透明）"},"① 確定":{"ko":"① 적용","en":"① Apply","zh-TW":"① 確認"},"② CSS生成":{"ko":"② CSS 생성","en":"② Generate CSS","zh-TW":"② 產生 CSS"},"③ 📋 CSSをコピー":{"ko":"③ 📋 CSS 복사","en":"③ 📋 Copy CSS","zh-TW":"③ 📋 複製 CSS"},"CSS生成":{"ko":"CSS 생성","en":"Generate CSS","zh-TW":"產生 CSS"},"CSSをコピー":{"ko":"CSS 복사","en":"Copy CSS","zh-TW":"複製 CSS"},"生成されたOBSカスタムCSS":{"ko":"생성된 OBS 사용자 CSS","en":"Generated OBS custom CSS","zh-TW":"已產生的 OBS 自訂 CSS"},"色と透明度を選択して「確定」を押してください。":{"ko":"색과 투명도를 선택하고 '적용'을 누르세요.","en":"Choose colors and transparency, then press Apply.","zh-TW":"選擇顏色及透明度後，按下「確認」。"},"①確定後に「表示を確認」で選んだ配色をプレビューできます。OBS本番へ適用する際は、②CSS生成 → ③CSSをコピーしてブラウザソースに貼り付けてください。":{"ko":"① 적용 후 미리보기로 확인하세요. OBS에 적용하려면 ② CSS 생성 → ③ 복사 후 브라우저 소스에 붙여넣으세요.","en":"After applying, use Preview to check the colors. For OBS, generate and copy CSS, then paste into the browser source.","zh-TW":"按下①確認後可預覽配色；如要套用至 OBS，請依序產生 CSS、複製，並貼至瀏覽器來源。"},"前へ":{"ko":"이전","en":"Previous","zh-TW":"上一頁"},"次へ":{"ko":"다음","en":"Next","zh-TW":"下一頁"},"楽曲を追加":{"ko":"곡 추가","en":"Add a song","zh-TW":"新增歌曲"},"入力した情報を共有楽曲リストに登録します。公開される情報のみ入力してください。":{"ko":"입력한 내용은 공개 곡 목록에 등록됩니다. 공개 가능한 정보만 입력하세요.","en":"Submitted information will be added to the shared song catalog. Enter public information only.","zh-TW":"資料將加入公開歌曲清單，請僅填寫可公開的資訊。"},"曲名 *":{"ko":"곡명 *","en":"Song title *","zh-TW":"歌名 *"},"アーティスト名 *":{"ko":"아티스트 이름 *","en":"Artist name *","zh-TW":"藝人名稱 *"},"ChordWiki 原曲URL *":{"ko":"ChordWiki 원곡 URL *","en":"Original ChordWiki URL *","zh-TW":"ChordWiki 原曲網址 *"},"BPM（任意）":{"ko":"BPM (선택)","en":"BPM (optional)","zh-TW":"BPM（選填）"},"ジャンル *":{"ko":"장르 *","en":"Genre *","zh-TW":"曲風 *"},"ジャンル②（任意）":{"ko":"장르 ② (선택)","en":"Genre 2 (optional)","zh-TW":"曲風②（選填）"},"キャンセル":{"ko":"취소","en":"Cancel","zh-TW":"取消"},"スプレッドシートに登録":{"ko":"스프레드시트에 등록","en":"Submit to spreadsheet","zh-TW":"新增至試算表"},"ユーザー名と基本担当パートを設定します。Googleログイン中はアカウントに保存されます。":{"ko":"사용자 이름과 기본 연주 파트를 설정합니다. Google 로그인 시 계정에 저장됩니다.","en":"Set your username and default instrument. Saved to your account when signed in with Google.","zh-TW":"設定使用者名稱及預設演奏樂器；使用 Google 登入時會儲存至帳戶。"},"ユーザー名 (セッション用)":{"ko":"사용자 이름 (세션용)","en":"Session username","zh-TW":"使用者名稱（連線用）"},"変更":{"ko":"변경","en":"Change","zh-TW":"變更"},"アカウントの基本担当パート":{"ko":"기본 연주 파트","en":"Default instrument","zh-TW":"預設演奏樂器"},"未設定":{"ko":"미설정","en":"Not set","zh-TW":"未設定"},"ボーカル":{"ko":"보컬","en":"Vocals","zh-TW":"主唱"},"ギター・ベース":{"ko":"기타 · 베이스","en":"Guitar / bass","zh-TW":"吉他／貝斯"},"打楽器":{"ko":"타악기","en":"Percussion","zh-TW":"打擊樂"},"鍵盤":{"ko":"건반","en":"Keyboard","zh-TW":"鍵盤"},"管楽器":{"ko":"관악기","en":"Wind instruments","zh-TW":"管樂"},"弦楽器":{"ko":"현악기","en":"String instruments","zh-TW":"弦樂"},"笛":{"ko":"피리","en":"Flute","zh-TW":"笛類"},"ドラム・パーカッション":{"ko":"드럼 · 퍼커션","en":"Drums / percussion","zh-TW":"鼓／打擊樂"},"キーボード・シンセ":{"ko":"키보드 · 신스","en":"Keyboard / synth","zh-TW":"鍵盤／合成器"},"木管・金管":{"ko":"목관 · 금관","en":"Woodwind / brass","zh-TW":"木管／銅管"},"バイオリン・チェロなど":{"ko":"바이올린 · 첼로 등","en":"Violin / cello, etc.","zh-TW":"小提琴／大提琴等"},"リコーダー・尺八など":{"ko":"리코더 · 샤쿠하치 등","en":"Recorder / shakuhachi, etc.","zh-TW":"直笛／尺八等"},"保存":{"ko":"저장","en":"Save","zh-TW":"儲存"},"今後新たに登録する曲へ自動適用します。登録済みの曲は変更しません。":{"ko":"앞으로 등록하는 곡에 자동 적용됩니다. 기존 곡은 변경되지 않습니다.","en":"Applies automatically to newly saved songs. Existing songs stay unchanged.","zh-TW":"自動套用至往後新增的歌曲，不會變更既有歌曲。"},"UIカラーテーマ":{"ko":"UI 색상 테마","en":"UI color theme","zh-TW":"UI 色彩主題"},"ダーク (ダーク)":{"ko":"다크","en":"Dark","zh-TW":"深色"},"ホワイト":{"ko":"화이트","en":"White","zh-TW":"白色"},"初号機":{"ko":"초호기","en":"EVA Unit-01","zh-TW":"初號機"},"弐号機":{"ko":"2호기","en":"EVA Unit-02","zh-TW":"貳號機"},"零号機":{"ko":"0호기","en":"EVA Unit-00","zh-TW":"零號機"},"八号機":{"ko":"8호기","en":"EVA Unit-08","zh-TW":"八號機"},"フォント変更":{"ko":"글꼴 변경","en":"Change font","zh-TW":"更換字型"},"標準（システム）":{"ko":"기본 (시스템)","en":"Default (system)","zh-TW":"預設（系統）"},"ゴシック":{"ko":"고딕","en":"Gothic / sans serif","zh-TW":"黑體"},"丸ゴシック":{"ko":"둥근 고딕","en":"Rounded Gothic","zh-TW":"圓體"},"明朝":{"ko":"명조","en":"Mincho / serif","zh-TW":"明體"},"端末に入っているフォントを使用します。環境によって見た目が異なります。":{"ko":"기기에 설치된 글꼴을 사용합니다. 환경에 따라 다르게 표시될 수 있어요.","en":"Uses installed device fonts. Appearance varies by device.","zh-TW":"使用裝置已安裝的字型，外觀可能因裝置而異。"},"最新情報を再読み込み":{"ko":"최신 정보 새로고침","en":"Reload latest data","zh-TW":"重新載入最新資料"},"表示が古いときに使います。マイリスト・フレンド・ログイン情報は削除しません。":{"ko":"화면이 오래되었을 때 사용하세요. 마이리스트, 친구, 로그인 정보는 삭제되지 않습니다.","en":"Use if displayed data is stale. Your lists, friends, and sign-in are not deleted.","zh-TW":"顯示資料過舊時可使用，不會刪除歌單、好友或登入資訊。"},"自分用Key（原曲を0として半音単位）":{"ko":"내 키 (원곡 0, 반음 단위)","en":"My key (original = 0; semitones)","zh-TW":"個人調性（原調 0，以半音為單位）"},"選択したKeyでChordWikiを開く ↗":{"ko":"선택한 키로 ChordWiki 열기 ↗","en":"Open ChordWiki in selected key ↗","zh-TW":"以所選調性開啟 ChordWiki ↗"},"自分用Keyの変更です。元のスプレッドシートのURLは変更しません。":{"ko":"내 키만 바뀌며 스프레드시트 원본 URL은 변경되지 않습니다.","en":"Changes only your key; the original spreadsheet URL stays unchanged.","zh-TW":"僅修改個人調性，不會變更試算表原始網址。"},"ルーム内でこの曲を登録しているメンバー":{"ko":"방에서 이 곡을 등록한 멤버","en":"Members who saved this song","zh-TW":"房間內收藏此歌曲的成員"},"マイリスト登録（本人のみ）":{"ko":"마이리스트 등록 (본인만)","en":"My list registration (owner only)","zh-TW":"加入個人清單（僅限本人）"},"変更は自動保存されます。":{"ko":"변경 사항은 자동 저장됩니다.","en":"Changes are saved automatically.","zh-TW":"變更將自動儲存。"},"予約一覧":{"ko":"예약 목록","en":"Queued songs","zh-TW":"預約清單"},"演奏リスト":{"ko":"연주 목록","en":"Performance list","zh-TW":"演奏清單"},"今から演奏する確定済みの曲です。":{"ko":"곧 연주할 확정된 곡입니다.","en":"Confirmed songs ready to play.","zh-TW":"即將演奏的已確認歌曲。"},"本日のセットリスト":{"ko":"오늘의 세트리스트","en":"Today's setlist","zh-TW":"今日演出歌單"},"画像として保存する":{"ko":"이미지로 저장","en":"Save as image","zh-TW":"儲存為圖片"},"セッションの流れ":{"ko":"세션 진행 순서","en":"Session flow","zh-TW":"Session 流程"},"Key変更のコツ":{"ko":"키 변경 팁","en":"Key change tip","zh-TW":"變調小提示"},"検索のヒント":{"ko":"검색 팁","en":"Search tips","zh-TW":"搜尋小提示"},"フレンド機能":{"ko":"친구 기능","en":"Friends feature","zh-TW":"好友功能"},"OBS配信":{"ko":"OBS 방송","en":"OBS streaming","zh-TW":"OBS 直播"},"複数パート対応":{"ko":"복수 파트 지원","en":"Multiple instruments","zh-TW":"支援多種樂器"},"ルームの共通曲":{"ko":"방의 공통곡","en":"Room common songs","zh-TW":"房間共同歌曲"},"付箋を隠す":{"ko":"도움말 숨기기","en":"Hide tips","zh-TW":"隱藏提示"},"付箋を戻す":{"ko":"도움말 표시","en":"Show tips","zh-TW":"顯示提示"},"追加":{"ko":"추가","en":"Add","zh-TW":"加入"},"登録":{"ko":"등록","en":"Save","zh-TW":"加入清單"},"曲":{"ko":"곡","en":"songs","zh-TW":"首"},"自分":{"ko":"나","en":"Mine","zh-TW":"自己"},"共通曲":{"ko":"공통곡","en":"Common songs","zh-TW":"共同歌曲"},"全曲":{"ko":"전체 곡","en":"All songs","zh-TW":"所有歌曲"},"すべて":{"ko":"전체","en":"All","zh-TW":"全部"},"パート未設定":{"ko":"파트 미설정","en":"No instrument set","zh-TW":"未設定樂器"},"Googleログイン後に利用できます。":{"ko":"Google 로그인 후 이용할 수 있습니다.","en":"Available after Google sign-in.","zh-TW":"請先使用 Google 登入。"},"マイリストはGoogleログイン後に利用できます。":{"ko":"마이리스트는 Google 로그인 후 이용할 수 있습니다.","en":"Sign in with Google to use My list.","zh-TW":"請先使用 Google 登入以使用個人清單。"},"演奏候補を「予約」→曲を決めて「確定」→演奏したら「完了」。ルーム全員にリアルタイム反映！":{"ko":"연주 후보를 예약 → 확정 → 완료 순으로 진행하세요. 모든 멤버에게 실시간 반영됩니다!","en":"Queue → Confirm → Complete. Everyone in the room sees changes live!","zh-TW":"候選歌曲依序「預約 → 確認 → 完成」，全房成員即時同步！"},"Keyを選んでから予約すると、予約時のKeyを保持。ChordWikiリンクにも選んだKeyを反映します。マイリスト登録も同様です。":{"ko":"키를 선택한 후 예약하면 해당 키가 저장되고 ChordWiki 링크에도 적용됩니다. 마이리스트 등록도 마찬가지예요.","en":"Choose a key before queuing. The key is saved and applied to the ChordWiki link, also when adding to My list.","zh-TW":"選好調性再預約，系統會保留調性並套用至 ChordWiki 連結；加入個人清單亦同。"},"曲名・略称（検索登録語）・アーティスト・タイアップ・作詞・作曲・編曲など、いろいろな言葉で検索できます。":{"ko":"곡명, 약칭, 아티스트, 관련 작품명, 작사·작곡·편곡 등 다양한 단어로 검색할 수 있어요.","en":"Search by title, abbreviation, artist, related work, lyricist, composer, arranger and more.","zh-TW":"可依歌名、簡稱、歌手、作品名稱、作詞、作曲、編曲等搜尋。"},"ルーム内の「OBSカスタムCSS」から色や透明度を設定。完了曲を配信画面へ表示できます。":{"ko":"방의 OBS 사용자 CSS에서 색상과 투명도를 설정하고 완료된 곡을 방송에 표시할 수 있어요.","en":"Set colors and transparency through OBS custom CSS and show completed songs on stream.","zh-TW":"從房間的 OBS 自訂 CSS 設定顏色及透明度，將已完成歌曲顯示於直播畫面。"},"マイリストで担当楽器を複数選択OK。マルチプレイヤーの登録曲もまとめて管理できます。":{"ko":"한 곡에 여러 연주 파트를 지정할 수 있어요. 멀티 연주자의 곡도 편하게 관리하세요.","en":"Assign multiple instruments per song and manage multi-instrument performance lists.","zh-TW":"每首歌都能設定多種演奏樂器，方便管理多樂器演出曲目。"},"Googleログイン済みの2人以上で登録曲が重なると色付き表示。メンバー別の一覧も自由に切り替えられます。":{"ko":"Google 로그인 멤버 2명 이상에게 겹치는 곡이 있으면 색상으로 표시됩니다. 멤버별 목록도 전환할 수 있어요.","en":"Songs saved by two or more signed-in members are highlighted; switch freely between member lists.","zh-TW":"兩位以上 Google 登入成員收藏同一首歌時會標色，也可切換檢視各成員清單。"},"Googleログインしたユーザー同士で友達申請できます。承認済みの友達のマイリストを閲覧できます。":{"ko":"Google 로그인 사용자끼리 친구 신청하고 승인된 친구의 마이리스트를 볼 수 있어요.","en":"Google users can send friend requests and view accepted friends' lists.","zh-TW":"Google 登入使用者可互加好友，並查看已接受邀請好友的清單。"}};
+    const UI_I18N = {"↺ Key一括リセット":{"ko":"↺ 키 일괄 초기화","en":"↺ Reset all keys","zh-TW":"↺ 批次重設調性"},"登録済み・未登録を含む全曲のKeyを0（原曲）に戻しました。":{"ko":"등록 여부와 관계없이 모든 곡의 키를 원곡(0)으로 초기화했습니다.","en":"All keys, including saved and unsaved songs, were reset to the original key (0).","zh-TW":"所有歌曲（含已加入與未加入清單）的調性均已重設為原調（0）。"},"📁 マイリスト登録済みを除外":{"ko":"📁 마이리스트 등록곡 제외","en":"📁 Hide songs in My list","zh-TW":"📁 排除已加入個人清單的歌曲"},"Googleでログイン":{"ko":"Google로 로그인","en":"Sign in with Google","zh-TW":"使用 Google 登入"},"ゲスト利用中":{"ko":"게스트로 이용 중","en":"Using as guest","zh-TW":"訪客模式"},"ログイン中":{"ko":"로그인 중","en":"Signed in","zh-TW":"已登入"},"Googleログイン中":{"ko":"Google 로그인 중","en":"Google signed in","zh-TW":"已透過 Google 登入"},"ログアウト":{"ko":"로그아웃","en":"Sign out","zh-TW":"登出"},"ログアウトしますか？":{"ko":"로그아웃할까요?","en":"Do you want to sign out?","zh-TW":"確定要登出嗎？"},"ログアウトできませんでした。":{"ko":"로그아웃하지 못했습니다.","en":"Could not sign out.","zh-TW":"無法登出。"},"全曲一覧":{"ko":"全部 곡","en":"All songs","zh-TW":"所有歌曲"},"総登録楽曲数":{"ko":"총 등록 곡 수","en":"Total registered songs","zh-TW":"歌曲總登錄數"},"自分のマイリスト":{"ko":"내 곡 목록","en":"My song list","zh-TW":"我的歌曲清單"},"マイリスト":{"ko":"마이리스트","en":"My list","zh-TW":"我的清單"},"ルームを作る":{"ko":"방 만들기","en":"Create room","zh-TW":"建立房間"},"楽曲追加":{"ko":"곡 추가","en":"Add song","zh-TW":"新增歌曲"},"OBSカスタムCSS":{"ko":"OBS 사용자 CSS","en":"OBS custom CSS","zh-TW":"OBS 自訂 CSS"},"マイページ":{"ko":"마이페이지","en":"My page","zh-TW":"個人頁面"},"マイアカウント":{"ko":"내 계정","en":"My account","zh-TW":"我的帳戶"},"フレンド":{"ko":"친구","en":"Friends","zh-TW":"好友"},"使い方ガイド":{"ko":"사용 가이드","en":"User guide","zh-TW":"使用指南"},"設定":{"ko":"설정","en":"Settings","zh-TW":"設定"},"言語 / Language":{"ko":"언어 / Language","en":"Language","zh-TW":"語言 / Language"},"日本語":{"ko":"일본어","en":"Japanese","zh-TW":"日文"},"韓国語（ハングル）":{"ko":"한국어","en":"Korean (Hangul)","zh-TW":"韓文"},"英語":{"ko":"영어","en":"English","zh-TW":"英文"},"台湾華語（繁体字）":{"ko":"繁體中文（台灣）","en":"Traditional Chinese (Taiwan)","zh-TW":"繁體中文（台灣）"},"ルーム退出":{"ko":"방 나가기","en":"Leave room","zh-TW":"離開房間"},"退出":{"ko":"나가기","en":"Leave","zh-TW":"離開"},"ルームURLをコピー":{"ko":"방 URL 복사","en":"Copy room URL","zh-TW":"複製房間網址"},"URLをコピー":{"ko":"URL 복사","en":"Copy URL","zh-TW":"複製網址"},"参加中:":{"ko":"참가 중:","en":"Participants:","zh-TW":"參與者："},"読み込み中...":{"ko":"불러오는 중...","en":"Loading...","zh-TW":"載入中..."},"読み込み中…":{"ko":"불러오는 중…","en":"Loading…","zh-TW":"載入中…"},"ルームの共有マイリストを読み込み中…":{"ko":"방 공유 목록을 불러오는 중…","en":"Loading shared room lists…","zh-TW":"正在載入房間共享清單…"},"検索":{"ko":"검색","en":"Search","zh-TW":"搜尋"},"曲名、アーティスト、アニメ名などで検索...":{"ko":"곡명, 아티스트, 애니메이션 등으로 검색...","en":"Search titles, artists, anime, etc...","zh-TW":"搜尋歌名、歌手、動畫名稱等…"},"予約":{"ko":"예약","en":"Queue","zh-TW":"預約"},"確定":{"ko":"확정","en":"Confirm","zh-TW":"確認"},"完了":{"ko":"완료","en":"Completed","zh-TW":"完成"},"表示中: 0 曲":{"ko":"표시 중: 0곡","en":"Showing: 0 songs","zh-TW":"顯示中：0 首"},"表示中:":{"ko":"표시 중:","en":"Showing:","zh-TW":"顯示中："},"アーティスト：":{"ko":"아티스트:","en":"Artist:","zh-TW":"藝人："},"絞り込み解除":{"ko":"필터 해제","en":"Clear filter","zh-TW":"清除篩選"},"ジャンル":{"ko":"장르","en":"Genre","zh-TW":"曲風"},"選択：0曲":{"ko":"선택: 0곡","en":"Selected: 0 songs","zh-TW":"已選：0 首"},"選択：":{"ko":"선택:","en":"Selected:","zh-TW":"已選："},"表示中を選択":{"ko":"표시 중인 곡 선택","en":"Select visible","zh-TW":"選取目前顯示"},"選択解除":{"ko":"선택 해제","en":"Clear selection","zh-TW":"取消選取"},"担当パートを指定":{"ko":"연주 파트 선택","en":"Select instrument","zh-TW":"選擇演奏樂器"},"パートON":{"ko":"파트 켜기","en":"Part ON","zh-TW":"啟用樂器"},"パートOFF":{"ko":"파트 끄기","en":"Part OFF","zh-TW":"停用樂器"},"Keyを指定":{"ko":"키 선택","en":"Select key","zh-TW":"選擇調性"},"選択曲に適用":{"ko":"선택한 곡에 적용","en":"Apply to selected","zh-TW":"套用至所選歌曲"},"選択曲を削除":{"ko":"선택한 곡 삭제","en":"Remove selected songs","zh-TW":"移除所選歌曲"},"Firebaseから楽曲データを取得中...":{"ko":"스프레드시트에서 데이터를 불러오는 중...","en":"Loading spreadsheet data...","zh-TW":"正在載入試算表資料…"},"曲名":{"ko":"곡명","en":"Song title","zh-TW":"歌名"},"アーティスト名":{"ko":"아티스트 이름","en":"Artist name","zh-TW":"藝人名稱"},"アーティスト":{"ko":"아티스트","en":"Artist","zh-TW":"藝人"},"作詞者":{"ko":"작사가","en":"Lyricist","zh-TW":"作詞者"},"作曲者":{"ko":"작곡가","en":"Composer","zh-TW":"作曲者"},"編曲者":{"ko":"편곡자","en":"Arranger","zh-TW":"編曲者"},"ジャンル①":{"ko":"장르 ①","en":"Genre 1","zh-TW":"曲風①"},"ジャンル②":{"ko":"장르 ②","en":"Genre 2","zh-TW":"曲風②"},"タイアップ":{"ko":"타이업 / 작품명","en":"Related work","zh-TW":"搭配作品"},"マイリストから解除しますか？":{"ko":"마이리스트에서 삭제할까요?","en":"Remove from your list?","zh-TW":"確定從清單移除嗎？"},"いいえ":{"ko":"아니요","en":"No","zh-TW":"否"},"はい":{"ko":"예","en":"Yes","zh-TW":"是"},"閉じる":{"ko":"닫기","en":"Close","zh-TW":"關閉"},"フレンド管理":{"ko":"친구 관리","en":"Manage friends","zh-TW":"好友管理"},"フレンド一覧":{"ko":"친구 목록","en":"Friend list","zh-TW":"好友清單"},"一覧を更新":{"ko":"목록 새로고침","en":"Refresh list","zh-TW":"重新整理清單"},"フレンド検索・新規追加":{"ko":"친구 검색 및 추가","en":"Find / add friends","zh-TW":"搜尋／新增好友"},"相手のフレンドIDを入力して申請します。表示名検索ではなくID検索です。":{"ko":"상대방의 친구 ID를 입력해 신청하세요. 이름이 아닌 ID로 검색합니다.","en":"Enter a friend's ID to send a request. Search uses IDs, not display names.","zh-TW":"輸入對方的好友 ID 送出邀請；此功能依 ID 搜尋，而非暱稱。"},"自分のフレンドID":{"ko":"내 친구 ID","en":"My friend ID","zh-TW":"我的好友 ID"},"友達のフレンドID":{"ko":"상대방의 친구 ID","en":"Friend's ID","zh-TW":"好友的 ID"},"コピー":{"ko":"복사","en":"Copy","zh-TW":"複製"},"申請":{"ko":"신청","en":"Send request","zh-TW":"送出邀請"},"届いた申請":{"ko":"받은 신청","en":"Incoming requests","zh-TW":"收到的邀請"},"送った申請":{"ko":"보낸 신청","en":"Sent requests","zh-TW":"已送出的邀請"},"フレンドのマイリスト":{"ko":"친구의 마이리스트","en":"Friend's list","zh-TW":"好友的清單"},"自分との共通曲のみ":{"ko":"나와 겹치는 곡만","en":"Common songs only","zh-TW":"僅顯示共同歌曲"},"マイリストを見る":{"ko":"마이리스트 보기","en":"View list","zh-TW":"查看清單"},"解除":{"ko":"해제","en":"Remove","zh-TW":"移除"},"申請中":{"ko":"신청 중","en":"Pending","zh-TW":"申請中"},"承認":{"ko":"수락","en":"Accept","zh-TW":"接受"},"拒否":{"ko":"거절","en":"Decline","zh-TW":"拒絕"},"フレンドとマイリストを共有！ 共通の登録曲を自動抽出し、お互いのKey・担当パートも確認できます。":{"ko":"친구와 마이리스트를 공유하고 공통곡, 키와 연주 파트를 확인할 수 있어요!","en":"Share lists with friends, detect common songs and see each other's key and instruments.","zh-TW":"與好友分享歌單，自動找出共同歌曲，並查看彼此的調性與演奏樂器！"},"現在のルーム用URL":{"ko":"현재 방 URL","en":"Current room URL","zh-TW":"目前房間網址"},"表示を確認":{"ko":"미리보기","en":"Preview","zh-TW":"預覽畫面"},"OBSに映るセットリストのデザイン":{"ko":"OBS에 표시할 세트리스트 디자인","en":"OBS setlist design","zh-TW":"OBS 歌單外觀"},"枠色":{"ko":"테두리 색","en":"Border color","zh-TW":"邊框顏色"},"文字色":{"ko":"글자 색","en":"Text color","zh-TW":"文字顏色"},"背景色":{"ko":"배경 색","en":"Background color","zh-TW":"背景顏色"},"背景透明度（0%：不透明 / 100%：透明）":{"ko":"배경 투명도 (0% 불투명 / 100% 투명)","en":"Background transparency (0% opaque / 100% clear)","zh-TW":"背景透明度（0% 不透明／100% 全透明）"},"① 確定":{"ko":"① 적용","en":"① Apply","zh-TW":"① 確認"},"② CSS生成":{"ko":"② CSS 생성","en":"② Generate CSS","zh-TW":"② 產生 CSS"},"③ 📋 CSSをコピー":{"ko":"③ 📋 CSS 복사","en":"③ 📋 Copy CSS","zh-TW":"③ 📋 複製 CSS"},"CSS生成":{"ko":"CSS 생성","en":"Generate CSS","zh-TW":"產生 CSS"},"CSSをコピー":{"ko":"CSS 복사","en":"Copy CSS","zh-TW":"複製 CSS"},"生成されたOBSカスタムCSS":{"ko":"생성된 OBS 사용자 CSS","en":"Generated OBS custom CSS","zh-TW":"已產生的 OBS 自訂 CSS"},"色と透明度を選択して「確定」を押してください。":{"ko":"색과 투명도를 선택하고 '적용'을 누르세요.","en":"Choose colors and transparency, then press Apply.","zh-TW":"選擇顏色及透明度後，按下「確認」。"},"①確定後に「表示を確認」で選んだ配色をプレビューできます。OBS本番へ適用する際は、②CSS生成 → ③CSSをコピーしてブラウザソースに貼り付けてください。":{"ko":"① 적용 후 미리보기로 확인하세요. OBS에 적용하려면 ② CSS 생성 → ③ 복사 후 브라우저 소스에 붙여넣으세요.","en":"After applying, use Preview to check the colors. For OBS, generate and copy CSS, then paste into the browser source.","zh-TW":"按下①確認後可預覽配色；如要套用至 OBS，請依序產生 CSS、複製，並貼至瀏覽器來源。"},"前へ":{"ko":"이전","en":"Previous","zh-TW":"上一頁"},"次へ":{"ko":"다음","en":"Next","zh-TW":"下一頁"},"楽曲を追加":{"ko":"곡 추가","en":"Add a song","zh-TW":"新增歌曲"},"登録申請を管理者へ送信します。承認されるまで公開マスターは変更されません。":{"ko":"입력한 내용은 공개 곡 목록에 등록됩니다. 공개 가능한 정보만 입력하세요.","en":"Submitted information will be added to the shared song catalog. Enter public information only.","zh-TW":"資料將加入公開歌曲清單，請僅填寫可公開的資訊。"},"曲名 *":{"ko":"곡명 *","en":"Song title *","zh-TW":"歌名 *"},"アーティスト名 *":{"ko":"아티스트 이름 *","en":"Artist name *","zh-TW":"藝人名稱 *"},"ChordWiki 原曲URL *":{"ko":"ChordWiki 원곡 URL *","en":"Original ChordWiki URL *","zh-TW":"ChordWiki 原曲網址 *"},"BPM（任意）":{"ko":"BPM (선택)","en":"BPM (optional)","zh-TW":"BPM（選填）"},"ジャンル *":{"ko":"장르 *","en":"Genre *","zh-TW":"曲風 *"},"ジャンル②（任意）":{"ko":"장르 ② (선택)","en":"Genre 2 (optional)","zh-TW":"曲風②（選填）"},"キャンセル":{"ko":"취소","en":"Cancel","zh-TW":"取消"},"スプレッドシートに登録":{"ko":"스프레드시트에 등록","en":"Submit to spreadsheet","zh-TW":"新增至試算表"},"ユーザー名と基本担当パートを設定します。Googleログイン中はアカウントに保存されます。":{"ko":"사용자 이름과 기본 연주 파트를 설정합니다. Google 로그인 시 계정에 저장됩니다.","en":"Set your username and default instrument. Saved to your account when signed in with Google.","zh-TW":"設定使用者名稱及預設演奏樂器；使用 Google 登入時會儲存至帳戶。"},"ユーザー名 (セッション用)":{"ko":"사용자 이름 (세션용)","en":"Session username","zh-TW":"使用者名稱（連線用）"},"変更":{"ko":"변경","en":"Change","zh-TW":"變更"},"アカウントの基本担当パート":{"ko":"기본 연주 파트","en":"Default instrument","zh-TW":"預設演奏樂器"},"未設定":{"ko":"미설정","en":"Not set","zh-TW":"未設定"},"ボーカル":{"ko":"보컬","en":"Vocals","zh-TW":"主唱"},"ギター・ベース":{"ko":"기타 · 베이스","en":"Guitar / bass","zh-TW":"吉他／貝斯"},"打楽器":{"ko":"타악기","en":"Percussion","zh-TW":"打擊樂"},"鍵盤":{"ko":"건반","en":"Keyboard","zh-TW":"鍵盤"},"管楽器":{"ko":"관악기","en":"Wind instruments","zh-TW":"管樂"},"弦楽器":{"ko":"현악기","en":"String instruments","zh-TW":"弦樂"},"笛":{"ko":"피리","en":"Flute","zh-TW":"笛類"},"ドラム・パーカッション":{"ko":"드럼 · 퍼커션","en":"Drums / percussion","zh-TW":"鼓／打擊樂"},"キーボード・シンセ":{"ko":"키보드 · 신스","en":"Keyboard / synth","zh-TW":"鍵盤／合成器"},"木管・金管":{"ko":"목관 · 금관","en":"Woodwind / brass","zh-TW":"木管／銅管"},"バイオリン・チェロなど":{"ko":"바이올린 · 첼로 등","en":"Violin / cello, etc.","zh-TW":"小提琴／大提琴等"},"リコーダー・尺八など":{"ko":"리코더 · 샤쿠하치 등","en":"Recorder / shakuhachi, etc.","zh-TW":"直笛／尺八等"},"保存":{"ko":"저장","en":"Save","zh-TW":"儲存"},"今後新たに登録する曲へ自動適用します。登録済みの曲は変更しません。":{"ko":"앞으로 등록하는 곡에 자동 적용됩니다. 기존 곡은 변경되지 않습니다.","en":"Applies automatically to newly saved songs. Existing songs stay unchanged.","zh-TW":"自動套用至往後新增的歌曲，不會變更既有歌曲。"},"UIカラーテーマ":{"ko":"UI 색상 테마","en":"UI color theme","zh-TW":"UI 色彩主題"},"ダーク (ダーク)":{"ko":"다크","en":"Dark","zh-TW":"深色"},"ホワイト":{"ko":"화이트","en":"White","zh-TW":"白色"},"初号機":{"ko":"초호기","en":"EVA Unit-01","zh-TW":"初號機"},"弐号機":{"ko":"2호기","en":"EVA Unit-02","zh-TW":"貳號機"},"零号機":{"ko":"0호기","en":"EVA Unit-00","zh-TW":"零號機"},"八号機":{"ko":"8호기","en":"EVA Unit-08","zh-TW":"八號機"},"フォント変更":{"ko":"글꼴 변경","en":"Change font","zh-TW":"更換字型"},"標準（システム）":{"ko":"기본 (시스템)","en":"Default (system)","zh-TW":"預設（系統）"},"ゴシック":{"ko":"고딕","en":"Gothic / sans serif","zh-TW":"黑體"},"丸ゴシック":{"ko":"둥근 고딕","en":"Rounded Gothic","zh-TW":"圓體"},"明朝":{"ko":"명조","en":"Mincho / serif","zh-TW":"明體"},"端末に入っているフォントを使用します。環境によって見た目が異なります。":{"ko":"기기에 설치된 글꼴을 사용합니다. 환경에 따라 다르게 표시될 수 있어요.","en":"Uses installed device fonts. Appearance varies by device.","zh-TW":"使用裝置已安裝的字型，外觀可能因裝置而異。"},"最新情報を再読み込み":{"ko":"최신 정보 새로고침","en":"Reload latest data","zh-TW":"重新載入最新資料"},"表示が古いときに使います。マイリスト・フレンド・ログイン情報は削除しません。":{"ko":"화면이 오래되었을 때 사용하세요. 마이리스트, 친구, 로그인 정보는 삭제되지 않습니다.","en":"Use if displayed data is stale. Your lists, friends, and sign-in are not deleted.","zh-TW":"顯示資料過舊時可使用，不會刪除歌單、好友或登入資訊。"},"自分用Key（原曲を0として半音単位）":{"ko":"내 키 (원곡 0, 반음 단위)","en":"My key (original = 0; semitones)","zh-TW":"個人調性（原調 0，以半音為單位）"},"選択したKeyでChordWikiを開く ↗":{"ko":"선택한 키로 ChordWiki 열기 ↗","en":"Open ChordWiki in selected key ↗","zh-TW":"以所選調性開啟 ChordWiki ↗"},"自分用Keyの変更です。マスターのChordWiki原曲URLは変更しません。":{"ko":"내 키만 바뀌며 스프레드시트 원본 URL은 변경되지 않습니다.","en":"Changes only your key; the original spreadsheet URL stays unchanged.","zh-TW":"僅修改個人調性，不會變更試算表原始網址。"},"ルーム内でこの曲を登録しているメンバー":{"ko":"방에서 이 곡을 등록한 멤버","en":"Members who saved this song","zh-TW":"房間內收藏此歌曲的成員"},"マイリスト登録（本人のみ）":{"ko":"마이리스트 등록 (본인만)","en":"My list registration (owner only)","zh-TW":"加入個人清單（僅限本人）"},"変更は自動保存されます。":{"ko":"변경 사항은 자동 저장됩니다.","en":"Changes are saved automatically.","zh-TW":"變更將自動儲存。"},"予約一覧":{"ko":"예약 목록","en":"Queued songs","zh-TW":"預約清單"},"演奏リスト":{"ko":"연주 목록","en":"Performance list","zh-TW":"演奏清單"},"今から演奏する確定済みの曲です。":{"ko":"곧 연주할 확정된 곡입니다.","en":"Confirmed songs ready to play.","zh-TW":"即將演奏的已確認歌曲。"},"本日のセットリスト":{"ko":"오늘의 세트리스트","en":"Today's setlist","zh-TW":"今日演出歌單"},"画像として保存する":{"ko":"이미지로 저장","en":"Save as image","zh-TW":"儲存為圖片"},"セッションの流れ":{"ko":"세션 진행 순서","en":"Session flow","zh-TW":"Session 流程"},"Key変更のコツ":{"ko":"키 변경 팁","en":"Key change tip","zh-TW":"變調小提示"},"検索のヒント":{"ko":"검색 팁","en":"Search tips","zh-TW":"搜尋小提示"},"フレンド機能":{"ko":"친구 기능","en":"Friends feature","zh-TW":"好友功能"},"OBS配信":{"ko":"OBS 방송","en":"OBS streaming","zh-TW":"OBS 直播"},"複数パート対応":{"ko":"복수 파트 지원","en":"Multiple instruments","zh-TW":"支援多種樂器"},"ルームの共通曲":{"ko":"방의 공통곡","en":"Room common songs","zh-TW":"房間共同歌曲"},"付箋を隠す":{"ko":"도움말 숨기기","en":"Hide tips","zh-TW":"隱藏提示"},"付箋を戻す":{"ko":"도움말 표시","en":"Show tips","zh-TW":"顯示提示"},"追加":{"ko":"추가","en":"Add","zh-TW":"加入"},"登録":{"ko":"등록","en":"Save","zh-TW":"加入清單"},"曲":{"ko":"곡","en":"songs","zh-TW":"首"},"自分":{"ko":"나","en":"Mine","zh-TW":"自己"},"共通曲":{"ko":"공통곡","en":"Common songs","zh-TW":"共同歌曲"},"全曲":{"ko":"전체 곡","en":"All songs","zh-TW":"所有歌曲"},"すべて":{"ko":"전체","en":"All","zh-TW":"全部"},"パート未設定":{"ko":"파트 미설정","en":"No instrument set","zh-TW":"未設定樂器"},"Googleログイン後に利用できます。":{"ko":"Google 로그인 후 이용할 수 있습니다.","en":"Available after Google sign-in.","zh-TW":"請先使用 Google 登入。"},"マイリストはGoogleログイン後に利用できます。":{"ko":"마이리스트는 Google 로그인 후 이용할 수 있습니다.","en":"Sign in with Google to use My list.","zh-TW":"請先使用 Google 登入以使用個人清單。"},"演奏候補を「予約」→曲を決めて「確定」→演奏したら「完了」。ルーム全員にリアルタイム反映！":{"ko":"연주 후보를 예약 → 확정 → 완료 순으로 진행하세요. 모든 멤버에게 실시간 반영됩니다!","en":"Queue → Confirm → Complete. Everyone in the room sees changes live!","zh-TW":"候選歌曲依序「預約 → 確認 → 完成」，全房成員即時同步！"},"Keyを選んでから予約すると、予約時のKeyを保持。ChordWikiリンクにも選んだKeyを反映します。マイリスト登録も同様です。":{"ko":"키를 선택한 후 예약하면 해당 키가 저장되고 ChordWiki 링크에도 적용됩니다. 마이리스트 등록도 마찬가지예요.","en":"Choose a key before queuing. The key is saved and applied to the ChordWiki link, also when adding to My list.","zh-TW":"選好調性再預約，系統會保留調性並套用至 ChordWiki 連結；加入個人清單亦同。"},"曲名・略称（検索登録語）・アーティスト・タイアップ・作詞・作曲・編曲など、いろいろな言葉で検索できます。":{"ko":"곡명, 약칭, 아티스트, 관련 작품명, 작사·작곡·편곡 등 다양한 단어로 검색할 수 있어요.","en":"Search by title, abbreviation, artist, related work, lyricist, composer, arranger and more.","zh-TW":"可依歌名、簡稱、歌手、作品名稱、作詞、作曲、編曲等搜尋。"},"ルーム内の「OBSカスタムCSS」から色や透明度を設定。完了曲を配信画面へ表示できます。":{"ko":"방의 OBS 사용자 CSS에서 색상과 투명도를 설정하고 완료된 곡을 방송에 표시할 수 있어요.","en":"Set colors and transparency through OBS custom CSS and show completed songs on stream.","zh-TW":"從房間的 OBS 自訂 CSS 設定顏色及透明度，將已完成歌曲顯示於直播畫面。"},"マイリストで担当楽器を複数選択OK。マルチプレイヤーの登録曲もまとめて管理できます。":{"ko":"한 곡에 여러 연주 파트를 지정할 수 있어요. 멀티 연주자의 곡도 편하게 관리하세요.","en":"Assign multiple instruments per song and manage multi-instrument performance lists.","zh-TW":"每首歌都能設定多種演奏樂器，方便管理多樂器演出曲目。"},"Googleログイン済みの2人以上で登録曲が重なると色付き表示。メンバー別の一覧も自由に切り替えられます。":{"ko":"Google 로그인 멤버 2명 이상에게 겹치는 곡이 있으면 색상으로 표시됩니다. 멤버별 목록도 전환할 수 있어요.","en":"Songs saved by two or more signed-in members are highlighted; switch freely between member lists.","zh-TW":"兩位以上 Google 登入成員收藏同一首歌時會標色，也可切換檢視各成員清單。"},"Googleログインしたユーザー同士で友達申請できます。承認済みの友達のマイリストを閲覧できます。":{"ko":"Google 로그인 사용자끼리 친구 신청하고 승인된 친구의 마이리스트를 볼 수 있어요.","en":"Google users can send friend requests and view accepted friends' lists.","zh-TW":"Google 登入使用者可互加好友，並查看已接受邀請好友的清單。"}};
     const LANGUAGE_STORAGE = 'sharelistscore_language';
     const LANGUAGE_IDS = ['ja','ko','en','zh-TW'];
     let activeLanguage = 'ja', languageLoadVersion = 0, languageObserver = null, languageFontReady = false, languageManualReady = false, languageAppReady = false;
@@ -2016,6 +2037,14 @@ body.in-room #roomListPanel {display:flex}
         // ゲストの匿名認証はルームにのみ使う。個人機能はGoogle認証のまま。
         const user = firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null;
         signedInUser = user;
+        // friendCodesはGoogle認証本人UIDで書き込み後は変更不可。公開管理画面もサーバールールで再検証。
+        const adminLink=document.getElementById('adminPageLink');
+        if(adminLink)adminLink.style.display='none';
+        if(user){
+          db.ref('friendCodes/SL-U2UVGBUDWB').once('value').then(snap=>{
+            if(adminLink && signedInUser?.uid===user.uid && snap.val()===user.uid)adminLink.style.display='block';
+          }).catch(error=>console.warn('管理者表示の照合待ち',error));
+        }
         // Googleログイン／ログアウトによる表示名・本人判定の変更も参加者表示へ反映する。
         if (typeof roomActiveMembers !== 'undefined') renderRoomParticipants();
         loadLanguageForUser(user);
@@ -2603,9 +2632,9 @@ body.in-room #roomListPanel {display:flex}
     }
 
     // =========================================
-    // スプレッドシート自動取得 & データ処理
+    // Firebase本番マスター取得 & データ処理
     // =========================================
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?gid=0&single=true&output=csv";
+    const MASTER_DB_PATH = "songs";
 
     let allData = [];
     let roomQueue = {}; 
@@ -2613,7 +2642,8 @@ body.in-room #roomListPanel {display:flex}
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
     let genre1Key = 'ジャンル'; 
-    let genre2Key = 'ジャンル②'; 
+    let genre2Key = 'ジャンル②';
+    let genre3Key = 'ジャンル③'; 
 
     const tableBody = document.getElementById('tableBody');
     const controls = document.getElementById('controls');
@@ -3360,8 +3390,6 @@ html, body { background: transparent !important; color: ${text} !important; }
 
     // Apps Script を「ウェブアプリ」としてデプロイして /exec URL をここに設定。
     // 公開CSVのURLは書き込みに使えません。
-    const SONG_ADD_API_URL = 'https://script.google.com/macros/s/AKfycbwAF4yXcQOM-JlRdOrLFrB1AYczZe1ks53ysx2UE1-ZgH87cjix_rHacJ55OYPzCpu5/exec';
-
     function openAddSongModal() {
         const genres = new Set();
         allData.forEach(row => {
@@ -3399,42 +3427,42 @@ html, body { background: transparent !important; color: ${text} !important; }
     async function submitNewSong(event) {
         event.preventDefault();
         const form = document.getElementById('addSongForm');
+        const feedback = document.getElementById('addSongFeedback');
+        const button = document.getElementById('addSongSubmit');
         const urlError = validateNewChordWikiUrl(newCodeUrlInput.value);
         newCodeUrlInput.setCustomValidity(urlError);
         document.getElementById('newCodeUrlCheck').textContent = urlError;
         if (!form.reportValidity()) return;
-        const feedback = document.getElementById('addSongFeedback');
-        const submit = document.getElementById('addSongSubmit');
-        if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(SONG_ADD_API_URL)) {
-            feedback.textContent = '管理者の設定が未完了です。Apps Script のウェブアプリURLを設定してください。';
-            return;
-        }
         const data = Object.fromEntries(new FormData(form).entries());
-        if (data.genre1 === data.genre2) {
-            feedback.textContent = 'ジャンル②にはジャンルと異なる項目を選んでください。';
-            return;
+        if (data.genre1 && data.genre1 === data.genre2) {
+            feedback.textContent = 'ジャンル②はジャンル①とは別の項目を選んでください。'; return;
         }
-        submit.disabled = true;
-        feedback.textContent = '送信中です…';
+        const title = String(data.title || '').trim();
+        const artist = String(data.artist || '').trim();
+        if (allData.some(row => String(row['曲名']||'').trim() === title && String(row['アーティスト']||'').trim() === artist)) {
+            feedback.textContent = '同じ曲名・アーティストの曲が公開マスターにあります。検索して確認してください。'; return;
+        }
+        button.disabled = true; feedback.textContent = '管理者への登録申請を送信しています…';
         try {
-            // Apps Script は通常の CORS API としては利用できないため opaque 応答。
-            // fetch 成功は「到達の保証」や「シートへの書込成功の確認」ではありません。
-            await fetch(SONG_ADD_API_URL, {
-                method: 'POST', mode: 'no-cors', redirect: 'follow',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(data)
-            });
-            form.reset();
-            newCodeUrlInput.setCustomValidity('');
+            let user = auth.currentUser;
+            if (!user) { const result = await auth.signInAnonymously(); user = result.user; }
+            if (!user) throw Error('認証を開始できませんでした');
+            const payload = {
+                type:'newSong', requestedBy:user.uid, title, artist,
+                chordwiki:String(data.codeUrl||'').trim(), bpm:String(data.bpm||''),
+                genre:String(data.genre1||''), genre2:String(data.genre2||''), genre3:'',
+                tieup:'', search:'', lyrics:'', composition:'', arrangement:'',
+                status:'pending', createdAt:firebase.database.ServerValue.TIMESTAMP
+            };
+            await db.ref(`songAddRequests/${user.uid}`).push(payload);
+            form.reset(); newCodeUrlInput.setCustomValidity('');
             document.getElementById('newCodeUrlCheck').textContent = '';
-            feedback.textContent = '送信処理が終了しました。ただし書き込み結果は画面から判定できません。しばらくしてページを再読み込みし、楽曲が増えたか確認してください（公開CSVの更新には時間がかかる場合があります）。';
+            feedback.textContent = '申請を受け付けました。管理者の承認後に全曲一覧へ反映されます。';
         } catch (error) {
-            feedback.textContent = '送信できませんでした。通信環境を確認し、再度お試しください。';
-        } finally {
-            submit.disabled = false;
-        }
+            console.error('楽曲追加申請の失敗',error);
+            feedback.textContent = '申請を送信できませんでした: '+String(error.message||error);
+        } finally {button.disabled = false;}
     }
-
 
     // CSV Import v2: the source URL may contain the uploader's personal key.
     // Never place a transposed CGI URL into the master. The GAS endpoint independently parses it.
@@ -3479,7 +3507,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       }catch(_){return null;}
     }
 
-    // Clipboard text import: UUID-based personal My List only; no GAS or master mutation.
+    // Clipboard text import: UUID-based personal My List; artist-fill requests need admin approval and never mutate the public master.
     const CLIPBOARD_IMPORT_MAX=250;
     let clipboardImportRows=[],clipboardImportBusy=false,clipboardImportText='';
     function clipboardTrim(x){return String(x??'').trim();}
@@ -3550,8 +3578,8 @@ html, body { background: transparent !important; color: ${text} !important; }
       }
       const seen=new Set();
       const rows=records.map(rec=>{
-        const row={...rec,status:'ok',reason:'',songId:'',key:0,conflict:false,urlKey:null,explicitKey:null};
-        const key=clipboardParseKey(rec.rawKey);const u=rec.rawUrl?bulkCsvParseUrl(rec.rawUrl):null;
+        const row={...rec,status:'ok',reason:'',songId:'',key:0,conflict:false,urlKey:null,explicitKey:null,artistProposal:false};
+        const key=clipboardParseKey(rec.rawKey),u=rec.rawUrl?bulkCsvParseUrl(rec.rawUrl):null;
         if(!rec.title||!rec.artist){row.status='error';row.reason='曲名とアーティスト名の両方が必要です';return row;}
         if(key.error){row.status='error';row.reason=key.error;return row;}
         if(rec.rawUrl&&!u){row.status='error';row.reason='ChordWiki URLが不正です（形式・Key範囲を確認）';return row;}
@@ -3559,20 +3587,29 @@ html, body { background: transparent !important; color: ${text} !important; }
         let matches=pair;
         if(u){
           const urls=byUrl.get(u.urlKey)||[];
-          matches=urls.filter(song=>pair.some(p=>p._id===song._id));
-          if(!matches.length){row.status='error';row.reason=urls.length?'URLと曲名・アーティスト名が同じマスター曲に一致しません':'ChordWiki URLに一致するマスター曲がありません';return row;}
+          // The URL can identify a song whose master artist has not been filled yet.
+          // Never overwrite an existing artist or infer one from the URL alone.
+          matches=urls.filter(song=>clipboardTrim(song['曲名'])===rec.title &&
+            (clipboardTrim(song['アーティスト'])===rec.artist || !clipboardTrim(song['アーティスト'])));
+          if(!matches.length){
+            row.status='error';
+            row.reason=urls.length?'URLと曲名・アーティスト名が同じマスター曲に一致しません（既存のアーティストは上書きしません）':'ChordWiki URLに一致するマスター曲がありません';
+            return row;
+          }
         }
-        if(!matches.length){row.status='error';row.reason='マスター未一致（曲名・アーティスト名は完全一致が必要です）';return row;}
+        if(!matches.length){row.status='error';row.reason='マスター未一致（URLがない場合、曲名・アーティスト名の完全一致が必要です）';return row;}
         const ids=new Set(matches.map(x=>x._id));
         if(ids.size!==1){row.status='error';row.reason='同じ条件に複数のマスター曲があり、登録先を特定できません';return row;}
-        row.songId=matches[0]._id;
+        const target=matches[0];row.songId=target._id;
         if(seen.has(row.songId)){row.status='error';row.reason='貼り付け内の重複曲（先の行だけを対象にします）';return row;}
         seen.add(row.songId);
+        row.artistProposal=!!u&&!clipboardTrim(target['アーティスト']);
         row.explicitKey=key.specified?key.key:null;
         row.urlKey=u?(u.keySpecified?u.key:0):null;
         row.key=key.specified?key.key:(u?u.key:0);
         row.conflict=key.specified&&!!u&&u.keySpecified&&key.key!==u.key;
         if(row.conflict){row.status='conflict';row.reason=`指定Key ${clipboardKeyLabel(key.key)} / URLのKey ${clipboardKeyLabel(u.key)} が異なります`;}
+        else if(row.artistProposal){row.reason=`登録Key ${clipboardKeyLabel(row.key)} / マスターのアーティスト空欄：補完申請「${rec.artist}」を管理者へ送信`}
         return row;
       });
       return {rows};
@@ -3583,8 +3620,9 @@ html, body { background: transparent !important; color: ${text} !important; }
       const status=good?'✅ 一致':row.status==='conflict'?'⚠ Key要確認':'✕ 登録対象外';
       const label=`${escapeHtml(row.title||'曲名なし')} / ${escapeHtml(row.artist||'アーティスト名なし')}`;
       const already=row.songId&&bulkCsvAlreadyPersonal(row.songId)?'・マイリスト登録済（Keyを更新）':'';
+      const proposal=row.artistProposal?' / 📝 アーティスト補完は管理者確認待ち':'';
       const picker=confirmation&&row.conflict?`<label style="display:block;margin-top:5px;">登録するKey：<select class="clipboard-key-conflict" data-clipboard-line="${row.line}" aria-label="${escapeHtml(row.title)}の登録Key"><option value="explicit">指定Key ${clipboardKeyLabel(row.explicitKey)}</option><option value="url">URLのKey ${clipboardKeyLabel(row.urlKey)}</option></select></label>`:'';
-      return `<div class="clipboard-row ${cls}"><strong>${row.line}行目 ${status}：${label}</strong><small>${escapeHtml(row.reason||(good?'登録Key '+clipboardKeyLabel(row.key)+already:''))}</small>${picker}</div>`;
+      return `<div class="clipboard-row ${cls}"><strong>${row.line}行目 ${status}：${label}</strong><small>${escapeHtml(row.reason||(good?'登録Key '+clipboardKeyLabel(row.key)+already:''))}${proposal}</small>${picker}</div>`;
     }
     function openClipboardImportModal(){
       if(!signedInUser||signedInUser.isAnonymous)return alert('貼り付け登録にはGoogleログインが必要です。');
@@ -3600,8 +3638,8 @@ html, body { background: transparent !important; color: ${text} !important; }
       const raw=document.getElementById('clipboardImportInput').value;clipboardImportText=raw;
       const result=clipboardAnalyze(raw),area=document.getElementById('clipboardImportPreview'),summary=document.getElementById('clipboardImportSummary');
       clipboardImportRows=result.rows;area.innerHTML=result.rows.map(r=>clipboardRowHtml(r)).join('');
-      const ok=result.rows.filter(r=>['ok','conflict'].includes(r.status)).length,conflicts=result.rows.filter(r=>r.conflict).length;
-      summary.textContent=result.error||`解析 ${result.rows.length}曲｜一致 ${ok}曲｜Key差異 ${conflicts}曲｜エラー・未一致 ${result.rows.length-ok}曲`;
+      const ok=result.rows.filter(r=>['ok','conflict'].includes(r.status)).length,conflicts=result.rows.filter(r=>r.conflict).length,proposals=result.rows.filter(r=>r.artistProposal&&['ok','conflict'].includes(r.status)).length;
+      summary.textContent=result.error||`解析 ${result.rows.length}曲｜一致 ${ok}曲｜アーティスト補完申請 ${proposals}曲｜Key差異 ${conflicts}曲｜エラー・未一致 ${result.rows.length-ok}曲`;
       if(!result.rows.length&&!result.error)summary.textContent='曲名・アーティスト名を含む楽曲情報を貼り付けてください。';
       document.getElementById('clipboardImportRegister').disabled=!ok;
       return result;
@@ -3609,7 +3647,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     function clipboardOpenConfirmation(){
       if(clipboardImportBusy)return;
       const result=clipboardPreview(),valid=result.rows.filter(r=>['ok','conflict'].includes(r.status));if(!valid.length)return;
-      document.getElementById('clipboardConfirmSummary').textContent=`一致した${valid.length}曲をマイリストへ登録またはKey更新します。うち${valid.filter(r=>r.conflict).length}曲は指定KeyとURLのKeyが異なります。エラー・未一致の${result.rows.length-valid.length}曲は除外します。`;
+      document.getElementById('clipboardConfirmSummary').textContent=`一致した${valid.length}曲をマイリストへ登録またはKey更新します。うち${valid.filter(r=>r.artistProposal).length}曲は、マスターの空欄アーティストを管理者へ補完申請します（承認後に反映）。${valid.filter(r=>r.conflict).length}曲は指定KeyとURLのKeyが異なります。エラー・未一致の${result.rows.length-valid.length}曲は除外します。`;
       document.getElementById('clipboardConfirmRows').innerHTML=result.rows.map(r=>clipboardRowHtml(r,true)).join('');
       document.getElementById('clipboardConfirmFeedback').textContent='';openModal('clipboardConfirmModal');
     }
@@ -3634,8 +3672,27 @@ html, body { background: transparent !important; color: ${text} !important; }
         if(!applied.length)throw Error('登録できる曲がありません。');
         await db.ref().update(updates);
         if(signedInUser?.uid===user.uid){for(const [id,item] of applied){personalSongs[id]=item;delete pendingSongs[id];delete draftRegistrationKeys[id];}void queueFriendSharedSync(user.uid);renderTable();}
+        // Artist data is never written to songs/ or to the still-active Spreadsheet master.
+        // Review requests use a stable song+UID key to avoid repeated duplicate submissions.
+        const artistRows=candidates.filter(r=>r.artistProposal),proposalErrors=[];
+        let proposed=0;
+        if(artistRows.length){
+          feedback.textContent='マイリスト保存済み。アーティスト補完申請を送信中…';
+          for(const row of artistRows){
+            try{
+              if(auth.currentUser?.uid!==user.uid)throw Error('ログインアカウントが変更されました');
+              await db.ref(`songEditRequests/${row.songId}/${user.uid}`).set({
+                type:'artistFill',songId:row.songId,title:row.title,artist:row.artist,
+                sourceUrl:row.rawUrl,requestedBy:user.uid,status:'pending',
+                createdAt:firebase.database.ServerValue.TIMESTAMP
+              });
+              proposed++;
+            }catch(err){console.error('アーティスト補完申請失敗',row.songId,err);proposalErrors.push(`${row.line}行目「${row.title}」`);}
+          }
+        }
         closeModal(null,'clipboardConfirmModal');closeModal(null,'clipboardImportModal');
-        document.getElementById('clipboardImportResult').textContent=`✅ Firebaseへの保存が完了しました。\n新規マイリスト登録：${added}曲\n既存曲のKey更新：${updated}曲\n登録対象外（未一致・エラー・重複）：${clipboardImportRows.length-candidates.length}曲\n担当パートは既存の設定を維持しています。`;
+        const extra=artistRows.length?`\nアーティスト補完申請：送信成功 ${proposed}曲 / 失敗 ${proposalErrors.length}曲（承認後にマスターへ反映）${proposalErrors.length?'\n⚠ 未送信：'+proposalErrors.join('、')+'。マイリスト登録は完了済みです。Firebaseの申請用ルールを確認してください。':''}`:'';
+        document.getElementById('clipboardImportResult').textContent=`✅ Firebaseへのマイリスト保存が完了しました。\n新規マイリスト登録：${added}曲\n既存曲のKey更新：${updated}曲\n登録対象外（未一致・エラー・重複）：${clipboardImportRows.length-candidates.length}曲\n担当パートは既存の設定を維持しています。${extra}`;
         openModal('clipboardResultModal');
       }catch(error){console.error('クリップボード一括登録失敗',error);feedback.textContent=`❌ 登録できませんでした：${error.message||'通信やFirebaseの権限を確認してください。'}（再試行できます）`;}
       finally{clipboardImportBusy=false;button.disabled=false;}
@@ -3661,7 +3718,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       if(!total.all)return;
       const overwriting=document.getElementById('bulkCsvOverwriteKey').checked;
       const inList=bulkCsvCandidates.filter(item=>item.masterId&&bulkCsvAlreadyPersonal(item.masterId)).length;
-      document.getElementById('bulkCsvSummary').textContent=`全${total.all}曲｜新規マスター候補${total.new}｜マスター登録済${total.existing}｜曖昧${total.ambiguous}｜CSV内重複${total.duplicate}｜入力不備${total.invalid}｜既存マイリスト${inList}曲（${overwriting?'Key上書き':'Key維持'}）`;
+      document.getElementById('bulkCsvSummary').textContent=`全${total.all}曲｜マスター未登録・保留${total.new}｜マスター登録済${total.existing}｜曖昧${total.ambiguous}｜CSV内重複${total.duplicate}｜入力不備${total.invalid}｜既存マイリスト${inList}曲（${overwriting?'Key上書き':'Key維持'}）`;
     }
     function previewBulkCsv(){
       const input=document.getElementById('bulkCsvFile'),summary=document.getElementById('bulkCsvSummary'),output=document.getElementById('bulkCsvRows');
@@ -3707,7 +3764,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             const candidate={...song,originalUrl:parsed.originalUrl,personalKey:parsed.key,urlKey:parsed.urlKey,masterId:result.id||''};
             bulkCsvCandidates.push(candidate);
             seen.push({...candidate,id:'csv_'+String(i)});
-            total[result.status]++;label=result.status==='existing'?'📁 マスター登録済':'✅ マスター新規候補';
+            total[result.status]++;label=result.status==='existing'?'📁 マスター登録済':'⚠ マスター未登録（保留）';
           }
           const el=document.createElement('div');el.className='bulk-csv-row';
           const left=document.createElement('span');left.className='bulk-csv-status';left.style.color=color;left.textContent=label;
@@ -3718,21 +3775,6 @@ html, body { background: transparent !important; color: ${text} !important; }
         output.append(fragment);bulkCsvPreviewTotals=total;previewBulkCsvSummary();
         document.getElementById('bulkCsvSubmitBtn').disabled=!bulkCsvCandidates.length;
       },error:err=>{summary.textContent='CSVを読めません：'+String(err?.message||err);}});
-    }
-    function bulkCsvGetStatus(requestId){
-      return new Promise(resolve=>{
-        const callback='__bulkCsvCb_'+Math.random().toString(36).slice(2),script=document.createElement('script');let done=false;
-        const finish=value=>{if(done)return;done=true;clearTimeout(timer);delete window[callback];script.remove();resolve(value);};
-        window[callback]=value=>finish(value);script.onerror=()=>finish(null);
-        const timer=setTimeout(()=>finish(null),7500);
-        script.src=SONG_ADD_API_URL+'?action=bulkStatus&requestId='+encodeURIComponent(requestId)+'&callback='+encodeURIComponent(callback)+'&_='+Date.now();
-        document.head.append(script);
-      });
-    }
-    async function bulkCsvWaitForResult(requestId){
-      for(let i=0;i<24;i++){await new Promise(r=>setTimeout(r,1500));const value=await bulkCsvGetStatus(requestId);
-        if(value&&['done','error','unauthorized'].includes(value.status))return value;}
-      return null;
     }
     async function bulkCsvSaveToMyList(results,sourceMap,ownerUid,overwrite){
       if(!results.length)return {saved:0,skipped:0,errors:0};
@@ -3775,35 +3817,19 @@ html, body { background: transparent !important; color: ${text} !important; }
       const feedback=document.getElementById('bulkCsvResult'),button=document.getElementById('bulkCsvSubmitBtn');
       const user=signedInUser;
       if(!user||user.isAnonymous){feedback.textContent='Googleログイン後にCSVを取り込んでください。';return;}
+      const existing=bulkCsvCandidates.filter(item=>item.masterId);
+      const unmatched=bulkCsvCandidates.length-existing.length;
+      if(!existing.length){feedback.textContent='公開マスターと一致する曲がありません。未登録曲は「楽曲追加」から申請してください。';return;}
       const overwrite=document.getElementById('bulkCsvOverwriteKey').checked;
-      if(!confirm(`CSVの有効な${bulkCsvCandidates.length}曲を照合し、未登録曲をマスターへ登録した後、あなたのマイリストへ追加しますか？\n既存マイリストのKey：${overwrite?'CSVのKeyで上書き':'維持'}`))return;
+      if(!confirm(`マスターと照合できた${existing.length}曲だけをマイリストに登録しますか？\nマスター未登録${unmatched}曲は登録せず保留します。\n既存登録曲のKey：${overwrite?'CSVで更新':'変更しない'}`))return;
       bulkCsvBusy=true;button.disabled=true;
-      const totals={added:0,existing:0,invalid:0,ambiguous:0,saved:0,skipped:0,errors:0};
-      const sourceMap=new Map(bulkCsvCandidates.map(item=>[item.sourceIndex,item]));
-      try{
-        for(let start=0;start<bulkCsvCandidates.length;start+=BULK_CSV_CHUNK){
-          if(auth.currentUser?.uid!==user.uid)throw Error('途中でログインアカウントが変わりました。');
-          const subset=bulkCsvCandidates.slice(start,start+BULK_CSV_CHUNK).map(item=>({
-            ...item,codeUrl:item.originalUrl,sourceUrl:item.codeUrl
-          }));
-          const requestId=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():String(Date.now())+'_'+Math.random().toString(36).slice(2);
-          const token=await user.getIdToken();
-          feedback.textContent=`照合・登録中… ${start+1}〜${start+subset.length} / ${bulkCsvCandidates.length}曲`;
-          await fetch(SONG_ADD_API_URL,{method:'POST',mode:'no-cors',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'bulkMyListImport',requestId,idToken:token,userUid:user.uid,songs:subset})});
-          const outcome=await bulkCsvWaitForResult(requestId);
-          if(!outcome){feedback.textContent='サーバー側の結果を確認できませんでした。再送せず、シートとGASログを確認してください。処理済みのマイリスト登録は保持されます。';return;}
-          if(outcome.status==='unauthorized'){feedback.textContent='Google認証に失敗しました。再ログインしてください。';return;}
-          if(outcome.status!=='done'){feedback.textContent='取り込みが停止しました：'+String(outcome.message||'GAS実行ログを確認してください。');return;}
-          const rows=Array.isArray(outcome.rows)?outcome.rows:[];
-          if(rows.length!==subset.length){feedback.textContent='サーバー応答の件数が一致しません。GASログを確認してください。';return;}
-          const saved=await bulkCsvSaveToMyList(rows,sourceMap,user.uid,overwrite);
-          totals.saved+=saved.saved;totals.skipped+=saved.skipped;totals.errors+=saved.errors;
-          ['added','existing','invalid','ambiguous'].forEach(k=>totals[k]+=rows.filter(r=>r.result===k).length);
-          feedback.textContent=`進行 ${Math.min(start+subset.length,bulkCsvCandidates.length)}/${bulkCsvCandidates.length}曲 ｜ マスター新規${totals.added}・既存${totals.existing} ｜ マイリスト追加/更新${totals.saved}・維持${totals.skipped}・保留${totals.invalid+totals.ambiguous+totals.errors}`;
-        }
-        feedback.textContent=`一括取り込み完了！マスター新規${totals.added}曲／既存${totals.existing}曲。マイリスト追加・Key更新${totals.saved}曲、登録済みKey維持${totals.skipped}曲、要確認${totals.invalid+totals.ambiguous+totals.errors}曲。新曲が全曲一覧へ表示されるまで公開CSVの更新をお待ちください。`;
+      try {
+        const rows=existing.map(item=>({sourceIndex:item.sourceIndex, songId:item.masterId, result:'existing', personalKey:item.personalKey}));
+        const sourceMap=new Map(existing.map(item=>[item.sourceIndex,item]));
+        const saved=await bulkCsvSaveToMyList(rows,sourceMap,user.uid,overwrite);
+        feedback.textContent=`マイリスト一括登録完了：保存 ${saved.saved}曲、既存Key維持 ${saved.skipped}曲、エラー ${saved.errors}曲、マスター未登録につき保留 ${unmatched}曲。\n新しい曲の追加は、楽曲追加フォームから管理者へ申請してください。`;
         bulkCsvCandidates=[];button.disabled=true;
-      }catch(err){console.error('CSV mylist import',err);feedback.textContent='途中で停止しました：'+String(err.message||err)+'。すでにマスターへ登録された曲は消えません。再試行の前に管理シートとマイリストを確認してください。';}
+      }catch(err){console.error('CSV mylist import',err);feedback.textContent='登録が停止しました：'+String(err.message||err);}
       finally{bulkCsvBusy=false;button.disabled=!bulkCsvCandidates.length;}
     }
 
@@ -3818,6 +3844,9 @@ html, body { background: transparent !important; color: ${text} !important; }
             }
             if (genre2Key && row[genre2Key] && row[genre2Key].trim() !== '') {
                 gSet.add(row[genre2Key].trim()); 
+            }
+            if (genre3Key && row[genre3Key] && row[genre3Key].trim() !== '') {
+                gSet.add(row[genre3Key].trim());
             }
         });
         
@@ -3835,6 +3864,38 @@ html, body { background: transparent !important; color: ${text} !important; }
             };
             genreFilters.appendChild(btn);
         });
+    }
+
+    const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
+    function openSongEditRequestModal(){
+        const song=allData.find(row=>row._id===currentDetailSongId);
+        if(!song)return;
+        if(!signedInUser){alert('楽曲情報の修正申請にはGoogleログインが必要です。');return;}
+        const form=document.getElementById('songEditRequestForm');
+        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS))form.elements[field].value=String(song[col]??'');
+        document.getElementById('songEditRequestFeedback').textContent='';
+        openModal('songEditRequestModal');
+    }
+    async function submitSongEditRequest(event){
+        event.preventDefault();
+        const song=allData.find(row=>row._id===currentDetailSongId),user=signedInUser;
+        if(!song||!user||auth.currentUser?.uid!==user.uid)return;
+        const form=document.getElementById('songEditRequestForm'),changes={};
+        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
+            const next=String(form.elements[field].value||'').trim();
+            if(next!==String(song[col]||'').trim())changes[field]=next;
+        }
+        const msg=document.getElementById('songEditRequestFeedback'),button=document.getElementById('songEditRequestSubmit');
+        if(!Object.keys(changes).length){msg.textContent='変更箇所がありません。';return;}
+        button.disabled=true;msg.textContent='送信中…';
+        try{
+            await db.ref(`songEditRequests/${song._id}/${user.uid}`).set({
+                type:'edit',songId:song._id,title:String(song['曲名']||''),requestedBy:user.uid,
+                status:'pending',createdAt:firebase.database.ServerValue.TIMESTAMP,changes
+            });
+            msg.textContent='修正申請を受け付けました。管理者の確認待ちです。';
+        }catch(err){console.error('修正申請',err);msg.textContent='申請に失敗しました：'+String(err.message||err);}
+        finally{button.disabled=false;}
     }
 
     function loadRowsIntoApp(rawData) {
@@ -3926,18 +3987,24 @@ html, body { background: transparent !important; color: ${text} !important; }
         // 認証・ルーム参加者登録を終えてから曲表と予約リスナーを起動。
         if (!(await initRoomUI())) return;
 
-        Papa.parse(SHEET_CSV_URL + (new URLSearchParams(location.search).has('_refresh') ? '&_refresh=' + encodeURIComponent(new URLSearchParams(location.search).get('_refresh')) : ''), {
-            download: true,
-            header: false,
-            skipEmptyLines: true,
-            encoding: "UTF-8",
-            complete: function(results) { 
-                loadRowsIntoApp(results.data); 
-            },
-            error: function(error) {
-                showCsvLoadError("エラー: スプレッドシートからのデータ取得に失敗しました。URLや公開設定を確認してください。");
+        try {
+            const snapshot = await db.ref(MASTER_DB_PATH).once('value');
+            const master = snapshot.val();
+            if (!master || typeof master !== 'object') throw Error('songs に公開楽曲がありません。移管用JSONとRealtime Databaseルールを確認してください。');
+            const headers = ['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲'];
+            const fields = ['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
+            const rows = [headers];
+            for (const [id, song] of Object.entries(master)) {
+                if (!song || typeof song !== 'object' || (song.id && song.id !== id)) {
+                    throw Error('データ不整合: UUID と id が一致しません: ' + id);
+                }
+                rows.push(fields.map(field => field === 'id' ? id : String(song[field] ?? '')));
             }
-        });
+            loadRowsIntoApp(rows);
+        } catch (error) {
+            console.error('Firebaseマスター取得エラー', error);
+            showCsvLoadError('Firebaseマスターを読み込めませんでした: ' + (error.message || 'ネットワーク・権限を確認してください。'));
+        }
     });
 
     let searchDebounceTimer = null;
@@ -4151,6 +4218,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         document.getElementById('detailBPM').textContent = song['BPM'] || '-';
         document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
         document.getElementById('detailGenre2').textContent = song[genre2Key] || '-';
+        document.getElementById('detailGenre3').textContent = song[genre3Key] || '-';
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
         document.getElementById('detailKeyArea').style.display = chordWikiTitle(song['コードwiki']) ? 'block' : 'none';
         if (chordWikiTitle(song['コードwiki'])) renderPersonalKeyPicker(song);
@@ -4173,10 +4241,11 @@ html, body { background: transparent !important; color: ${text} !important; }
             if (canExcludeRegistered && excludeRegisteredCheckbox.checked && isInMyList(row)) return false;
             const g1 = (row[genre1Key] || '').trim();
             const g2 = (row[genre2Key] || '').trim();
+            const g3 = (row[genre3Key] || '').trim();
             
-            const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre;
+            const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre || g3 === currentGenre;
             
-            const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
+            const searchStr = `${row['曲名']} ${row['アーティスト']} ${g1} ${g2} ${g3} ${row['タイアップ情報']} ${row['作詞']} ${row['作曲']} ${row['編曲']} ${row['検索']}`.toLowerCase();
             const matchArtist = !selectedArtist || String(row['アーティスト'] || '').trim() === selectedArtist;
             return matchGenre && matchArtist && keywords.every(kw => searchStr.includes(kw));
         });
