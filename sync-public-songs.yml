@@ -1,0 +1,41 @@
+name: Sync public songs JSON
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-public-songs
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download consistent public master from Firebase
+        run: node scripts/sync-public-songs.mjs
+      - name: Commit and push only when changed
+        shell: bash
+        run: |
+          git add -- public/songs.json
+          if git diff --cached --quiet; then
+            echo 'No change in public master.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: sync public song master from Firebase'
+          git push
