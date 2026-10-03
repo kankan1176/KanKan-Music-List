@@ -1179,7 +1179,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         <h2>🎤 アーティスト検索</h2>
         <p style="font-size: 14px; line-height: 1.6;"><strong id="confirmArtistName"></strong> の曲に絞りますか？</p>
         <div class="artist-confirm-actions">
-            <button type="button" id="artistModalStar" class="personal-toggle favorite-artist-modal" style="font-size:12px;white-space:nowrap;padding:6px 8px;" title="お気に入りアーティストに登録・解除（自動保存）" onclick="toggleConfirmedArtist()">お気に入りアーティスト登録 👉 ☆</button>
+            <span id="artistFavoriteControl" style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><span style="font-size:12px;">お気に入りアーティスト登録</span><button type="button" id="artistModalStar" class="personal-toggle favorite-artist-modal" style="font-size:23px;line-height:1;padding:2px 5px;" title="お気に入りアーティストに登録・解除（自動保存）" aria-label="お気に入りアーティストに登録" aria-pressed="false" onclick="toggleConfirmedArtist()">☆</button></span>
             <button type="button" onclick="closeModal(null, 'artistConfirmModal')">いいえ</button>
             <button type="button" class="primary-btn" onclick="confirmArtistFilter()">はい</button>
         </div>
@@ -1903,11 +1903,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     function updateArtistModalStar() {
         const btn=document.getElementById('artistModalStar');
         const selected=!!signedInUser && !!pendingArtistFilter && favoriteArtistValue(pendingArtistFilter);
-        btn.style.display=signedInUser?'inline-block':'none';
+        document.getElementById('artistFavoriteControl').style.display=signedInUser?'inline-flex':'none';
         btn.classList.toggle('selected',selected);
         btn.setAttribute('aria-pressed',String(selected));
         btn.title=selected?'⭐ お気に入りアーティストを解除':'☆ お気に入りアーティストに登録';
-        btn.textContent=selected?'お気に入りアーティスト登録 👉 ★':'お気に入りアーティスト登録 👉 ☆';
+        btn.textContent=selected?'⭐':'☆';
+        btn.setAttribute('aria-label',selected?'お気に入りアーティストを解除':'お気に入りアーティストに登録');
     }
     let defaultPart = '';
     const tableHeaderTable = document.querySelector('.table-header-wrapper .data-table');
