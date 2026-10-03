@@ -1320,7 +1320,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         <div style="margin:10px 0 12px;">
             <button type="button" onclick="openClipboardImportModal()" style="width:100%;padding:10px 12px;background:var(--btn-bg);color:var(--text-color);border:1px solid var(--border-color);font-weight:700;white-space:normal;">📋 文章を貼り付けてマイリスト一括登録</button>
         </div>
-        <button type="button" id="songEntryNoticeBtn" onclick="openModal('songEntryNoticeModal')" style="display:block;width:100%;margin:0 0 13px;padding:8px 11px;text-align:left;white-space:normal;background:var(--btn-bg);border:1px solid var(--border-color);color:var(--text-color);font-size:13px;font-weight:700;">⚠ 登録時の注意事項を見る ↗</button>
+        <button type="button" id="songEntryNoticeBtn" onclick="openModal('songEntryNoticeModal')" style="display:block;width:100%;margin:0 0 13px;padding:8px 11px;text-align:left;white-space:normal;background:var(--btn-bg);border:1px solid var(--border-color);color:var(--text-color);font-size:13px;font-weight:700;">✏️クリップボードの使い方を見る</button>
         <form id="addSongForm" onsubmit="submitNewSong(event)">
             <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
             <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
@@ -1394,25 +1394,54 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
  </div>
 </div>
 
-<!-- 単曲・CSV共通の注意事項。登録フォームとは独立した確認ダイアログ -->
+<!-- クリップボード一括登録の使い方マニュアル -->
 <div class="modal-overlay" id="songEntryNoticeModal" onclick="closeModal(event,'songEntryNoticeModal')" style="z-index:1100;">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="songEntryNoticeTitle" onclick="event.stopPropagation()" style="max-width:600px;box-sizing:border-box;max-height:calc(100dvh - 32px);overflow-y:auto;">
-    <span class="modal-close" role="button" tabindex="0" aria-label="閉じる" onclick="closeModal(null,'songEntryNoticeModal')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal(null,'songEntryNoticeModal');}">&times;</span>
-    <h2 id="songEntryNoticeTitle">⚠ 登録時の注意事項</h2>
-    <div style="font-size:13px;line-height:1.7;color:var(--text-color);overflow-wrap:anywhere;">
-      <p>曲名・アーティスト名・ChordWiki URLを<strong style="color:#ff828b;">正確に入力</strong>してください。表記の違いがあると、同一曲でも重複と判定できない場合があります。</p>
-      <h3 style="font-size:14px;margin:14px 0 5px;color:var(--text-color);">🎼 1曲ずつマスター登録する場合</h3>
-      <p style="margin:4px 0;">ChordWikiの<strong>原曲URL（/wiki/曲名 形式）</strong>を入力してください。移調後のKey付きURLは使用しません。</p>
-      <p style="margin:9px 0 4px;color:#ff828b;font-weight:700;">❌ NG：移調・表示パラメータ付きURL</p>
-      <code style="display:block;font-size:12px;line-height:1.6;white-space:normal;overflow-wrap:anywhere;color:var(--text-color);background:var(--bg-color);border:1px solid var(--border-color);padding:7px;border-radius:4px;">https://ja.chordwiki.org/wiki.cgi?c=view&amp;t=%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89&amp;key=0&amp;symbol=</code>
-      <p style="margin:9px 0 4px;font-weight:700;">⭕ OK：原曲URL</p>
-      <code style="display:block;font-size:12px;line-height:1.6;white-space:normal;overflow-wrap:anywhere;color:var(--text-color);background:var(--bg-color);border:1px solid var(--border-color);padding:7px;border-radius:4px;">https://ja.chordwiki.org/wiki/%E3%83%9E%E3%83%AA%E3%83%BC%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%89</code>
-      <h3 style="font-size:14px;margin:15px 0 5px;color:var(--text-color);">📄 CSV一括インポートの場合</h3>
-      <p style="margin:4px 0;">CSVでは<strong>本人が普段演奏する移調済みURLも使用できます。</strong> 例えば <code>key=3</code> は本人のマイリストのKey＋3として抽出します。未登録曲をマスターへ新規登録するときだけ、原曲URLに変換します。</p>
-      <p style="margin:5px 0;color:#ff828b;">※ URLにKey指定がなければ、個人Keyは0として扱います。</p>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="songEntryNoticeTitle" onclick="event.stopPropagation()" style="max-width:980px;width:min(980px,96vw);box-sizing:border-box;max-height:calc(100dvh - 28px);overflow-y:auto;">
+    <span class="modal-close" role="button" tabindex="0" aria-label="閉じる" onclick="closeModal(null,'songEntryNoticeModal')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal(null,'songEntryNoticeModal');}" style="right:14px;top:10px;">&times;</span>
+    <h2 id="songEntryNoticeTitle">✏️ クリップボードの使い方</h2>
+    <div style="font-size:13px;line-height:1.75;color:var(--text-color);overflow-wrap:anywhere;display:grid;gap:16px;">
+      <p style="margin:0;opacity:.92;">スプレッドシートやExcelの表をコピーして、マイリストへ一括登録する流れです。<strong>①コピー → ②列の指定 → ③解析結果 → ④確認して登録 → ⑤結果確認</strong> の順で進みます。</p>
+
+      <section style="border:1px solid var(--border-color);border-radius:10px;padding:14px;background:rgba(255,255,255,.02);">
+        <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">① スプレッドシートからコピペ</h3>
+        <p style="margin:0 0 10px;">曲名・アーティスト・コードWiki・Key などの列を含むセル範囲を、表のままコピーします。</p>
+        <img src="clipboard-help-step1-spreadsheet.png" alt="スプレッドシートで曲名・アーティスト・コードWiki・Keyの列を選択してコピーしている画面" style="display:block;width:100%;max-width:760px;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
+      </section>
+
+      <section style="border:1px solid var(--border-color);border-radius:10px;padding:14px;background:rgba(255,255,255,.02);">
+        <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">② コピペした情報のヘッダーを指定</h3>
+        <p style="margin:0 0 10px;">「📋 クリップボードの表を読み取る」を押すと列設定ダイアログが開きます。各列を <strong>曲名 / アーティスト / URL（任意） / Key（任意） / 使用しない</strong> に割り当て、<strong>「✅ この列設定で確定」</strong> を押します。</p>
+        <img src="clipboard-help-step2-header.png" alt="クリップボードの列を設定するダイアログで各列の意味を選択している画面" style="display:block;width:100%;max-width:860px;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
+      </section>
+
+      <section style="border:1px solid var(--border-color);border-radius:10px;padding:14px;background:rgba(255,255,255,.02);">
+        <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">③ 解析結果を確認</h3>
+        <p style="margin:0 0 10px;">解析結果ダイアログでは、先頭に <strong>解析曲数｜一致曲数｜Key変更数｜エラー・未一致曲数</strong> が表示されます。</p>
+        <ul style="margin:0 0 12px 1.2em;padding:0;">
+          <li><span style="color:#49d18b;font-weight:700;">緑</span>：楽曲データ一致</li>
+          <li><span style="color:#ff7b88;font-weight:700;">赤</span>：楽曲未登録（楽曲情報の新規登録可能）</li>
+          <li><strong>Key変更数</strong>：既にマイリストにある同一曲で、登録済みKeyと今回のKeyが異なる曲数</li>
+        </ul>
+        <div style="display:grid;gap:12px;">
+          <img src="clipboard-help-step3-analysis-mixed.png" alt="解析結果ダイアログで一致曲と未一致曲が色分けされて表示されている画面" style="display:block;width:100%;max-width:760px;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
+          <img src="clipboard-help-step3-analysis-allmatch.png" alt="解析結果ダイアログで全曲一致している画面" style="display:block;width:100%;max-width:760px;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
+        </div>
+      </section>
+
+      <section style="border:1px solid var(--border-color);border-radius:10px;padding:14px;background:rgba(255,255,255,.02);">
+        <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">④ 確認して登録</h3>
+        <p style="margin:0 0 10px;">解析結果で <strong>「✅ 一致曲の登録内容を確認」</strong> を押すと、一括登録確認ダイアログが開きます。内容を確認して <strong>「✅ 確定して登録」</strong> を押すと、Firebaseへ保存されます。</p>
+        <img src="clipboard-help-step4-confirm.png" alt="一括登録の確認ダイアログで内容確認後に確定して登録する画面" style="display:block;width:100%;max-width:620px;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
+      </section>
+
+      <section style="border:1px solid var(--border-color);border-radius:10px;padding:14px;background:rgba(255,255,255,.02);">
+        <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">⑤ 登録結果表示で完了</h3>
+        <p style="margin:0 0 10px;">登録が終わると結果ダイアログが表示されます。<strong>新規マイリスト登録数 / Key更新数 / 登録対象外数</strong> を確認して完了です。</p>
+        <img src="clipboard-help-step5-result.png" alt="一括登録結果ダイアログで登録件数と結果が表示されている画面" style="display:block;width:100%;max-width:520px;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
+      </section>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:15px;">
-      <button type="button" class="primary-btn" onclick="closeModal(null,'songEntryNoticeModal')">確認しました・閉じる</button>
+      <button type="button" class="primary-btn" onclick="closeModal(null,'songEntryNoticeModal')">閉じる</button>
     </div>
   </div>
 </div>
