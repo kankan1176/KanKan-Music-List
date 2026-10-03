@@ -5,7 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
-    <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
+    <script>
+    // 同じタブのF5更新だけ、直前の一覧画面へ復帰する。新規アクセスはトップから開始。
+    window.__shareliscoreReloadList = null;
+    try {
+        const isReload = performance.getEntriesByType('navigation')[0]?.type === 'reload';
+        if (isReload && !new URLSearchParams(location.search).has('room')) {
+            const saved = JSON.parse(sessionStorage.getItem('shareliscore_list_view_v2') || 'null');
+            if (saved && (saved.view === 'all' || saved.view === 'mylist')) window.__shareliscoreReloadList = saved;
+        }
+    } catch (_) {}
+    if (!new URLSearchParams(location.search).has('room') && !window.__shareliscoreReloadList) {
+        document.documentElement.classList.add('entry-home');
+    }
+    </script>
     
     <!-- ブックマーク用アイコンの設定（PNG用） -->
     <link rel="icon" type="image/png" sizes="512x512" href="favicon.png?v=20261002-2">
@@ -862,6 +875,34 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 #songPagination button:disabled {opacity:.35;cursor:default;}
 #songPageStatus {min-width:180px;text-align:center;font-variant-numeric:tabular-nums;line-height:1.5;}
 @media(max-width:600px) {#songPagination {gap:7px;padding:7px 5px;min-height:49px;font-size:11px;flex-wrap:nowrap;}#songPagination button {min-width:69px;min-height:34px;padding:5px 7px;font-size:12px;}#songPageStatus {min-width:0;flex:1;}}
+/* 行番号：マスター/マイリスト/ルームで列数を一致させ、各ページは通し番号で表示。 */
+.data-table col.col-rownum,body.my-list-mode .data-table col.col-rownum,body.in-room .data-table col.col-rownum {width:46px!important;}
+.data-table th.col-rownum,.data-table td.col-rownum {width:46px!important;text-align:center!important;white-space:nowrap!important;overflow:hidden;padding:4px 1px!important;font-variant-numeric:tabular-nums;}
+.data-table th.col-rownum {font-size:11px;opacity:.8;}
+.song-row-number {display:inline-flex;align-items:center;justify-content:center;max-width:100%;padding:3px 4px;box-sizing:border-box;border-radius:5px;border:1px solid var(--border-color);background:var(--btn-bg);font-size:11px;font-weight:650;line-height:1.25;color:var(--text-color);}
+/* 新列用に他列の比率を少しだけ縮める（従来の操作領域は保持）。 */
+.data-table col.col-title,body.my-list-mode .data-table col.col-title {width:20%;}
+.data-table col.col-artist,body.my-list-mode .data-table col.col-artist {width:16%;}
+.data-table col.col-genre,body.my-list-mode .data-table col.col-genre {width:11%;}
+body.in-room .data-table col.col-title {width:25%;}
+body.in-room .data-table col.col-artist {width:19%;}
+body.in-room .data-table col.col-genre {width:15%;}
+#songPageIndicators {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:200px;flex:0 1 340px;}
+#songPageStatus {min-width:0;font-weight:650;}
+#songScrollPosition {font-size:11px;opacity:.78;font-variant-numeric:tabular-nums;}
+#songPageProgressTrack {height:4px;width:min(100%,250px);border-radius:5px;overflow:hidden;background:var(--border-color);}
+#songPageProgressBar {display:block;width:0;height:100%;background:var(--primary);border-radius:5px;transition:width .09s linear;}
+@media(max-width:600px) {
+ .table-header-wrapper th.col-rownum {display:none!important;}
+ #tableBody tr {grid-template-columns:40px minmax(0,1fr)!important;grid-template-areas:"num title" "artist artist" "key register" "bpm genre" "part part" "select select"!important;}
+ #tableBody td.col-rownum {grid-area:num!important;justify-self:start;align-self:start;width:36px!important;padding-top:2px!important;}
+ #tableBody td.col-title {align-self:start;}
+ #songPagination {min-height:58px;gap:5px;}
+ #songPageIndicators {min-width:0;flex:1 1 0;}
+ #songPageStatus {font-size:10px;white-space:normal;line-height:1.3;}
+ #songScrollPosition {font-size:10px;}
+ .song-row-number {font-size:10px;}
+}
 </style>
 </head>
 <body>
@@ -1041,9 +1082,10 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     <div id="tableWrapper">
         <div class="table-header-wrapper">
             <table class="data-table">
-                <colgroup><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-action"></colgroup>
+                <colgroup><col class="col-rownum"><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-action"></colgroup>
                 <thead>
                     <tr>
+                        <th class="col-rownum" scope="col" title="検索結果の通し番号">No.</th>
                         <th class="col-register">マイリスト</th>
                         <th class="col-key">Key</th>
                         <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
@@ -1057,13 +1099,17 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         </div>
         <div class="table-body-wrapper">
             <table class="data-table">
-                <colgroup><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-action"></colgroup>
+                <colgroup><col class="col-rownum"><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-action"></colgroup>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
         <nav id="songPagination" aria-label="楽曲一覧のページ切り替え">
             <button id="songPrevPageBtn" type="button" onclick="changeSongPage(-1)" disabled>◀ 前へ</button>
-            <span id="songPageStatus" role="status" aria-live="polite">0 / 0曲</span>
+            <div id="songPageIndicators">
+                <span id="songPageStatus" role="status" aria-live="polite">0 / 0曲</span>
+                <span id="songScrollPosition">ページ内：1 / 100曲目</span>
+                <span id="songPageProgressTrack" aria-hidden="true"><span id="songPageProgressBar"></span></span>
+            </div>
             <button id="songNextPageBtn" type="button" onclick="changeSongPage(1)" disabled>次へ ▶</button>
         </nav>
     </div>
@@ -1757,8 +1803,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     const tableBodyTable = document.querySelector('.table-body-wrapper .data-table');
     const masterHeaderMarkup = tableHeaderTable.innerHTML;
     const masterBodyColumns = tableBodyTable.querySelector('colgroup').outerHTML;
-    const myListColumns = '<colgroup><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-part"><col class="col-select"></colgroup>';
+    const myListColumns = '<colgroup><col class="col-rownum"><col class="col-register"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"><col class="col-part"><col class="col-select"></colgroup>';
     const myListHeader = myListColumns + `<thead><tr>
+        <th class="col-rownum" scope="col">No.</th>
         <th class="col-register">マイリスト</th>
         <th class="col-key">Key</th>
         <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
@@ -1768,8 +1815,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         <th class="col-part">担当パート</th><th class="col-select" title="複数選択">☑</th>
     </tr></thead>`;
     // Room listing has six columns; master and personal list retain their own layout.
-    const roomColumns = '<colgroup><col class="col-action"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"></colgroup>';
+    const roomColumns = '<colgroup><col class="col-rownum"><col class="col-action"><col class="col-key"><col class="col-title"><col class="col-artist"><col class="col-bpm"><col class="col-genre"></colgroup>';
     const roomHeader = roomColumns + `<thead><tr>
+        <th class="col-rownum" scope="col">No.</th>
         <th class="col-action">予約</th>
         <th class="col-key">Key</th>
         <th class="sortable col-title" onclick="handleSort('曲名')">曲名 <span class="sort-icon" id="icon-曲名"></span></th>
@@ -2790,7 +2838,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         openModal('artistConfirmModal');
     });
     
-    tableBodyWrapper.addEventListener('scroll', (e) => { tableHeaderWrapper.scrollLeft = e.target.scrollLeft; });
+    tableBodyWrapper.addEventListener('scroll', (e) => { tableHeaderWrapper.scrollLeft = e.target.scrollLeft; scheduleSongProgressUpdate(); });
     // ===== STEP 3-1 フレンドID・申請・承認・拒否・解除 =====
     const FRIEND_GOOGLE_ONLY = 'フレンド機能はGoogleログインが必要です。';
     let friendCodeForUser = '';
@@ -4233,10 +4281,26 @@ html, body { background: transparent !important; color: ${text} !important; }
         })();
         try{await masterLoadPromise;}catch(error){masterLoadPromise=null;throw error;}
     }
+    const LIST_VIEW_SESSION_KEY = 'shareliscore_list_view_v2';
+    let pendingReloadListState = window.__shareliscoreReloadList;
+    function persistListLocation() {
+        if (currentRoomId || pendingReloadListState || document.documentElement.classList.contains('entry-home')) return;
+        try {
+            sessionStorage.setItem(LIST_VIEW_SESSION_KEY, JSON.stringify({
+                view: myListMode ? 'mylist' : 'all', page: songPageIndex,
+                query: searchInput.value, genre: currentGenre, artist: selectedArtist,
+                exclude: excludeRegisteredCheckbox.checked,
+                sort: currentSortKey, order: currentSortOrder,
+                scrollTop: tableBodyWrapper.scrollTop
+            }));
+        } catch (_) {}
+    }
     function goHome() {
         if (currentRoomId) return; // ルーム退出は既存の退出処理を使う
         closeMobileMenu();
         document.documentElement.classList.add('entry-home');
+        pendingReloadListState = null;
+        try {sessionStorage.setItem(LIST_VIEW_SESSION_KEY, JSON.stringify({view:'home'}));} catch (_) {}
         document.getElementById('homeLoadingStatus').textContent='';
         // 一度読み込んだマスターは保持。再訪時に再ダウンロードしない。
     }
@@ -4261,7 +4325,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             document.documentElement.classList.remove('entry-home');
             if(destination==='mylist' && !myListMode) toggleMyList();
             if(destination==='all' && myListMode) toggleMyList();
-            try {await ensureMasterLoaded();}
+            try {await ensureMasterLoaded();persistListLocation();}
             catch(error){/* エラー画面と再読み込みボタンは既存の処理で表示する */}
             return;
         }
@@ -4281,6 +4345,13 @@ html, body { background: transparent !important; color: ${text} !important; }
             try {await ensureMasterLoaded();}catch(error){}
         } else {
             await initRoomUI();
+            // F5更新のみ表示中の一覧へ戻す。直接URLを開いたときは従来どおりトップ。
+            if (pendingReloadListState) {
+                await initialAuthReady;
+                const destination = pendingReloadListState.view === 'mylist' && signedInUser ? 'mylist' : 'all';
+                if (destination !== pendingReloadListState.view) pendingReloadListState = null;
+                await openHomeDestination(destination);
+            }
             // 通常URLではトップだけを表示。全曲取得はメニュー選択後。
         }
     });
@@ -4527,6 +4598,25 @@ html, body { background: transparent !important; color: ${text} !important; }
         songPrevPageBtn.disabled = songPageIndex === 0;
         songNextPageBtn.disabled = songPageIndex >= totalPages - 1 || total === 0;
         if (resetScroll) tableBodyWrapper.scrollTop = 0;
+        requestAnimationFrame(updateSongScrollPosition);
+        persistListLocation();
+    }
+    let songProgressFrame = 0;
+    function updateSongScrollPosition() {
+        const rows = tableBody.children;
+        const label = document.getElementById('songScrollPosition');
+        const bar = document.getElementById('songPageProgressBar');
+        if (!rows.length) {label.textContent='このページ：0曲';bar.style.width='0%';return;}
+        const top = tableBodyWrapper.getBoundingClientRect().top + 2;
+        let firstVisible = 0;
+        while (firstVisible < rows.length - 1 && rows[firstVisible].getBoundingClientRect().bottom <= top) firstVisible++;
+        label.textContent = `ページ内：${firstVisible + 1} / ${rows.length} 曲目`;
+        const maxScroll = Math.max(0, tableBodyWrapper.scrollHeight - tableBodyWrapper.clientHeight);
+        bar.style.width = `${maxScroll ? Math.min(100,(tableBodyWrapper.scrollTop / maxScroll)*100) : 100}%`;
+    }
+    function scheduleSongProgressUpdate() {
+        if (songProgressFrame) return;
+        songProgressFrame=requestAnimationFrame(()=>{songProgressFrame=0;updateSongScrollPosition();persistListLocation();});
     }
     function changeSongPage(direction) {
         if (!Number.isInteger(direction) || !direction) return;
@@ -4542,6 +4632,21 @@ html, body { background: transparent !important; color: ${text} !important; }
         // マイリスト・ルームやゲスト閲覧にフィルターを適用しない。
         const canExcludeRegistered = !currentRoomId && !myListMode && !!signedInUser;
         excludeRegisteredFilter.hidden = !canExcludeRegistered;
+        const restoreNow = pendingReloadListState && allData.length > 0 && !currentRoomId &&
+            (!myListMode || (signedInUser && sharedListReadyUid === signedInUser.uid)) &&
+            pendingReloadListState.view === (myListMode ? 'mylist' : 'all') ? pendingReloadListState : null;
+        if (restoreNow) {
+            searchInput.value = String(restoreNow.query || '');
+            currentGenre = String(restoreNow.genre || 'すべて');
+            genreFilters.querySelectorAll('.genre-btn').forEach(button => button.classList.toggle('active', button.textContent === currentGenre));
+            selectedArtist = String(restoreNow.artist || '');
+            artistFilterName.textContent = selectedArtist;
+            artistFilterIndicator.hidden = !selectedArtist;
+            excludeRegisteredCheckbox.checked = !!restoreNow.exclude;
+            currentSortKey = String(restoreNow.sort || '');
+            currentSortOrder = restoreNow.order === -1 ? -1 : 1;
+            updateSortIcons();
+        }
         const querySignature = JSON.stringify([currentRoomId,roomListView,myListMode,currentGenre,selectedArtist,
             searchInput.value.trim().toLowerCase(),currentSortKey,currentSortOrder,
             canExcludeRegistered && excludeRegisteredCheckbox.checked]);
@@ -4549,6 +4654,10 @@ html, body { background: transparent !important; color: ${text} !important; }
             songPageIndex = 0;
             lastTableQuerySignature = querySignature;
             tableBodyWrapper.scrollTop = 0;
+        }
+        if (restoreNow) {
+            songPageIndex = Number.isInteger(restoreNow.page) ? Math.max(0, restoreNow.page) : 0;
+            pendingReloadListState = null;
         }
         tableBody.replaceChildren();
         const keywords = searchInput.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -4583,12 +4692,18 @@ html, body { background: transparent !important; color: ${text} !important; }
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
         cachedFilteredSongRows = filteredData;
         renderCurrentSongPage();
+        if (restoreNow && Number.isFinite(Number(restoreNow.scrollTop))) {
+            const savedTop = Math.max(0, Number(restoreNow.scrollTop));
+            requestAnimationFrame(() => {tableBodyWrapper.scrollTop = savedTop;updateSongScrollPosition();persistListLocation();});
+        } else persistListLocation();
     }
 
     function appendRenderedSongRows(rows) {
         const batchFragment = document.createDocumentFragment();
-        rows.forEach(row => {
+        rows.forEach((row, index) => {
             const tr = document.createElement('tr');
+            const ordinal = songPageIndex * SONG_PAGE_SIZE + index + 1;
+            const ordinalCell = `<td class="col-rownum" aria-label="${ordinal}番目"><span class="song-row-number">${ordinal.toLocaleString()}</span></td>`;
             const roomMatches=currentRoomId?roomOwnersOfSong(row._id):[];
             if(roomMatches.length>=2)tr.classList.add('room-overlap');
             const memberEntry=currentRoomId&&roomListView!=='all'&&roomListView!=='common'?roomSharedLists[roomListView]?.songs?.[row._id]:null;
@@ -4641,6 +4756,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             };
             if (currentRoomId) {
                 tr.innerHTML = `
+                    ${ordinalCell}
                     <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                     <td class="col-key nowrap-cell">${displayRoomKey}</td>
                     <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
@@ -4651,6 +4767,7 @@ html, body { background: transparent !important; color: ${text} !important; }
                 tr.dataset.mySongId = row._id;
                 tr.classList.toggle('my-selected-row', selectedMySongIds.has(row._id));
                 tr.innerHTML = `
+                    ${ordinalCell}
                     <td class="col-register nowrap-cell">${currentRoomId?'－':myListRegistrationButton(row)}</td>
                     <td class="col-key nowrap-cell">${displayRoomKey}</td>
                     <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
@@ -4660,6 +4777,7 @@ html, body { background: transparent !important; color: ${text} !important; }
                     <td class="col-part nowrap-cell">${myListPartButtons(row)}</td>
                     <td class="col-select nowrap-cell"><input type="checkbox" class="my-select-row" data-song-id="${row._id}" aria-label="${escapeHtml(row['曲名'])}を一括編集対象に選択" onclick="handleMySongCheckboxClick(event, '${row._id}')" ${selectedMySongIds.has(row._id)?'checked':''}></td>`;
             } else tr.innerHTML = `
+                ${ordinalCell}
                 <td class="col-register nowrap-cell">${currentRoomId?'－':myListRegistrationButton(row)}</td>
                 <td class="col-key nowrap-cell">${displayRoomKey}</td>
                 <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
