@@ -966,7 +966,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       <button type="button" class="home-card" onclick="openHomeDestination('room')"><span class="home-card-icon" aria-hidden="true">🌐</span><span><span class="home-card-heading">ルームを作る</span><span class="home-card-caption">仲間とセットリストを共有</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('add')"><span class="home-card-icon" aria-hidden="true">➕</span><span><span class="home-card-heading">新規楽曲追加</span><span class="home-card-caption">新しい楽曲の登録申請</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('mypage')"><span class="home-card-icon" aria-hidden="true">👤</span><span><span class="home-card-heading">マイページ</span><span class="home-card-caption">アカウント管理</span></span></button>
-      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="10" r="5"/><path d="M2 26v-2c0-4.7 4.2-8 10-8s10 3.3 10 8v2H2z"/><circle cx="24" cy="11" r="4" opacity=".9"/><path d="M22 17.3c4.8-.4 8 2.5 8 6.7v2h-6v-2c0-2.6-.7-4.9-2-6.7z" opacity=".9"/></svg></span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">お気に入りユーザー・UID検索</span></span></button>
+      <button type="button" class="home-card home-friends-card" onclick="openHomeDestination('friends')"><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="10" r="5"/><path d="M2 26v-2c0-4.7 4.2-8 10-8s10 3.3 10 8v2H2z"/><circle cx="24" cy="11" r="4" opacity=".9"/><path d="M22 17.3c4.8-.4 8 2.5 8 6.7v2h-6v-2c0-2.6-.7-4.9-2-6.7z" opacity=".9"/></svg></span><span><span class="home-card-heading">フレンド <span id="homeFriendCount" style="font-size:.75em;opacity:.8;">(−人)</span></span><span class="home-card-caption">お気に入りユーザー・フレンドコード検索</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('manual')"><span class="home-card-icon" aria-hidden="true">📖</span><span><span class="home-card-heading">使い方ガイド</span><span class="home-card-caption">基本操作と機能の説明</span></span></button>
       <button type="button" class="home-card" onclick="openHomeDestination('settings')"><span class="home-card-icon" aria-hidden="true">⚙️</span><span><span class="home-card-heading">設定</span><span class="home-card-caption">テーマ・言語・フォント</span></span></button>
     </nav>
@@ -1241,7 +1241,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
   <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button type="button" onclick="closeModal(null,'favoriteArtistsModal')">閉じる</button></div>
  </div>
 </div>
-<!-- お気に入りユーザー・UID検索・セッション履歴 -->
+<!-- お気に入りユーザー・フレンドコード検索・セッション履歴 -->
 <div class="modal-overlay" id="friendsModal" onclick="closeModal(event,'friendsModal')">
  <div class="modal" onclick="event.stopPropagation()" style="max-width:620px;max-height:88dvh;overflow:auto;">
   <span class="modal-close" onclick="closeModal(null,'friendsModal')">&times;</span>
@@ -1250,10 +1250,10 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
   <h3 id="friendsListHeading">⭐ お気に入り中ユーザー（0人）</h3><div id="friendsList" class="friends-section"></div>
   <hr style="border:0;border-top:1px solid var(--border-color);margin:14px 0;">
   <h3>🔎 フレンド検索</h3>
-  <p style="font-size:12px;">自分のUID（Googleログイン時に表示）</p>
+  <p style="font-size:12px;">自分のフレンドコード（Googleログイン時に表示）</p>
   <div style="display:flex;gap:6px;"><input id="myFriendCode" class="setting-input" readonly style="flex:1;min-width:0;"><button onclick="copyMyFriendCode()">コピー</button></div>
-  <p style="font-size:12px;">UID検索（従来のSL-公開IDにも対応）</p>
-  <div style="display:flex;gap:6px;"><input id="friendCodeInput" class="setting-input" placeholder="ユーザーのUIDを入力" style="flex:1;min-width:0;"><button id="sendFriendRequestBtn" class="primary-btn" onclick="sendFriendRequest()">検索</button></div>
+  <p style="font-size:12px;">フレンドコード検索</p>
+  <div style="display:flex;gap:6px;"><input id="friendCodeInput" class="setting-input" placeholder="SL-XXXXXXXXXX を入力" style="flex:1;min-width:0;"><button id="sendFriendRequestBtn" class="primary-btn" onclick="sendFriendRequest()">検索</button></div>
   <div id="publicProfilesList" class="friends-section" style="margin:9px 0;"></div>
   <hr style="border:0;border-top:1px solid var(--border-color);margin:14px 0;">
   <h3>🎵 セッション履歴ユーザー</h3>
@@ -3032,7 +3032,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       if(!user||friendFeatureUid===user.uid)return;
       stopFriendsFeature();friendFeatureUid=user.uid;
       try{
-        // The legacy SL code remains as a compatibility alias, but UID is primary.
+        // The SL friend code is public-facing; Firebase UID stays an internal identifier.
         const codeSnap=await db.ref(`users/${user.uid}/profile/friendCode`).once('value');
         let code=String(codeSnap.val()||'');
         if(!/^SL-[A-HJ-NP-Z2-9]{10}$/.test(code)){
@@ -3046,6 +3046,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
           await db.ref(`users/${user.uid}/profile/friendCode`).set(code);
         }
         friendCodeForUser=code;
+        const ownCodeField=document.getElementById('myFriendCode');if(ownCodeField)ownCodeField.value=code;
         const ownProfile={displayName:String(myName||user.displayName||'ユーザー').trim().slice(0,40)||'ユーザー',code};
         // Restore public profile for accounts previously marked private. Do not erase any personal data.
         await db.ref().update({[`friendProfiles/${user.uid}`]:ownProfile,[`publicProfiles/${user.uid}`]:ownProfile});
@@ -3066,8 +3067,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       }catch(err){console.error('ユーザーお気に入り初期化失敗',err);friendNotice('ユーザー情報の準備に失敗しました。Firebaseルールを確認してください。',true);}
     }
     function updateFriendCount(count){const n=count===null?'−':String(count);const h=document.getElementById('homeFriendCount');if(h)h.textContent=`(${n}人)`;const t=document.getElementById('friendsListHeading');if(t)t.textContent=`⭐ お気に入り中ユーザー（${n}人）`;}
-    function openFriendsModal(){friendNotice('');renderFriendSyncStatus();openModal('friendsModal');const u=friendUser();document.getElementById('myFriendCode').value=u?.uid||'Googleログイン後に表示';void refreshFriendsPanel();}
-    function copyMyFriendCode(){const uid=friendUser()?.uid;if(!uid)return friendNotice('Googleログインが必要です。',true);navigator.clipboard.writeText(uid).then(()=>friendNotice('UIDをコピーしました。')).catch(()=>friendNotice('コピーできませんでした。',true));}
+    function openFriendsModal(){friendNotice('');renderFriendSyncStatus();openModal('friendsModal');const u=friendUser();document.getElementById('myFriendCode').value=u?(friendCodeForUser||'取得中…'):'Googleログイン後に表示';void refreshFriendsPanel();}
+    function copyMyFriendCode(){if(!friendUser())return friendNotice('Googleログインが必要です。',true);if(!friendCodeForUser)return friendNotice('フレンドコード取得中です。',true);navigator.clipboard.writeText(friendCodeForUser).then(()=>friendNotice('フレンドコードをコピーしました。')).catch(()=>friendNotice('コピーできませんでした。',true));}
     async function getFriendDisplayName(uid){if(friendNameCache[uid])return friendNameCache[uid];try{const v=await db.ref(`publicProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(v.val()||'ユーザー').slice(0,40);}catch{return 'ユーザー';}}
     function friendItem(name,buttons){const row=document.createElement('div');row.className='friend-item';const label=document.createElement('span');label.className='friend-name';label.textContent=name;row.append(label);const actions=document.createElement('div');actions.className='friend-commands';for(const [title,handler,danger] of buttons){const btn=document.createElement('button');btn.type='button';btn.textContent=title;if(danger)btn.className='friend-danger';btn.onclick=handler;actions.append(btn);}row.append(actions);return row;}
     function favoriteUserRow(id,profiles,favorites){const u=friendUser();const name=String(profiles[id]?.displayName||'ユーザー').slice(0,40);const saved=favorites[id]===true;const actions=[['📁 公開リストを見る',()=>openFriendSharedList(id)]];if(u&&id!==u.uid)actions.push([saved?'お気に入り解除':'☆ お気に入り登録',()=>void toggleUserFavorite(id,saved),saved]);return friendItem(name,actions);}
@@ -3089,13 +3090,13 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     }
     async function sendFriendRequest(){
       const raw=String(document.getElementById('friendCodeInput').value||'').trim();const panel=document.getElementById('publicProfilesList');panel.textContent='検索中…';
-      if(!raw||/[.#$\/\[\]]/.test(raw)||raw.length>128){panel.textContent='有効なUIDを入力してください。';return;}
-      try{let id=raw;if(/^SL-[A-HJ-NP-Z2-9]{10}$/i.test(raw)){const snap=await db.ref(`friendCodes/${raw.toUpperCase()}`).once('value');id=String(snap.val()||'');}
+      if(!/^SL-[A-HJ-NP-Z2-9]{10}$/i.test(raw)){panel.textContent='フレンドコードを入力してください（例：SL-XXXXXXXXXX）。';return;}
+      try{const snap=await db.ref(`friendCodes/${raw.toUpperCase()}`).once('value');const id=String(snap.val()||'');
         const profile=id?cachedFavoriteProfiles[id]||(await db.ref(`publicProfiles/${id}`).once('value')).val():null;
         if(!profile){panel.textContent='該当するGoogle登録ユーザーは見つかりません。';return;}
-        if(id===friendUser()?.uid){panel.textContent='これは自分のUIDです。';return;}
+        if(id===friendUser()?.uid){panel.textContent='これは自分のフレンドコードです。';return;}
         panel.replaceChildren(favoriteUserRow(id,{[id]:profile},cachedUserFavorites));
-      }catch(err){console.warn('UID検索失敗',err);panel.textContent='検索できませんでした。';}
+      }catch(err){console.warn('フレンドコード検索失敗',err);panel.textContent='検索できませんでした。';}
     }
     async function toggleUserFavorite(id,saved){const u=friendUser();if(!u)return friendNotice('お気に入り登録にはGoogleログインが必要です。',true);if(saved&&!confirm('このユーザーのお気に入り登録を解除しますか？'))return;try{await db.ref(`userFavorites/${u.uid}/${id}`).set(saved?null:true);friendNotice(saved?'お気に入りを解除しました。':'ユーザーをお気に入りに登録しました。');void refreshFriendsPanel();}catch(err){console.warn('ユーザーお気に入り変更失敗',err);friendNotice('変更できませんでした。',true);}}
     // A private recent co-session list, populated only while a Google user is in a live room.
