@@ -527,6 +527,14 @@
         .mypage-menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
         .mypage-menu button { width:100%; min-width:0; padding:13px 7px; text-align:left; font-size:12px; line-height:1.4; white-space:nowrap; background:var(--btn-bg); }
         .mypage-menu button:hover { border-color:var(--primary); background:var(--btn-hover); }
+        #myPageModal .mypage-menu {grid-template-columns:repeat(2,minmax(0,1fr));}
+        #myPageModal .mypage-menu > button,
+        #myPageModal .mypage-menu > a {box-sizing:border-box;min-width:0;width:100%;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:left;padding:12px 10px;}
+        #myPageModal #favoriteArtistCount {white-space:nowrap;}
+        @media(max-width:540px) {
+          #myPageModal .mypage-menu {grid-template-columns:minmax(0,1fr);}
+          #myPageModal .mypage-menu > button,#myPageModal .mypage-menu > a {font-size:12px;}
+        }
         #myPageAccountHint { margin:0 0 14px; font-size:12px; opacity:.85; overflow-wrap:anywhere; }
         .shared-list-meta {font-size:12px;opacity:.85;margin:8px 0;}
         .shared-list-tools {display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;}
@@ -1226,7 +1234,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 </div>
 <!-- マイページ: 各機能の入口をまとめ、既存の個別モーダルと保存処理は維持する -->
 <div class="modal-overlay" id="myPageModal" onclick="closeModal(event,'myPageModal')">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="myPageTitle" onclick="event.stopPropagation()" style="max-width:430px;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="myPageTitle" onclick="event.stopPropagation()" style="width:min(600px, calc(100vw - 28px));max-width:600px;box-sizing:border-box;">
     <span class="modal-close" role="button" tabindex="0" aria-label="閉じる" onclick="closeModal(null,'myPageModal')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal(null,'myPageModal')}">&times;</span>
     <h2 id="myPageTitle">👤 マイページ</h2>
     <p id="myPageAccountHint"></p>
