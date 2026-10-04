@@ -937,6 +937,14 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 #clipboardAnalysisModal .clipboard-analysis-footer{flex:0 0 auto;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-color);}
 .clipboard-apply-request{margin-top:6px;padding:5px 9px;font-size:12px;}
 @media(max-width:600px){#clipboardAnalysisModal .modal{width:calc(100% - 16px);height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);padding:12px;}}
+
+/* 公開マイリスト：全文検索・ジャンル絞り込み・ジャンル順 */
+.friend-public-filters{display:grid;gap:7px;margin:10px 0;}
+.friend-public-filters input{width:100%;box-sizing:border-box;}
+.friend-public-filter-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px;}
+.friend-public-filter-row select{flex:1;min-width:90px;max-width:170px;box-sizing:border-box;}
+.shared-song-genres{font-size:11px;opacity:.8;margin-top:3px;overflow-wrap:anywhere;}
+#friendFilteredCount{opacity:.85;margin-left:auto;}
 </style>
 </head>
 <body>
@@ -1275,7 +1283,14 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       <button type="button" id="friendArtistsTab" onclick="switchFriendShareTab('artists')">⭐ お気に入りアーティスト</button>
     </div>
     <div id="friendSongsPanel">
-      <div class="shared-list-tools"><label><input type="checkbox" id="friendCommonOnly" onchange="renderFriendSharedList()"> 🤝 自分との共通曲のみ</label><span id="friendCommonCount"></span></div>
+      <div class="friend-public-filters">
+        <input id="friendSongSearch" type="search" class="setting-input" placeholder="曲名・アーティスト・ジャンル・タイアップなど全情報で検索" aria-label="公開マイリスト内を検索" oninput="renderFriendSharedList()">
+        <div class="friend-public-filter-row">
+          <label for="friendGenreFilter">ジャンル</label><select id="friendGenreFilter" class="setting-input" onchange="renderFriendSharedList()"><option value="">すべて</option></select>
+          <label for="friendGenreSort">並び順</label><select id="friendGenreSort" class="setting-input" onchange="renderFriendSharedList()"><option value="original">登録順</option><option value="genre1">ジャンル順</option><option value="genre2">ジャンル②順</option></select>
+        </div>
+      </div>
+      <div class="shared-list-tools"><label><input type="checkbox" id="friendCommonOnly" onchange="renderFriendSharedList()"> 🤝 自分との共通曲のみ</label><span id="friendCommonCount"></span><span id="friendFilteredCount"></span></div>
       <div id="friendSharedSongs" class="shared-list-scroll" aria-live="polite">読み込み中…</div>
     </div>
     <div id="friendArtistsPanel" hidden style="display:none;">
@@ -3245,6 +3260,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         friendSharedUid=uid;
         friendSharedSongs={};friendSharedArtists={};
         document.getElementById('friendCommonOnly').checked=false;
+        document.getElementById('friendSongSearch').value='';
+        document.getElementById('friendGenreFilter').innerHTML='<option value="">すべて</option>';
+        document.getElementById('friendGenreSort').value='original';
         document.getElementById('friendCommonArtistsOnly').checked=false;
         switchFriendShareTab('songs');
         document.getElementById('friendSharedTitle').textContent='📁 公開マイリスト';
@@ -3335,27 +3353,53 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         const onlyCommon=document.getElementById('friendCommonOnly').checked;
         const sharedIds=new Set(Object.keys(friendSharedSongs));
         const rows=allData.filter(song=>sharedIds.has(song._id));
-        // 自分の表示中の編集途中データではなく、Firebaseへ保存成功したリスト同士を比較する。
+        const genreOf=(song,which)=>String(song[which===2?(genre2Key||'ジャンル②'):(genre1Key||'ジャンル')]||'').trim();
+        const filterSelect=document.getElementById('friendGenreFilter');
+        const previousGenre=filterSelect.value;
+        const genres=[...new Set(rows.flatMap(song=>[genreOf(song,1),genreOf(song,2)]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
+        filterSelect.replaceChildren(new Option('すべて',''),...genres.map(genre=>new Option(genre,genre)));
+        filterSelect.value=genres.includes(previousGenre)?previousGenre:'';
+        const genreFilter=filterSelect.value;
+        const query=String(document.getElementById('friendSongSearch').value||'').normalize('NFKC').toLocaleLowerCase('ja').trim();
+        const terms=query.split(/\s+/).filter(Boolean);
+        const sort=document.getElementById('friendGenreSort').value;
         const common=rows.filter(song=>ownSavedFriendSongIds.has(song._id));
         document.getElementById('friendCommonCount').textContent=ownSavedFriendSongsReady
             ? `🤝 共通 ${common.length}曲 / 全${rows.length}曲`
             : `🤝 共通曲を確認中… / 全${rows.length}曲`;
-        for(const song of rows){
+        const filtered=rows.filter(song=>{
+            if(onlyCommon&&!ownSavedFriendSongIds.has(song._id))return false;
+            if(genreFilter&&genreOf(song,1)!==genreFilter&&genreOf(song,2)!==genreFilter)return false;
+            if(terms.length){
+                // マスターの全フィールドに加え、保存Key・担当パートも検索対象。
+                const entry=friendSharedSongs[song._id]||{};
+                const haystack=[...Object.values(song).filter(v=>v!==null&&typeof v!=='object'),entry.key, ...(Array.isArray(entry.parts)?entry.parts:[])].join(' ').normalize('NFKC').toLocaleLowerCase('ja');
+                if(!terms.every(t=>haystack.includes(t)))return false;
+            }
+            return true;
+        });
+        if(sort==='genre1'||sort==='genre2'){
+            const field=sort==='genre2'?2:1;
+            filtered.sort((a,b)=>genreOf(a,field).localeCompare(genreOf(b,field),'ja')||genreOf(a,field===1?2:1).localeCompare(genreOf(b,field===1?2:1),'ja')||String(a['曲名']||'').localeCompare(String(b['曲名']||''),'ja'));
+        }
+        document.getElementById('friendFilteredCount').textContent=`表示 ${filtered.length}曲`;
+        for(const song of filtered){
             const overlaps=ownSavedFriendSongIds.has(song._id);
-            if(onlyCommon && !overlaps)continue;
             const entry=friendSharedSongs[song._id] || {};
             const row=document.createElement('div');row.className='shared-song'+(overlaps?' common':'');
             const info=document.createElement('div');info.style.minWidth='0';
             const title=document.createElement('button');title.type='button';title.className='shared-song-name friend-song-detail-link';title.textContent=song['曲名']||'曲名不明';title.title='楽曲詳細を開く';title.setAttribute('aria-label',`${song['曲名'] || '曲名不明'}の楽曲詳細を開く`);title.addEventListener('click',()=>openFriendSongDetails(song._id));
             const artist=document.createElement('div');artist.className='shared-song-artist';artist.textContent=song['アーティスト']||'';
-            info.append(title,artist);
+            const genre=document.createElement('div');genre.className='shared-song-genres';
+            genre.textContent=`ジャンル：${genreOf(song,1)||'-'} / ジャンル②：${genreOf(song,2)||'-'}`;
+            info.append(title,artist,genre);
             if(overlaps){const tag=document.createElement('div');tag.className='shared-common-tag';tag.textContent='🤝 共通曲';info.append(tag);}
             const attrs=document.createElement('div');attrs.className='shared-song-attrs';
             const key=document.createElement('div');key.textContent=`Key ${displayKey(Number(entry.key)||0)}`;
             const parts=document.createElement('div');parts.textContent=Array.isArray(entry.parts)&&entry.parts.length?entry.parts.join(' '):'パート未設定';
             attrs.append(key,parts);row.append(info,attrs);container.append(row);
         }
-        if(!container.childElementCount) container.textContent=onlyCommon?'共通曲はありません。':'公開されている曲はまだありません。';
+        if(!filtered.length)container.textContent=rows.length?'検索条件に一致する曲はありません。':'公開されている曲はまだありません。';
     }
     // ===== STEP 3-2ここまで =====
     // ===== フレンド機能ここまで =====
