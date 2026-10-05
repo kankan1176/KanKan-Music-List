@@ -2092,6 +2092,21 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             ]);
             if (version !== myListLoadVersion || auth.currentUser?.uid !== user.uid) return;
             personalSongs = songsSnapshot.val() || {};
+
+            // 旧仕様で残っていた「削除済み」データをFirebaseから完全削除する。
+            // 今後、マイリストから削除した曲は users/{uid}/songs/{songId} に残さない。
+            const legacyDeletedSongIds = Object.entries(personalSongs)
+                .filter(([,item]) => item && typeof item === 'object' && (item.excluded === true || item.registered === false))
+                .map(([id]) => id);
+            if (legacyDeletedSongIds.length) {
+                const cleanup = {};
+                legacyDeletedSongIds.forEach(id => { cleanup[`users/${user.uid}/songs/${id}`] = null; });
+                await db.ref().update(cleanup);
+                if (version !== myListLoadVersion || auth.currentUser?.uid !== user.uid) return;
+                legacyDeletedSongIds.forEach(id => delete personalSongs[id]);
+                console.info(`旧マイリスト削除データを${legacyDeletedSongIds.length}件削除しました。`);
+            }
+
             favoriteArtists = artistsSnapshot.val() || {};
             defaultPart = PARTS.includes(partSnapshot.val()) ? partSnapshot.val() : '';
             sharedListReadyUid = user.uid;
@@ -2249,10 +2264,19 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         if (!songs.length && !artists.length) return true;
         const changes = {};
         songs.forEach(([id,item]) => {
+            // 削除操作はnullを書き込み、Firebaseノード自体を完全削除する。
+            if (item.excluded || item.registered === false) {
+                changes[`users/${user.uid}/songs/${id}`] = null;
+                return;
+            }
             const parts=getSelectedParts(item);
-            const entry = {registered:!!item.registered,part:parts[0]||'',parts,liked:!!item.liked,key:Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0};
-            if (item.excluded) entry.excluded=true;
-            changes[`users/${user.uid}/songs/${id}`] = entry;
+            changes[`users/${user.uid}/songs/${id}`] = {
+                registered:true,
+                part:parts[0]||'',
+                parts,
+                liked:!!item.liked,
+                key:Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0
+            };
         });
         artists.forEach(([id,value]) => { changes[`users/${user.uid}/favoriteArtists/${id}`] = value || null; });
         const task = (async () => {
@@ -2260,7 +2284,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                 await db.ref().update(changes);
                 if (auth.currentUser?.uid !== user.uid) return false;
                 songs.forEach(([id,item]) => {
-                    personalSongs[id] = changes[`users/${user.uid}/songs/${id}`];
+                    const saved = changes[`users/${user.uid}/songs/${id}`];
+                    if (saved === null) delete personalSongs[id];
+                    else personalSongs[id] = saved;
                     // 保存中に本人が再編集した値は消さない。
                     if (pendingSongs[id] === item) delete pendingSongs[id];
                 });
