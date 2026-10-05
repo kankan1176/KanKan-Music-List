@@ -1591,7 +1591,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             <a id="detailKeyLink" target="_blank" rel="noopener noreferrer">🎸 選択したKeyでChordWikiを開く ↗</a>
             <div style="font-size:11px; opacity:0.7; margin-top:6px;">自分用Keyの変更です。マスターのChordWiki原曲URLは変更しません。</div>
         </div>
-        <div class="detail-item"><button type="button" onclick="openSongEditRequestModal()" style="width:100%;">✏️ この曲の情報修正を申請</button></div>
+        <div class="detail-item"><button type="button" id="detailSongEditBtn" onclick="openSongEditRequestModal()" style="width:100%;">✏️ この曲の情報を編集</button></div>
         <div class="detail-item" id="detailRoomShared"><b>🤝 ルーム内でこの曲を登録しているメンバー</b><div id="detailRoomMembers"></div></div>
         <div id="detailPersonalEdit" class="detail-item" style="display:none;">
             <label style="display:block;font-weight:bold;margin-bottom:7px;">マイリスト登録（本人のみ）</label>
@@ -1604,8 +1604,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 <div class="modal-overlay" id="songEditRequestModal" onclick="closeModal(event,'songEditRequestModal')" style="z-index:1090;">
  <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
   <span class="modal-close" onclick="closeModal(null,'songEditRequestModal')">&times;</span>
-  <h2>✏️ 楽曲情報の修正申請</h2>
-  <p style="font-size:12px;">変更した項目だけ管理者へ送信します。承認までは公開マスターに反映されません。Googleログインが必要です。</p>
+  <h2>✏️ 楽曲情報を編集</h2>
+  <p style="font-size:12px;">Googleログイン中のユーザーのみ編集できます。保存した変更はすぐに反映され、変更曲・編集者・日時・変更内容を編集ログへ記録します。</p>
   <form id="songEditRequestForm" onsubmit="submitSongEditRequest(event)">
    <div class="setting-group"><label>曲名</label><input name="title" class="setting-input" maxlength="240" required></div>
    <div class="setting-group"><label>アーティスト</label><input name="artist" class="setting-input" maxlength="240"></div>
@@ -1615,7 +1615,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
    <div class="setting-group"><label>タイアップ / 検索用語</label><input name="tieup" class="setting-input" placeholder="タイアップ" maxlength="240"><input name="search" class="setting-input" placeholder="検索用語" maxlength="500"></div>
    <div class="setting-group"><label>作詞 / 作曲 / 編曲</label><input name="lyrics" class="setting-input" placeholder="作詞" maxlength="240"><input name="composition" class="setting-input" placeholder="作曲" maxlength="240"><input name="arrangement" class="setting-input" placeholder="編曲" maxlength="240"></div>
    <p id="songEditRequestFeedback" aria-live="polite" style="font-size:12px;"></p>
-   <button type="submit" class="primary-btn" id="songEditRequestSubmit">管理者へ修正申請</button>
+   <button type="submit" class="primary-btn" id="songEditRequestSubmit">変更を保存</button>
   </form>
  </div>
 </div>
@@ -4211,10 +4211,15 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
+    function isGoogleSongEditor(){
+        const user=auth.currentUser;
+        return !!(user && !user.isAnonymous && signedInUser?.uid===user.uid &&
+            Array.isArray(user.providerData) && user.providerData.some(p=>p?.providerId==='google.com'));
+    }
     function openSongEditRequestModal(){
         const song=allData.find(row=>row._id===currentDetailSongId);
         if(!song)return;
-        if(!signedInUser){alert('楽曲情報の修正申請にはGoogleログインが必要です。');return;}
+        if(!isGoogleSongEditor()){alert('楽曲情報の編集にはGoogleログインが必要です。');return;}
         const form=document.getElementById('songEditRequestForm');
         for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS))form.elements[field].value=String(song[col]??'');
         document.getElementById('songEditRequestFeedback').textContent='';
@@ -4222,25 +4227,84 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     async function submitSongEditRequest(event){
         event.preventDefault();
-        const song=allData.find(row=>row._id===currentDetailSongId),user=signedInUser;
-        if(!song||!user||auth.currentUser?.uid!==user.uid)return;
-        const form=document.getElementById('songEditRequestForm'),changes={};
+        const song=allData.find(row=>row._id===currentDetailSongId),user=auth.currentUser;
+        if(!song||!user||!isGoogleSongEditor()){
+            const feedback=document.getElementById('songEditRequestFeedback');
+            if(feedback)feedback.textContent='Googleログインを確認してください。';
+            return;
+        }
+        const form=document.getElementById('songEditRequestForm'),changes={},nextValues={};
         for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
-            const next=String(form.elements[field].value||'').trim();
-            if(next!==String(song[col]||'').trim())changes[field]=next;
+            const before=String(song[col]??'').trim();
+            const after=String(form.elements[field].value||'').trim();
+            nextValues[field]=after;
+            if(after!==before)changes[field]={before,after};
         }
         const msg=document.getElementById('songEditRequestFeedback'),button=document.getElementById('songEditRequestSubmit');
         if(!Object.keys(changes).length){msg.textContent='変更箇所がありません。';return;}
-        button.disabled=true;msg.textContent='送信中…';
+        if(!nextValues.title){msg.textContent='曲名は空にできません。';return;}
+        button.disabled=true;msg.textContent='保存中…';
         try{
-            await db.ref(`songEditRequests/${song._id}/${user.uid}`).set({
-                type:'edit',songId:song._id,title:String(song['曲名']||'').slice(0,240),requestedBy:user.uid,
-                status:'pending',createdAt:firebase.database.ServerValue.TIMESTAMP,changes
-            });
-            msg.textContent='修正申請を受け付けました。管理者の確認待ちです。';
-            closeModal(null, 'songEditRequestModal');
-        }catch(err){console.error('修正申請',err);msg.textContent='申請に失敗しました：'+String(err.message||err);}
-        finally{button.disabled=false;}
+            if(auth.currentUser?.uid!==user.uid||!isGoogleSongEditor())throw Error('ログイン状態が変更されました。');
+
+            // Realtime Database の songs/ は英字フィールドで管理しているため、
+            // 現在表示中の日本語列から完全な1曲分のデータを組み直して保存する。
+            const updatedSong={id:song._id};
+            for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
+                updatedSong[field]=nextValues[field];
+            }
+
+            const logRef=db.ref('songEditLogs').push();
+            const revision=db.ref().push().key;
+            if(!logRef.key||!revision)throw Error('更新IDを作成できませんでした。');
+
+            const editLog={
+                songId:song._id,
+                songTitleBefore:String(song['曲名']||'').slice(0,240),
+                songTitleAfter:String(nextValues.title||'').slice(0,240),
+                editorUid:user.uid,
+                editorName:String(user.displayName||'').slice(0,120),
+                editorEmail:String(user.email||'').slice(0,254),
+                editedAt:firebase.database.ServerValue.TIMESTAMP,
+                changes
+            };
+
+            // 楽曲本体・編集ログ・公開マスター更新番号を1回のupdateで送る。
+            // 途中で通信が切れても、3箇所の書き込みは同一更新として扱われる。
+            const updates={};
+            updates[`songs/${song._id}`]=updatedSong;
+            updates[`songEditLogs/${logRef.key}`]=editLog;
+            updates['masterMeta/revision']=revision;
+            await db.ref().update(updates);
+
+            // 保存成功後は、再取得を待たず現在の画面へ即時反映。
+            for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
+                song[col]=nextValues[field];
+            }
+            populateGenreButtons();
+            renderTable();
+
+            if(currentDetailSongId===song._id){
+                document.getElementById('detailTitle').textContent=song['曲名']||'';
+                document.getElementById('detailArtist').textContent=song['アーティスト']||'';
+                document.getElementById('detailLyricist').textContent=song['作詞']||'';
+                document.getElementById('detailComposer').textContent=song['作曲']||'';
+                document.getElementById('detailArranger').textContent=song['編曲']||'';
+                document.getElementById('detailBPM').textContent=song['BPM']||'';
+                document.getElementById('detailGenre1').textContent=song[genre1Key]||song['ジャンル']||'';
+                document.getElementById('detailGenre2').textContent=song['ジャンル②']||'';
+                document.getElementById('detailGenre3').textContent=song['ジャンル③']||'';
+                document.getElementById('detailTieup').textContent=song['タイアップ情報']||'';
+            }
+
+            msg.textContent='保存しました。';
+            closeModal(null,'songEditRequestModal');
+        }catch(err){
+            console.error('楽曲情報の編集保存',err);
+            msg.textContent='保存に失敗しました：'+String(err.message||err);
+        }finally{
+            button.disabled=false;
+        }
     }
 
     function loadRowsIntoApp(rawData) {
