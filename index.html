@@ -3556,7 +3556,20 @@ html, body { background: transparent !important; color: ${text} !important; }
     function changeClipboardHelpPage(delta) { showClipboardHelpPage(clipboardHelpPage + delta); }
     function openClipboardHelpManual() { showClipboardHelpPage(0); openModal('songEntryNoticeModal'); }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    // 入力中のモーダルは、背景（画面外）の誤クリックでは閉じない。
+    // ×ボタン・キャンセルなど明示的な操作（e === null）のときだけ閉じる。
+    const backdropLockedModals = new Set([
+        'friendsModal',
+        'addSongModal',
+        'clipboardImportModal',
+        'clipboardMappingModal',
+        'accountModal',
+        'settingsModal',
+        'songEditRequestModal',
+        'obsModal'
+    ]);
     function closeModal(e, id) {
+        if (e && backdropLockedModals.has(id)) return;
         if (e && e.target.id !== id) return;
         document.getElementById(id).style.display = 'none';
         if (id === 'songDetailsModal' && returnToFriendListFromDetail) {
