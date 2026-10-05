@@ -7,7 +7,16 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <style>
 :root{font-family:system-ui,'Noto Sans JP',sans-serif;color-scheme:dark;background:#111827;color:#f2f5fc}*{box-sizing:border-box}
-body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px solid #39465a;padding-bottom:15px}h1{font-size:22px;margin:0;flex:1}h2{font-size:18px;margin:2px 0 13px}h3{font-size:15px;margin:0 0 8px}p{line-height:1.6}main{margin-top:15px}section{background:#1c2636;border:1px solid #39465a;border-radius:10px;margin:12px 0;padding:16px}button,input,textarea{font:inherit}button,a.nav{border:1px solid #607896;border-radius:7px;background:#293c55;color:white;padding:9px 13px;cursor:pointer;text-decoration:none;display:inline-block}button:hover{filter:brightness(1.17)}button:disabled{opacity:.48;cursor:not-allowed}.primary{background:#145a9a;border-color:#287bc1}.approve{background:#176443;border-color:#32875e}.reject{background:#713637;border-color:#a14949}.bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.muted{color:#aebfd4;font-size:13px}.status{white-space:pre-wrap;line-height:1.55;color:#d4e8ff}input[type=file]{max-width:100%;padding:8px;border:1px dashed #6e7b8d;border-radius:6px}#workspace{display:none}.scroll{max-height:440px;overflow:auto;border:1px solid #39465a;border-radius:6px;padding:8px;background:#131c2a}.row{padding:9px 5px;border-bottom:1px solid #39465a;overflow-wrap:anywhere}.row:last-child{border-bottom:0}.pill{font-size:12px;padding:3px 7px;border-radius:5px;background:#394c65;margin-right:5px}.warn{color:#ffcd7a}.err{color:#ff9292}.ok{color:#83d9a0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#101824;padding:10px;border-radius:5px}.request{background:#111d2b;border:1px solid #344359;padding:12px;margin:8px 0;border-radius:7px}.request-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}code{color:#c5e4ff}@media(max-width:600px){body{padding:10px}section{padding:12px}h1{font-size:18px}}
+body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px solid #39465a;padding-bottom:15px}h1{font-size:22px;margin:0;flex:1}h2{font-size:18px;margin:2px 0 13px}h3{font-size:15px;margin:0 0 8px}p{line-height:1.6}main{margin-top:15px}section{background:#1c2636;border:1px solid #39465a;border-radius:10px;margin:12px 0;padding:16px}button,input,textarea{font:inherit}button,a.nav{border:1px solid #607896;border-radius:7px;background:#293c55;color:white;padding:9px 13px;cursor:pointer;text-decoration:none;display:inline-block}button:hover{filter:brightness(1.17)}button:disabled{opacity:.48;cursor:not-allowed}.primary{background:#145a9a;border-color:#287bc1}.approve{background:#176443;border-color:#32875e}.reject{background:#713637;border-color:#a14949}.bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.muted{color:#aebfd4;font-size:13px}.status{white-space:pre-wrap;line-height:1.55;color:#d4e8ff}input[type=file]{max-width:100%;padding:8px;border:1px dashed #6e7b8d;border-radius:6px}#workspace{display:none}.scroll{max-height:440px;overflow:auto;border:1px solid #39465a;border-radius:6px;padding:8px;background:#131c2a}.row{padding:9px 5px;border-bottom:1px solid #39465a;overflow-wrap:anywhere}.row:last-child{border-bottom:0}.pill{font-size:12px;padding:3px 7px;border-radius:5px;background:#394c65;margin-right:5px}.warn{color:#ffcd7a}.err{color:#ff9292}.ok{color:#83d9a0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#101824;padding:10px;border-radius:5px}.request{background:#111d2b;border:1px solid #344359;padding:12px;margin:8px 0;border-radius:7px}.request-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}code{color:#c5e4ff}
+.log-card{background:#111d2b;border:1px solid #344359;padding:12px;margin:8px 0;border-radius:7px}
+.log-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.log-title{font-weight:700}
+.log-meta{font-size:12px;color:#aebfd4;overflow-wrap:anywhere}
+.log-change{margin-top:8px;padding:8px 10px;border-left:3px solid #607896;background:#101824;border-radius:4px}
+.log-field{font-weight:700;margin-bottom:3px}
+.log-values{font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.log-arrow{color:#83d9a0;font-weight:700}
+@media(max-width:600px){body{padding:10px}section{padding:12px}h1{font-size:18px}}
 </style></head>
 <body>
 <header><h1>🛡️ シェアリスコア｜楽曲データ管理</h1><a class="nav" href="index.html">← アプリへ戻る</a><button id="login" class="primary">Googleで管理者ログイン</button><button id="logout" hidden>ログアウト</button></header>
@@ -21,14 +30,18 @@ body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items
  </section>
  <section><div class="bar"><h2 style="flex:1">📝 新曲登録申請</h2><button id="refreshRequests">申請を再読込</button></div><div id="addRequests" class="scroll"></div></section>
  <section><h2>✏️ 楽曲情報の修正申請・アーティスト補完</h2><div id="editRequests" class="scroll"></div></section>
+ <section>
+  <div class="bar">
+   <h2 style="flex:1">🧾 楽曲編集履歴</h2>
+   <button id="refreshEditLogs">履歴を再読込</button>
+  </div>
+  <p class="muted">Googleログインユーザーが楽曲情報を直接編集した履歴です。直近100件を新しい順に表示します。</p>
+  <div id="editLogs" class="scroll"></div>
+ </section>
  <section><h2>🔄 公開マスターのキャッシュ更新通知</h2>
  <p class="muted">Firebase ConsoleからsongsへJSONを直接インポートした場合や、この管理画面以外から楽曲を修正した場合に押してください。これによりユーザー端末の古いマスターが次回閲覧時に更新されます。管理画面でCSVを確定・新曲/修正申請を承認した際は自動通知します。</p>
  <div class="bar"><button id="bumpRevision" class="primary">公開マスターの更新を通知する</button><span id="revisionInfo" class="status"></span></div>
    </section>
-  <section><h2>📥 楽曲マスターをCSV出力</h2>
-  <p class="muted">Firebaseの正式マスター /songs を最新状態で再取得し、全楽曲・全13項目をCSVで出力します。既存の楽曲UUIDを「楽曲ID」列に保持し、未設定項目は空欄にします。データは変更しません。Excelで開けるUTF-8（BOM付き）形式です。CSVの文字列は再インポート時に意図せず変更しないでください。</p>
-  <div class="bar"><button type="button" id="exportCsv" class="primary">📥 全楽曲マスターをCSVダウンロード</button><span id="exportCsvStatus" class="status" role="status" aria-live="polite"></span></div>
-  </section>
   <section><h2>🌐 第3段階：公開用JSONを書き出す</h2>
   <p class="muted">承認・CSV更新・Firebase Consoleでの変更が完了した後に実行してください。Firebaseから全曲と更新番号を再取得し、取得中に更新が入っていないか照合して書き出します。通常はGitHub Actionsが約10分ごとに <code>public/songs.json</code> を自動更新するため、ダウンロードは不要です。自動同期が止まっている場合の予備として、このファイルをGitHubの <code>public/songs.json</code> に同名でアップロードできます。管理者のユーザー情報や申請は含みません。</p>
   <div class="bar"><button id="exportStatic" class="primary">公開用 songs.json をダウンロード</button><span id="exportStaticStatus" class="status"></span></div>
@@ -40,37 +53,6 @@ body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items
 const firebaseConfig={apiKey:'AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI',authDomain:'kankan-session-room.firebaseapp.com',databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'kankan-session-room',storageBucket:'kankan-session-room.firebasestorage.app',messagingSenderId:'759342880820',appId:'1:759342880820:web:9af0af755e35926a281261'};
 firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database();
 const FIELDS=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
-const CSV_EXPORT_HEADERS=[['楽曲ID','id'],['曲名','title'],['アーティスト','artist'],['コードwiki','chordwiki'],['BPM','bpm'],['ジャンル①','genre'],['ジャンル②','genre2'],['ジャンル③','genre3'],['タイアップ','tieup'],['検索','search'],['作詞','lyrics'],['作曲','composition'],['編曲','arrangement']];
-// Export from the live source, not the in-memory preview, so recently approved edits are included.
-document.getElementById('exportCsv').addEventListener('click',async()=>{
- if(!admin||busy)return;
- const button=el('exportCsv');busy=true;button.disabled=true;
- try{
-  msg('exportCsvStatus','Firebaseから最新の楽曲マスターを読み込み中…');
-  let songs=null,revision=null;
-  for(let attempt=0;attempt<3;attempt++){
-   const before=(await db.ref('masterMeta/revision').once('value')).val();
-   const snapshot=await db.ref('songs').once('value');
-   const after=(await db.ref('masterMeta/revision').once('value')).val();
-   if(before===after){songs=snapshot.val();revision=after;break;}
-  }
-  if(!songs||typeof songs!=='object'||Array.isArray(songs))throw Error('楽曲マスターを取得できませんでした。');
-  if(revision===null)throw Error('取得中にマスターが更新されました。再度お試しください。');
-  const rows=Object.entries(songs).map(([id,song])=>{
-   if(!song||typeof song!=='object'||typeof song.title!=='string'||!song.title.trim()||(song.id&&song.id!==id))throw Error('不正な楽曲データ：'+id);
-   return CSV_EXPORT_HEADERS.map(([,field])=>field==='id'?id:String(song[field]??''));
-  });
-  if(!rows.length)throw Error('楽曲マスターが空です。');
-  const csv=Papa.unparse({fields:CSV_EXPORT_HEADERS.map(([header])=>header),data:rows},{newline:'\r\n',quotes:true});
-  const blob=new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob),link=document.createElement('a');
-  const date=new Date();const stamp=[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('');
-  link.href=url;link.download='シェアリスコア_楽曲マスター_'+stamp+'.csv';document.body.append(link);link.click();link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),60000);
-  msg('exportCsvStatus','✅ '+rows.length.toLocaleString()+'曲・13項目をCSV出力しました（UUID維持）。');
- }catch(error){msg('exportCsvStatus','⚠ CSV出力に失敗：'+humanErr(error));}
- finally{button.disabled=false;busy=false;}
-});
 const HEADERS={'楽曲ID':'id','曲名':'title','アーティスト':'artist','コードwiki':'chordwiki','コードWiki':'chordwiki','BPM':'bpm','ジャンル':'genre','ジャンル①':'genre','ジャンル②':'genre2','ジャンル③':'genre3','タイアップ':'tieup','タイアップ情報':'tieup','検索':'search','作詞':'lyrics','作曲':'composition','編曲':'arrangement'};
 const el=id=>document.getElementById(id);let admin=null,master={},preview=[],busy=false;
 function msg(id,t){el(id).textContent=t;}
@@ -139,7 +121,7 @@ auth.onAuthStateChanged(async user=>{
  if(auth.currentUser?.uid!==user.uid)return;
  if(check.val()!==true){msg('authStatus','管理者権限がありません。Firebase Consoleで admins/'+user.uid+' に true を登録してください。');return;}
  admin=user;msg('authStatus','✅ 管理者として認証しました：'+(user.displayName||user.email||user.uid));el('workspace').style.display='block';
- await Promise.all([loadMaster(),loadRequests(),showMasterRevision()]);}catch(e){msg('authStatus','管理者権限の確認に失敗：'+humanErr(e)+'。Realtime Databaseルールが公開済みか確認してください。');}
+ await Promise.all([loadMaster(),loadRequests(),loadEditLogs(),showMasterRevision()]);}catch(e){msg('authStatus','管理者権限の確認に失敗：'+humanErr(e)+'。Realtime Databaseルールが公開済みか確認してください。');}
 });
 el('refreshMaster').addEventListener('click',async()=>{if(!admin||busy)return;try{await loadMaster();preview=[];el('applyCsv').disabled=true;el('csvPreview').hidden=true;}catch(e){msg('csvInfo',humanErr(e));}});
 el('previewCsv').addEventListener('click',async()=>{
@@ -185,6 +167,67 @@ el('applyCsv').addEventListener('click',async()=>{
   busy=false;el('previewCsv').disabled=false;}
 });
 el('refreshRequests').addEventListener('click',loadRequests);
+el('refreshEditLogs').addEventListener('click',loadEditLogs);
+
+const EDIT_LOG_FIELD_LABELS={
+ title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',
+ genre:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',tieup:'タイアップ情報',
+ search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'
+};
+function safeText(value){return String(value??'');}
+async function loadEditLogs(){
+ if(!admin)return;
+ msg('editLogs','読み込み中…');
+ try{
+  const snap=await db.ref('songEditLogs').orderByChild('editedAt').limitToLast(100).once('value');
+  const rows=[];
+  snap.forEach(item=>rows.push({id:item.key,data:item.val()||{}}));
+  rows.sort((a,b)=>(b.data.editedAt||0)-(a.data.editedAt||0));
+  renderEditLogs(rows);
+ }catch(err){
+  msg('editLogs','編集履歴を読めません：'+humanErr(err));
+ }
+}
+function renderEditLogs(rows){
+ const out=el('editLogs');
+ out.replaceChildren();
+ if(!rows.length){out.textContent='編集履歴はまだありません。';return;}
+ for(const row of rows){
+  const d=row.data||{},card=document.createElement('div');card.className='log-card';
+
+  const head=document.createElement('div');head.className='log-head';
+  const title=document.createElement('div');title.className='log-title';
+  title.textContent=(d.songTitleAfter||d.songTitleBefore||'曲名不明')+' ｜ '+(d.songId||'ID不明');
+  head.append(title);
+
+  const time=document.createElement('div');time.className='log-meta';
+  time.textContent=d.editedAt?new Date(d.editedAt).toLocaleString('ja-JP'):'日時不明';
+  head.append(time);
+  card.append(head);
+
+  const editor=document.createElement('div');editor.className='log-meta';
+  const name=d.editorName||'表示名なし',mail=d.editorEmail||'メールなし';
+  editor.textContent=`編集者：${name} / ${mail} ｜ UID：${d.editorUid||''}`;
+  card.append(editor);
+
+  const changes=d.changes&&typeof d.changes==='object'?d.changes:{};
+  const entries=Object.entries(changes);
+  if(!entries.length){
+   const none=document.createElement('div');none.className='muted';none.textContent='変更内容の記録がありません。';card.append(none);
+  }else{
+   for(const [field,diff] of entries){
+    const change=document.createElement('div');change.className='log-change';
+    const label=document.createElement('div');label.className='log-field';label.textContent=EDIT_LOG_FIELD_LABELS[field]||field;
+    const values=document.createElement('div');values.className='log-values';
+    const before=safeText(diff?.before)||'（空欄）',after=safeText(diff?.after)||'（空欄）';
+    values.textContent=`変更前：${before}\n変更後：${after}`;
+    change.append(label,values);card.append(change);
+   }
+  }
+  out.append(card);
+ }
+}
+
 async function loadRequests(){
  if(!admin)return;msg('addRequests','読み込み中…');msg('editRequests','読み込み中…');
  try{
