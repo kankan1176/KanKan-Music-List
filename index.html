@@ -2179,9 +2179,14 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             if (version === myListLoadVersion) alert('マイリストを読み込めませんでした。Firebaseの users への権限を確認してください。');
         }
     }
-    function toggleMyList() {
+    async function toggleMyList() {
         // 入室後は作成時の候補曲セットを全参加者で統一するため切替不可。
         if (!signedInUser || currentRoomId) return;
+        // マイリストでは登録済みIDを全曲マスターへ照合するため、STEP3では従来の全件取得へ切り替える。
+        if (!myListMode && !masterLoaded) {
+            try { await promoteServerPageToFullMaster('マイリスト'); }
+            catch (error) { console.warn('マイリスト用マスター取得に失敗:', error); return; }
+        }
         myListMode = !myListMode;
         rememberListView(myListMode ? 'mylist' : 'all');
         selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();
@@ -3066,6 +3071,17 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     // =========================================
     const MASTER_DB_PATH = "songs";
 
+    // STEP3: 全曲一覧の初期表示だけは Firebase から100件ずつ取得する。
+    // 検索・絞り込み・マイリスト・ルームなど全件参照が必要な機能を使う時だけ、
+    // 移行期間中は従来の全マスター取得へ切り替える。
+    const SERVER_MASTER_PAGE_SIZE = 100;
+    let serverPagedMasterMode = false;
+    let serverPageNumber = 1;
+    let serverPageBusy = false;
+    let serverPageHasOlder = false;
+    let serverPageLoadPromise = null;
+    let fullMasterPromotionPromise = null;
+
     let allData = [];
     let roomQueue = {}; 
     let currentSortKey = '';
@@ -3095,7 +3111,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     const artistFilterName = document.getElementById('artistFilterName');
 
     function setArtistFilter(name) {
-        selectedArtist = String(name ?? '').trim();
+        const nextArtist = String(name ?? '').trim();
+        if (serverPagedMasterMode && !masterLoaded && nextArtist) {
+            void promoteServerPageToFullMaster('アーティスト絞り込み').then(() => setArtistFilter(nextArtist));
+            return;
+        }
+        selectedArtist = nextArtist;
         artistFilterName.textContent = selectedArtist;
         artistFilterIndicator.hidden = !selectedArtist;
         tableBodyWrapper.scrollTop = 0;
@@ -3313,6 +3334,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         return {songs, favoriteArtists: artists, updatedAt: Date.now()};
     }
     function queueFriendSharedSync(uid) {
+        // 100件取得中の allData は全マスターではないため、公開マイリストを部分データで上書きしない。
+        if (serverPagedMasterMode && !masterLoaded) return friendSharedSyncQueue;
         if (!uid || sharedListReadyUid !== uid || !allData.length) return friendSharedSyncQueue;
         // 同時更新の逆転を防ぐため同じユーザーの同期を直列化。
         friendSharedSyncQueue = friendSharedSyncQueue.catch(()=>{}).then(async()=>{
@@ -3365,7 +3388,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         const name = await getFriendDisplayName(uid);
         if (version!==friendSharedVersion) return;
         document.getElementById('friendSharedTitle').textContent=`📁 ${name} のマイリスト`;
-        if(!allData.length){try{await ensureMasterLoaded();}catch(err){console.warn('公開リスト用の楽曲マスター取得失敗',err);}}
+        if(!masterLoaded){
+            try{
+                if(serverPagedMasterMode) await promoteServerPageToFullMaster('公開マイリスト');
+                else await ensureMasterLoaded();
+            }catch(err){console.warn('公開リスト用の楽曲マスター取得失敗',err);}
+        }
         if(version!==friendSharedVersion)return;
         friendSharedRef=db.ref(`friendSharedLists/${uid}`);
         friendSharedListener=snap=>{
@@ -3879,6 +3907,10 @@ html, body { background: transparent !important; color: ${text} !important; }
     // Apps Script を「ウェブアプリ」としてデプロイして /exec URL をここに設定。
     // 公開CSVのURLは書き込みに使えません。
     function openAddSongModal() {
+        if (serverPagedMasterMode && !masterLoaded) {
+            void promoteServerPageToFullMaster('新規楽曲追加').then(() => openAddSongModal());
+            return;
+        }
         const genres = new Set();
         allData.forEach(row => {
             [genre1Key, genre2Key].forEach(key => {
@@ -4256,7 +4288,24 @@ html, body { background: transparent !important; color: ${text} !important; }
 
     // ジャンルボタン生成
     function populateGenreButtons() {
-        genreFilters.innerHTML = ''; 
+        genreFilters.innerHTML = '';
+        // 100件だけの内容からジャンル一覧を作ると欠落して見えるため、
+        // STEP3では全件取得へ切り替える入口だけを表示する。
+        if (serverPagedMasterMode && !masterLoaded) {
+            const allBtn = document.createElement('button');
+            allBtn.className = 'genre-btn active';
+            allBtn.textContent = 'すべて';
+            allBtn.onclick = () => {};
+            genreFilters.appendChild(allBtn);
+
+            const loadBtn = document.createElement('button');
+            loadBtn.className = 'genre-btn';
+            loadBtn.textContent = 'ジャンル絞り込みを読み込む';
+            loadBtn.title = 'ジャンル絞り込みを使うと従来の全曲マスターを読み込みます（STEP3移行期間中）';
+            loadBtn.onclick = () => { void promoteServerPageToFullMaster('ジャンル絞り込み'); };
+            genreFilters.appendChild(loadBtn);
+            return;
+        }
         const gSet = new Set();
         
         allData.forEach(row => { 
@@ -4452,7 +4501,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         });
 
         populateGenreButtons();
-        if (signedInUser && sharedListReadyUid === signedInUser.uid) void queueFriendSharedSync(signedInUser.uid);
+        if (!serverPagedMasterMode && signedInUser && sharedListReadyUid === signedInUser.uid) void queueFriendSharedSync(signedInUser.uid);
         if (currentRoomId) renderRoomListTabs();
         loadingArea.style.display = 'none';
         controls.style.display = 'block';
@@ -4475,6 +4524,147 @@ html, body { background: transparent !important; color: ${text} !important; }
         tableWrapper.style.display = 'none';
         loadingArea.innerHTML = `<span style='color:red;'>${escapeHtml(message)}</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>`;
         document.getElementById('retryBtn').onclick = () => location.reload();
+    }
+
+    function serverSnapshotToRawRows(snapshot) {
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement','updatedAt'];
+        const rows=[headers];
+        snapshot.forEach(child=>{
+            const id=String(child.key||'');
+            const song=child.val();
+            if(!/^[A-Za-z0-9_-]{1,80}$/.test(id)||!song||typeof song!=='object'||Array.isArray(song)||
+               (song.id&&song.id!==id)||typeof song.title!=='string'||!song.title.trim()) return;
+            rows.push(fields.map(field=>field==='id'?id:String(song[field]??'')));
+        });
+        return rows;
+    }
+
+    function serverPageCursor(row) {
+        if (!row) return null;
+        return {id:String(row._id||''), updatedAt:Number(row._updatedAt)||0};
+    }
+
+    function serverPagedNeedsFullMaster() {
+        return !!(currentRoomId || myListMode || searchInput.value.trim() ||
+            currentSortKey || currentGenre !== 'すべて' || selectedArtist);
+    }
+
+    async function loadServerMasterPage(direction='first') {
+        if (masterLoaded) {
+            serverPagedMasterMode=false;
+            renderTable();
+            return;
+        }
+        if (serverPageBusy) return serverPageLoadPromise;
+        serverPageBusy=true;
+        serverPagedMasterMode=true;
+        const previousRows=allData.slice();
+        const previousPage=serverPageNumber;
+        const previousHasOlder=serverPageHasOlder;
+        loadingArea.style.display='flex';
+        loadingArea.innerHTML='<div class="spinner"></div><div>Firebaseから100曲だけ取得中...</div>';
+
+        serverPageLoadPromise=(async()=>{
+            try{
+                let query=db.ref(MASTER_DB_PATH).orderByChild('updatedAt');
+                let snapshot;
+                let rows;
+                let hasOlder=false;
+
+                if(direction==='older' && allData.length){
+                    const oldest=serverPageCursor(allData[allData.length-1]);
+                    query=oldest.updatedAt
+                        ? query.endAt(oldest.updatedAt,oldest.id)
+                        : query.endAt(null,oldest.id);
+                    snapshot=await query.limitToLast(SERVER_MASTER_PAGE_SIZE+2).once('value');
+                    rows=serverSnapshotToRawRows(snapshot);
+                    let body=rows.slice(1);
+                    if(body.length && String(body[body.length-1][0])===oldest.id) body.pop();
+                    hasOlder=body.length>SERVER_MASTER_PAGE_SIZE;
+                    body=body.slice(-SERVER_MASTER_PAGE_SIZE).reverse();
+                    if(!body.length) return;
+                    rows=[rows[0],...body];
+                    serverPageNumber++;
+                }else if(direction==='newer' && allData.length && serverPageNumber>1){
+                    const newest=serverPageCursor(allData[0]);
+                    query=newest.updatedAt
+                        ? query.startAt(newest.updatedAt,newest.id)
+                        : query.startAt(null,newest.id);
+                    snapshot=await query.limitToFirst(SERVER_MASTER_PAGE_SIZE+2).once('value');
+                    rows=serverSnapshotToRawRows(snapshot);
+                    let body=rows.slice(1);
+                    if(body.length && String(body[0][0])===newest.id) body.shift();
+                    body=body.slice(0,SERVER_MASTER_PAGE_SIZE).reverse();
+                    if(!body.length) return;
+                    rows=[rows[0],...body];
+                    serverPageNumber=Math.max(1,serverPageNumber-1);
+                    hasOlder=true;
+                }else{
+                    snapshot=await query.limitToLast(SERVER_MASTER_PAGE_SIZE+1).once('value');
+                    rows=serverSnapshotToRawRows(snapshot);
+                    let body=rows.slice(1);
+                    hasOlder=body.length>SERVER_MASTER_PAGE_SIZE;
+                    body=body.slice(-SERVER_MASTER_PAGE_SIZE).reverse();
+                    rows=[rows[0],...body];
+                    serverPageNumber=1;
+                }
+
+                serverPageHasOlder=hasOlder;
+                loadRowsIntoApp(rows);
+                masterLoadNotice(`✅ 全曲一覧：Firebaseから${Math.max(0,rows.length-1)}曲だけ取得しました（${serverPageNumber}ページ目）。`);
+            }catch(error){
+                allData=previousRows;
+                serverPageNumber=previousPage;
+                serverPageHasOlder=previousHasOlder;
+                serverPagedMasterMode=false;
+                console.error('100件取得モードの読み込みに失敗:',error);
+                showCsvLoadError('Firebaseから100件を読み込めませんでした: '+String(error?.message||error));
+                throw error;
+            }finally{
+                serverPageBusy=false;
+                serverPageLoadPromise=null;
+                // クエリ中はボタンを無効化しているため、完了後にもう一度描画して操作可能状態へ戻す。
+                if(serverPagedMasterMode && !masterLoaded && allData.length) renderTable();
+            }
+        })();
+        return serverPageLoadPromise;
+    }
+
+    async function ensureServerPagedAllSongsLoaded() {
+        if (masterLoaded) {
+            serverPagedMasterMode=false;
+            renderTable();
+            return;
+        }
+        if (serverPagedMasterMode && allData.length) {
+            renderTable();
+            return;
+        }
+        return loadServerMasterPage('first');
+    }
+
+    async function promoteServerPageToFullMaster(reason='この機能') {
+        if (masterLoaded) {
+            serverPagedMasterMode=false;
+            return;
+        }
+        if (fullMasterPromotionPromise) return fullMasterPromotionPromise;
+        const wasPaged=serverPagedMasterMode;
+        serverPagedMasterMode=false;
+        masterLoadNotice(`${reason}を使うため、移行期間中は従来の全曲マスターを読み込みます…`);
+        fullMasterPromotionPromise=(async()=>{
+            try{
+                await ensureMasterLoaded();
+                serverPagedMasterMode=false;
+            }catch(error){
+                serverPagedMasterMode=wasPaged;
+                throw error;
+            }finally{
+                fullMasterPromotionPromise=null;
+            }
+        })();
+        return fullMasterPromotionPromise;
     }
 
     // 公開マスターだけをIndexedDBへ保持。UIDや個人マイリストは保存しない。
@@ -4611,8 +4801,8 @@ html, body { background: transparent !important; color: ${text} !important; }
         throw Error('マスター更新と取得が重なりました。少し待って再読み込みしてください。');
     }
 
-    // トップ表示だけでは27,332曲のマスターをダウンロードしない。
-    // 初回の楽曲一覧・マイリスト・楽曲追加、またはルーム招待URLからの入室時だけ取得する。
+    // 従来の全件マスター取得。STEP3では検索・絞り込み・マイリスト・楽曲追加・ルーム等、
+    // 全件参照が必要な機能へ移行した時だけ使用する。通常の全曲一覧初期表示は100件取得を使う。
     let masterLoadPromise = null;
     let masterLoaded = false;
     let pendingHomeMyList = false;
@@ -4698,16 +4888,23 @@ html, body { background: transparent !important; color: ${text} !important; }
         if (push) history.pushState(state, '', location.pathname + location.search + location.hash);
         else history.replaceState(state, '', location.pathname + location.search + location.hash);
     }
-    window.addEventListener('popstate', event => {
+    window.addEventListener('popstate', async event => {
         if (currentRoomId) return;
         const view=event.state?.[APP_HISTORY_KEY];
         closeMobileMenu();
         if (view === 'all' || view === 'mylist') {
             rememberListView(view);
             document.documentElement.classList.remove('entry-home');
-            if (view==='mylist' && !myListMode) toggleMyList();
-            if (view==='all' && myListMode) toggleMyList();
-            void ensureMasterLoaded().catch(error=>console.warn('履歴からの一覧復帰に失敗:',error));
+            try{
+                if(view==='mylist'){
+                    if(!masterLoaded) await promoteServerPageToFullMaster('マイリスト');
+                    if(!myListMode) await toggleMyList();
+                }else{
+                    if(myListMode) await toggleMyList();
+                    if(masterLoaded){serverPagedMasterMode=false;renderTable();}
+                    else await ensureServerPagedAllSongsLoaded();
+                }
+            }catch(error){console.warn('履歴からの一覧復帰に失敗:',error);}
         } else {
             forgetListView();
             document.documentElement.classList.add('entry-home');
@@ -4762,15 +4959,24 @@ html, body { background: transparent !important; color: ${text} !important; }
             rememberListView(destination);
             setAppHistory(destination, fromHome && !restoring);
             document.documentElement.classList.remove('entry-home');
-            if(destination==='mylist' && !myListMode) toggleMyList();
-            if(destination==='all' && myListMode) toggleMyList();
-            try {await ensureMasterLoaded();}
-            catch(error){/* エラー画面と再読み込みボタンは既存の処理で表示する */}
+            try{
+                if(destination==='mylist'){
+                    if(!masterLoaded) await promoteServerPageToFullMaster('マイリスト');
+                    if(!myListMode) await toggleMyList();
+                }else{
+                    if(myListMode) await toggleMyList();
+                    if(masterLoaded){serverPagedMasterMode=false;renderTable();}
+                    else await ensureServerPagedAllSongsLoaded();
+                }
+            }catch(error){/* エラー画面と再読み込みボタンは既存の処理で表示する */}
             return;
         }
         if(destination==='add'){
             status.textContent='楽曲登録フォームを準備しています…';
-            try {await ensureMasterLoaded();openAddSongModal();}
+            try {
+                if(!masterLoaded) await promoteServerPageToFullMaster('新規楽曲追加');
+                openAddSongModal();
+            }
             catch(error){document.documentElement.classList.remove('entry-home');}
             finally{status.textContent='';}
         }
@@ -4793,7 +4999,16 @@ html, body { background: transparent !important; color: ${text} !important; }
     });
 
     let searchDebounceTimer = null;
-    searchInput.addEventListener('input', () => { clearTimeout(searchDebounceTimer); searchDebounceTimer = setTimeout(renderTable, 150); });
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            if(serverPagedMasterMode && !masterLoaded && searchInput.value.trim()){
+                void promoteServerPageToFullMaster('検索').then(()=>renderTable());
+                return;
+            }
+            renderTable();
+        }, 150);
+    });
 
     // =========================================
     // セッション曲管理機能
@@ -4985,6 +5200,10 @@ html, body { background: transparent !important; color: ${text} !important; }
     // その他UI処理
     // =========================================
     function handleSort(key) {
+        if(serverPagedMasterMode && !masterLoaded){
+            void promoteServerPageToFullMaster('並び替え').then(()=>handleSort(key));
+            return;
+        }
         let actualKey = key === 'genre1' ? genre1Key : key;
         if (currentSortKey === actualKey) { currentSortOrder *= -1; } else { currentSortKey = actualKey; currentSortOrder = 1; }
         updateSortIcons(); renderTable();
@@ -5032,6 +5251,20 @@ html, body { background: transparent !important; color: ${text} !important; }
     const songNextPageBtn = document.getElementById('songNextPageBtn');
     function renderCurrentSongPage(resetScroll = false) {
         const total = cachedFilteredSongRows.length;
+
+        if(serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode){
+            const start=(serverPageNumber-1)*SERVER_MASTER_PAGE_SIZE;
+            tableBody.replaceChildren();
+            appendRenderedSongRows(cachedFilteredSongRows, start);
+            songPageStatus.textContent = total
+                ? `${serverPageNumber} ページ　（Firebaseから今回 ${total.toLocaleString()}曲取得）`
+                : '0 曲';
+            songPrevPageBtn.disabled = serverPageBusy || serverPageNumber <= 1;
+            songNextPageBtn.disabled = serverPageBusy || !serverPageHasOlder || total === 0;
+            if (resetScroll) tableBodyWrapper.scrollTop = 0;
+            return;
+        }
+
         const totalPages = Math.max(1, Math.ceil(total / SONG_PAGE_SIZE));
         songPageIndex = Math.max(0, Math.min(songPageIndex, totalPages - 1));
         const start = songPageIndex * SONG_PAGE_SIZE;
@@ -5048,6 +5281,10 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     function changeSongPage(direction) {
         if (!Number.isInteger(direction) || !direction) return;
+        if(serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode){
+            void loadServerMasterPage(direction > 0 ? 'older' : 'newer');
+            return;
+        }
         const nextIndex = songPageIndex + (direction > 0 ? 1 : -1);
         if (nextIndex < 0 || nextIndex >= Math.ceil(cachedFilteredSongRows.length / SONG_PAGE_SIZE)) return;
         songPageIndex = nextIndex;
@@ -5057,6 +5294,10 @@ html, body { background: transparent !important; color: ${text} !important; }
     function renderTable() {
         syncMobileNav();
         ensureListLayout();
+        if(serverPagedMasterMode && !masterLoaded && serverPagedNeedsFullMaster()){
+            void promoteServerPageToFullMaster('検索・絞り込み').then(()=>renderTable());
+            return;
+        }
         // マイリスト・ルームやゲスト閲覧にフィルターを適用しない。
         const canExcludeRegistered = !currentRoomId && !myListMode && !!signedInUser;
         excludeRegisteredFilter.hidden = !canExcludeRegistered;
@@ -5098,9 +5339,12 @@ html, body { background: transparent !important; color: ${text} !important; }
         }
         const currentModeLabel = currentRoomId
             ? (roomListView==='all' ? '🌐 ルーム：全曲一覧' : roomListView==='common' ? '🤝 ルーム：2人以上の共通曲' : `📁 ルーム：${roomListView===signedInUser?.uid?'自分':roomSharedLists[roomListView]?.name||'メンバー'}のマイリスト`)
-            : myListMode ? '📁 自分のマイリスト' : '📚 総登録楽曲数';
+            : myListMode ? '📁 自分のマイリスト'
+            : (serverPagedMasterMode && !masterLoaded ? '📚 全曲一覧（100件ずつ取得）' : '📚 総登録楽曲数');
         document.getElementById('listModeIndicator').textContent = currentModeLabel;
-        songCountDisplay.textContent = (!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`;
+        songCountDisplay.textContent = (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
+            ? `表示中：${filteredData.length} 曲（Firebaseから最大100件取得）`
+            : ((!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`);
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
         cachedFilteredSongRows = filteredData;
@@ -5237,17 +5481,18 @@ html, body { background: transparent !important; color: ${text} !important; }
         panel.hidden=!panel.hidden;
         document.getElementById('mobileMenuBtn').setAttribute('aria-expanded',String(!panel.hidden));
     }
-    function mobileGoAll() {
+    async function mobileGoAll() {
         closeMobileMenu();
         if(currentRoomId) {roomListView='all';renderRoomListTabs();renderTable();tableBodyWrapper.scrollTop=0;return;}
-        if(myListMode) toggleMyList();
+        if(myListMode) await toggleMyList();
+        if(!masterLoaded) await ensureServerPagedAllSongsLoaded();
         syncMobileNav();
     }
-    function mobileGoMyList() {
+    async function mobileGoMyList() {
         closeMobileMenu();
         if(currentRoomId) {roomListView='common';renderRoomListTabs();renderTable();tableBodyWrapper.scrollTop=0;return;}
         if(!signedInUser) {alert('マイリストはGoogleログイン後に利用できます。');return;}
-        if(!myListMode) toggleMyList();
+        if(!myListMode) await toggleMyList();
         syncMobileNav();
     }
     function syncMobileNav() {
