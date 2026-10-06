@@ -5048,7 +5048,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         const previousPage=serverPageNumber;
         const previousHasOlder=serverPageHasOlder;
         loadingArea.style.display='flex';
-        loadingArea.innerHTML='<div class="spinner"></div><div>Firebaseから100曲だけ取得中...</div>';
+        loadingArea.innerHTML='<div class="spinner"></div><div>Loading......</div>';
 
         serverPageLoadPromise=(async()=>{
             try{
