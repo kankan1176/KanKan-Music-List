@@ -5878,9 +5878,9 @@ html, body { background: transparent !important; color: ${text} !important; }
             : (serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
                 ? `検索結果：${filteredData.length} 曲（全曲マスターは未取得）`
                 : (genreServerMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
-                    ? `${currentGenre}：${filteredData.length} 曲（Firebaseから最大100件取得）`
+                    ? `${currentGenre}：${filteredData.length} 曲（データベースより最大100件取得）`
                 : (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
-                    ? `表示中：${filteredData.length} 曲（Firebaseから最大100件取得）`
+                    ? `表示中：${filteredData.length} 曲（データベースより最大100件取得）`
                     : ((!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`);
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
