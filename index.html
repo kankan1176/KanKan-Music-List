@@ -5777,7 +5777,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             tableBody.replaceChildren();
             appendRenderedSongRows(cachedFilteredSongRows, start);
             songPageStatus.textContent = total
-                ? `${serverPageNumber} ページ　（Firebaseから今回 ${total.toLocaleString()}曲取得）`
+                ? `${serverPageNumber} ページ　（データベースから${total.toLocaleString()}曲取得）`
                 : '0 曲';
             songPrevPageBtn.disabled = serverPageBusy || serverPageNumber <= 1;
             songNextPageBtn.disabled = serverPageBusy || !serverPageHasOlder || total === 0;
