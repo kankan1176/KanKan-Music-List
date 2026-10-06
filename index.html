@@ -1421,12 +1421,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         <h2>➕ 楽曲を追加</h2>
         <p style="font-size:12px;line-height:1.5;opacity:.8;">登録申請を管理者へ送信します。承認されるまで公開マスターは変更されません。</p>
         <form id="addSongForm" onsubmit="submitNewSong(event)">
-            <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
-            <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
-            <div class="setting-group"><label for="newCodeUrl">ChordWiki 原曲URL *</label><input class="setting-input" id="newCodeUrl" name="codeUrl" type="url" placeholder="https://ja.chordwiki.org/wiki/..." maxlength="500" required><p id="newCodeUrlCheck" role="status" aria-live="polite" style="font-size:12px;line-height:1.4;margin:5px 0 0;"></p></div>
+            <div class="setting-group"><label for="newTitle">曲名（必須）</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
+            <div class="setting-group"><label for="newArtist">アーティスト名（必須）</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
+            <div class="setting-group"><label for="newCodeUrl">コードwikiURL（必須）</label><input class="setting-input" id="newCodeUrl" name="codeUrl" type="url" placeholder="https://ja.chordwiki.org/wiki/..." maxlength="500" required><p id="newCodeUrlCheck" role="status" aria-live="polite" style="font-size:12px;line-height:1.4;margin:5px 0 0;"></p></div>
             <div class="setting-group"><label for="newBpm">BPM（任意）</label><input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK"></div>
-            <div class="setting-group"><label for="newGenre1">ジャンル *</label><select id="newGenre1" name="genre1" required></select></div>
-            <div class="setting-group"><label for="newGenre2">ジャンル②（任意）</label><select id="newGenre2" name="genre2"></select></div>
+            <div class="setting-group"><label for="newGenre1">ジャンル（任意）</label><select id="newGenre1" name="genre1"></select></div>
+            <div class="setting-group"><label for="newTieup">タイアップ（任意）</label><input class="setting-input" id="newTieup" name="tieup" maxlength="240" placeholder="作品名・番組名など"></div>
             <!-- Bot対策のハニーポット。通常は非表示 -->
             <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;"><label for="newWebsite">Website</label><input id="newWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></div>
             <p id="addSongFeedback" role="status" aria-live="polite" style="font-size:12px;line-height:1.5;min-height:18px;"></p>
@@ -3888,16 +3888,11 @@ html, body { background: transparent !important; color: ${text} !important; }
         });
         const options = Array.from(genres).sort((a, b) => a.localeCompare(b, 'ja'));
         const first = document.getElementById('newGenre1');
-        const second = document.getElementById('newGenre2');
-        first.replaceChildren(new Option('選択してください', ''));
-        second.replaceChildren(new Option('なし', ''));
-        options.forEach(value => {
-            first.add(new Option(value, value));
-            second.add(new Option(value, value));
-        });
+        first.replaceChildren(new Option('選択しない', ''));
+        options.forEach(value => first.add(new Option(value, value)));
         newCodeUrlInput.setCustomValidity('');
         newCodeUrlInput.dispatchEvent(new Event('input'));
-        document.getElementById('addSongFeedback').textContent = options.length ? '' : 'ジャンル選択肢を取得できません。ページを再読み込みしてください。';
+        document.getElementById('addSongFeedback').textContent = options.length ? '' : 'ジャンル選択肢を取得できませんが、ジャンル未選択のまま申請できます。';
         openModal('addSongModal');
     }
 
@@ -3922,9 +3917,6 @@ html, body { background: transparent !important; color: ${text} !important; }
         document.getElementById('newCodeUrlCheck').textContent = urlError;
         if (!form.reportValidity()) return;
         const data = Object.fromEntries(new FormData(form).entries());
-        if (data.genre1 && data.genre1 === data.genre2) {
-            feedback.textContent = 'ジャンル②はジャンル①とは別の項目を選んでください。'; return;
-        }
         const title = String(data.title || '').trim();
         const artist = String(data.artist || '').trim();
         if (allData.some(row => String(row['曲名']||'').trim() === title && String(row['アーティスト']||'').trim() === artist)) {
@@ -3938,8 +3930,8 @@ html, body { background: transparent !important; color: ${text} !important; }
             const payload = {
                 type:'newSong', requestedBy:user.uid, title, artist,
                 chordwiki:String(data.codeUrl||'').trim().slice(0,2048), bpm:String(data.bpm||''),
-                genre:String(data.genre1||''), genre2:String(data.genre2||''), genre3:'',
-                tieup:'', search:'', lyrics:'', composition:'', arrangement:'',
+                genre:String(data.genre1||''), genre2:'', genre3:'',
+                tieup:String(data.tieup||'').trim().slice(0,240), search:'', lyrics:'', composition:'', arrangement:'',
                 status:'pending', createdAt:firebase.database.ServerValue.TIMESTAMP
             };
             await db.ref(`songAddRequests/${user.uid}`).push(payload);
