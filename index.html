@@ -17,7 +17,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-check-compat.js"></script>
 
     <!-- 画像保存用ライブラリ (html2canvas) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1726,26 +1725,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       appId: "1:759342880820:web:9af0af755e35926a281261"
     };
     firebase.initializeApp(firebaseConfig);
-
-    // =========================================
-    // Firebase App Check
-    // reCAPTCHA Enterprise / Fraud Defense
-    // ※ 現段階ではFirebase Console側の強制(Enforce)はまだONにしない。
-    // =========================================
-    const APP_CHECK_SITE_KEY = "6LdkxeEtAAAAAJDWSvXbmsKHezi4oMuW88CWsvcQ";
-    let appCheck = null;
-    try {
-        appCheck = firebase.appCheck();
-        appCheck.activate(
-            new firebase.appCheck.ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
-            true // App Checkトークンを自動更新
-        );
-        console.info("[App Check] reCAPTCHA Enterprise を初期化しました。");
-    } catch (error) {
-        // 強制前の導入確認中は、App Check初期化に失敗してもサイト自体は利用可能にする。
-        console.error("[App Check] 初期化に失敗しました。", error);
-    }
-
     const db = firebase.database();
 
     // Googleログイン：ゲスト閲覧も可能。UIDは個人データ実装時の識別子として利用します。
