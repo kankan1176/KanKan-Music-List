@@ -1,122 +1,293 @@
-/** Sync public songs from Firebase's publicly readable RTDB paths.
- * No Firebase service-account key, browser token, or third-party dependencies.
- *
- * Env:
- *   FIREBASE_DB_URL  override the database URL (testing only)
- *   ALLOW_SHRINK     'true' to allow publishing a master with < 50% of the current song count
+/**
+ * Share List Score: search index + genre index builder.
  */
-import fs from 'node:fs/promises';
-import path from 'node:path';
 
-const DB_URL = process.env.FIREBASE_DB_URL || 'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app';
-const OUTPUT = 'public/songs.json';
-const MAX_ATTEMPTS = 4;      // revision changed while fetching
-const FETCH_RETRIES = 3;     // transient network / 5xx / 429
-const ALLOW_SHRINK = process.env.ALLOW_SHRINK === 'true';
-const OPTIONAL_STRING_FIELDS = ['artist', 'chordwiki', 'bpm', 'genre', 'genre2', 'genre3', 'tieup', 'search', 'lyrics', 'composition', 'arrangement'];
+import crypto from 'node:crypto';
+import { initializeApp, cert, deleteApp } from 'firebase-admin/app';
+import { getDatabase } from 'firebase-admin/database';
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const DB_URL =
+  process.env.FIREBASE_DB_URL ||
+  'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app';
 
-async function readPublic(pathName) {
-  let lastError;
-  for (let attempt = 1; attempt <= FETCH_RETRIES; attempt++) {
-    try {
-      const response = await fetch(`${DB_URL}/${pathName}.json`, {
-        headers: {accept: 'application/json'},
-        signal: AbortSignal.timeout(120000),
-        cache: 'no-store',
-      });
-      if (response.ok) return await response.json();
-      const error = new Error(`${pathName}: HTTP ${response.status}`);
-      // 4xx (except 429) will not fix itself: fail immediately.
-      if (response.status < 500 && response.status !== 429) { error.fatal = true; throw error; }
-      lastError = error;
-    } catch (error) {
-      if (error.fatal) throw error;
-      lastError = error;
-    }
-    if (attempt < FETCH_RETRIES) {
-      console.warn(`Fetch failed for ${pathName} (attempt ${attempt}/${FETCH_RETRIES}): ${lastError.message}; retrying`);
-      await sleep(2000 * attempt);
-    }
-  }
-  throw lastError;
+const rawCredential = process.env.FIREBASE_SERVICE_ACCOUNT;
+if (!rawCredential) throw new Error('FIREBASE_SERVICE_ACCOUNT is missing.');
+
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(rawCredential);
+} catch {
+  throw new Error('FIREBASE_SERVICE_ACCOUNT is not valid JSON.');
 }
 
-function validateMaster(master) {
-  if (!master || typeof master !== 'object' || Array.isArray(master)) throw new Error('Firebase songs is not an object');
-  const entries = Object.entries(master);
-  if (!entries.length) throw new Error('Firebase songs is empty');
+const app = initializeApp({
+  credential: cert(serviceAccount),
+  databaseURL: DB_URL,
+});
+const db = getDatabase(app);
+
+const SEARCH_FIELDS = [
+  'title','artist','tieup','search','lyrics','composition','arrangement',
+  'genre','genre2','genre3',
+];
+const GENRE_FIELDS = ['genre','genre2','genre3'];
+
+const WRITE_BATCH_SIZE = 5000;
+const MAX_ATTEMPTS = 3;
+const MAX_TERM_UTF8_BYTES = 300;
+const INDEX_VERSION = 3;
+
+function sha256(value, length = 40) {
+  return crypto.createHash('sha256').update(value).digest('hex').slice(0, length);
+}
+
+function normalize(value) {
+  return String(value ?? '')
+    .normalize('NFKC')
+    .toLocaleLowerCase('ja')
+    .replace(/[^\p{L}\p{N}\p{M}]+/gu, ' ')
+    .trim();
+}
+
+function normalizeGenre(value) {
+  return String(value ?? '').normalize('NFKC').trim();
+}
+
+function searchableWords(song) {
+  const text = normalize(SEARCH_FIELDS.map(field => song?.[field] ?? '').join(' '));
+  return text ? text.split(/\s+/u).filter(Boolean) : [];
+}
+
+function fitUtf8Prefix(text, maxBytes = MAX_TERM_UTF8_BYTES) {
+  const chars = Array.from(text);
+  while (chars.length && Buffer.byteLength(chars.join(''), 'utf8') > maxBytes) chars.pop();
+  return chars.join('');
+}
+
+function suffixTermsForSong(song) {
+  const terms = new Set();
+  for (const word of searchableWords(song)) {
+    const chars = Array.from(word);
+    for (let i = 0; i < chars.length; i++) {
+      const fitted = fitUtf8Prefix(chars.slice(i).join(''));
+      if (fitted) terms.add(fitted);
+    }
+  }
+  return terms;
+}
+
+function encodeUtf8(value) {
+  return Buffer.from(value, 'utf8').toString('hex');
+}
+
+function genresForSong(song) {
+  const set = new Set();
+  for (const field of GENRE_FIELDS) {
+    const value = normalizeGenre(song?.[field]);
+    if (value) set.add(value);
+  }
+  return [...set];
+}
+
+function validateSongs(songs) {
+  if (!songs || typeof songs !== 'object' || Array.isArray(songs)) {
+    throw new Error('/songs is not an object');
+  }
+
+  const entries = Object.entries(songs);
+  if (!entries.length) throw new Error('/songs is empty');
+
   for (const [id, song] of entries) {
-    if (!song || typeof song !== 'object' || Array.isArray(song) ||
-        typeof song.title !== 'string' || !song.title.trim() ||
-        (Object.hasOwn(song, 'id') && song.id !== id) ||
-        OPTIONAL_STRING_FIELDS.some(field => Object.hasOwn(song, field) && typeof song[field] !== 'string')) {
-      throw new Error(`Invalid song at UUID: ${id}`);
+    if (!/^[A-Za-z0-9_-]{1,80}$/.test(id) ||
+        !song || typeof song !== 'object' || Array.isArray(song) ||
+        typeof song.title !== 'string' || !song.title.trim()) {
+      throw new Error(`Invalid song: ${id}`);
     }
   }
-  return entries.length;
+
+  return entries;
 }
 
-/** Returns the published revision/count. A missing or broken file is regenerated, never fatal. */
-async function currentPublished() {
-  let text;
-  try {
-    text = await fs.readFile(OUTPUT, 'utf8');
-  } catch (error) {
-    if (error.code === 'ENOENT') return {revision: null, count: 0};
-    throw error;
-  }
-  try {
-    const parsed = JSON.parse(text);
-    if (parsed?.schema === 3 && typeof parsed.revision === 'string' && parsed.songs && typeof parsed.songs === 'object') {
-      return {revision: parsed.revision, count: Object.keys(parsed.songs).length};
+async function flush(pathName, batch) {
+  if (!Object.keys(batch).length) return;
+  await db.ref(pathName).update(batch);
+}
+
+function genreOrderKey(songId, updatedAt) {
+  const raw = Number(updatedAt);
+  const ts = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+  const capped = Math.min(ts, 9999999999999);
+  const inverted = 9999999999999 - capped;
+  return `${String(inverted).padStart(13,'0')}_${songId}`;
+}
+
+async function buildOnce(sourceRevision, songs) {
+  const entries = validateSongs(songs);
+  const indexKey = sha256(`shareliscore-index-v${INDEX_VERSION}\0${sourceRevision}`, 24);
+
+  await Promise.all([
+    db.ref(`songSearchRows/${indexKey}`).remove(),
+    db.ref(`songGenreRows/${indexKey}`).remove(),
+  ]);
+
+  let searchBatch = {};
+  let searchBatchCount = 0;
+  let genreBatch = {};
+  let genreBatchCount = 0;
+  let searchRowCount = 0;
+  let genreRowCount = 0;
+  let processed = 0;
+
+  const genreCounts = new Map();
+
+  for (const [songId, song] of entries) {
+    for (const term of suffixTermsForSong(song)) {
+      const rowId = `${encodeUtf8(term)}_${sha256(`${songId}\0${term}`, 24)}`;
+      searchBatch[rowId] = songId;
+      searchBatchCount++;
+      searchRowCount++;
+
+      if (searchBatchCount >= WRITE_BATCH_SIZE) {
+        await flush(`songSearchRows/${indexKey}`, searchBatch);
+        searchBatch = {};
+        searchBatchCount = 0;
+      }
     }
-    console.warn(`Existing ${OUTPUT} has an unexpected shape; it will be regenerated.`);
-  } catch (error) {
-    console.warn(`Existing ${OUTPUT} is not valid JSON; it will be regenerated: ${error.message}`);
-  }
-  return {revision: null, count: 0};
-}
 
-/** One song per line keeps git diffs small and compresses well. Output is plain JSON. */
-function serialize(revision, songs) {
-  const body = Object.entries(songs)
-    .map(([id, song]) => `${JSON.stringify(id)}:${JSON.stringify(song)}`)
-    .join(',\n');
-  return `{"schema":3,"revision":${JSON.stringify(revision)},"songs":{\n${body}\n}}\n`;
+    for (const genre of genresForSong(song)) {
+      const genreKey = encodeUtf8(genre);
+      const rowKey = genreOrderKey(songId, song.updatedAt);
+
+      genreBatch[`${genreKey}/${rowKey}`] = songId;
+      genreBatchCount++;
+      genreRowCount++;
+      genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1);
+
+      if (genreBatchCount >= WRITE_BATCH_SIZE) {
+        await flush(`songGenreRows/${indexKey}`, genreBatch);
+        genreBatch = {};
+        genreBatchCount = 0;
+      }
+    }
+
+    processed++;
+    if (processed % 1000 === 0) {
+      console.log(
+        `Indexed ${processed}/${entries.length}; searchRows=${searchRowCount}; genreRows=${genreRowCount}`
+      );
+    }
+  }
+
+  await flush(`songSearchRows/${indexKey}`, searchBatch);
+  await flush(`songGenreRows/${indexKey}`, genreBatch);
+
+  const genres = {};
+  for (const [name, count] of [...genreCounts.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ja'))) {
+    genres[encodeUtf8(name)] = {name, count};
+  }
+
+  return {
+    indexKey,
+    searchRowCount,
+    genreRowCount,
+    songCount: entries.length,
+    genres,
+  };
 }
 
 async function main() {
-  const existing = await currentPublished();
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const before = await readPublic('masterMeta/revision');
-    if (typeof before !== 'string' || !before) throw new Error('masterMeta/revision is missing; set it using admin.html');
-    if (before === existing.revision) {
-      console.log('Already current; no public JSON change:', before);
+    const before = (await db.ref('masterMeta/revision').get()).val();
+    if (typeof before !== 'string' || !before) {
+      throw new Error('masterMeta/revision is missing.');
+    }
+
+    const searchMeta = (await db.ref('songSearchMeta').get()).val() || {};
+    const genreMeta = (await db.ref('songGenreMeta').get()).val() || {};
+
+    if (
+      searchMeta.sourceRevision === before &&
+      searchMeta.indexVersion === INDEX_VERSION &&
+      genreMeta.sourceRevision === before &&
+      genreMeta.indexVersion === INDEX_VERSION &&
+      typeof searchMeta.currentIndexKey === 'string' &&
+      searchMeta.currentIndexKey &&
+      searchMeta.currentIndexKey === genreMeta.currentIndexKey
+    ) {
+      console.log(`Search/genre indexes are already current: ${before}`);
       return;
     }
-    const songs = await readPublic('songs');
-    const count = validateMaster(songs);
-    const after = await readPublic('masterMeta/revision');
-    if (before !== after) {
-      console.warn(`Revision changed while fetching (attempt ${attempt}/${MAX_ATTEMPTS}); retrying`);
+
+    console.log(`Building search/genre indexes for ${before} (${attempt}/${MAX_ATTEMPTS})`);
+
+    const songs = (await db.ref('songs').get()).val();
+    const built = await buildOnce(before, songs);
+
+    const after = (await db.ref('masterMeta/revision').get()).val();
+    if (after !== before) {
+      console.warn('Master changed while building; discarding this version.');
+      await Promise.all([
+        db.ref(`songSearchRows/${built.indexKey}`).remove(),
+        db.ref(`songGenreRows/${built.indexKey}`).remove(),
+      ]);
       continue;
     }
-    if (existing.count > 0 && count < existing.count * 0.5 && !ALLOW_SHRINK) {
-      throw new Error(`Song count dropped from ${existing.count} to ${count}. Refusing to publish; re-run the workflow with allow_shrink=true if this is intended.`);
+
+    const oldSearchKey =
+      typeof searchMeta.currentIndexKey === 'string' ? searchMeta.currentIndexKey : '';
+    const oldGenreKey =
+      typeof genreMeta.currentIndexKey === 'string' ? genreMeta.currentIndexKey : '';
+
+    const now = Date.now();
+
+    await db.ref().update({
+      songSearchMeta: {
+        currentIndexKey: built.indexKey,
+        sourceRevision: before,
+        indexVersion: INDEX_VERSION,
+        rowCount: built.searchRowCount,
+        songCount: built.songCount,
+        updatedAt: now,
+      },
+      songGenreMeta: {
+        currentIndexKey: built.indexKey,
+        sourceRevision: before,
+        indexVersion: INDEX_VERSION,
+        rowCount: built.genreRowCount,
+        songCount: built.songCount,
+        updatedAt: now,
+        genres: built.genres,
+      },
+    });
+
+    const removals = [];
+
+    if (oldSearchKey && oldSearchKey !== built.indexKey) {
+      removals.push(db.ref(`songSearchRows/${oldSearchKey}`).remove());
     }
-    const text = serialize(after, songs);
-    // Sanity check: what we are about to write must parse back to the same data.
-    const check = JSON.parse(text);
-    if (check.revision !== after || Object.keys(check.songs).length !== count) throw new Error('Serialized JSON failed the round-trip check');
-    await fs.mkdir(path.dirname(OUTPUT), {recursive: true});
-    const tmp = `${OUTPUT}.tmp`;
-    await fs.writeFile(tmp, text, 'utf8');
-    await fs.rename(tmp, OUTPUT); // atomic replace: never leaves a half-written public JSON
-    console.log(`Exported ${count} songs at revision ${after} to ${OUTPUT}`);
+
+    if (oldGenreKey && oldGenreKey !== built.indexKey) {
+      removals.push(db.ref(`songGenreRows/${oldGenreKey}`).remove());
+    }
+
+    await Promise.all(removals);
+
+    console.log(
+      `Published ${built.indexKey}: songs=${built.songCount}, searchRows=${built.searchRowCount}, genreRows=${built.genreRowCount}, genres=${Object.keys(built.genres).length}`
+    );
     return;
   }
-  throw new Error('Master revision changed during every fetch; retry the workflow after the upload finishes');
+
+  throw new Error('Master revision changed during every build attempt.');
 }
-main().catch(error => {console.error(error); process.exitCode = 1;});
+
+try {
+  await main();
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
+} finally {
+  await deleteApp(app).catch(error => {
+    console.warn('Firebase Admin cleanup warning:', error?.message || error);
+  });
+}
