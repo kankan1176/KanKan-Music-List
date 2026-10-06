@@ -4330,6 +4330,8 @@ html, body { background: transparent !important; color: ${text} !important; }
             for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
                 updatedSong[field]=nextValues[field];
             }
+            // 全曲一覧の更新履歴順に使う内部更新日時。
+            updatedSong.updatedAt=firebase.database.ServerValue.TIMESTAMP;
 
             const logRef=db.ref('songEditLogs').push();
             const revision=db.ref().push().key;
@@ -4358,6 +4360,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
                 song[col]=nextValues[field];
             }
+            song._updatedAt=Date.now();
             populateGenreButtons();
             renderTable();
 
@@ -4439,6 +4442,9 @@ html, body { background: transparent !important; color: ${text} !important; }
                 if (Object.prototype.hasOwnProperty.call(obj, headerName) && obj[headerName]) return;
                 obj[headerName] = row[index] || '';
             });
+            // 楽曲ごとの更新日時は内部値として数値化。未設定の既存曲は0扱い。
+            obj._updatedAt = Number(obj.__updatedAt) || 0;
+            delete obj.__updatedAt;
             // 検索対象文字列はマスター読込時に一度だけ生成（検索ごとの27,000曲再結合を防ぐ）。
             obj._searchText = ['曲名','アーティスト',genre1Key,genre2Key,'ジャンル③','タイアップ情報','作詞','作曲','編曲','検索']
                 .map(k => String(obj[k] || '')).join(' ').toLowerCase();
@@ -4535,8 +4541,9 @@ html, body { background: transparent !important; color: ${text} !important; }
     function rowsFromFirebaseMaster(master) {
         if (!master||typeof master!=='object'||Array.isArray(master)||!Object.keys(master).length)
             throw Error('songs に公開楽曲がありません。移管用JSONとRealtime Databaseルールを確認してください。');
-        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲'];
-        const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
+        // updatedAt は画面に列表示しない内部項目。全曲一覧のデフォルト更新履歴順にだけ使用する。
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement','updatedAt'];
         const rows=[headers];
         let skipped=0;
         for(const [id,song] of Object.entries(master)){
@@ -5084,6 +5091,10 @@ html, body { background: transparent !important; color: ${text} !important; }
                 if (currentSortKey === 'BPM') { valA = Number(valA) || 0; valB = Number(valB) || 0; } else { valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase(); }
                 if (valA < valB) return -1 * currentSortOrder; if (valA > valB) return 1 * currentSortOrder; return 0;
             });
+        } else if (!currentRoomId && !myListMode) {
+            // 全曲一覧のデフォルトは更新履歴順（新しい更新が上）。
+            // updatedAt未設定の既存曲同士は元の読み込み順を維持する。
+            filteredData.sort((a, b) => (Number(b._updatedAt) || 0) - (Number(a._updatedAt) || 0));
         }
         const currentModeLabel = currentRoomId
             ? (roomListView==='all' ? '🌐 ルーム：全曲一覧' : roomListView==='common' ? '🤝 ルーム：2人以上の共通曲' : `📁 ルーム：${roomListView===signedInUser?.uid?'自分':roomSharedLists[roomListView]?.name||'メンバー'}のマイリスト`)
