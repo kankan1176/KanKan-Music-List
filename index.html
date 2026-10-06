@@ -2135,6 +2135,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     async function loadMyListForUser(user) {
         const version = ++myListLoadVersion;
         myListMode = false;
+        myListPartialMode = false;
+        myListSongLoadUid = '';
         personalSongs = {}; favoriteArtists = {}; pendingSongs = {}; pendingArtists = {}; draftRegistrationKeys = {}; defaultPart='';
         selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();
         document.getElementById('defaultPartSelect').value='';
@@ -2171,7 +2173,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
             sharedListReadyUid = user.uid;
             // 共通曲は自分と友達の両方の「保存済み」公開リストを監視して判定する。
             watchOwnFriendSharedSongs(user.uid);
-            if (allData.length) void queueFriendSharedSync(user.uid);
+            void queueFriendSharedSync(user.uid);
             document.getElementById('defaultPartSelect').value = defaultPart;
             if (allData.length) renderTable();
         } catch (error) {
@@ -2182,18 +2184,68 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     async function toggleMyList() {
         // 入室後は作成時の候補曲セットを全参加者で統一するため切替不可。
         if (!signedInUser || currentRoomId) return;
-        // マイリストでは登録済みIDを全曲マスターへ照合するため、移行期間中は従来の全件取得へ切り替える。
-        if (!myListMode && !masterLoaded) {
-            try { await promoteServerPageToFullMaster('マイリスト'); }
-            catch (error) { console.warn('マイリスト用マスター取得に失敗:', error); return; }
-        }
-        myListMode = !myListMode;
-        rememberListView(myListMode ? 'mylist' : 'all');
+
+        const entering = !myListMode;
         selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();
-        document.body.classList.toggle('my-list-mode',myListMode);
-        document.getElementById('myListSwitchBtn').textContent = myListMode ? '📚 全曲一覧' : '📁 マイリスト';
         tableBodyWrapper.scrollTop = 0;
-        renderTable();
+
+        if (entering) {
+            myListMode = true;
+            rememberListView('mylist');
+            document.body.classList.add('my-list-mode');
+            document.getElementById('myListSwitchBtn').textContent = '📚 全曲一覧';
+
+            // 全マスターを既に持っている場合は従来通りローカル絞り込み。
+            if (masterLoaded) {
+                myListPartialMode = false;
+                serverPagedMasterMode = false;
+                renderTable();
+                return;
+            }
+
+            // 全件取得せず、保存済み/保存待ちIDの楽曲だけを取得。
+            try {
+                await loadMyListSongsOnly(signedInUser);
+            } catch (error) {
+                console.warn('マイリスト楽曲の個別取得に失敗:', error);
+                myListMode = false;
+                myListPartialMode = false;
+                rememberListView('all');
+                document.body.classList.remove('my-list-mode');
+                document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
+                try { await loadServerMasterPage('first'); } catch (_) {}
+            }
+            return;
+        }
+
+        // マイリストから全曲一覧へ戻る。部分マイリストの allData を通常一覧として再利用しない。
+        myListMode = false;
+        const wasPartial = myListPartialMode;
+        myListPartialMode = false;
+        rememberListView('all');
+        document.body.classList.remove('my-list-mode');
+        document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
+
+        if (masterLoaded) {
+            serverPagedMasterMode = false;
+            renderTable();
+            return;
+        }
+
+        // マイリスト内だけで使った並び替え・絞り込みを通常100件一覧へ持ち越さない。
+        if (wasPartial) {
+            currentSortKey = '';
+            currentSortOrder = 1;
+            currentGenre = 'すべて';
+            selectedArtist = '';
+            artistFilterName.textContent = '';
+            artistFilterIndicator.hidden = true;
+            updateSortIcons();
+        }
+
+        // 検索欄に語が残っていれば全曲検索インデックスへ、それ以外は最新100件へ戻す。
+        if (searchInput.value.trim()) await searchServerIndex(searchInput.value);
+        else await loadServerMasterPage('first');
     }
     function stagePersonalSong(id, patch, rerender=true) {
         if (!signedInUser) return;
@@ -3072,8 +3124,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     const MASTER_DB_PATH = "songs";
 
     // 本番移行: 全曲一覧の初期表示は Firebase から100件ずつ取得する。
-    // 検索・絞り込み・マイリスト・ルームなど全件参照が必要な機能を使う時だけ、
-    // 移行期間中は従来の全マスター取得へ切り替える。
+    // マイリストは users/{uid}/songs の登録IDだけを読み、その楽曲だけ /songs/{id} から取得する。
+    // ルーム・公開マイリスト・クリップボード等、まだ全件参照が残る機能だけ従来マスターへ昇格する。
     const SERVER_MASTER_PAGE_SIZE = 100;
     let serverPagedMasterMode = false;
     let serverPageNumber = 1;
@@ -3081,6 +3133,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     let serverPageHasOlder = false;
     let serverPageLoadPromise = null;
     let fullMasterPromotionPromise = null;
+
+    // 自分のマイリスト専用の部分取得モード。
+    // allData は全曲ではなく「自分の保存済み/保存待ちマイリスト曲だけ」を保持する。
+    let myListPartialMode = false;
+    let myListSongLoadPromise = null;
+    let myListSongLoadUid = '';
 
     // 本番移行: 通常検索は全曲マスターを読み込まず、検索専用インデックスから最大100候補だけ取得する。
     let serverSearchMode = false;
@@ -3118,7 +3176,8 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 
     function setArtistFilter(name) {
         const nextArtist = String(name ?? '').trim();
-        if (serverPagedMasterMode && !masterLoaded && nextArtist) {
+        // マイリスト部分取得中は、登録曲をすべて保持しているためローカル絞り込みで完結する。
+        if (serverPagedMasterMode && !masterLoaded && !myListPartialMode && nextArtist) {
             void promoteServerPageToFullMaster('アーティスト絞り込み').then(() => setArtistFilter(nextArtist));
             return;
         }
@@ -3325,12 +3384,13 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     let friendSharedRef = null;
     let friendSharedListener = null;
     let friendSharedVersion = 0;
-    // 保存済みの個人データからのみ生成。編集中の pendingSongs / pendingArtists は含めない。
+    // 保存済みの個人データからのみ生成。楽曲マスター(allData)へ依存しないため、
+    // 100件取得中でも自分の公開マイリストを欠損させず同期できる。
+    // 編集中の pendingSongs / pendingArtists は含めない。
     function buildSavedFriendShare() {
         const songs = {};
-        for (const song of allData) {
-            const id = song._id;
-            const item = personalSongs[id] || {};
+        for (const [id, item] of Object.entries(personalSongs || {})) {
+            if (!/^[A-Za-z0-9_-]{1,80}$/.test(id) || !item || typeof item !== 'object') continue;
             const parts = getSelectedParts(item);
             if (item.excluded || !(item.registered || item.part || parts.length || item.liked)) continue;
             songs[id] = {key: Number.isInteger(item.key) && item.key>=-5 && item.key<=6 ? item.key : 0, parts};
@@ -3340,9 +3400,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         return {songs, favoriteArtists: artists, updatedAt: Date.now()};
     }
     function queueFriendSharedSync(uid) {
-        // 100件取得中の allData は全マスターではないため、公開マイリストを部分データで上書きしない。
-        if (serverPagedMasterMode && !masterLoaded) return friendSharedSyncQueue;
-        if (!uid || sharedListReadyUid !== uid || !allData.length) return friendSharedSyncQueue;
+        if (!uid || sharedListReadyUid !== uid) return friendSharedSyncQueue;
         // 同時更新の逆転を防ぐため同じユーザーの同期を直列化。
         friendSharedSyncQueue = friendSharedSyncQueue.catch(()=>{}).then(async()=>{
             if (friendUser()?.uid !== uid || sharedListReadyUid !== uid) return;
@@ -4295,9 +4353,10 @@ html, body { background: transparent !important; color: ${text} !important; }
     // ジャンルボタン生成
     function populateGenreButtons() {
         genreFilters.innerHTML = '';
-        // 100件だけの内容からジャンル一覧を作ると欠落して見えるため、
-        // 移行期間中は全件取得へ切り替える入口だけを表示する。
-        if (serverPagedMasterMode && !masterLoaded) {
+        // 通常の100件一覧だけからジャンル一覧を作ると欠落して見えるため、
+        // その場合だけ全件取得への入口を表示する。
+        // マイリスト部分取得中は登録曲を全件取得済みなので、その範囲のジャンルを通常生成できる。
+        if (serverPagedMasterMode && !masterLoaded && !myListPartialMode) {
             const allBtn = document.createElement('button');
             allBtn.className = 'genre-btn active';
             allBtn.textContent = 'すべて';
@@ -4552,6 +4611,10 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     function serverPagedNeedsFullMaster() {
+        // 自分のマイリスト部分取得中は登録曲を全件保持しているため、
+        // 検索・並び替え・ジャンル/アーティスト絞り込みをローカルで完結できる。
+        if (myListPartialMode && myListMode && !currentRoomId) return false;
+
         // 検索中は検索専用インデックスから取得した最大100曲だけで描画できる。
         // 検索結果内の並び替えもローカルで処理し、全曲取得へ昇格しない。
         if (serverSearchMode) {
@@ -4599,6 +4662,71 @@ html, body { background: transparent !important; color: ${text} !important; }
             rows.push(fields.map(field=>field==='id'?id:String(song[field]??'')));
         }
         return rows;
+    }
+
+    function activeMyListSongIds() {
+        const ids = new Set([...Object.keys(personalSongs || {}), ...Object.keys(pendingSongs || {})]);
+        return [...ids].filter(id => /^[A-Za-z0-9_-]{1,80}$/.test(id) && isInMyList({_id:id}));
+    }
+
+    async function loadMyListSongsOnly(user=signedInUser) {
+        if (!user || user.isAnonymous) throw Error('マイリストの読み込みにはGoogleログインが必要です');
+        if (masterLoaded) {
+            myListPartialMode = false;
+            serverPagedMasterMode = false;
+            renderTable();
+            return;
+        }
+
+        if (myListSongLoadPromise && myListSongLoadUid === user.uid) return myListSongLoadPromise;
+        myListSongLoadUid = user.uid;
+        const version = myListLoadVersion;
+        const ids = activeMyListSongIds();
+
+        serverSearchMode = false;
+        serverSearchRequestSeq++;
+        serverPagedMasterMode = true;
+        myListPartialMode = true;
+        loadingArea.style.display='flex';
+        loadingArea.innerHTML=`<div class="spinner"></div><div>マイリストの登録曲 ${ids.length.toLocaleString()}曲だけ取得中...</div>`;
+
+        myListSongLoadPromise=(async()=>{
+            try {
+                const master = {};
+                const missing = [];
+                const chunkSize = 25;
+
+                for (let offset=0; offset<ids.length; offset+=chunkSize) {
+                    if (auth.currentUser?.uid !== user.uid || version !== myListLoadVersion) throw Error('ログイン状態が変更されました');
+                    const chunk = ids.slice(offset, offset+chunkSize);
+                    const snapshots = await Promise.all(chunk.map(id => db.ref(`${MASTER_DB_PATH}/${id}`).once('value')));
+                    snapshots.forEach(snapshot => {
+                        const song = snapshot.val();
+                        if (song && typeof song === 'object' && !Array.isArray(song) &&
+                            typeof song.title === 'string' && song.title.trim()) {
+                            master[snapshot.key] = song;
+                        } else {
+                            missing.push(snapshot.key);
+                        }
+                    });
+                }
+
+                if (auth.currentUser?.uid !== user.uid || version !== myListLoadVersion) throw Error('ログイン状態が変更されました');
+
+                loadRowsIntoApp(serverSearchMasterToRawRows(master));
+                masterLoadNotice(
+                    `✅ マイリスト：全${ids.length.toLocaleString()}件の登録IDから ${Object.keys(master).length.toLocaleString()}曲だけ取得しました。` +
+                    (missing.length ? ` マスター未存在 ${missing.length.toLocaleString()}件。` : '')
+                );
+                // 公開マイリストは personalSongs だけから生成するので、全曲マスターなしで安全に同期できる。
+                if (sharedListReadyUid === user.uid) void queueFriendSharedSync(user.uid);
+            } finally {
+                myListSongLoadPromise = null;
+                if (myListSongLoadUid === user.uid) myListSongLoadUid = '';
+            }
+        })();
+
+        return myListSongLoadPromise;
     }
 
     async function searchServerIndex(rawQuery) {
@@ -4781,18 +4909,23 @@ html, body { background: transparent !important; color: ${text} !important; }
     async function promoteServerPageToFullMaster(reason='この機能') {
         if (masterLoaded) {
             serverPagedMasterMode=false;
+            myListPartialMode=false;
             return;
         }
         if (fullMasterPromotionPromise) return fullMasterPromotionPromise;
         const wasPaged=serverPagedMasterMode;
+        const wasMyListPartial=myListPartialMode;
         serverPagedMasterMode=false;
+        myListPartialMode=false;
         masterLoadNotice(`${reason}を使うため、移行期間中は従来の全曲マスターを読み込みます…`);
         fullMasterPromotionPromise=(async()=>{
             try{
                 await ensureMasterLoaded();
                 serverPagedMasterMode=false;
+                myListPartialMode=false;
             }catch(error){
                 serverPagedMasterMode=wasPaged;
+                myListPartialMode=wasMyListPartial;
                 throw error;
             }finally{
                 fullMasterPromotionPromise=null;
@@ -4935,8 +5068,9 @@ html, body { background: transparent !important; color: ${text} !important; }
         throw Error('マスター更新と取得が重なりました。少し待って再読み込みしてください。');
     }
 
-    // 従来の全件マスター取得。STEP3では検索・絞り込み・マイリスト・楽曲追加・ルーム等、
-    // 全件参照が必要な機能へ移行した時だけ使用する。通常の全曲一覧初期表示は100件取得を使う。
+    // 従来の全件マスター取得。
+    // 通常一覧・通常検索・自分のマイリストは部分取得へ移行済み。
+    // まだ全件参照が残る機能（ルーム、公開マイリスト、クリップボード、楽曲追加の一部等）だけで使用する。
     let masterLoadPromise = null;
     let masterLoaded = false;
     let pendingHomeMyList = false;
@@ -5031,7 +5165,6 @@ html, body { background: transparent !important; color: ${text} !important; }
             document.documentElement.classList.remove('entry-home');
             try{
                 if(view==='mylist'){
-                    if(!masterLoaded) await promoteServerPageToFullMaster('マイリスト');
                     if(!myListMode) await toggleMyList();
                 }else{
                     if(myListMode) await toggleMyList();
@@ -5095,7 +5228,6 @@ html, body { background: transparent !important; color: ${text} !important; }
             document.documentElement.classList.remove('entry-home');
             try{
                 if(destination==='mylist'){
-                    if(!masterLoaded) await promoteServerPageToFullMaster('マイリスト');
                     if(!myListMode) await toggleMyList();
                 }else{
                     if(myListMode) await toggleMyList();
@@ -5136,6 +5268,11 @@ html, body { background: transparent !important; color: ${text} !important; }
     searchInput.addEventListener('input', () => {
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(() => {
+            // マイリスト部分取得中は登録曲をすべて持っているのでローカル検索。
+            if (myListPartialMode && myListMode && !masterLoaded) {
+                renderTable();
+                return;
+            }
             if (serverPagedMasterMode && !masterLoaded) {
                 void searchServerIndex(searchInput.value);
                 return;
@@ -5334,7 +5471,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     // その他UI処理
     // =========================================
     function handleSort(key) {
-        if(serverPagedMasterMode && !masterLoaded){
+        if(serverPagedMasterMode && !masterLoaded && !(myListPartialMode && myListMode)){
             void promoteServerPageToFullMaster('並び替え').then(()=>handleSort(key));
             return;
         }
@@ -5491,11 +5628,13 @@ html, body { background: transparent !important; color: ${text} !important; }
               : serverPagedMasterMode && !masterLoaded ? '📚 全曲一覧（100件ずつ取得）'
               : '📚 総登録楽曲数');
         document.getElementById('listModeIndicator').textContent = currentModeLabel;
-        songCountDisplay.textContent = (serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
-            ? `検索結果：${filteredData.length} 曲（全曲マスターは未取得）`
-            : (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
-                ? `表示中：${filteredData.length} 曲（Firebaseから最大100件取得）`
-                : ((!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`);
+        songCountDisplay.textContent = (myListPartialMode && myListMode && !masterLoaded && !currentRoomId)
+            ? `マイリスト：${filteredData.length} 曲（登録曲だけ取得・全曲マスター未取得）`
+            : (serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
+                ? `検索結果：${filteredData.length} 曲（全曲マスターは未取得）`
+                : (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
+                    ? `表示中：${filteredData.length} 曲（Firebaseから最大100件取得）`
+                    : ((!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`);
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
         cachedFilteredSongRows = filteredData;
