@@ -3140,6 +3140,13 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     let myListSongLoadPromise = null;
     let myListSongLoadUid = '';
 
+    // 通常の全曲一覧では、全曲マスターを読まずにジャンル専用インデックスを使う。
+    let genreServerMode = false;
+    let serverGenreIndexKey = '';
+    let serverGenreCatalog = null;
+    let serverGenreHistory = [];
+    let serverGenreCurrentRowKeys = [];
+
     // 本番移行: 通常検索は全曲マスターを読み込まず、検索専用インデックスから最大100候補だけ取得する。
     let serverSearchMode = false;
     let serverSearchBusy = false;
@@ -4351,55 +4358,105 @@ html, body { background: transparent !important; color: ${text} !important; }
     function bulkCsvAlreadyPersonal(id){const p=effectivePersonalSong(id);return !p.excluded&&!!(p.registered||p.part||getSelectedParts(p).length||p.liked);}
 
     // ジャンルボタン生成
-    function populateGenreButtons() {
-        genreFilters.innerHTML = '';
-        // 通常の100件一覧だけからジャンル一覧を作ると欠落して見えるため、
-        // その場合だけ全件取得への入口を表示する。
-        // マイリスト部分取得中は登録曲を全件取得済みなので、その範囲のジャンルを通常生成できる。
-        if (serverPagedMasterMode && !masterLoaded && !myListPartialMode) {
-            const allBtn = document.createElement('button');
-            allBtn.className = 'genre-btn active';
-            allBtn.textContent = 'すべて';
-            allBtn.onclick = () => {};
-            genreFilters.appendChild(allBtn);
+    function renderGenreButtonsFromNames(names) {
+        genreFilters.replaceChildren();
+        const genres = ['すべて', ...Array.from(new Set(names.filter(Boolean))).sort((a,b)=>a.localeCompare(b,'ja'))];
 
-            const loadBtn = document.createElement('button');
-            loadBtn.className = 'genre-btn';
-            loadBtn.textContent = 'ジャンル絞り込みを読み込む';
-            loadBtn.title = 'ジャンル絞り込みは移行期間中のみ従来の全曲マスターを読み込みます。';
-            loadBtn.onclick = () => { void promoteServerPageToFullMaster('ジャンル絞り込み'); };
-            genreFilters.appendChild(loadBtn);
+        for (const genre of genres) {
+            const btn = document.createElement('button');
+            btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`;
+            btn.textContent = genre;
+
+            btn.onclick = async () => {
+                if (genre === currentGenre && genre !== 'すべて') return;
+
+                currentGenre = genre;
+                selectedArtist = '';
+                artistFilterName.textContent = '';
+                artistFilterIndicator.hidden = true;
+                currentSortKey = '';
+                currentSortOrder = 1;
+                updateSortIcons();
+                tableBodyWrapper.scrollTop = 0;
+
+                if (masterLoaded || myListPartialMode || currentRoomId || myListMode) {
+                    genreServerMode = false;
+                    renderTable();
+                    return;
+                }
+
+                if (genre === 'すべて') {
+                    genreServerMode = false;
+                    serverGenreHistory = [];
+                    serverGenreCurrentRowKeys = [];
+                    await loadServerMasterPage('first');
+                } else {
+                    await loadServerGenrePage(genre, 'first');
+                }
+            };
+
+            genreFilters.appendChild(btn);
+        }
+    }
+
+    async function loadServerGenreCatalog() {
+        if (serverGenreCatalog) return serverGenreCatalog;
+
+        try {
+            const snap = await db.ref('songGenreMeta').once('value');
+            const meta = snap.val() || {};
+            serverGenreIndexKey = typeof meta.currentIndexKey === 'string' ? meta.currentIndexKey : '';
+
+            const genreMap = meta.genres && typeof meta.genres === 'object' ? meta.genres : {};
+            serverGenreCatalog = Object.values(genreMap)
+                .map(item => typeof item === 'string' ? item : String(item?.name || ''))
+                .filter(Boolean);
+
+            return serverGenreCatalog;
+        } catch (error) {
+            console.warn('ジャンル一覧を読み込めません:', error);
+            return [];
+        }
+    }
+
+    function populateGenreButtons() {
+        if (masterLoaded || myListPartialMode || currentRoomId || myListMode) {
+            const gSet = new Set();
+            allData.forEach(row => {
+                [genre1Key, genre2Key, genre3Key].forEach(key => {
+                    const value = String(row[key] || '').trim();
+                    if (value) gSet.add(value);
+                });
+            });
+            renderGenreButtonsFromNames([...gSet]);
             return;
         }
-        const gSet = new Set();
-        
-        allData.forEach(row => { 
-            if (genre1Key && row[genre1Key] && row[genre1Key].trim() !== '') {
-                gSet.add(row[genre1Key].trim()); 
-            }
-            if (genre2Key && row[genre2Key] && row[genre2Key].trim() !== '') {
-                gSet.add(row[genre2Key].trim()); 
-            }
-            if (genre3Key && row[genre3Key] && row[genre3Key].trim() !== '') {
-                gSet.add(row[genre3Key].trim());
-            }
-        });
-        
-        const genres = ["すべて", ...Array.from(gSet).sort()];
 
-        genres.forEach(genre => {
-            const btn = document.createElement('button');
-            btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`; 
-            btn.textContent = genre;
-            btn.onclick = () => { 
-                document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active')); 
-                btn.classList.add('active'); 
-                currentGenre = genre; 
-                renderTable(); 
-            };
-            genreFilters.appendChild(btn);
+        if (serverGenreCatalog) {
+            renderGenreButtonsFromNames(serverGenreCatalog);
+            return;
+        }
+
+        genreFilters.replaceChildren();
+
+        const allBtn = document.createElement('button');
+        allBtn.className = `genre-btn ${currentGenre === 'すべて' ? 'active' : ''}`;
+        allBtn.textContent = 'すべて';
+        genreFilters.appendChild(allBtn);
+
+        const loadingBtn = document.createElement('button');
+        loadingBtn.className = 'genre-btn';
+        loadingBtn.disabled = true;
+        loadingBtn.textContent = 'ジャンル読込中…';
+        genreFilters.appendChild(loadingBtn);
+
+        void loadServerGenreCatalog().then(names => {
+            if (!masterLoaded && !myListPartialMode && !currentRoomId && !myListMode) {
+                renderGenreButtonsFromNames(names);
+            }
         });
     }
+
 
     const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
     function isGoogleSongEditor(){
@@ -4615,6 +4672,10 @@ html, body { background: transparent !important; color: ${text} !important; }
         // 検索・並び替え・ジャンル/アーティスト絞り込みをローカルで完結できる。
         if (myListPartialMode && myListMode && !currentRoomId) return false;
 
+        if (genreServerMode && !currentRoomId && !myListMode) {
+            return !!(currentSortKey || selectedArtist);
+        }
+
         // 検索中は検索専用インデックスから取得した最大100曲だけで描画できる。
         // 検索結果内の並び替えもローカルで処理し、全曲取得へ昇格しない。
         if (serverSearchMode) {
@@ -4650,6 +4711,157 @@ html, body { background: transparent !important; color: ${text} !important; }
         const value = snapshot.val();
         serverSearchIndexKey = typeof value === 'string' ? value : '';
         return serverSearchIndexKey;
+    }
+
+    function serverGenreKeyForName(name) {
+        const normalized = String(name || '').normalize('NFKC').trim();
+        return Array.from(new TextEncoder().encode(normalized))
+            .map(byte => byte.toString(16).padStart(2,'0'))
+            .join('');
+    }
+
+    async function currentServerGenreIndexKey() {
+        if (serverGenreIndexKey) return serverGenreIndexKey;
+        const snapshot = await db.ref('songGenreMeta/currentIndexKey').once('value');
+        const value = snapshot.val();
+        serverGenreIndexKey = typeof value === 'string' ? value : '';
+        return serverGenreIndexKey;
+    }
+
+    async function fetchSongsByIds(ids) {
+        const snapshots = await Promise.all(
+            ids.map(id => db.ref(`${MASTER_DB_PATH}/${id}`).once('value'))
+        );
+
+        const master = {};
+        for (const snapshot of snapshots) {
+            const song = snapshot.val();
+            if (!song || typeof song !== 'object' || Array.isArray(song) ||
+                typeof song.title !== 'string' || !song.title.trim()) continue;
+            master[snapshot.key] = song;
+        }
+        return master;
+    }
+
+    async function loadServerGenrePage(genre, direction='first') {
+        if (!genre || genre === 'すべて') {
+            genreServerMode = false;
+            currentGenre = 'すべて';
+            return loadServerMasterPage('first');
+        }
+
+        if (masterLoaded) {
+            genreServerMode = false;
+            renderTable();
+            return;
+        }
+
+        if (serverPageBusy) return serverPageLoadPromise;
+
+        serverPageBusy = true;
+        serverPagedMasterMode = true;
+        serverSearchMode = false;
+        genreServerMode = true;
+        currentGenre = genre;
+
+        searchInput.value = '';
+        searchInput.disabled = false;
+        searchInput.readOnly = false;
+
+        loadingArea.style.display = 'flex';
+        loadingArea.innerHTML = `<div class="spinner"></div><div>「${escapeHtml(genre)}」を100曲ずつ取得中...</div>`;
+
+        const previousRows = allData.slice();
+        const previousPage = serverPageNumber;
+        const previousHasOlder = serverPageHasOlder;
+        const previousHistory = serverGenreHistory.slice();
+        const previousKeys = serverGenreCurrentRowKeys.slice();
+
+        serverPageLoadPromise = (async () => {
+            try {
+                const indexKey = await currentServerGenreIndexKey();
+                if (!indexKey) throw Error('ジャンルインデックスがまだ作成されていません');
+
+                const genreKey = serverGenreKeyForName(genre);
+                let query = db.ref(`songGenreRows/${indexKey}/${genreKey}`).orderByKey();
+
+                if (direction === 'first') {
+                    serverGenreHistory = [];
+                    serverPageNumber = 1;
+                } else if (direction === 'older') {
+                    const lastKey = serverGenreCurrentRowKeys[serverGenreCurrentRowKeys.length - 1];
+                    if (!lastKey) return;
+                    query = query.startAfter(lastKey);
+                } else if (direction === 'newer') {
+                    if (serverGenreHistory.length <= 1) return;
+                    serverGenreHistory.pop();
+                    const previousStart = serverGenreHistory[serverGenreHistory.length - 1] || '';
+                    query = db.ref(`songGenreRows/${indexKey}/${genreKey}`).orderByKey();
+                    if (previousStart) query = query.startAt(previousStart);
+                    serverPageNumber = Math.max(1, serverPageNumber - 1);
+                }
+
+                const snapshot = await query.limitToFirst(SERVER_MASTER_PAGE_SIZE).once('value');
+
+                const rowKeys = [];
+                const ids = [];
+                snapshot.forEach(child => {
+                    rowKeys.push(child.key);
+                    const id = String(child.val() || '');
+                    if (/^[A-Za-z0-9_-]{1,80}$/.test(id)) ids.push(id);
+                });
+
+                if (!ids.length) {
+                    masterLoadNotice(`ジャンル「${genre}」にこれ以上の曲はありません。`);
+                    return;
+                }
+
+                const master = await fetchSongsByIds(ids);
+                const rows = serverSearchMasterToRawRows(master);
+
+                const order = new Map(ids.map((id, i) => [id, i]));
+                const body = rows.slice(1).sort((a,b) =>
+                    (order.get(String(a[0])) ?? 999999) - (order.get(String(b[0])) ?? 999999)
+                );
+
+                loadRowsIntoApp([rows[0], ...body]);
+
+                serverGenreCurrentRowKeys = rowKeys;
+
+                if (direction === 'first') {
+                    serverGenreHistory = [rowKeys[0] || ''];
+                } else if (direction === 'older') {
+                    serverGenreHistory.push(rowKeys[0] || '');
+                    serverPageNumber++;
+                }
+
+                serverPageHasOlder = ids.length === SERVER_MASTER_PAGE_SIZE;
+
+                masterLoadNotice(
+                    `✅ ジャンル「${genre}」：${ids.length}曲だけ取得しました（${serverPageNumber}ページ目）。`
+                );
+            } catch (error) {
+                allData = previousRows;
+                serverPageNumber = previousPage;
+                serverPageHasOlder = previousHasOlder;
+                serverGenreHistory = previousHistory;
+                serverGenreCurrentRowKeys = previousKeys;
+                genreServerMode = false;
+                console.error('ジャンル100件取得に失敗:', error);
+                throw error;
+            } finally {
+                serverPageBusy = false;
+                serverPageLoadPromise = null;
+                searchInput.disabled = false;
+                searchInput.readOnly = false;
+
+                if (serverPagedMasterMode && !masterLoaded && allData.length) {
+                    renderTable();
+                }
+            }
+        })();
+
+        return serverPageLoadPromise;
     }
 
     function serverSearchMasterToRawRows(master) {
@@ -4730,6 +4942,9 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     async function searchServerIndex(rawQuery) {
+        searchInput.disabled = false;
+        searchInput.readOnly = false;
+
         if (masterLoaded) { renderTable(); return; }
 
         const normalized = normalizeServerSearchText(rawQuery);
@@ -4752,6 +4967,8 @@ html, body { background: transparent !important; color: ${text} !important; }
         serverSearchBusy = true;
         serverPagedMasterMode = true;
         serverSearchMode = true;
+        genreServerMode = false;
+        currentGenre = 'すべて';
         loadingArea.style.display='flex';
         loadingArea.innerHTML='<div class="spinner"></div><div>検索インデックスから最大100件だけ取得中...</div>';
 
@@ -4806,13 +5023,19 @@ html, body { background: transparent !important; color: ${text} !important; }
             if (requestSeq === serverSearchRequestSeq) {
                 serverSearchBusy = false;
                 loadingArea.style.display='none';
+                searchInput.disabled = false;
+                searchInput.readOnly = false;
                 if (serverSearchMode && !masterLoaded) renderTable();
             }
         }
     }
 
     async function loadServerMasterPage(direction='first') {
-        if (direction === 'first') serverSearchMode = false;
+        if (direction === 'first') {
+            serverSearchMode = false;
+            genreServerMode = false;
+            currentGenre = 'すべて';
+        }
         if (masterLoaded) {
             serverPagedMasterMode=false;
             renderTable();
@@ -5248,6 +5471,8 @@ html, body { background: transparent !important; color: ${text} !important; }
         }
     }
     window.addEventListener('DOMContentLoaded', async () => {
+        searchInput.disabled = false;
+        searchInput.readOnly = false;
         syncMobileNav();
         // room=... はホームを飛ばして従来どおり入室し、マスターを読む。
         if (currentRoomId) {
@@ -5265,18 +5490,30 @@ html, body { background: transparent !important; color: ${text} !important; }
     });
 
     let searchDebounceTimer = null;
+
+    searchInput.disabled = false;
+    searchInput.readOnly = false;
+
+    searchInput.addEventListener('pointerdown', () => {
+        searchInput.disabled = false;
+        searchInput.readOnly = false;
+    });
+
     searchInput.addEventListener('input', () => {
         clearTimeout(searchDebounceTimer);
+        const typed = searchInput.value;
+
         searchDebounceTimer = setTimeout(() => {
-            // マイリスト部分取得中は登録曲をすべて持っているのでローカル検索。
             if (myListPartialMode && myListMode && !masterLoaded) {
                 renderTable();
                 return;
             }
+
             if (serverPagedMasterMode && !masterLoaded) {
-                void searchServerIndex(searchInput.value);
+                void searchServerIndex(typed);
                 return;
             }
+
             renderTable();
         }, 250);
     });
@@ -5564,7 +5801,14 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     function changeSongPage(direction) {
         if (!Number.isInteger(direction) || !direction) return;
+
         if(serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode) return;
+
+        if(genreServerMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode){
+            void loadServerGenrePage(currentGenre, direction > 0 ? 'older' : 'newer');
+            return;
+        }
+
         if(serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode){
             void loadServerMasterPage(direction > 0 ? 'older' : 'newer');
             return;
@@ -5625,6 +5869,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             ? (roomListView==='all' ? '🌐 ルーム：全曲一覧' : roomListView==='common' ? '🤝 ルーム：2人以上の共通曲' : `📁 ルーム：${roomListView===signedInUser?.uid?'自分':roomSharedLists[roomListView]?.name||'メンバー'}のマイリスト`)
             : myListMode ? '📁 自分のマイリスト'
             : (serverSearchMode && serverPagedMasterMode && !masterLoaded ? '🔎 楽曲検索（最大100件取得）'
+              : genreServerMode && serverPagedMasterMode && !masterLoaded ? `🎼 ジャンル：${currentGenre}（100件ずつ取得）`
               : serverPagedMasterMode && !masterLoaded ? '📚 全曲一覧（100件ずつ取得）'
               : '📚 総登録楽曲数');
         document.getElementById('listModeIndicator').textContent = currentModeLabel;
@@ -5632,6 +5877,8 @@ html, body { background: transparent !important; color: ${text} !important; }
             ? `マイリスト：${filteredData.length} 曲（登録曲だけ取得・全曲マスター未取得）`
             : (serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
                 ? `検索結果：${filteredData.length} 曲（全曲マスターは未取得）`
+                : (genreServerMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
+                    ? `${currentGenre}：${filteredData.length} 曲（Firebaseから最大100件取得）`
                 : (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
                     ? `表示中：${filteredData.length} 曲（Firebaseから最大100件取得）`
                     : ((!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`);
