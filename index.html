@@ -2182,7 +2182,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     async function toggleMyList() {
         // 入室後は作成時の候補曲セットを全参加者で統一するため切替不可。
         if (!signedInUser || currentRoomId) return;
-        // マイリストでは登録済みIDを全曲マスターへ照合するため、STEP3では従来の全件取得へ切り替える。
+        // マイリストでは登録済みIDを全曲マスターへ照合するため、移行期間中は従来の全件取得へ切り替える。
         if (!myListMode && !masterLoaded) {
             try { await promoteServerPageToFullMaster('マイリスト'); }
             catch (error) { console.warn('マイリスト用マスター取得に失敗:', error); return; }
@@ -3071,7 +3071,7 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     // =========================================
     const MASTER_DB_PATH = "songs";
 
-    // STEP3: 全曲一覧の初期表示だけは Firebase から100件ずつ取得する。
+    // 本番移行: 全曲一覧の初期表示は Firebase から100件ずつ取得する。
     // 検索・絞り込み・マイリスト・ルームなど全件参照が必要な機能を使う時だけ、
     // 移行期間中は従来の全マスター取得へ切り替える。
     const SERVER_MASTER_PAGE_SIZE = 100;
@@ -3081,6 +3081,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
     let serverPageHasOlder = false;
     let serverPageLoadPromise = null;
     let fullMasterPromotionPromise = null;
+
+    // 本番移行: 通常検索は全曲マスターを読み込まず、検索専用インデックスから最大100候補だけ取得する。
+    let serverSearchMode = false;
+    let serverSearchBusy = false;
+    let serverSearchIndexKey = '';
+    let serverSearchRequestSeq = 0;
 
     let allData = [];
     let roomQueue = {}; 
@@ -4290,7 +4296,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     function populateGenreButtons() {
         genreFilters.innerHTML = '';
         // 100件だけの内容からジャンル一覧を作ると欠落して見えるため、
-        // STEP3では全件取得へ切り替える入口だけを表示する。
+        // 移行期間中は全件取得へ切り替える入口だけを表示する。
         if (serverPagedMasterMode && !masterLoaded) {
             const allBtn = document.createElement('button');
             allBtn.className = 'genre-btn active';
@@ -4301,7 +4307,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             const loadBtn = document.createElement('button');
             loadBtn.className = 'genre-btn';
             loadBtn.textContent = 'ジャンル絞り込みを読み込む';
-            loadBtn.title = 'ジャンル絞り込みを使うと従来の全曲マスターを読み込みます（STEP3移行期間中）';
+            loadBtn.title = 'ジャンル絞り込みは移行期間中のみ従来の全曲マスターを読み込みます。';
             loadBtn.onclick = () => { void promoteServerPageToFullMaster('ジャンル絞り込み'); };
             genreFilters.appendChild(loadBtn);
             return;
@@ -4546,11 +4552,139 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     function serverPagedNeedsFullMaster() {
-        return !!(currentRoomId || myListMode || searchInput.value.trim() ||
-            currentSortKey || currentGenre !== 'すべて' || selectedArtist);
+        // 検索中は検索専用インデックスから取得した最大100曲だけで描画できる。
+        // 検索結果内の並び替えもローカルで処理し、全曲取得へ昇格しない。
+        if (serverSearchMode) {
+            return !!(currentRoomId || myListMode || currentGenre !== 'すべて' || selectedArtist);
+        }
+        return !!(currentRoomId || myListMode || currentSortKey || currentGenre !== 'すべて' || selectedArtist);
+    }
+
+    function normalizeServerSearchText(value) {
+        return String(value ?? '')
+            .normalize('NFKC')
+            .toLocaleLowerCase('ja')
+            .replace(/[^\p{L}\p{N}\p{M}]+/gu, ' ')
+            .trim();
+    }
+
+    function serverSearchUtf8Hex(value) {
+        return Array.from(new TextEncoder().encode(value))
+            .map(byte => byte.toString(16).padStart(2, '0'))
+            .join('');
+    }
+
+    function serverSearchSongText(song) {
+        return normalizeServerSearchText([
+            song?.title, song?.artist, song?.genre, song?.genre2, song?.genre3,
+            song?.tieup, song?.search, song?.lyrics, song?.composition, song?.arrangement
+        ].join(' '));
+    }
+
+    async function currentServerSearchIndexKey() {
+        if (serverSearchIndexKey) return serverSearchIndexKey;
+        const snapshot = await db.ref('songSearchMeta/currentIndexKey').once('value');
+        const value = snapshot.val();
+        serverSearchIndexKey = typeof value === 'string' ? value : '';
+        return serverSearchIndexKey;
+    }
+
+    function serverSearchMasterToRawRows(master) {
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement','updatedAt'];
+        const rows=[headers];
+        for(const [id,song] of Object.entries(master || {})){
+            if(!/^[A-Za-z0-9_-]{1,80}$/.test(id)||!song||typeof song!=='object'||Array.isArray(song)||
+               (song.id&&song.id!==id)||typeof song.title!=='string'||!song.title.trim()) continue;
+            rows.push(fields.map(field=>field==='id'?id:String(song[field]??'')));
+        }
+        return rows;
+    }
+
+    async function searchServerIndex(rawQuery) {
+        if (masterLoaded) { renderTable(); return; }
+
+        const normalized = normalizeServerSearchText(rawQuery);
+        const terms = normalized.split(/\s+/u).filter(Boolean);
+        if (!terms.length) {
+            if (serverSearchMode) {
+                serverSearchMode = false;
+                serverSearchRequestSeq++;
+                currentSortKey = '';
+                currentSortOrder = 1;
+                updateSortIcons();
+                await loadServerMasterPage('first');
+            } else {
+                renderTable();
+            }
+            return;
+        }
+
+        const requestSeq = ++serverSearchRequestSeq;
+        serverSearchBusy = true;
+        serverPagedMasterMode = true;
+        serverSearchMode = true;
+        loadingArea.style.display='flex';
+        loadingArea.innerHTML='<div class="spinner"></div><div>検索インデックスから最大100件だけ取得中...</div>';
+
+        try {
+            const indexKey = await currentServerSearchIndexKey();
+            if (!indexKey) throw Error('検索インデックスがまだ作成されていません');
+
+            const seed = [...terms].sort((a,b) => b.length - a.length)[0];
+            const prefix = serverSearchUtf8Hex(seed);
+
+            const indexSnapshot = await db.ref(`songSearchRows/${indexKey}`)
+                .orderByKey()
+                .startAt(prefix)
+                .endAt(prefix + '\uf8ff')
+                .limitToFirst(100)
+                .once('value');
+
+            if (requestSeq !== serverSearchRequestSeq) return;
+
+            const ids = [];
+            const seen = new Set();
+            indexSnapshot.forEach(child => {
+                const songId = String(child.val() || '');
+                if (/^[A-Za-z0-9_-]{1,80}$/.test(songId) && !seen.has(songId)) {
+                    seen.add(songId);
+                    ids.push(songId);
+                }
+            });
+
+            const snapshots = await Promise.all(ids.map(id => db.ref(`${MASTER_DB_PATH}/${id}`).once('value')));
+            if (requestSeq !== serverSearchRequestSeq) return;
+
+            const matchedMaster = {};
+            for (const snapshot of snapshots) {
+                const song = snapshot.val();
+                if (!song || typeof song !== 'object' || Array.isArray(song) || typeof song.title !== 'string' || !song.title.trim()) continue;
+                const haystack = serverSearchSongText(song);
+                if (!terms.every(term => haystack.includes(term))) continue;
+                matchedMaster[snapshot.key] = song;
+            }
+
+            loadRowsIntoApp(serverSearchMasterToRawRows(matchedMaster));
+            masterLoadNotice(`✅ 検索：インデックス候補${ids.length}曲から ${Object.keys(matchedMaster).length}曲を表示（全曲マスター未取得）。`);
+        } catch (error) {
+            if (requestSeq !== serverSearchRequestSeq) return;
+            console.warn('検索インデックスを利用できないため従来検索へ切り替えます:', error);
+            serverSearchMode = false;
+            serverSearchIndexKey = '';
+            await promoteServerPageToFullMaster('検索');
+            renderTable();
+        } finally {
+            if (requestSeq === serverSearchRequestSeq) {
+                serverSearchBusy = false;
+                loadingArea.style.display='none';
+                if (serverSearchMode && !masterLoaded) renderTable();
+            }
+        }
     }
 
     async function loadServerMasterPage(direction='first') {
+        if (direction === 'first') serverSearchMode = false;
         if (masterLoaded) {
             serverPagedMasterMode=false;
             renderTable();
@@ -5002,12 +5136,12 @@ html, body { background: transparent !important; color: ${text} !important; }
     searchInput.addEventListener('input', () => {
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(() => {
-            if(serverPagedMasterMode && !masterLoaded && searchInput.value.trim()){
-                void promoteServerPageToFullMaster('検索').then(()=>renderTable());
+            if (serverPagedMasterMode && !masterLoaded) {
+                void searchServerIndex(searchInput.value);
                 return;
             }
             renderTable();
-        }, 150);
+        }, 250);
     });
 
     // =========================================
@@ -5252,6 +5386,18 @@ html, body { background: transparent !important; color: ${text} !important; }
     function renderCurrentSongPage(resetScroll = false) {
         const total = cachedFilteredSongRows.length;
 
+        if(serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode){
+            tableBody.replaceChildren();
+            appendRenderedSongRows(cachedFilteredSongRows.slice(0, SONG_PAGE_SIZE), 0);
+            songPageStatus.textContent = total
+                ? `検索結果 ${total.toLocaleString()}曲（検索インデックス経由・最大100曲）`
+                : '検索結果 0曲';
+            songPrevPageBtn.disabled = true;
+            songNextPageBtn.disabled = true;
+            if (resetScroll) tableBodyWrapper.scrollTop = 0;
+            return;
+        }
+
         if(serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode){
             const start=(serverPageNumber-1)*SERVER_MASTER_PAGE_SIZE;
             tableBody.replaceChildren();
@@ -5281,6 +5427,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     function changeSongPage(direction) {
         if (!Number.isInteger(direction) || !direction) return;
+        if(serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode) return;
         if(serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode){
             void loadServerMasterPage(direction > 0 ? 'older' : 'newer');
             return;
@@ -5310,7 +5457,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             tableBodyWrapper.scrollTop = 0;
         }
         tableBody.replaceChildren();
-        const keywords = searchInput.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        const keywords = serverSearchMode ? [] : searchInput.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
         
         let filteredData = allData.filter(row => {
             if (currentRoomId && (roomListView === 'common' ? roomOwnersOfSong(row._id).length < 2 : roomListView !== 'all' && !roomSharedLists[roomListView]?.songs?.[row._id])) return false;
@@ -5340,11 +5487,15 @@ html, body { background: transparent !important; color: ${text} !important; }
         const currentModeLabel = currentRoomId
             ? (roomListView==='all' ? '🌐 ルーム：全曲一覧' : roomListView==='common' ? '🤝 ルーム：2人以上の共通曲' : `📁 ルーム：${roomListView===signedInUser?.uid?'自分':roomSharedLists[roomListView]?.name||'メンバー'}のマイリスト`)
             : myListMode ? '📁 自分のマイリスト'
-            : (serverPagedMasterMode && !masterLoaded ? '📚 全曲一覧（100件ずつ取得）' : '📚 総登録楽曲数');
+            : (serverSearchMode && serverPagedMasterMode && !masterLoaded ? '🔎 楽曲検索（最大100件取得）'
+              : serverPagedMasterMode && !masterLoaded ? '📚 全曲一覧（100件ずつ取得）'
+              : '📚 総登録楽曲数');
         document.getElementById('listModeIndicator').textContent = currentModeLabel;
-        songCountDisplay.textContent = (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
-            ? `表示中：${filteredData.length} 曲（Firebaseから最大100件取得）`
-            : ((!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`);
+        songCountDisplay.textContent = (serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
+            ? `検索結果：${filteredData.length} 曲（全曲マスターは未取得）`
+            : (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
+                ? `表示中：${filteredData.length} 曲（Firebaseから最大100件取得）`
+                : ((!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`);
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
         cachedFilteredSongRows = filteredData;
