@@ -1,14 +1,5 @@
 /**
- * Build a versioned substring-search index in Firebase Realtime Database.
- *
- * The index does NOT contain full song records. Each row is:
- *   <hex-encoded suffix>_<stable hash> : "<songId>"
- *
- * Because UTF-8 hex preserves prefixes, the browser can use orderByKey()
- * + startAt()/endAt() + limitToFirst(100) for substring search.
- *
- * Required GitHub Actions secret:
- *   FIREBASE_SERVICE_ACCOUNT = complete Firebase service-account JSON
+ * Share List Score: search index + genre index builder.
  */
 
 import crypto from 'node:crypto';
@@ -20,9 +11,7 @@ const DB_URL =
   'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app';
 
 const rawCredential = process.env.FIREBASE_SERVICE_ACCOUNT;
-if (!rawCredential) {
-  throw new Error('FIREBASE_SERVICE_ACCOUNT is missing.');
-}
+if (!rawCredential) throw new Error('FIREBASE_SERVICE_ACCOUNT is missing.');
 
 let serviceAccount;
 try {
@@ -35,31 +24,24 @@ const app = initializeApp({
   credential: cert(serviceAccount),
   databaseURL: DB_URL,
 });
-
 const db = getDatabase(app);
 
 const SEARCH_FIELDS = [
-  'title',
-  'artist',
-  'tieup',
-  'search',
-  'lyrics',
-  'composition',
-  'arrangement',
-  'genre',
-  'genre2',
-  'genre3',
+  'title','artist','tieup','search','lyrics','composition','arrangement',
+  'genre','genre2','genre3',
 ];
+const GENRE_FIELDS = ['genre','genre2','genre3'];
 
 const WRITE_BATCH_SIZE = 5000;
 const MAX_ATTEMPTS = 3;
 const MAX_TERM_UTF8_BYTES = 300;
+const INDEX_VERSION = 3;
 
 function sha256(value, length = 40) {
   return crypto.createHash('sha256').update(value).digest('hex').slice(0, length);
 }
 
-function normalizeSearchText(value) {
+function normalize(value) {
   return String(value ?? '')
     .normalize('NFKC')
     .toLocaleLowerCase('ja')
@@ -67,33 +49,23 @@ function normalizeSearchText(value) {
     .trim();
 }
 
+function normalizeGenre(value) {
+  return String(value ?? '').normalize('NFKC').trim();
+}
+
 function searchableWords(song) {
-  const text = normalizeSearchText(
-    SEARCH_FIELDS.map(field => song?.[field] ?? '').join(' ')
-  );
+  const text = normalize(SEARCH_FIELDS.map(field => song?.[field] ?? '').join(' '));
   return text ? text.split(/\s+/u).filter(Boolean) : [];
 }
 
 function fitUtf8Prefix(text, maxBytes = MAX_TERM_UTF8_BYTES) {
   const chars = Array.from(text);
-  while (chars.length && Buffer.byteLength(chars.join(''), 'utf8') > maxBytes) {
-    chars.pop();
-  }
+  while (chars.length && Buffer.byteLength(chars.join(''), 'utf8') > maxBytes) chars.pop();
   return chars.join('');
 }
 
-/**
- * Any substring is a prefix of a suffix.
- *
- * "chicken"
- * -> chicken / hicken / icken / cken / ken / en / n
- *
- * Query "chic" therefore finds "chicken".
- * Query "icken" finds "icken".
- */
 function suffixTermsForSong(song) {
   const terms = new Set();
-
   for (const word of searchableWords(song)) {
     const chars = Array.from(word);
     for (let i = 0; i < chars.length; i++) {
@@ -101,12 +73,20 @@ function suffixTermsForSong(song) {
       if (fitted) terms.add(fitted);
     }
   }
-
   return terms;
 }
 
-function encodeTerm(term) {
-  return Buffer.from(term, 'utf8').toString('hex');
+function encodeUtf8(value) {
+  return Buffer.from(value, 'utf8').toString('hex');
+}
+
+function genresForSong(song) {
+  const set = new Set();
+  for (const field of GENRE_FIELDS) {
+    const value = normalizeGenre(song?.[field]);
+    if (value) set.add(value);
+  }
+  return [...set];
 }
 
 function validateSongs(songs) {
@@ -118,14 +98,9 @@ function validateSongs(songs) {
   if (!entries.length) throw new Error('/songs is empty');
 
   for (const [id, song] of entries) {
-    if (
-      !/^[A-Za-z0-9_-]{1,80}$/.test(id) ||
-      !song ||
-      typeof song !== 'object' ||
-      Array.isArray(song) ||
-      typeof song.title !== 'string' ||
-      !song.title.trim()
-    ) {
+    if (!/^[A-Za-z0-9_-]{1,80}$/.test(id) ||
+        !song || typeof song !== 'object' || Array.isArray(song) ||
+        typeof song.title !== 'string' || !song.title.trim()) {
       throw new Error(`Invalid song: ${id}`);
     }
   }
@@ -133,51 +108,91 @@ function validateSongs(songs) {
   return entries;
 }
 
-async function writeBatch(indexKey, batch) {
+async function flush(pathName, batch) {
   if (!Object.keys(batch).length) return;
-  await db.ref(`songSearchRows/${indexKey}`).update(batch);
+  await db.ref(pathName).update(batch);
+}
+
+function genreOrderKey(songId, updatedAt) {
+  const raw = Number(updatedAt);
+  const ts = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+  const capped = Math.min(ts, 9999999999999);
+  const inverted = 9999999999999 - capped;
+  return `${String(inverted).padStart(13,'0')}_${songId}`;
 }
 
 async function buildOnce(sourceRevision, songs) {
   const entries = validateSongs(songs);
-  const indexKey = sha256(`shareliscore-search-v2\0${sourceRevision}`, 24);
+  const indexKey = sha256(`shareliscore-index-v${INDEX_VERSION}\0${sourceRevision}`, 24);
 
-  // Retry-safe: this unpublished version is cleared before rebuilding.
-  await db.ref(`songSearchRows/${indexKey}`).remove();
+  await Promise.all([
+    db.ref(`songSearchRows/${indexKey}`).remove(),
+    db.ref(`songGenreRows/${indexKey}`).remove(),
+  ]);
 
-  let batch = {};
-  let batchCount = 0;
-  let rowCount = 0;
+  let searchBatch = {};
+  let searchBatchCount = 0;
+  let genreBatch = {};
+  let genreBatchCount = 0;
+  let searchRowCount = 0;
+  let genreRowCount = 0;
   let processed = 0;
 
+  const genreCounts = new Map();
+
   for (const [songId, song] of entries) {
-    const terms = suffixTermsForSong(song);
+    for (const term of suffixTermsForSong(song)) {
+      const rowId = `${encodeUtf8(term)}_${sha256(`${songId}\0${term}`, 24)}`;
+      searchBatch[rowId] = songId;
+      searchBatchCount++;
+      searchRowCount++;
 
-    for (const term of terms) {
-      const encoded = encodeTerm(term);
-      const rowId = `${encoded}_${sha256(`${songId}\0${term}`, 24)}`;
+      if (searchBatchCount >= WRITE_BATCH_SIZE) {
+        await flush(`songSearchRows/${indexKey}`, searchBatch);
+        searchBatch = {};
+        searchBatchCount = 0;
+      }
+    }
 
-      // The value is only the UUID. Full song data remains under /songs.
-      batch[rowId] = songId;
-      batchCount++;
-      rowCount++;
+    for (const genre of genresForSong(song)) {
+      const genreKey = encodeUtf8(genre);
+      const rowKey = genreOrderKey(songId, song.updatedAt);
 
-      if (batchCount >= WRITE_BATCH_SIZE) {
-        await writeBatch(indexKey, batch);
-        batch = {};
-        batchCount = 0;
+      genreBatch[`${genreKey}/${rowKey}`] = songId;
+      genreBatchCount++;
+      genreRowCount++;
+      genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1);
+
+      if (genreBatchCount >= WRITE_BATCH_SIZE) {
+        await flush(`songGenreRows/${indexKey}`, genreBatch);
+        genreBatch = {};
+        genreBatchCount = 0;
       }
     }
 
     processed++;
     if (processed % 1000 === 0) {
-      console.log(`Indexed ${processed}/${entries.length} songs; rows=${rowCount}`);
+      console.log(
+        `Indexed ${processed}/${entries.length}; searchRows=${searchRowCount}; genreRows=${genreRowCount}`
+      );
     }
   }
 
-  await writeBatch(indexKey, batch);
+  await flush(`songSearchRows/${indexKey}`, searchBatch);
+  await flush(`songGenreRows/${indexKey}`, genreBatch);
 
-  return { indexKey, rowCount, songCount: entries.length };
+  const genres = {};
+  for (const [name, count] of [...genreCounts.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ja'))) {
+    genres[encodeUtf8(name)] = {name, count};
+  }
+
+  return {
+    indexKey,
+    searchRowCount,
+    genreRowCount,
+    songCount: entries.length,
+    genres,
+  };
 }
 
 async function main() {
@@ -187,18 +202,23 @@ async function main() {
       throw new Error('masterMeta/revision is missing.');
     }
 
-    const currentMeta = (await db.ref('songSearchMeta').get()).val() || {};
+    const searchMeta = (await db.ref('songSearchMeta').get()).val() || {};
+    const genreMeta = (await db.ref('songGenreMeta').get()).val() || {};
 
     if (
-      currentMeta.sourceRevision === before &&
-      typeof currentMeta.currentIndexKey === 'string' &&
-      currentMeta.currentIndexKey
+      searchMeta.sourceRevision === before &&
+      searchMeta.indexVersion === INDEX_VERSION &&
+      genreMeta.sourceRevision === before &&
+      genreMeta.indexVersion === INDEX_VERSION &&
+      typeof searchMeta.currentIndexKey === 'string' &&
+      searchMeta.currentIndexKey &&
+      searchMeta.currentIndexKey === genreMeta.currentIndexKey
     ) {
-      console.log(`Search index is already current: ${before}`);
+      console.log(`Search/genre indexes are already current: ${before}`);
       return;
     }
 
-    console.log(`Building search index for ${before} (${attempt}/${MAX_ATTEMPTS})`);
+    console.log(`Building search/genre indexes for ${before} (${attempt}/${MAX_ATTEMPTS})`);
 
     const songs = (await db.ref('songs').get()).val();
     const built = await buildOnce(before, songs);
@@ -206,31 +226,54 @@ async function main() {
     const after = (await db.ref('masterMeta/revision').get()).val();
     if (after !== before) {
       console.warn('Master changed while building; discarding this version.');
-      await db.ref(`songSearchRows/${built.indexKey}`).remove();
+      await Promise.all([
+        db.ref(`songSearchRows/${built.indexKey}`).remove(),
+        db.ref(`songGenreRows/${built.indexKey}`).remove(),
+      ]);
       continue;
     }
 
-    const previousIndexKey =
-      typeof currentMeta.currentIndexKey === 'string'
-        ? currentMeta.currentIndexKey
-        : '';
+    const oldSearchKey =
+      typeof searchMeta.currentIndexKey === 'string' ? searchMeta.currentIndexKey : '';
+    const oldGenreKey =
+      typeof genreMeta.currentIndexKey === 'string' ? genreMeta.currentIndexKey : '';
 
-    // Atomic publication point for clients.
-    await db.ref('songSearchMeta').set({
-      currentIndexKey: built.indexKey,
-      sourceRevision: before,
-      rowCount: built.rowCount,
-      songCount: built.songCount,
-      updatedAt: Date.now(),
+    const now = Date.now();
+
+    await db.ref().update({
+      songSearchMeta: {
+        currentIndexKey: built.indexKey,
+        sourceRevision: before,
+        indexVersion: INDEX_VERSION,
+        rowCount: built.searchRowCount,
+        songCount: built.songCount,
+        updatedAt: now,
+      },
+      songGenreMeta: {
+        currentIndexKey: built.indexKey,
+        sourceRevision: before,
+        indexVersion: INDEX_VERSION,
+        rowCount: built.genreRowCount,
+        songCount: built.songCount,
+        updatedAt: now,
+        genres: built.genres,
+      },
     });
 
-    // Only after publication succeeds, remove the previously published version.
-    if (previousIndexKey && previousIndexKey !== built.indexKey) {
-      await db.ref(`songSearchRows/${previousIndexKey}`).remove();
+    const removals = [];
+
+    if (oldSearchKey && oldSearchKey !== built.indexKey) {
+      removals.push(db.ref(`songSearchRows/${oldSearchKey}`).remove());
     }
 
+    if (oldGenreKey && oldGenreKey !== built.indexKey) {
+      removals.push(db.ref(`songGenreRows/${oldGenreKey}`).remove());
+    }
+
+    await Promise.all(removals);
+
     console.log(
-      `Published ${built.indexKey}: songs=${built.songCount}, rows=${built.rowCount}`
+      `Published ${built.indexKey}: songs=${built.songCount}, searchRows=${built.searchRowCount}, genreRows=${built.genreRowCount}, genres=${Object.keys(built.genres).length}`
     );
     return;
   }
@@ -244,8 +287,6 @@ try {
   console.error(error);
   process.exitCode = 1;
 } finally {
-  // Realtime Database の接続を明示的に閉じて、
-  // GitHub Actions が黄色のまま残らず終了できるようにする。
   await deleteApp(app).catch(error => {
     console.warn('Firebase Admin cleanup warning:', error?.message || error);
   });
