@@ -43,7 +43,7 @@ body{max-width:1100px;margin:0 auto;padding:18px}header{display:flex;align-items
  <div class="bar"><button id="bumpRevision" class="primary">公開マスターの更新を通知する</button><span id="revisionInfo" class="status"></span></div>
    </section>
   <section><h2>📥 楽曲マスターをCSV出力</h2>
-  <p class="muted">Firebaseの正式マスター <code>/songs</code> を最新状態で再取得し、全楽曲・全13項目をCSVで出力します。既存の楽曲UUIDを「楽曲ID」列に保持し、未設定項目は空欄にします。データは変更しません。Excelで開けるUTF-8（BOM付き）形式です。</p>
+  <p class="muted">Firebaseの正式マスター <code>/songs</code> を最新状態で再取得し、全楽曲・全13項目をCSVで出力します。既存の楽曲UUIDを「楽曲ID」列に保持し、未設定項目は空欄にします。内部管理用の更新日時（updatedAt）はCSVには出力しません。データは変更しません。Excelで開けるUTF-8（BOM付き）形式です。</p>
   <div class="bar"><button type="button" id="exportCsv" class="primary">📥 全楽曲マスターをCSVダウンロード</button><span id="exportCsvStatus" class="status" role="status" aria-live="polite"></span></div>
   </section>
   <section><h2>🌐 第3段階：公開用JSONを書き出す</h2>
@@ -241,7 +241,7 @@ el('applyCsv').addEventListener('click',async()=>{
  if(!admin||busy)return;const target=preview.filter(item=>item.type==='add'||item.type==='update');if(!target.length)return;
  if(!confirm(`${target.length}曲をFirebase本番のsongsへ追加・更新します。CSVにない曲は削除しません。バックアップを取りましたか？`))return;
  busy=true;el('applyCsv').disabled=true;el('previewCsv').disabled=true;let done=0;
- try{for(let i=0;i<target.length;i+=50){if(auth.currentUser?.uid!==admin.uid)throw Error('途中でログインアカウントが変更されました');const chunk=target.slice(i,i+50);const updates={};chunk.forEach(item=>updates['songs/'+item.song.id]=compactSong(item.song));await db.ref().update(updates);chunk.forEach(item=>master[item.song.id]=compactSong(item.song));done+=chunk.length;msg('csvProgress',`Firebaseへ保存済み：${done}/${target.length}曲`);}msg('csvInfo',`✅ ${done}曲の保存が完了しました。既存UUIDを維持し、未掲載楽曲は削除していません。`);preview=[];el('csvPreview').hidden=true;}
+ try{for(let i=0;i<target.length;i+=50){if(auth.currentUser?.uid!==admin.uid)throw Error('途中でログインアカウントが変更されました');const chunk=target.slice(i,i+50);const updates={};chunk.forEach(item=>{const next=compactSong(item.song);next.updatedAt=firebase.database.ServerValue.TIMESTAMP;updates['songs/'+item.song.id]=next;});await db.ref().update(updates);chunk.forEach(item=>master[item.song.id]=compactSong(item.song));done+=chunk.length;msg('csvProgress',`Firebaseへ保存済み：${done}/${target.length}曲`);}msg('csvInfo',`✅ ${done}曲の保存が完了しました。既存UUIDを維持し、未掲載楽曲は削除していません。`);preview=[];el('csvPreview').hidden=true;}
  catch(e){msg('csvInfo',`⚠ ${done}曲まで保存しました。エラー：${humanErr(e)}。再取込前にFirebaseとCSVを照合してください。`);}finally{
   if(done>0){try{await db.ref('masterMeta/revision').set(newMasterRevision());await showMasterRevision();}catch(e){msg('csvProgress','⚠ 更新通知に失敗しました。「公開マスターの更新を通知する」を押してください：'+humanErr(e));}}
   busy=false;el('previewCsv').disabled=false;}
@@ -341,7 +341,7 @@ async function decide(record,kind,approved){if(!admin||busy)return;const data=re
   if(duplicate)throw Error('同名・同アーティストが既に登録済み：'+duplicate[0]+'。申請は必要に応じて却下してください。');
   let liveDuplicate=null;(await db.ref('songs').orderByChild('title').equalTo(title).once('value')).forEach(snap=>{if(!liveDuplicate&&String(snap.val()?.artist||'')===artist)liveDuplicate=snap.key;});
   if(liveDuplicate)throw Error('同名・同アーティストが既に登録済み(最新のFirebase)：'+liveDuplicate+'。申請は必要に応じて却下してください。');
-  songId=crypto.randomUUID();const song=normalized({...data,id:songId,chordwiki});updates['songs/'+songId]=compactSong(song);updates[record.path+'/approvedSongId']=songId;
+  songId=crypto.randomUUID();const song=normalized({...data,id:songId,chordwiki});const nextSong=compactSong(song);nextSong.updatedAt=firebase.database.ServerValue.TIMESTAMP;updates['songs/'+songId]=nextSong;updates[record.path+'/approvedSongId']=songId;
  }else if(approved&&kind==='edit'){
   songId=String(data.songId||'');const live=(await db.ref('songs/'+songId).once('value')).val();if(!live)throw Error('対象UUIDがsongsにありません。');
   let song=normalized(live);
@@ -355,7 +355,7 @@ async function decide(record,kind,approved){if(!admin||busy)return;const data=re
    }
    if(!song.title)throw Error('曲名を空欄にはできません。');
   }else throw Error('不明な申請種類');
-  updates['songs/'+songId]=compactSong(song);
+  const nextSong=compactSong(song);nextSong.updatedAt=firebase.database.ServerValue.TIMESTAMP;updates['songs/'+songId]=nextSong;
  }
  if(approved&&songId)updates['masterMeta/revision']=newMasterRevision();
  await db.ref().update(updates);
