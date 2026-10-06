@@ -329,6 +329,61 @@
         #artistFavoriteControl {display:inline-flex;align-items:center;gap:7px;min-height:32px;white-space:nowrap;margin-right:auto;}
         #artistFavoriteControl > span {display:inline-flex;align-items:center;height:32px;line-height:32px;font-size:12px;}
         .artist-confirm-actions .favorite-artist-modal {display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:0 0 32px;padding:0;font-size:23px;line-height:1;vertical-align:middle;}
+        /* マイリスト専用ヘッダー：クリップボード関連の入口をここへ集約 */
+        #myListClipboardHeader {
+            display:none;
+            align-items:center;
+            gap:8px;
+            flex-wrap:wrap;
+            flex-shrink:0;
+            min-height:40px;
+            padding:6px 9px;
+            background:var(--panel-bg);
+            border:1px solid var(--border-color);
+            border-radius:6px;
+            box-sizing:border-box;
+        }
+        body.my-list-mode:not(.in-room) #myListClipboardHeader { display:flex; }
+        #myListClipboardHeader .mylist-clipboard-title {
+            font-size:12px;
+            font-weight:700;
+            opacity:.82;
+            margin-right:2px;
+        }
+        #myListClipboardHeader button {
+            min-height:31px;
+            padding:5px 10px;
+            font-size:12px;
+            font-weight:650;
+        }
+        #myListClipboardHeader .clipboard-import-header-btn {
+            background:var(--primary);
+            color:var(--primary-text);
+            border-color:var(--primary);
+        }
+        @media(max-width:600px) {
+            #myListClipboardHeader {
+                display:none;
+                gap:6px;
+                padding:6px 7px;
+            }
+            body.my-list-mode:not(.in-room) #myListClipboardHeader {
+                display:grid;
+                grid-template-columns:1fr 1fr;
+            }
+            #myListClipboardHeader .mylist-clipboard-title {
+                grid-column:1 / -1;
+            }
+            #myListClipboardHeader button {
+                width:100%;
+                min-width:0;
+                min-height:38px;
+                padding:6px 5px;
+                white-space:normal;
+                line-height:1.3;
+            }
+        }
+
         #myListBulkBar {display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 9px;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:6px;font-size:12px;}
         body.my-list-mode #myListBulkBar {display:flex;}
         #myListBulkBar select {width:auto;max-width:125px;font-size:12px;padding:4px;}
@@ -1098,6 +1153,12 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 
         <div id="listModeIndicator" class="list-mode-indicator" role="status" aria-live="polite">📚 総登録楽曲数</div>
 
+        <div id="myListClipboardHeader" aria-label="マイリストのクリップボード操作">
+            <span class="mylist-clipboard-title">📋 クリップボード</span>
+            <button type="button" class="clipboard-import-header-btn" onclick="openClipboardImportModal()" title="Excel・スプレッドシートからコピーした楽曲情報をマイリストへ一括登録">📋 貼り付けからのマイリスト一括登録</button>
+            <button type="button" onclick="openClipboardHelpManual()" title="クリップボード一括登録の使い方を確認">✏️ クリップボードの使い方を見る</button>
+        </div>
+
         <div class="controls" id="controls">
             <div class="search-row">
                 <input type="text" id="searchInput" class="search-box" placeholder="曲名、アーティスト、アニメ名などで検索...">
@@ -1148,7 +1209,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
                 <option value="1">+1</option><option value="2">+2</option><option value="3">+3</option>
                 <option value="4">+4</option><option value="5">+5</option><option value="6">+6</option>
             </select>
-            <button type="button" onclick="openClipboardImportModal()" title="コピーした楽曲情報からマイリストへ複数登録">📋 貼り付け一括登録</button>
             <button type="button" class="primary-btn" onclick="applyBulkMyListEdit()">選択曲に適用</button>
             <button type="button" class="bulk-delete-btn" onclick="removeSelectedMySongs()">選択曲を削除</button>
         </div>
@@ -1360,10 +1420,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
         <span class="modal-close" onclick="closeModal(null, 'addSongModal')">&times;</span>
         <h2>➕ 楽曲を追加</h2>
         <p style="font-size:12px;line-height:1.5;opacity:.8;">登録申請を管理者へ送信します。承認されるまで公開マスターは変更されません。</p>
-        <div style="margin:10px 0 12px;">
-            <button type="button" onclick="openClipboardImportModal()" style="width:100%;padding:10px 12px;background:var(--btn-bg);color:var(--text-color);border:1px solid var(--border-color);font-weight:700;white-space:normal;">📋 文章を貼り付けてマイリスト一括登録</button>
-        </div>
-        <button type="button" id="songEntryNoticeBtn" onclick="openClipboardHelpManual()" style="display:block;width:100%;margin:0 0 13px;padding:8px 11px;text-align:left;white-space:normal;background:var(--btn-bg);border:1px solid var(--border-color);color:var(--text-color);font-size:13px;font-weight:700;">✏️クリップボードの使い方を見る</button>
         <form id="addSongForm" onsubmit="submitNewSong(event)">
             <div class="setting-group"><label for="newTitle">曲名 *</label><input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off"></div>
             <div class="setting-group"><label for="newArtist">アーティスト名 *</label><input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off"></div>
@@ -1693,6 +1749,9 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
       "テーマ・言語・フォント":{ko:"테마 · 언어 · 글꼴",en:"Theme, language and font","zh-TW":"主題、語言及字體"},
       "🏠 トップ":{ko:"🏠 홈",en:"🏠 Home","zh-TW":"🏠 首頁"},
       "Share List Score · セッションと音楽を、もっとつなぐ。":{ko:"Share List Score · 세션과 음악을 더 가깝게.",en:"Share List Score · Connecting sessions and music.","zh-TW":"Share List Score · 連結音樂與合奏。"},
+      "📋 クリップボード": {ko:"📋 클립보드",en:"📋 Clipboard","zh-TW":"📋 剪貼簿"},
+      "📋 貼り付けからのマイリスト一括登録": {ko:"📋 붙여넣기로 마이리스트 일괄 등록",en:"📋 Bulk import pasted songs to My list","zh-TW":"📋 貼上後批次加入個人清單"},
+      "✏️ クリップボードの使い方を見る": {ko:"✏️ 클립보드 사용법 보기",en:"✏️ View clipboard guide","zh-TW":"✏️ 查看剪貼簿使用方式"},
       "📋 貼り付け一括登録": {ko:"📋 붙여넣기로 일괄 등록",en:"📋 Paste bulk import","zh-TW":"📋 貼上批次加入"},
       "📋 文章を貼り付けてマイリスト一括登録": {ko:"📋 텍스트 붙여넣기로 일괄 등록",en:"📋 Paste text to import into My list","zh-TW":"📋 貼上文字批次加入個人清單"},
       "📋 貼り付けからマイリスト一括登録": {ko:"📋 붙여넣기로 마이리스트 일괄 등록",en:"📋 Bulk import pasted songs","zh-TW":"📋 貼上批次加入個人清單"},
