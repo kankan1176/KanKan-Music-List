@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>シェアリスコア｜100件取得テスト STEP2 更新履歴順</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
+<style>
+:root{
+  color-scheme:dark;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+  background:#111827;color:#f3f4f6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#111827;color:#f3f4f6}
+main{width:min(1180px,100%);margin:0 auto;padding:18px}
+h1{font-size:22px;margin:0 0 8px}
+p{line-height:1.7}
+.card{background:#1f2937;border:1px solid #374151;border-radius:10px;padding:15px;margin:12px 0}
+.notice{font-size:13px;color:#cbd5e1}
+.status{font-weight:700;white-space:pre-wrap}
+.ok{color:#86efac}.err{color:#fca5a5}.warn{color:#fde68a}
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{appearance:none;border:1px solid #64748b;border-radius:7px;background:#334155;color:#fff;padding:9px 13px;font:inherit;font-weight:700;cursor:pointer}
+button:hover:not(:disabled){filter:brightness(1.15)}
+button:disabled{opacity:.4;cursor:default}
+.primary{background:#2563eb;border-color:#3b82f6}
+table{width:100%;border-collapse:collapse;background:#182233}
+th,td{padding:9px 8px;border-bottom:1px solid #334155;text-align:left;vertical-align:top;font-size:13px}
+th{position:sticky;top:0;background:#263449;z-index:2}
+.num{width:62px;text-align:right;font-variant-numeric:tabular-nums;color:#cbd5e1}
+.bpm{width:72px}
+.genre{width:150px}
+.updated{width:185px}
+.scroll{max-height:64vh;overflow:auto;border:1px solid #374151;border-radius:8px}
+.meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.meta div{background:#111827;border:1px solid #374151;border-radius:7px;padding:10px}
+.meta strong{display:block;font-size:20px;margin-top:4px}
+.no-time{opacity:.6}
+@media(max-width:760px){
+  main{padding:10px}
+  h1{font-size:18px}
+  .meta{grid-template-columns:1fr 1fr}
+  .genre,.updated{display:none}
+  th,td{font-size:12px;padding:8px 6px}
+}
+</style>
+</head>
+
+<body>
+<main>
+  <h1>シェアリスコア｜100件取得テスト STEP2</h1>
+  <p class="notice">
+    Firebase Realtime Database の <code>/songs</code> から、
+    <code>updatedAt</code> の新しい順に最大100件ずつ取得する試験ページです。
+    本番の <code>index.html</code> は変更しません。
+  </p>
+
+  <section class="card">
+    <div class="meta">
+      <div>現在ページ<strong id="pageNo">1</strong></div>
+      <div>今回の取得件数<strong id="rowCount">0</strong></div>
+      <div>updatedAtあり<strong id="timestampCount">0</strong></div>
+      <div>1回の上限<strong>100件</strong></div>
+    </div>
+    <p id="status" class="status">Firebaseへ接続しています…</p>
+    <div class="toolbar">
+      <button id="prevBtn" type="button" disabled>◀ 新しい100件</button>
+      <button id="nextBtn" type="button" class="primary" disabled>古い100件 ▶</button>
+      <button id="reloadBtn" type="button">最新100件へ戻る</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="num">No.</th>
+            <th>曲名</th>
+            <th>アーティスト</th>
+            <th class="bpm">BPM</th>
+            <th class="genre">ジャンル</th>
+            <th class="updated">更新日時</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card notice">
+    <strong>確認ポイント</strong><br>
+    ① 1ページ目が最大100件で表示される<br>
+    ② 更新日時が入っている曲は、新しいものから先に表示される<br>
+    ③ 「古い100件」で次の100件へ進める<br>
+    ④ 「新しい100件」で戻れる<br>
+    ※ まだ updatedAt が無い既存曲は「未設定」と表示されます。
+  </section>
+</main>
+
+<script>
+'use strict';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
+  authDomain: "kankan-session-room.firebaseapp.com",
+  databaseURL: "https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "kankan-session-room",
+  storageBucket: "kankan-session-room.firebasestorage.app",
+  messagingSenderId: "759342880820",
+  appId: "1:759342880820:web:9af0af755e35926a281261"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const PAGE_SIZE = 100;
+
+const rowsEl = document.getElementById('rows');
+const statusEl = document.getElementById('status');
+const rowCountEl = document.getElementById('rowCount');
+const timestampCountEl = document.getElementById('timestampCount');
+const pageNoEl = document.getElementById('pageNo');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const reloadBtn = document.getElementById('reloadBtn');
+
+let currentRows = [];
+let pageNo = 1;
+let busy = false;
+
+function setStatus(text, type='') {
+  statusEl.textContent = text;
+  statusEl.className = 'status ' + type;
+}
+
+function snapshotToAscendingRows(snapshot) {
+  const result = [];
+  snapshot.forEach(child => {
+    const song = child.val() || {};
+    const rawUpdatedAt = song.updatedAt;
+    const updatedAt = Number.isFinite(Number(rawUpdatedAt)) ? Number(rawUpdatedAt) : null;
+    result.push({
+      id: child.key,
+      title: String(song.title || ''),
+      artist: String(song.artist || ''),
+      bpm: String(song.bpm || ''),
+      genre: String(song.genre || ''),
+      updatedAt
+    });
+  });
+  return result;
+}
+
+function formatUpdatedAt(value) {
+  if (!Number.isFinite(value)) return '未設定';
+  try {
+    return new Date(value).toLocaleString('ja-JP');
+  } catch {
+    return String(value);
+  }
+}
+
+function render(rows) {
+  currentRows = rows;
+  rowsEl.replaceChildren();
+
+  rows.forEach((song, index) => {
+    const tr = document.createElement('tr');
+
+    const num = document.createElement('td');
+    num.className = 'num';
+    num.textContent = ((pageNo - 1) * PAGE_SIZE + index + 1).toLocaleString();
+
+    const title = document.createElement('td');
+    title.textContent = song.title || '（曲名なし）';
+
+    const artist = document.createElement('td');
+    artist.textContent = song.artist || '—';
+
+    const bpm = document.createElement('td');
+    bpm.className = 'bpm';
+    bpm.textContent = song.bpm || '—';
+
+    const genre = document.createElement('td');
+    genre.className = 'genre';
+    genre.textContent = song.genre || '—';
+
+    const updated = document.createElement('td');
+    updated.className = 'updated' + (song.updatedAt == null ? ' no-time' : '');
+    updated.textContent = formatUpdatedAt(song.updatedAt);
+
+    tr.append(num, title, artist, bpm, genre, updated);
+    rowsEl.append(tr);
+  });
+
+  rowCountEl.textContent = rows.length.toLocaleString();
+  timestampCountEl.textContent = rows.filter(row => row.updatedAt != null).length.toLocaleString();
+  pageNoEl.textContent = String(pageNo);
+  prevBtn.disabled = busy || pageNo <= 1;
+  nextBtn.disabled = busy || rows.length < PAGE_SIZE;
+}
+
+function sameCursor(row, cursor) {
+  return row && cursor && row.id === cursor.id;
+}
+
+async function firstPage() {
+  if (busy) return;
+  busy = true;
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+  setStatus('Firebaseから更新日時の新しい100件だけ取得しています…', 'warn');
+
+  try {
+    const snapshot = await db.ref('songs')
+      .orderByChild('updatedAt')
+      .limitToLast(PAGE_SIZE)
+      .once('value');
+
+    const rows = snapshotToAscendingRows(snapshot).reverse();
+    pageNo = 1;
+    render(rows);
+
+    const withTime = rows.filter(row => row.updatedAt != null).length;
+    setStatus(
+      `✅ 取得成功：${rows.length}件\n` +
+      `updatedAtあり：${withTime}件 / ${rows.length}件`,
+      'ok'
+    );
+  } catch (error) {
+    console.error(error);
+    setStatus(
+      '❌ 取得に失敗しました。\n' +
+      (error && error.code ? `code: ${error.code}\n` : '') +
+      (error && error.message ? error.message : String(error)),
+      'err'
+    );
+  } finally {
+    busy = false;
+    prevBtn.disabled = pageNo <= 1;
+    nextBtn.disabled = currentRows.length < PAGE_SIZE;
+  }
+}
+
+async function olderPage() {
+  if (!currentRows.length || busy) return;
+  const oldest = currentRows[currentRows.length - 1];
+
+  busy = true;
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+  setStatus('Firebaseから次の古い100件だけ取得しています…', 'warn');
+
+  try {
+    let query = db.ref('songs').orderByChild('updatedAt');
+    if (oldest.updatedAt == null) {
+      // updatedAt 未設定領域では child key をカーソルにして進む。
+      query = query.endAt(null, oldest.id);
+    } else {
+      query = query.endAt(oldest.updatedAt, oldest.id);
+    }
+
+    const snapshot = await query.limitToLast(PAGE_SIZE + 1).once('value');
+    let rows = snapshotToAscendingRows(snapshot);
+
+    if (rows.length && sameCursor(rows[rows.length - 1], oldest)) rows = rows.slice(0, -1);
+    rows = rows.slice(-PAGE_SIZE).reverse();
+
+    if (!rows.length) {
+      setStatus('これより古い曲はありません。', 'warn');
+      return;
+    }
+
+    pageNo += 1;
+    render(rows);
+
+    const withTime = rows.filter(row => row.updatedAt != null).length;
+    setStatus(
+      `✅ 取得成功：${rows.length}件\n` +
+      `updatedAtあり：${withTime}件 / ${rows.length}件`,
+      'ok'
+    );
+  } catch (error) {
+    console.error(error);
+    setStatus(
+      '❌ 取得に失敗しました。\n' +
+      (error && error.code ? `code: ${error.code}\n` : '') +
+      (error && error.message ? error.message : String(error)),
+      'err'
+    );
+  } finally {
+    busy = false;
+    prevBtn.disabled = pageNo <= 1;
+    nextBtn.disabled = currentRows.length < PAGE_SIZE;
+  }
+}
+
+async function newerPage() {
+  if (!currentRows.length || pageNo <= 1 || busy) return;
+  const newest = currentRows[0];
+
+  busy = true;
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+  setStatus('Firebaseから1ページ新しい100件を取得しています…', 'warn');
+
+  try {
+    let query = db.ref('songs').orderByChild('updatedAt');
+    if (newest.updatedAt == null) {
+      query = query.startAt(null, newest.id);
+    } else {
+      query = query.startAt(newest.updatedAt, newest.id);
+    }
+
+    const snapshot = await query.limitToFirst(PAGE_SIZE + 1).once('value');
+    let rows = snapshotToAscendingRows(snapshot);
+
+    if (rows.length && sameCursor(rows[0], newest)) rows = rows.slice(1);
+    rows = rows.slice(0, PAGE_SIZE).reverse();
+
+    if (!rows.length) {
+      setStatus('これより新しい曲はありません。', 'warn');
+      return;
+    }
+
+    pageNo = Math.max(1, pageNo - 1);
+    render(rows);
+
+    const withTime = rows.filter(row => row.updatedAt != null).length;
+    setStatus(
+      `✅ 取得成功：${rows.length}件\n` +
+      `updatedAtあり：${withTime}件 / ${rows.length}件`,
+      'ok'
+    );
+  } catch (error) {
+    console.error(error);
+    setStatus(
+      '❌ 取得に失敗しました。\n' +
+      (error && error.code ? `code: ${error.code}\n` : '') +
+      (error && error.message ? error.message : String(error)),
+      'err'
+    );
+  } finally {
+    busy = false;
+    prevBtn.disabled = pageNo <= 1;
+    nextBtn.disabled = currentRows.length < PAGE_SIZE;
+  }
+}
+
+prevBtn.addEventListener('click', newerPage);
+nextBtn.addEventListener('click', olderPage);
+reloadBtn.addEventListener('click', firstPage);
+
+firstPage();
+</script>
+</body>
+</html>
