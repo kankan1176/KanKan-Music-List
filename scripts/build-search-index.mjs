@@ -12,7 +12,7 @@
  */
 
 import crypto from 'node:crypto';
-import { initializeApp, cert } from 'firebase-admin/app';
+import { initializeApp, cert, deleteApp } from 'firebase-admin/app';
 import { getDatabase } from 'firebase-admin/database';
 
 const DB_URL =
@@ -31,12 +31,12 @@ try {
   throw new Error('FIREBASE_SERVICE_ACCOUNT is not valid JSON.');
 }
 
-initializeApp({
+const app = initializeApp({
   credential: cert(serviceAccount),
   databaseURL: DB_URL,
 });
 
-const db = getDatabase();
+const db = getDatabase(app);
 
 const SEARCH_FIELDS = [
   'title',
@@ -238,7 +238,15 @@ async function main() {
   throw new Error('Master revision changed during every build attempt.');
 }
 
-main().catch(error => {
+try {
+  await main();
+} catch (error) {
   console.error(error);
   process.exitCode = 1;
-});
+} finally {
+  // Realtime Database の接続を明示的に閉じて、
+  // GitHub Actions が黄色のまま残らず終了できるようにする。
+  await deleteApp(app).catch(error => {
+    console.warn('Firebase Admin cleanup warning:', error?.message || error);
+  });
+}
