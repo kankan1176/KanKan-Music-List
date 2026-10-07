@@ -4371,6 +4371,9 @@ html, body { background: transparent !important; color: ${text} !important; }
                 if (genre === currentGenre && genre !== 'すべて') return;
 
                 currentGenre = genre;
+                genreFilters.querySelectorAll('.genre-btn').forEach(button => {
+                    button.classList.toggle('active', button.textContent.trim() === currentGenre);
+                });
                 selectedArtist = '';
                 artistFilterName.textContent = '';
                 artistFilterIndicator.hidden = true;
@@ -5822,6 +5825,13 @@ html, body { background: transparent !important; color: ${text} !important; }
     function renderTable() {
         syncMobileNav();
         ensureListLayout();
+
+        // 全曲一覧・マイリストのどちらでも、現在選択中のジャンルを必ず強調表示する。
+        // マイリスト部分取得ではボタン生成と描画のタイミングが前後するため、
+        // 描画のたびに active 状態を同期して取りこぼしを防ぐ。
+        genreFilters.querySelectorAll('.genre-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.textContent.trim() === currentGenre);
+        });
         if(serverPagedMasterMode && !masterLoaded && serverPagedNeedsFullMaster()){
             void promoteServerPageToFullMaster('検索・絞り込み').then(()=>renderTable());
             return;
