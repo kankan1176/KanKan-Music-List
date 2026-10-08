@@ -32,7 +32,11 @@ const SEARCH_FIELDS = [
 ];
 const GENRE_FIELDS = ['genre','genre2','genre3'];
 
-const WRITE_BATCH_SIZE = 5000;
+// Realtime Database has a maximum size for a single write.
+ // Count-only batching can still exceed that limit when search suffix keys are long,
+ // so keep both an entry limit and an approximate byte limit.
+const WRITE_BATCH_SIZE = 750;
+const WRITE_BATCH_MAX_BYTES = 2 * 1024 * 1024; // ~2 MiB safety margin
 const MAX_ATTEMPTS = 3;
 const MAX_TERM_UTF8_BYTES = 300;
 const INDEX_VERSION = 3;
@@ -113,6 +117,13 @@ async function flush(pathName, batch) {
   await db.ref(pathName).update(batch);
 }
 
+function approxEntryBytes(key, value) {
+  // Conservative UTF-8 estimate including JSON punctuation / path overhead.
+  return Buffer.byteLength(String(key), 'utf8')
+    + Buffer.byteLength(String(value ?? ''), 'utf8')
+    + 32;
+}
+
 function genreOrderKey(songId, updatedAt) {
   const raw = Number(updatedAt);
   const ts = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
@@ -132,8 +143,10 @@ async function buildOnce(sourceRevision, songs) {
 
   let searchBatch = {};
   let searchBatchCount = 0;
+  let searchBatchBytes = 0;
   let genreBatch = {};
   let genreBatchCount = 0;
+  let genreBatchBytes = 0;
   let searchRowCount = 0;
   let genreRowCount = 0;
   let processed = 0;
@@ -145,12 +158,17 @@ async function buildOnce(sourceRevision, songs) {
       const rowId = `${encodeUtf8(term)}_${sha256(`${songId}\0${term}`, 24)}`;
       searchBatch[rowId] = songId;
       searchBatchCount++;
+      searchBatchBytes += approxEntryBytes(rowId, songId);
       searchRowCount++;
 
-      if (searchBatchCount >= WRITE_BATCH_SIZE) {
+      if (
+        searchBatchCount >= WRITE_BATCH_SIZE ||
+        searchBatchBytes >= WRITE_BATCH_MAX_BYTES
+      ) {
         await flush(`songSearchRows/${indexKey}`, searchBatch);
         searchBatch = {};
         searchBatchCount = 0;
+        searchBatchBytes = 0;
       }
     }
 
@@ -158,15 +176,21 @@ async function buildOnce(sourceRevision, songs) {
       const genreKey = encodeUtf8(genre);
       const rowKey = genreOrderKey(songId, song.updatedAt);
 
-      genreBatch[`${genreKey}/${rowKey}`] = songId;
+      const genrePath = `${genreKey}/${rowKey}`;
+      genreBatch[genrePath] = songId;
       genreBatchCount++;
+      genreBatchBytes += approxEntryBytes(genrePath, songId);
       genreRowCount++;
       genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1);
 
-      if (genreBatchCount >= WRITE_BATCH_SIZE) {
+      if (
+        genreBatchCount >= WRITE_BATCH_SIZE ||
+        genreBatchBytes >= WRITE_BATCH_MAX_BYTES
+      ) {
         await flush(`songGenreRows/${indexKey}`, genreBatch);
         genreBatch = {};
         genreBatchCount = 0;
+        genreBatchBytes = 0;
       }
     }
 
