@@ -3513,6 +3513,67 @@ html.entry-home body.sl-redesign .sl-home-update-list small{font-size:13px!impor
   html.entry-home body.sl-redesign .sl-home-update-list small{font-size:11px!important;}
 }
 
+
+/* 新規楽曲追加：入力欄を適度に絞り、申請ガイドの可読性を優先 */
+@media (min-width:1081px){
+  body.sl-redesign.sl-add-song-open #addSongModal .sl-add-song-grid{
+    grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)!important;
+    gap:18px!important;
+  }
+}
+@media (min-width:821px) and (max-width:1080px){
+  body.sl-redesign.sl-add-song-open #addSongModal .sl-add-song-grid{
+    grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;
+  }
+}
+body.sl-redesign #addSongModal .sl-add-song-guide-card .sl-add-song-section-title strong{
+  font-size:19px!important;
+  line-height:1.45!important;
+}
+body.sl-redesign #addSongModal .sl-add-song-guide-card .sl-add-song-section-title small{
+  font-size:13px!important;
+  line-height:1.65!important;
+}
+body.sl-redesign #addSongModal .sl-add-guide-list{
+  gap:12px!important;
+  padding-top:14px!important;
+}
+body.sl-redesign #addSongModal .sl-add-guide-list article{
+  grid-template-columns:42px minmax(0,1fr)!important;
+  gap:12px!important;
+  padding:14px!important;
+}
+body.sl-redesign #addSongModal .sl-add-guide-list article>span{
+  width:40px!important;
+  height:40px!important;
+  font-size:21px!important;
+}
+body.sl-redesign #addSongModal .sl-add-guide-list strong{
+  font-size:16px!important;
+  line-height:1.55!important;
+}
+body.sl-redesign #addSongModal .sl-add-guide-list p{
+  font-size:14px!important;
+  line-height:1.8!important;
+  margin-top:6px!important;
+}
+body.sl-redesign #addSongModal .sl-add-flow-box>strong,
+body.sl-redesign #addSongModal .sl-add-note strong{
+  font-size:15px!important;
+  line-height:1.5!important;
+}
+body.sl-redesign #addSongModal .sl-add-flow span{
+  font-size:13px!important;
+  line-height:1.6!important;
+}
+body.sl-redesign #addSongModal .sl-add-note p{
+  font-size:14px!important;
+  line-height:1.75!important;
+}
+@media(max-width:820px){
+  body.sl-redesign #addSongModal .sl-add-guide-list p,
+  body.sl-redesign #addSongModal .sl-add-note p{font-size:13px!important;}
+}
 </style>
 </head>
 <body>
