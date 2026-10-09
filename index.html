@@ -9251,6 +9251,8 @@ html, body { background: transparent !important; color: ${text} !important; }
 
   // Single view coordinator. Firebase, room and auth functions remain in their original handlers.
   let slNavSerial=0;
+  // Serialize asynchronous sidebar transitions so a slow earlier click cannot win.
+  let slNavTask=Promise.resolve();
   let slOpenOverlayId=null;
   const slHistoryKey='slViewOverlayStage1';
   const slHistoryOverlayIds=new Set(['slHelpModal','settingsModal','friendsModal','myPageModal','slTermsModal','slPrivacyModal','addSongModal','roomCreateModal']);
@@ -9343,8 +9345,11 @@ html, body { background: transparent !important; color: ${text} !important; }
 
   // Use the app's original history integration; no competing popstate interception.
   function slRecordOverlay(id){ /* Overlay history is handled by the existing app. */ }
-  window.slNavigate=async function(destination){
+  window.slNavigate=function(destination){
     const serial=++slNavSerial;
+    const execute=async()=>{
+      // Only the most recently requested destination should begin.
+      if(serial!==slNavSerial)return;
     // Always close the previous UI before transitioning.
     if(!slCloseVisibleModals('')) return;
     document.body.classList.remove('sl-add-song-open','sl-room-create-open','sl-overlay-page-open');
@@ -9389,6 +9394,10 @@ html, body { background: transparent !important; color: ${text} !important; }
       if(serial===slNavSerial)slRefreshNavigation();
       if(window.innerWidth<=820)slToggleSidebar(false);
     }
+    };
+    // Continue even after an earlier navigation reports a recoverable error.
+    slNavTask=slNavTask.catch(error=>console.warn('前の画面遷移に失敗:',error)).then(execute);
+    return slNavTask;
   };
 
   window.slRunNav=function(action){
