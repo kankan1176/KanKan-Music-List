@@ -3366,6 +3366,40 @@ body.sl-redesign #artistConfirmModal #confirmArtistName{overflow-wrap:anywhere;}
  body.sl-redesign #artistConfirmModal .artist-confirm-actions{grid-template-columns:1fr 1fr!important;}
  body.sl-redesign #artistConfirmModal #artistFavoriteControl{grid-column:1/-1;justify-content:space-between;}
 }
+
+/* Friends: align the two actions at identical column starts across all rows. */
+#friendsModal .friend-item{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+#friendsModal .friend-name{
+  display:block;
+  min-width:0!important;
+}
+#friendsModal .friend-commands{
+  display:grid!important;
+  grid-template-columns:124px 106px!important;
+  gap:6px!important;
+  flex-wrap:nowrap!important;
+  align-items:stretch!important;
+}
+#friendsModal .friend-commands > button{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  justify-content:center!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+@media(max-width:650px){
+  #friendsModal .friend-item{grid-template-columns:minmax(0,1fr)!important;}
+  #friendsModal .friend-commands{
+    width:100%!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  }
+}
 </style>
 </head>
 <body>
