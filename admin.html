@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>シェアリスコア 管理者ページ</title>
 <style>
-:root{font-family:system-ui,'Noto Sans JP',sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#071426;color:#edf4ff}main{max-width:1400px;margin:0 auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}h1{font-size:30px;margin:.4em 0}h2{font-size:24px}p{color:#afc5e2;line-height:1.7}.layout{display:grid;grid-template-columns:215px minmax(0,1fr);gap:24px;margin-top:22px}.sidebar{background:#0d2340;border:1px solid #294970;border-radius:14px;padding:12px;display:flex;flex-direction:column;align-self:start;gap:8px}.sidebar button{width:100%;text-align:left}.sidebar button[aria-current="page"]{background:linear-gradient(120deg,#286de5,#6d44e8);border-color:#6b9aff}.content{min-width:0}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.feature{padding:24px;border-radius:16px;background:#102847;border:1px solid #38577f;text-align:left;cursor:pointer;color:#eef5ff}.feature:hover{background:#183a61}.feature h2{margin:0 0 10px}.feature p{margin:6px 0}.card{background:#0f2340;border:1px solid #2e4b71;border-radius:16px;padding:20px;margin-bottom:18px}.stats{display:flex;gap:12px;margin:22px 0;flex-wrap:wrap}.stat{flex:1;background:#122846;border:1px solid #325176;padding:18px;border-radius:12px;min-width:130px}.stat strong{font-size:28px;display:block}button,a.action{font:inherit;padding:10px 14px;border:1px solid #5275a1;background:#243d61;color:white;border-radius:9px;cursor:pointer;text-decoration:none}button:hover,a.action:hover{background:#335985}button.danger{background:#9a2b3a;border-color:#c55c68}button:disabled{opacity:.45;cursor:not-allowed}table{width:100%;border-collapse:collapse;background:#10223c;border-radius:12px;overflow:hidden}th,td{padding:12px;border-bottom:1px solid #2d4665;text-align:left;overflow-wrap:anywhere}th{color:#a9c4e6}#message{min-height:25px}.muted{color:#aebed6}.error{color:#ffadba}a{color:#96cbff}.hint{font-size:13px}tr:hover{background:#183354}th button.sort{border:0;background:transparent;padding:4px 2px;color:#c3d8f6;font-weight:750;white-space:nowrap}th button.sort:hover,th button.sort[aria-pressed="true"]{color:#fff;text-decoration:underline}#bulkDeleteBtn{background:#9a2b3a;border-color:#c55c68}#bulkDeleteBtn:disabled{opacity:.45}.toolbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.busy-note{color:#aebed6;font-size:13px}[hidden]{display:none!important}dialog{background:#10233f;color:#edf4ff;border:1px solid #4b6890;border-radius:12px;max-width:min(760px,94vw);width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:65vh;overflow:auto} @media(max-width:850px){.layout{grid-template-columns:1fr}.sidebar{flex-direction:row;flex-wrap:wrap}.cards{grid-template-columns:1fr}}@media(max-width:600px){main{padding:12px}table{font-size:12px}th,td{padding:8px 5px}button{padding:9px}}
+:root{font-family:system-ui,'Noto Sans JP',sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#071426;color:#edf4ff}main{max-width:1400px;margin:0 auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}h1{font-size:clamp(22px,4vw,30px);margin:.4em 0;overflow-wrap:anywhere}h2{font-size:clamp(20px,3vw,24px);overflow-wrap:anywhere}p{color:#afc5e2;line-height:1.7}.layout{display:grid;grid-template-columns:215px minmax(0,1fr);gap:24px;margin-top:22px}.sidebar{background:#0d2340;border:1px solid #294970;border-radius:14px;padding:12px;display:flex;flex-direction:column;align-self:start;gap:8px}.sidebar button{width:100%;text-align:left}.sidebar button[aria-current="page"]{background:linear-gradient(120deg,#286de5,#6d44e8);border-color:#6b9aff}.content{min-width:0}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.feature{padding:24px;border-radius:16px;background:#102847;border:1px solid #38577f;text-align:left;cursor:pointer;color:#eef5ff}.feature:hover{background:#183a61}.feature h2{margin:0 0 10px}.feature p{margin:6px 0}.card{background:#0f2340;border:1px solid #2e4b71;border-radius:16px;padding:20px;margin-bottom:18px}.stats{display:flex;gap:12px;margin:22px 0;flex-wrap:wrap}.stat{flex:1;background:#122846;border:1px solid #325176;padding:18px;border-radius:12px;min-width:130px}.stat strong{font-size:28px;display:block}button,a.action{font:inherit;padding:10px 14px;border:1px solid #5275a1;background:#243d61;color:white;border-radius:9px;cursor:pointer;text-decoration:none}button:hover,a.action:hover{background:#335985}button:focus-visible,a:focus-visible,.table-scroll:focus-visible{outline:3px solid #96cbff;outline-offset:3px}button.danger{background:#9a2b3a;border-color:#c55c68}button:disabled{opacity:.45;cursor:not-allowed} .table-scroll{max-width:100%;overflow-x:auto;border:1px solid #2d4665;border-radius:12px}table{width:100%;min-width:640px;border-collapse:collapse;background:#10223c;border-radius:12px;overflow:hidden}th,td{padding:12px;border-bottom:1px solid #2d4665;text-align:left;overflow-wrap:anywhere}th{color:#a9c4e6}#message{min-height:25px}.muted{color:#aebed6}.error{color:#ffadba}a{color:#96cbff}.hint{font-size:13px}tr:hover{background:#183354}th button.sort{border:0;background:transparent;padding:4px 2px;color:#c3d8f6;font-weight:750;white-space:nowrap}th button.sort:hover,th button.sort[aria-pressed="true"]{color:#fff;text-decoration:underline}#bulkDeleteBtn{background:#9a2b3a;border-color:#c55c68}#bulkDeleteBtn:disabled{opacity:.45}.toolbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.busy-note{color:#aebed6;font-size:13px}.table-hint{display:none}[hidden]{display:none!important}dialog::backdrop{background:#0009}dialog{max-height:calc(100dvh - 24px);overflow:auto;background:#10233f;color:#edf4ff;border:1px solid #4b6890;border-radius:12px;max-width:min(760px,94vw);width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:55dvh;overflow:auto} @media(max-width:850px){.layout{grid-template-columns:1fr}.sidebar{flex-direction:row;flex-wrap:wrap}.sidebar button{flex:1 1 150px;width:auto;min-height:44px}.cards{grid-template-columns:1fr}}@media(max-width:600px){main{padding:12px}.table-hint{display:block;font-size:13px}table{font-size:12px}th,td{padding:8px 5px}button{padding:10px;min-height:44px}.card{padding:14px}.feature{padding:18px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script></head><body><main>
 <div class="top"><div><h1>🛡️ シェアリスコア 管理者ページ</h1><p>Firebase Realtime Database 管理ダッシュボード</p></div><div><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" hidden>ログアウト</button></div></div>
@@ -13,9 +13,9 @@
 <button class="feature" data-go="rooms"><h2>🌐 ルーム管理</h2><p>ルーム一覧・一括管理</p></button>
 </div></section>
 <section data-view-panel="master" hidden><h2>📚 楽曲マスタ管理</h2><div class="card"><p>Realtime Databaseの <code>/songs</code> をCSV形式で出力します。</p><p>登録曲数：<strong id="masterCount">—</strong></p><button id="exportMasterBtn">マスタCSV出力</button><p id="masterStatus" role="status"></p></div></section>
-<section data-view-panel="requests" hidden><h2>🎼 新規楽曲追加申請管理</h2><div class="card"><p>申請内容確認（閲覧のみ）。承認・却下は既存管理者ページの実装が必要です。</p><button onclick="loadRequests()">更新</button><p id="requestsStatus" role="status"></p><div style="overflow-x:auto"><table><thead><tr><th>種別</th><th>曲名</th><th>アーティスト</th><th>状態</th><th>申請日時</th><th>操作</th></tr></thead><tbody id="requestRows"></tbody></table></div></div></section>
-<section data-view-panel="users" hidden><h2>👥 ユーザー管理</h2><div class="card"><p>公開プロフィールを表示します。現在のデータベースにはログイン履歴が存在しないため、日時は表示できません。</p><button onclick="loadUsers()">更新</button><p id="usersStatus" role="status"></p><div style="overflow-x:auto"><table><thead><tr><th>ユーザーID</th><th>名前</th><th>ログイン履歴</th></tr></thead><tbody id="userRows"></tbody></table></div></div></section>
-<section data-view-panel="rooms" hidden><h2>🌐 ルーム管理</h2><div class="stats"><div class="stat"><span>総ルーム数</span><strong id="total">—</strong></div><div class="stat"><span>接続中ルーム</span><strong id="active">—</strong></div><div class="stat"><span>空ルーム</span><strong id="empty">—</strong></div></div><div class="top"><p class="hint">接続人数は /members の登録数を使用します。切断反映には遅延があります。<br>管理者は接続中のルームも個別削除できます。接続者0人の一括削除は従来どおり空ルームのみ対象です。</p><div class="toolbar-actions"><button id="refreshBtn">一覧を更新</button><button id="bulkDeleteBtn" class="danger" disabled>接続者0人の部屋を一括削除</button></div></div><div style="overflow-x:auto"><table><thead><tr><th><button class="sort" type="button" data-sort="id" aria-pressed="false">ルームID <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="createdAt" aria-pressed="true">作成日時 <span class="arrow">▼</span></button></th><th><button class="sort" type="button" data-sort="members" aria-pressed="false">接続者 <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="songs" aria-pressed="false">曲数 <span class="arrow"></span></button></th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<section data-view-panel="requests" hidden><h2>🎼 新規楽曲追加申請管理</h2><div class="card"><p>新規追加・編集申請の内容を確認できます。この画面は閲覧専用です。</p><button onclick="loadRequests()">更新</button><p id="requestsStatus" role="status"></p><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="楽曲追加申請一覧" tabindex="0"><table><thead><tr><th>種別</th><th>曲名</th><th>アーティスト</th><th>状態</th><th>申請日時</th><th>操作</th></tr></thead><tbody id="requestRows"></tbody></table></div></div></section>
+<section data-view-panel="users" hidden><h2>👥 ユーザー管理</h2><div class="card"><p>公開プロフィールを表示します。現在のデータベースにはログイン履歴が存在しないため、日時は表示できません。</p><button onclick="loadUsers()">更新</button><p id="usersStatus" role="status"></p><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="公開ユーザー一覧" tabindex="0"><table><thead><tr><th>ユーザーID</th><th>名前</th><th>ログイン履歴</th></tr></thead><tbody id="userRows"></tbody></table></div></div></section>
+<section data-view-panel="rooms" hidden><h2>🌐 ルーム管理</h2><div class="stats"><div class="stat"><span>総ルーム数</span><strong id="total">—</strong></div><div class="stat"><span>接続中ルーム</span><strong id="active">—</strong></div><div class="stat"><span>空ルーム</span><strong id="empty">—</strong></div></div><div class="top"><p class="hint">接続人数は /members の登録数を使用します。切断反映には遅延があります。<br>管理者は接続中のルームも個別削除できます。接続者0人の一括削除は従来どおり空ルームのみ対象です。</p><div class="toolbar-actions"><button id="refreshBtn">一覧を更新</button><button id="bulkDeleteBtn" class="danger" disabled>接続者0人の部屋を一括削除</button></div></div><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="ルーム一覧" tabindex="0"><table><thead><tr><th><button class="sort" type="button" data-sort="id" aria-pressed="false">ルームID <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="createdAt" aria-pressed="true">作成日時 <span class="arrow">▼</span></button></th><th><button class="sort" type="button" data-sort="members" aria-pressed="false">接続者 <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="songs" aria-pressed="false">曲数 <span class="arrow"></span></button></th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></section>
 </div></div></section></main><dialog id="requestDialog"><h2>申請内容</h2><pre id="requestDetail"></pre><form method="dialog"><button>閉じる</button></form></dialog>
 <script>'use strict';
 const config={
@@ -28,13 +28,18 @@ const config={
       appId: "1:759342880820:web:9af0af755e35926a281261"
     };
 firebase.initializeApp(config);const auth=firebase.auth(),db=firebase.database();
-const $=id=>document.getElementById(id);let currentUser=null,roomsData={},deletingRoomId=null,bulkDeleting=false,sortKey='createdAt',sortDirection='desc';
+const $=id=>document.getElementById(id);let currentUser=null,roomsData={},deletingRoomId=null,bulkDeleting=false,sortKey='createdAt',sortDirection='desc',authVersion=0;
 function message(text,error=false){$('message').textContent=text;$('message').classList.toggle('error',error)}
 function isAdminUser(u){return !!u&&!u.isAnonymous&&u.providerData?.some(p=>p.providerId==='google.com')}
 function formatDate(v){const n=Number(v);if(!Number.isFinite(n)||n<=0)return '不明';return new Date(n<1e11?n*1000:n).toLocaleString('ja-JP')}
 // 日時不明の旧ルームも削除対象（削除可否は接続者数のみで判定）
 const memberCount=room=>room&&room.members&&typeof room.members==='object'?Object.keys(room.members).length:0;
-async function reload(){if(!currentUser)return;message('ルーム情報を取得中…');try{const s=await db.ref('rooms').once('value');roomsData=s.val()||{};render();message('最新の情報を表示しています。')}catch(e){message('一覧の取得に失敗しました。ルールの管理者読み取り権限を確認してください。 '+e.message,true)}}
+async function reload(){
+  const user=currentUser;if(!user)return false;
+  message('ルーム情報を取得中…');
+  try{const s=await db.ref('rooms').once('value');if(currentUser!==user)return false;roomsData=s.val()||{};render();message('最新の情報を表示しています。');return true}
+  catch(e){if(currentUser===user)message('一覧の取得に失敗しました。ルールの管理者読み取り権限を確認してください。 '+e.message,true);return false}
+}
 function sortedEntries(){
   const records=Object.entries(roomsData);
   records.sort(([aid,a],[bid,b])=>{
@@ -92,13 +97,17 @@ async function deleteRoom(id){
   const knownCount=memberCount(roomsData[id]);
   const prompt=knownCount>0?'【接続中ルームの強制削除】\nルーム「'+id+'」には表示上 '+knownCount+' 人が接続中です。\n参加中のユーザーの画面にも影響し、予約・確定・完了の曲と共有リストが削除されます。\nこの操作は元に戻せません。強制削除しますか？':'ルーム「'+id+'」を削除しますか？\n予約曲とルーム共有リストも削除されます。';
   if(!window.confirm(prompt))return;
+  const user=currentUser;let resultMessage='',failed=false;
   deletingRoomId=id;render();
   try{
     message('管理者権限でルームを削除中…');
     const result=await removeRoomAdmin(id);
-    message(result==='deleted'?'ルーム '+id+' を削除しました。':'このルームは既にありません。');
-  }catch(e){message('削除できませんでした。'+(e.code==='PERMISSION_DENIED'||String(e.message).includes('PERMISSION_DENIED')?'Realtime Databaseの管理者削除ルールが未反映、または削除権限がありません。修正版ルールを確認してください。 ':'')+e.message,true)}
-  finally{deletingRoomId=null;await reload();}
+    resultMessage=result==='deleted'?'ルーム '+id+' を削除しました。':'このルームは既にありません。';
+  }catch(e){failed=true;resultMessage='削除できませんでした。'+(e.code==='PERMISSION_DENIED'||String(e.message).includes('PERMISSION_DENIED')?'管理者の削除権限を確認してください。 ':'')+e.message}
+  finally{
+    deletingRoomId=null;const refreshed=await reload();
+    if(currentUser===user)message(resultMessage+(refreshed?'':' 一覧を更新できませんでした。「一覧を更新」をお試しください。'),failed||!refreshed);
+  }
 }
 async function deleteAllEmptyRooms(){
   if(!currentUser||bulkDeleting||deletingRoomId)return;
@@ -131,7 +140,18 @@ document.querySelectorAll('th button.sort').forEach(button=>button.addEventListe
 }));
 $('bulkDeleteBtn').onclick=deleteAllEmptyRooms;
 $('loginBtn').onclick=async()=>{try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())}catch(e){message('ログインできませんでした。'+e.message,true)}};$('logoutBtn').onclick=()=>auth.signOut();$('refreshBtn').onclick=reload;
-auth.onAuthStateChanged(async u=>{currentUser=null;$('panel').hidden=true;$('logoutBtn').hidden=!u;$('loginBtn').hidden=!!u;if(!isAdminUser(u)){message('管理者のGoogleアカウントでログインしてください。');return}try{const snap=await db.ref('admins/'+u.uid).once('value');if(snap.val()!==true){message('管理者権限がありません。',true);return}currentUser=u;$('panel').hidden=false;await reload()}catch(e){message('管理者認証に失敗しました。 '+e.message,true)}});
+auth.onAuthStateChanged(async u=>{
+  const version=++authVersion;currentUser=null;
+  $('panel').hidden=true;$('requestDialog').close();$('logoutBtn').hidden=!u;$('loginBtn').hidden=!!u;
+  if(!isAdminUser(u)){message('管理者のGoogleアカウントでログインしてください。');return}
+  message('管理者権限を確認中…');
+  try{
+    const snap=await db.ref('admins/'+u.uid).once('value');
+    if(version!==authVersion)return;
+    if(snap.val()!==true){message('管理者権限がありません。',true);return}
+    currentUser=u;$('panel').hidden=false;showView('home');await reload();
+  }catch(e){if(version===authVersion)message('管理者認証に失敗しました。 '+e.message,true)}
+});
 
 // Dashboard and existing management views; no change to the original Firebase deletion flow.
 const views=['home','master','requests','users','rooms'];
@@ -169,6 +189,7 @@ async function exportMasterCsv(){
   finally{button.disabled=false}
 }
 $('exportMasterBtn').addEventListener('click',exportMasterCsv);
+function emptyRow(id,columns,text){const tr=document.createElement('tr'),td=textCell(tr,text);td.colSpan=columns;$(id).append(tr)}
 function textCell(tr,value){const td=document.createElement('td');td.textContent=value??'';tr.append(td);return td}
 async function loadRequests(){
   $('requestsStatus').textContent='申請を取得しています…';$('requestRows').replaceChildren();
@@ -179,6 +200,7 @@ async function loadRequests(){
     b.forEach(song=>song.forEach(item=>{entries.push({type:'編集申請',owner:item.key,id:song.key,...(item.val()||{})})}));
     entries.sort((x,y)=>(Number(y.createdAt)||0)-(Number(x.createdAt)||0));
     entries.slice(0,300).forEach(v=>{const tr=document.createElement('tr');textCell(tr,v.type);textCell(tr,v.title||v.songId||v.id);textCell(tr,v.artist||'—');textCell(tr,v.status||'—');textCell(tr,formatDate(v.createdAt));const td=textCell(tr,'');const btn=document.createElement('button');btn.textContent='内容確認';btn.onclick=()=>{const msg=JSON.stringify(v,null,2);$('requestDetail').textContent=msg;$('requestDialog').showModal()};td.append(btn);$('requestRows').append(tr)});
+    if(!entries.length)emptyRow('requestRows',6,'申請はありません');
     $('requestsStatus').textContent=entries.length+'件の申請を取得しました。表示は新しい順で最大300件です。';
   }catch(e){$('requestsStatus').textContent='申請を取得できません: '+e.message+' （管理者用の読取権限をご確認ください）'}
 }
@@ -189,6 +211,7 @@ async function loadUsers(){
     const users=snap.val()||{};for(const [uid,info] of Object.entries(users)){
       const tr=document.createElement('tr');textCell(tr,uid);textCell(tr,info?.displayName||'未設定');textCell(tr,'未記録');$('userRows').append(tr)
     }
+    if(!Object.keys(users).length)emptyRow('userRows',3,'公開プロフィールはありません');
     $('usersStatus').textContent=Object.keys(users).length+'件の公開プロフィールを表示中。※全Firebase Authenticationユーザーの一覧ではありません。ログイン履歴は現在のデータ構成に保存されていないため「未記録」です。';
   }catch(e){$('usersStatus').textContent='ユーザー情報を取得できません: '+e.message}
 }

@@ -3722,7 +3722,7 @@ body.sl-redesign.theme-white #slDockDesignPanel :is(label,strong,small,span,p){c
 </aside>
 
 <header id="slTopbar">
-  <button type="button" id="slMobileMenu" aria-label="メニューを開く" onclick="slToggleSidebar()">☰</button>
+  <button type="button" id="slMobileMenu" aria-label="メニューを開く" aria-controls="slSidebar" aria-expanded="false" onclick="slToggleSidebar()">☰</button>
   <div class="sl-page-heading">
     <h1 id="slPageTitle">全曲一覧</h1>
     <p id="slPageSubtitle">登録されている楽曲を検索・閲覧できます</p>
@@ -4039,7 +4039,7 @@ body.sl-redesign.theme-white #slDockDesignPanel :is(label,strong,small,span,p){c
 
 <main id="homeLanding" aria-label="シェアリスコア トップページ">
   <div class="sl-home-visual">
-    <button type="button" id="slHomeMobileMenu" aria-label="メニューを開く" onclick="slToggleSidebar()">☰</button>
+    <button type="button" id="slHomeMobileMenu" aria-label="メニューを開く" aria-controls="slSidebar" aria-expanded="false" onclick="slToggleSidebar()">☰</button>
     <div class="sl-home-deco sl-home-note n1" aria-hidden="true">♪</div>
     <div class="sl-home-deco sl-home-note n2" aria-hidden="true">♫</div>
     <div class="sl-home-deco sl-home-note n3" aria-hidden="true">♪</div>
@@ -9707,6 +9707,10 @@ html, body { background: transparent !important; color: ${text} !important; }
   window.slToggleSidebar=function(force){
     const next=typeof force==='boolean'?force:!document.body.classList.contains('sl-sidebar-open');
     document.body.classList.toggle('sl-sidebar-open',next);
+    for(const id of ['slMobileMenu','slHomeMobileMenu']){
+      const button=slById(id);
+      if(button){button.setAttribute('aria-expanded',String(next));button.setAttribute('aria-label',next?'メニューを閉じる':'メニューを開く');}
+    }
   };
 
   // Single view coordinator. Firebase, room and auth functions remain in their original handlers.
@@ -10664,7 +10668,7 @@ html, body { background: transparent !important; color: ${text} !important; }
   }
 
   document.addEventListener('click',event=>{
-    if(window.innerWidth<=820&&document.body.classList.contains('sl-sidebar-open')&&!slById('slSidebar')?.contains(event.target)&&!slById('slMobileMenu')?.contains(event.target)){
+    if(window.innerWidth<=820&&document.body.classList.contains('sl-sidebar-open')&&!slById('slSidebar')?.contains(event.target)&&!event.target.closest('#slMobileMenu,#slHomeMobileMenu')){
       slToggleSidebar(false);
     }
   });
