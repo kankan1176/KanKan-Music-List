@@ -1111,6 +1111,9 @@ body.sl-redesign #listModeIndicator{display:none!important}
 /* OBS設定はルーム入室中だけ左メニューのルーム直下に表示 */
 #slNavObs{display:none!important;}
 body.in-room #slNavObs{display:flex!important;}
+/* URL共有は入室中のみ。ルームの直下に表示 */
+#slNavShare{display:none!important;}
+body.in-room #slNavShare{display:flex!important;}
 
 /* 左メニューの旧・共通曲ボタンは入室状態に関係なく非表示。ルーム内タブには影響しない。 */
 #slSidebar #slNavCommon,
@@ -3304,6 +3307,7 @@ body.sl-redesign.sl-room-mylist #slFavArtistsShortcut{display:inline-flex;align-
     <button type="button" id="slNavAll" class="sl-nav-all" onclick="slNavigate('all')"><span>📚</span><b>全曲一覧</b></button>
     <button type="button" id="slNavMy" class="sl-nav-my" onclick="slNavigate('mylist')"><span>📒</span><b>マイリスト</b></button>
     <button type="button" id="slNavRoom" class="sl-nav-room" onclick="slNavigate('room')"><span>🎧</span><b>ルーム</b></button>
+    <button type="button" id="slNavShare" class="sl-nav-share" onclick="copyRoomLink()" title="現在のルームURLをコピー"><span>🔗</span><b>URL共有</b></button>
     <button type="button" id="slNavObs" class="sl-nav-obs" onclick="openObsModal()" aria-haspopup="dialog" aria-controls="obsModal"><span>📹</span><b>OBSカスタムCSS設定</b></button>
     <!-- 共通曲はルーム内部のタブ専用。左サイドバーには常時表示しない。 -->
     <button type="button" id="slNavFriends" class="sl-nav-friends" onclick="slNavigate('friends')"><span>👥</span><b>フレンド</b></button>
@@ -6011,7 +6015,13 @@ body.sl-redesign.sl-room-mylist #slFavArtistsShortcut{display:inline-flex;align-
     }
 
     function copyRoomLink() {
-        const url = window.location.href;
+        if (!currentRoomId) {
+            alert('ルーム入室中のみURLを共有できます。');
+            return;
+        }
+        const shareUrl = new URL(window.location.pathname, window.location.origin);
+        shareUrl.searchParams.set('room', currentRoomId);
+        const url = shareUrl.href;
         if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(() => { alert('ルームのURLをコピーしました！メンバーに共有してください。'); }).catch(err => { fallbackCopy(url); });
         } else {
