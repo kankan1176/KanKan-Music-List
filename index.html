@@ -3871,6 +3871,56 @@ body.sl-redesign.theme-white #obsModal .setting-group{
 }
 /* Don't recolor the session dock: its theme is independently user-selected. */
 
+
+/* Light theme pass 3: screenshots 2026-10-10, dialogs and room canvas. */
+body.sl-redesign.theme-white #accountModal > .modal,
+body.sl-redesign.theme-white #settingsModal > .modal,
+body.sl-redesign.theme-white #slHelpModal > .modal,
+body.sl-redesign.theme-white #obsModal > .modal,
+body.sl-redesign.theme-white #manualModal > .modal,
+body.sl-redesign.theme-white #favoriteArtistsModal > .modal,
+body.sl-redesign.theme-white #artistConfirmModal > .modal {
+  background:#fff !important;
+  color:#193252 !important;
+  border:1px solid #bed0e7 !important;
+  box-shadow:0 20px 48px rgba(30,54,95,.15) !important;
+}
+body.sl-redesign.theme-white #accountModal .modal :is(h1,h2,h3,p,label,small,strong,span),
+body.sl-redesign.theme-white #settingsModal .modal :is(h1,h2,h3,p,label,small,strong,span),
+body.sl-redesign.theme-white #slHelpModal .modal :is(h1,h2,h3,p,label,small,strong,span,li),
+body.sl-redesign.theme-white #obsModal .modal :is(h1,h2,h3,p,label,small,strong,span) {
+  color:#193252 !important;
+}
+body.sl-redesign.theme-white #accountModal .modal-close,
+body.sl-redesign.theme-white #settingsModal .modal-close,
+body.sl-redesign.theme-white #slHelpModal .modal-close,
+body.sl-redesign.theme-white #obsModal .modal-close {color:#456383!important;opacity:1!important}
+body.sl-redesign.theme-white :is(#accountModal,#settingsModal,#slHelpModal,#obsModal) .setting-group,
+body.sl-redesign.theme-white #slHelpModal .sl-help-content,
+body.sl-redesign.theme-white #slHelpModal .sl-help-section {background:#fff!important;color:#193252!important}
+body.sl-redesign.theme-white #slHelpModal .sl-help-nav button:not(.active){background:#edf4fe!important;color:#193252!important}
+body.sl-redesign.theme-white #slHelpModal .sl-help-nav button.active{background:#326ee5!important;color:#fff!important}
+body.sl-redesign.theme-white #obsModal .modal :is(.obs-blue-action,.obs-copy-row button.obs-blue-action){background:#147ded!important;color:white!important}
+body.sl-redesign.theme-white #obsModal .modal .obs-preview-action{background:#f6bed9!important;color:#482037!important}
+body.sl-redesign.theme-white #obsModal .modal :is(textarea,input:not([type=color]),select){background:#fff!important;color:#193252!important;border-color:#b8cce6!important}
+body.sl-redesign.theme-white #accountModal .modal :is(input,select),
+body.sl-redesign.theme-white #settingsModal .modal :is(input,select){background:#fff!important;color:#193252!important;border:1px solid #b8cce6!important}
+body.sl-redesign.theme-white #roomCreateModal.sl-room-create-overlay,
+body.sl-redesign.theme-white.sl-room-create-open #roomCreateModal.sl-room-create-overlay,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-page{
+  background:#f3f6fc!important;color:#193252!important;
+}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-heading{background:transparent!important;color:#193252!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-heading h2{color:#193252!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-heading p{color:#536d8d!important}
+body.sl-redesign.theme-white #roomCreateModal :is(.sl-room-choice-button,.sl-room-entry-panel,.sl-room-create-card){background:#fff!important;color:#193252!important;border-color:#c4d6eb!important}
+body.sl-redesign.theme-white #roomCreateModal #slRoomJoinId{background:#fff!important;color:#193252!important;border-color:#9fb9dd!important}
+/* Table surrounding toolbar and search fields: no remaining navy bands. */
+body.sl-redesign.theme-white :is(#slTopbar,#slFilterbar,#masterActionsBar,#myListBulkBar) :is(input[type=search],input[type=text]){background:#fff!important;color:#193252!important;border-color:#adc5e5!important}
+body.sl-redesign.theme-white :is(#masterActionsBar,#myListBulkBar){background:#eaf1fb!important;color:#193252!important}
+body.sl-redesign.theme-white :is(#masterActionsBar,#myListBulkBar) :is(span,label){color:#284563!important}
+/* Keep the independent session dock theme untouched. */
+
 </style>
 </head>
 <body>
