@@ -32,10 +32,10 @@
             --th-bg: #2a2a2a; --th-hover: #3a3a3a; --th-text: #e0e0e0;
         }
         body.theme-white { --bg-color: #f8f9fa; --text-color: #333333; --panel-bg: #ffffff; --border-color: #dee2e6; --btn-bg: #e9ecef; --btn-hover: #ced4da; --primary: #0056b3; --primary-text: #fff; --link-color: #0056b3; --th-bg: #e9ecef; --th-hover: #d3d9df; --th-text: #333333; }
-        body.theme-eva01 { --bg-color: #2b1845; --text-color: #e0e0e0; --panel-bg: #3a225c; --border-color: #7FFF00; --btn-bg: #523185; --btn-hover: #6a40a8; --primary: #7FFF00; --primary-text: #121212; --link-color: #9eff40; --th-bg: #1c0e2e; --th-hover: #2b1845; --th-text: #7FFF00; }
-        body.theme-eva02 { --bg-color: #380202; --text-color: #f5f5f5; --panel-bg: #540303; --border-color: #ff9900; --btn-bg: #730606; --btn-hover: #910a0a; --primary: #ff9900; --primary-text: #1a0000; --link-color: #ffb84d; --th-bg: #210101; --th-hover: #380202; --th-text: #ff9900; }
-        body.theme-eva00 { --bg-color: #f0f0f0; --text-color: #333333; --panel-bg: #ffffff; --border-color: #e6b800; --btn-bg: #fff5cc; --btn-hover: #ffeb99; --primary: #d4a000; --primary-text: #ffffff; --link-color: #b38600; --th-bg: #ffcc00; --th-hover: #e6b800; --th-text: #333333; }
-        body.theme-eva08 { --bg-color: #fff0f5; --text-color: #4a152e; --panel-bg: #ffffff; --border-color: #ff66b2; --btn-bg: #ffe6f0; --btn-hover: #ffcce0; --primary: #ff3399; --primary-text: #ffffff; --link-color: #e60073; --th-bg: #ff66b2; --th-hover: #ff4d94; --th-text: #ffffff; }
+
+
+
+
 
         /* =========================================
            基本レイアウト
@@ -535,22 +535,10 @@
             --master-frame:#087e8b; --master-frame-tint:#e7f5f5;
             --mylist-frame:#a34370; --mylist-frame-tint:#fbeef4;
         }
-        body.theme-eva01 {
-            --master-frame:#50c7f5; --master-frame-tint:#283b60;
-            --mylist-frame:#ffb65c; --mylist-frame-tint:#513358;
-        }
-        body.theme-eva02 {
-            --master-frame:#64dfca; --master-frame-tint:#432b2f;
-            --mylist-frame:#d9aeff; --mylist-frame-tint:#563044;
-        }
-        body.theme-eva00 {
-            --master-frame:#236eac; --master-frame-tint:#e6f1fb;
-            --mylist-frame:#a34483; --mylist-frame-tint:#f9e9f3;
-        }
-        body.theme-eva08 {
-            --master-frame:#18847b; --master-frame-tint:#e8f7f4;
-            --mylist-frame:#7955b6; --mylist-frame-tint:#f2eafa;
-        }
+
+
+
+
         body:not(.my-list-mode) {
             --list-mode-accent:var(--master-frame);
             --list-mode-tint:var(--master-frame-tint);
@@ -3574,6 +3562,97 @@ body.sl-redesign #addSongModal .sl-add-note p{
   body.sl-redesign #addSongModal .sl-add-guide-list p,
   body.sl-redesign #addSongModal .sl-add-note p{font-size:13px!important;}
 }
+
+/* ===== INDEX：ダーク／ライト2テーマ ===== */
+body.sl-redesign.theme-white {
+  color-scheme:light;
+  --sl-bg:#f3f6fc;
+  --sl-bg2:#eaf0fa;
+  --sl-panel:#ffffff;
+  --sl-panel2:#f4f7fe;
+  --sl-panel3:#e9f0fc;
+  --sl-border:rgba(76,112,170,.30);
+  --sl-border-soft:rgba(84,114,165,.22);
+  --sl-text:#172b4d;
+  --sl-muted:#5a6e8e;
+  --sl-blue:#2563db;
+  --sl-purple:#6748ce;
+  --sl-cyan:#087d99;
+  --bg-color:#f3f6fc;
+  --panel-bg:#ffffff;
+  --text-color:#172b4d;
+  --border-color:#cbd7e8;
+  --btn-bg:#edf3fc;
+  --btn-hover:#dce8f9;
+  --primary:#2563db;
+  --primary-text:#ffffff;
+  --link-color:#145bb5;
+  --th-bg:#e8effb;
+  --th-hover:#d7e5f9;
+  --th-text:#203454;
+  background:linear-gradient(145deg,#f7faff 0%,#edf3fc 65%,#eaf1fc 100%)!important;
+  color:#172b4d!important;
+}
+html:has(body.sl-redesign.theme-white){background:#f3f6fc!important;}
+body.sl-redesign.theme-white #slSidebar{
+  background:linear-gradient(180deg,#ffffff 0%,#f3f7ff 100%)!important;
+  border-right:1px solid #d0dced!important;
+  box-shadow:8px 0 25px rgba(35,73,130,.07)!important;
+}
+body.sl-redesign.theme-white .sl-sidebar-brand strong{color:#1c3051!important;}
+body.sl-redesign.theme-white .sl-sidebar-brand small{color:#637a99!important;}
+body.sl-redesign.theme-white .sl-sidebar-nav button,
+body.sl-redesign.theme-white .sl-sidebar-nav a{color:#354968;}
+body.sl-redesign.theme-white .sl-sidebar-nav button:hover,
+body.sl-redesign.theme-white .sl-sidebar-nav a:hover{background:#e9f0ff!important;color:#1b55ab!important;border-color:#c8d9f5!important;}
+body.sl-redesign.theme-white .sl-sidebar-nav .active{color:#fff!important;}
+body.sl-redesign.theme-white #slFilterbar{
+  background:rgba(247,250,255,.97)!important;border-color:#d4dfef!important;
+}
+body.sl-redesign.theme-white #slSearchHost #searchInput{
+  background:#ffffff!important;color:#1b304f!important;border-color:#bbcae0!important;
+}
+body.sl-redesign.theme-white #slSearchHost #searchInput::placeholder{color:#70829b!important;}
+body.sl-redesign.theme-white #slUserHost #loginStatus{
+  background:#edf3fc!important;color:#354968!important;border-color:#cbd7e8!important;
+}
+body.sl-redesign.theme-white #slGenreHost .genre-btn{
+  background:#ffffff!important;color:#354c72!important;border-color:#c6d5eb!important;
+}
+body.sl-redesign.theme-white #slGenreHost .genre-btn.active,
+body.sl-redesign.theme-white #slGenreHost .genre-btn.selected{background:#2563db!important;color:#fff!important;}
+body.sl-redesign.theme-white .modal{
+  background:linear-gradient(180deg,#ffffff,#f5f8fe)!important;
+  border-color:#cbd7e8!important;color:#172b4d!important;
+  box-shadow:0 22px 60px rgba(39,69,123,.18)!important;
+}
+body.sl-redesign.theme-white .modal h2,
+body.sl-redesign.theme-white .modal h3,
+body.sl-redesign.theme-white .modal label,
+body.sl-redesign.theme-white .modal p,
+body.sl-redesign.theme-white .modal li{color:#263a59;}
+body.sl-redesign.theme-white input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
+body.sl-redesign.theme-white select,
+body.sl-redesign.theme-white textarea{
+  background-color:#ffffff;color:#172b4d;border-color:#bccce2;
+}
+body.sl-redesign.theme-white input::placeholder,
+body.sl-redesign.theme-white textarea::placeholder{color:#8292a9;}
+body.sl-redesign.theme-white .sl-page-heading h2,
+body.sl-redesign.theme-white .sl-section-heading{color:#1b3051!important;}
+body.sl-redesign.theme-white .sl-page-heading p{color:#5a6e8e!important;}
+body.sl-redesign.theme-white #slMainContent,
+body.sl-redesign.theme-white #slPageContent{color:var(--sl-text);}
+body.sl-redesign.theme-white .sl-friends-panel,
+body.sl-redesign.theme-white .sl-friends-card,
+body.sl-redesign.theme-white .sl-add-form-card,
+body.sl-redesign.theme-white .sl-add-info-card{
+  background:#fff!important;border-color:#cad8eb!important;color:#213654!important;
+}
+@media (prefers-reduced-motion:reduce){
+  body.sl-redesign.theme-white *{transition-duration:0.01ms;}
+}
+
 </style>
 </head>
 <body>
@@ -3583,7 +3662,7 @@ body.sl-redesign #addSongModal .sl-add-note p{
 (function () {
     try {
         var theme = localStorage.getItem('sharelistscore_last_theme') || localStorage.getItem('sharelistscore_guest_theme') || 'dark';
-        if (['white','eva01','eva02','eva00','eva08'].includes(theme)) {
+        if (theme === 'white') {
             document.body.classList.add('theme-' + theme);
         }
     } catch (error) { /* 保存が使えない環境は標準テーマで継続 */ }
@@ -4698,12 +4777,8 @@ body.sl-redesign #addSongModal .sl-add-note p{
         <div class="setting-group">
             <label>🎨 UIカラーテーマ</label>
             <select id="themeSelect" onchange="changeTheme()">
-                <option value="dark">ダーク (ダーク)</option>
-                <option value="white">ホワイト</option>
-                <option value="eva01">初号機</option>
-                <option value="eva02">弐号機</option>
-                <option value="eva00">零号機</option>
-                <option value="eva08">八号機</option>
+                <option value="dark">ダーク</option>
+                <option value="white">ライト</option>
             </select>
         </div>
         <div class="setting-group">
@@ -7296,11 +7371,11 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     const GUEST_THEME_STORAGE = 'sharelistscore_guest_theme';
-    const VALID_THEMES = ['dark', 'white', 'eva01', 'eva02', 'eva00', 'eva08'];
+    const VALID_THEMES = ['dark', 'white'];
     function applyTheme(theme) {
         const selected = VALID_THEMES.includes(theme) ? theme : 'dark';
         // body.classNameを丸ごと書き換えると、ルーム参加状態(in-room)が消えるためテーマクラスだけ変更する。
-        document.body.classList.remove(...VALID_THEMES.filter(value => value !== 'dark').map(value => `theme-${value}`));
+        document.body.classList.remove('theme-white', 'theme-eva01', 'theme-eva02', 'theme-eva00', 'theme-eva08');
         if (selected !== 'dark') document.body.classList.add(`theme-${selected}`);
         // Googleユーザーのテーマも端末に記憶。次回は初回描画前から同じ色で表示する。
         try { localStorage.setItem('sharelistscore_last_theme', selected); } catch(error) { /* 保存不可でもFirebase設定は利用可能 */ }
