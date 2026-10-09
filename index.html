@@ -4793,7 +4793,14 @@ html, body { background: transparent !important; color: ${text} !important; }
             window._firebaseListenerInitialized = true;
             db.ref('rooms/' + currentRoomId + '/queue').on('value', (snapshot) => {
                 roomQueue = snapshot.val() || {};
-                renderTable(); updateQueueUI();
+                renderTable();
+                updateQueueUI();
+                // 現在の一覧に含まれない曲も個別取得して、本日のセットリストへ確実に反映する。
+                void preloadRoomQueueSongs().then(() => {
+                    updateQueueUI();
+                }).catch(error => {
+                    console.warn('セットリスト曲の補完取得に失敗:', error);
+                });
             });
         } else {
             renderTable(); updateQueueUI();
@@ -5681,6 +5688,84 @@ html, body { background: transparent !important; color: ${text} !important; }
     // =========================================
     // セッション曲管理機能
     // =========================================
+    // キュー内の曲は、現在画面に読み込まれている allData だけに依存しない。
+    // 100件取得・検索・ジャンル絞り込み・マイリスト表示中でも、
+    // 予約/確定/完了に入っている曲を /songs/{id} から個別取得して保持する。
+    const roomQueueSongCache = new Map();
+    let roomQueueSongFetchToken = 0;
+
+    function firebaseSongToAppRow(songId, song) {
+        if (!song || typeof song !== 'object' || Array.isArray(song)) return null;
+        const id = String(songId || '');
+        if (!id || typeof song.title !== 'string' || !song.title.trim()) return null;
+        const row = {
+            _id: id,
+            _legacyId: '',
+            '曲名': String(song.title || ''),
+            'アーティスト': String(song.artist || ''),
+            'コードwiki': String(song.chordwiki || ''),
+            'BPM': String(song.bpm || ''),
+            'ジャンル': String(song.genre || ''),
+            'ジャンル①': String(song.genre || ''),
+            'ジャンル②': String(song.genre2 || ''),
+            'ジャンル③': String(song.genre3 || ''),
+            'タイアップ情報': String(song.tieup || ''),
+            '検索': String(song.search || ''),
+            '作詞': String(song.lyrics || ''),
+            '作曲': String(song.composition || ''),
+            '編曲': String(song.arrangement || ''),
+            _updatedAt: Number(song.updatedAt) || 0
+        };
+        row._searchText = [
+            row['曲名'], row['アーティスト'], row['ジャンル'], row['ジャンル②'],
+            row['ジャンル③'], row['タイアップ情報'], row['作詞'], row['作曲'],
+            row['編曲'], row['検索']
+        ].join(' ').toLowerCase();
+        return row;
+    }
+
+    function queueSongDataById(songId) {
+        const id = String(songId || '');
+        return allData.find(r => r._id === id)
+            || roomQueueSongCache.get(id)
+            || (/^\d+$/.test(id) ? allData.find(r => r._legacyId === id) : null)
+            || null;
+    }
+
+    async function preloadRoomQueueSongs() {
+        if (!currentRoomId) return;
+        const token = ++roomQueueSongFetchToken;
+        const ids = [...new Set(
+            Object.values(roomQueue || {})
+                .filter(item => item && typeof item === 'object')
+                .map(item => String(item.songId || ''))
+                .filter(Boolean)
+        )];
+
+        const missing = ids.filter(id =>
+            !allData.some(row => row._id === id) && !roomQueueSongCache.has(id)
+        );
+        if (!missing.length) return;
+
+        const chunkSize = 20;
+        for (let i = 0; i < missing.length; i += chunkSize) {
+            const chunk = missing.slice(i, i + chunkSize);
+            const results = await Promise.all(chunk.map(async id => {
+                try {
+                    const snap = await db.ref(`songs/${id}`).once('value');
+                    return [id, firebaseSongToAppRow(id, snap.val())];
+                } catch (error) {
+                    console.warn('セットリスト曲の個別取得に失敗:', id, error);
+                    return [id, null];
+                }
+            }));
+            if (token !== roomQueueSongFetchToken) return;
+            for (const [id, row] of results) {
+                if (row) roomQueueSongCache.set(id, row);
+            }
+        }
+    }
+
     // メンバー別リストから予約する場合は、予約者本人ではなく表示中のリスト所有者の保存Keyを引き継ぐ。
     // 全曲一覧・共通曲はこれまでどおり予約者本人のKeyを使用する。
     function getQueueKeyForCurrentView(song) {
@@ -5751,7 +5836,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             const data = roomQueue[qId];
             // 不正なキー・形式の項目はHTMLへ出さない（XSS対策）。
             if (!isSafeQueueId(qId) || !data || typeof data !== 'object') return;
-            const songData = allData.find(r => r._id === String(data.songId)) || (/^\d+$/.test(String(data.songId)) ? allData.find(r => r._legacyId === String(data.songId)) : null);
+            const songData = queueSongDataById(data.songId);
             if(!songData) return;
             const item = { qId: qId, ...data, songData: songData };
             if(item.status === 'reserved') reservedItems.push(item);
@@ -6077,7 +6162,7 @@ html, body { background: transparent !important; color: ${text} !important; }
             let activeQid = null;
             let activeStatus = null;
             for(let qId in roomQueue) {
-                if(roomQueue[qId].songId === row._id && roomQueue[qId].status !== 'completed') {
+                if(String(roomQueue[qId].songId) === String(row._id) && roomQueue[qId].status !== 'completed') {
                     activeQid = qId;
                     activeStatus = roomQueue[qId].status;
                     break;
