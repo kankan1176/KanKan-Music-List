@@ -3682,6 +3682,195 @@ body.sl-redesign.theme-white .sl-help-nav button:not(.active){background:#edf3fc
 body.sl-redesign.theme-white .sl-help-group-title{color:#536b8d!important}
 /* Right session dock: intentional exception, independently themed navy / light. */
 
+
+/* LIGHT THEME SECOND PASS — screenshots 2026-10-10
+   All overrides scoped to theme-white; independent right dock is excluded. */
+html:has(body.sl-redesign.theme-white),
+html:has(body.sl-redesign.theme-white) body,
+body.sl-redesign.theme-white #slApp,
+body.sl-redesign.theme-white #slMain,
+body.sl-redesign.theme-white #slMainContent,
+body.sl-redesign.theme-white #mainContent,
+body.sl-redesign.theme-white .sl-content,
+body.sl-redesign.theme-white .sl-page,
+body.sl-redesign.theme-white #contentWrapper{
+  background:#f3f6fc!important;color:#193252!important;
+}
+/* Top: remove the hard dark decorative canvas while keeping branding and update card. */
+html.entry-home body.sl-redesign.theme-white #homeLanding{
+  background:linear-gradient(160deg,#f5f8ff 0%,#eaf2ff 65%,#edf4ff 100%)!important;
+}
+html.entry-home body.sl-redesign.theme-white #homeLanding::before{
+  border-color:rgba(83,130,219,.18)!important;
+  box-shadow:none!important;
+}
+html.entry-home body.sl-redesign.theme-white #homeLanding::after{
+  background:radial-gradient(circle,rgba(94,143,222,.12),transparent 72%)!important;
+  box-shadow:none!important;
+}
+html.entry-home body.sl-redesign.theme-white .sl-home-visual{
+  background:transparent!important;
+}
+/* Shared song table: toolbar, filter chips, heading, status, pagination */
+body.sl-redesign.theme-white #slTopbar,
+body.sl-redesign.theme-white #slFilterbar,
+body.sl-redesign.theme-white #masterActionsBar,
+body.sl-redesign.theme-white #myListBulkBar,
+body.sl-redesign.theme-white #roomListPanel,
+body.sl-redesign.theme-white .sl-table-toolbar,
+body.sl-redesign.theme-white .sl-actions-bar,
+body.sl-redesign.theme-white .sl-filter-controls{
+  background:#fff!important;color:#193252!important;border-color:#cbd9e9!important;
+}
+body.sl-redesign.theme-white #slTopbar .sl-page-heading *,
+body.sl-redesign.theme-white .sl-page-heading h1,
+body.sl-redesign.theme-white .sl-page-heading h2{
+  color:#193252!important;
+}
+body.sl-redesign.theme-white .sl-page-heading p,
+body.sl-redesign.theme-white #slTopbar p,
+body.sl-redesign.theme-white #slFilterbar p{
+  color:#58718f!important;
+}
+body.sl-redesign.theme-white .genre-btn:not(.active),
+body.sl-redesign.theme-white #slFilterbar button:not(.active){
+  background:#f8fbff!important;color:#25466c!important;border:1px solid #c6d7ee!important;
+}
+body.sl-redesign.theme-white .genre-btn.active,
+body.sl-redesign.theme-white #slFilterbar button.active{
+  background:#2563db!important;color:#fff!important;border-color:#2563db!important;
+}
+body.sl-redesign.theme-white #masterActionsBar,
+body.sl-redesign.theme-white #myListBulkBar{
+  background:#eaf1fb!important;
+}
+body.sl-redesign.theme-white #masterActionsBar label,
+body.sl-redesign.theme-white #myListBulkBar label,
+body.sl-redesign.theme-white #myListBulkBar span,
+body.sl-redesign.theme-white #masterActionsBar span{
+  color:#244363!important;
+}
+body.sl-redesign.theme-white #tableWrapper,
+body.sl-redesign.theme-white #tableWrapper table,
+body.sl-redesign.theme-white #tableWrapper tr,
+body.sl-redesign.theme-white #tableWrapper td,
+body.sl-redesign.theme-white #tableWrapper th,
+body.sl-redesign.theme-white #tableWrapper .table-body-wrapper,
+body.sl-redesign.theme-white #tableWrapper .table-header-wrapper{
+  color:#213958!important;
+}
+body.sl-redesign.theme-white #tableWrapper th{background:#dfe9f8!important;color:#193252!important}
+body.sl-redesign.theme-white #tableWrapper tbody tr:nth-child(odd) td{background:#fff!important}
+body.sl-redesign.theme-white #tableWrapper tbody tr:nth-child(even) td{background:#eff5fd!important}
+body.sl-redesign.theme-white #tableWrapper tbody tr:hover td{background:#deebfd!important}
+body.sl-redesign.theme-white #tableWrapper a{color:#175cbd!important}
+body.sl-redesign.theme-white #tableWrapper tbody td:first-child{color:#405978!important}
+body.sl-redesign.theme-white #tableWrapper input:not([type=checkbox]),
+body.sl-redesign.theme-white #tableWrapper select{
+  background:#fff!important;color:#1c3556!important;border-color:#b8cbe5!important;
+}
+/* Narrow standalone navigation footer remains dark if desired, but all text stays legible. */
+body.sl-redesign.theme-white .pagination,
+body.sl-redesign.theme-white #pagination,
+body.sl-redesign.theme-white .pagination-controls{
+  background:#eaf1fb!important;color:#243e61!important;border-color:#c9d8eb!important;
+}
+body.sl-redesign.theme-white .pagination span,
+body.sl-redesign.theme-white #pagination span{color:#345574!important}
+/* Room landing: the parent layer was still dark; target actual modal content. */
+body.sl-redesign.theme-white #roomCreateModal,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-page,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-layout,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-container,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-content{
+  background:#f3f6fc!important;color:#193252!important;
+}
+body.sl-redesign.theme-white #roomCreateModal h1,
+body.sl-redesign.theme-white #roomCreateModal h2,
+body.sl-redesign.theme-white #roomCreateModal h3,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-heading h2{
+  color:#193252!important;
+}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-heading p,
+body.sl-redesign.theme-white #roomCreateModal p,
+body.sl-redesign.theme-white #roomCreateModal small{
+  color:#536d8d!important;
+}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice-button,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-entry-panel,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-card,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-info > div{
+  background:#fff!important;color:#193252!important;border-color:#c6d7eb!important;
+}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice-button strong,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-entry-panel h3{color:#173659!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice-button:hover{background:#e8f1ff!important}
+/* Friend rows: white surfaces with navy names instead of inverse dark cards. */
+body.sl-redesign.theme-white #friendsModal .friend-item,
+body.sl-redesign.theme-white #friendsModal .sl-friends-compact-list .friend-item,
+body.sl-redesign.theme-white #sessionHistoryUsersList .friend-item{
+  background:#eff5fd!important;color:#193252!important;border:1px solid #c9d8ea!important;
+}
+body.sl-redesign.theme-white #friendsModal .friend-item .friend-name,
+body.sl-redesign.theme-white #sessionHistoryUsersList .friend-name{
+  color:#193252!important;
+}
+body.sl-redesign.theme-white #friendsModal .friends-section,
+body.sl-redesign.theme-white #friendsModal .sl-friends-panel{
+  background:#fff!important;color:#193252!important;
+}
+/* All content dialogs: dark-specific !important text rules are beaten by light scope. */
+body.sl-redesign.theme-white .modal-overlay .modal,
+body.sl-redesign.theme-white #obsModal .modal,
+body.sl-redesign.theme-white #slHelpModal .modal,
+body.sl-redesign.theme-white #settingsModal .modal,
+body.sl-redesign.theme-white #accountModal .modal{
+  background:#fff!important;color:#193252!important;border-color:#cbd9eb!important;
+}
+body.sl-redesign.theme-white .modal-overlay .modal h1,
+body.sl-redesign.theme-white .modal-overlay .modal h2,
+body.sl-redesign.theme-white .modal-overlay .modal h3,
+body.sl-redesign.theme-white .modal-overlay .modal h4,
+body.sl-redesign.theme-white .modal-overlay .modal label,
+body.sl-redesign.theme-white .modal-overlay .modal p,
+body.sl-redesign.theme-white .modal-overlay .modal li,
+body.sl-redesign.theme-white .modal-overlay .modal strong,
+body.sl-redesign.theme-white .modal-overlay .modal small,
+body.sl-redesign.theme-white .modal-overlay .modal .modal-close{
+  color:#193252!important;
+}
+body.sl-redesign.theme-white .modal-overlay .modal .sl-help-section p,
+body.sl-redesign.theme-white .modal-overlay .modal .sl-help-section li,
+body.sl-redesign.theme-white .modal-overlay .modal .sl-help-section h3,
+body.sl-redesign.theme-white .modal-overlay .modal .sl-help-group-title{
+  color:#244565!important;
+}
+body.sl-redesign.theme-white #slHelpModal .sl-help-nav button:not(.active){
+  background:#edf4fe!important;color:#244565!important;border-color:#cbd9eb!important;
+}
+body.sl-redesign.theme-white #slHelpModal .sl-help-nav button.active{
+  background:linear-gradient(115deg,#2b73e6,#6654e8)!important;color:#fff!important;
+}
+body.sl-redesign.theme-white .modal-overlay .modal select,
+body.sl-redesign.theme-white .modal-overlay .modal textarea,
+body.sl-redesign.theme-white .modal-overlay .modal input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]){
+  background:#fff!important;color:#193252!important;border-color:#b7cae3!important;
+}
+body.sl-redesign.theme-white .modal-overlay .modal button:not(.primary-btn):not(.active):not([disabled]){
+  background:#eaf1fb!important;color:#20436a!important;border-color:#bdd0e8!important;
+}
+body.sl-redesign.theme-white .modal-overlay .modal button.primary-btn,
+body.sl-redesign.theme-white .modal-overlay .modal button.active{
+  background:#2563db!important;color:#fff!important;
+}
+/* OBS style chooser colors themselves must remain literal; only panel labels change. */
+body.sl-redesign.theme-white #obsModal .obs-style-grid,
+body.sl-redesign.theme-white #obsModal .setting-group{
+  color:#193252!important;
+}
+/* Don't recolor the session dock: its theme is independently user-selected. */
+
 </style>
 </head>
 <body>
