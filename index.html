@@ -3277,6 +3277,23 @@ body.sl-redesign.sl-room-mylist #slFavArtistsShortcut{display:inline-flex;align-
 #slMySaveNotice{position:fixed;bottom:18px;left:calc(var(--sl-sidebar, 240px) + 16px);z-index:2500;max-width:min(430px,calc(100vw - 30px));display:none;align-items:center;gap:12px;background:#3d2230;border:1px solid #e89aa3;color:#fff;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px #0006;font-size:14px;line-height:1.5}
 #slMySaveNotice button{background:#fff;color:#57212b;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer;white-space:nowrap}
 @media(max-width:700px){#slMySaveNotice{left:12px;bottom:12px;right:12px;max-width:none}}
+
+/* Room entry screen: create or join using an ID. */
+#roomCreateModal [hidden]{display:none!important}
+#roomCreateModal .sl-room-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:14px 0}
+#roomCreateModal .sl-room-choice-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:190px;padding:25px 16px;border:1px solid #365a8c;border-radius:17px;background:#122b4e;color:#fff;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+#roomCreateModal .sl-room-choice-button:hover,#roomCreateModal .sl-room-choice-button:focus-visible{background:#1c3b66;border-color:#78a5ff;transform:translateY(-2px)}
+#roomCreateModal .sl-room-choice-emoji{font-size:37px}
+#roomCreateModal .sl-room-choice-button strong{font-size:22px}
+#roomCreateModal .sl-room-choice-button small{font-size:14px;color:#b9c9e4;text-align:center}
+#roomCreateModal .sl-room-entry-panel{width:min(660px,100%);margin:14px auto;padding:23px;background:#0e203a;border:1px solid #36547d;border-radius:15px;box-sizing:border-box}
+#roomCreateModal .sl-room-entry-panel h3{font-size:23px;margin:0 0 10px;color:#fff}
+#roomCreateModal .sl-room-entry-panel p{font-size:15px;color:#b8cae1}
+#roomCreateModal .sl-room-join-form{display:flex;flex-direction:column;gap:12px}
+#roomCreateModal .sl-room-join-form label{font-size:17px;font-weight:700}
+#roomCreateModal #slRoomJoinId{background:#07162b;border:1px solid #5373a5;color:#fff;border-radius:9px;padding:13px 14px;font-size:20px;letter-spacing:.07em;text-transform:uppercase;min-height:49px;box-sizing:border-box;width:100%}
+#roomCreateModal #slRoomJoinFeedback{min-height:24px;margin:0;color:#eecb88}
+@media(max-width:620px){#roomCreateModal .sl-room-choice{grid-template-columns:1fr}#roomCreateModal .sl-room-choice-button{min-height:130px}}
 </style>
 </head>
 <body>
@@ -3686,13 +3703,31 @@ body.sl-redesign.sl-room-mylist #slFavArtistsShortcut{display:inline-flex;align-
 <div class="modal-overlay sl-room-create-overlay" id="roomCreateModal" style="z-index:1600;" role="dialog" aria-modal="true" aria-labelledby="roomCreateHeading">
   <div class="modal sl-room-create-page" onclick="event.stopPropagation()">
 <div class="sl-room-create-heading">
-      <span class="sl-room-create-icon" aria-hidden="true">👥＋</span>
+      
       <div>
         <h2 id="roomCreateHeading">セットリスト共有ルーム</h2>
         <p>セッション用の共有ルームを作成して、仲間と演奏曲を共有しましょう。</p>
       </div>
     </div>
 
+    <div id="slRoomChoice" class="sl-room-choice">
+      <button type="button" class="sl-room-choice-button" onclick="slSetRoomEntryPanel('create')"><span class="sl-room-choice-emoji">🌐</span><strong>ルームを作成</strong><small>新しいセットリスト共有ルームを作ります</small></button>
+      <button type="button" class="sl-room-choice-button" onclick="slSetRoomEntryPanel('join')"><span class="sl-room-choice-emoji">💫</span><strong>ルームに入る</strong><small>共有されたルームIDを入力して参加します</small></button>
+    </div>
+    <section id="slRoomJoinPanel" class="sl-room-entry-panel" hidden>
+      <h3>💫 ルームに入る</h3>
+      <p>参加したいルームのIDを入力してください。</p>
+      <form onsubmit="slJoinRoomById(event)" class="sl-room-join-form">
+        <label for="slRoomJoinId">ルームID</label>
+        <input id="slRoomJoinId" type="text" inputmode="text" minlength="4" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ルームIDを入力" required oninput="document.getElementById('slRoomJoinFeedback').textContent=''">
+        <p id="slRoomJoinFeedback" role="status" aria-live="polite"></p>
+        <div class="sl-room-create-actions">
+          <button type="button" onclick="slSetRoomEntryPanel('choice')">戻る</button>
+          <button id="slRoomJoinSubmit" type="submit" class="sl-room-create-primary">💫 入室する</button>
+        </div>
+      </form>
+    </section>
+    <div id="slRoomCreatePanel" class="sl-room-entry-panel" hidden>
     <div class="sl-room-create-grid">
       <section class="sl-room-create-card sl-room-create-main">
         <div class="sl-section-heading"><span>⚙️</span><strong>ルーム設定</strong></div>
@@ -3713,13 +3748,12 @@ body.sl-redesign.sl-room-mylist #slFavArtistsShortcut{display:inline-flex;align-
         </div>
 
         <div class="sl-room-create-actions">
-          <button type="button" class="sl-room-create-cancel" onclick="closeRoomCreateModal()">キャンセル</button>
-          <button type="button" id="confirmRoomCreation" class="sl-room-create-primary" onclick="confirmCreateRoom()">👥＋ ルームを作成</button>
+          <button type="button" class="sl-room-create-cancel" onclick="slSetRoomEntryPanel('choice')">戻る</button>
+          <button type="button" id="confirmRoomCreation" class="sl-room-create-primary" onclick="confirmCreateRoom()">🌐 ルームを作成</button>
         </div>
         <p id="roomCreateMessage" role="status" aria-live="polite"></p>
       </section>
-
-
+    </div>
     </div>
   </div>
 </div>
@@ -5923,8 +5957,55 @@ body.sl-redesign.sl-room-mylist #slFavArtistsShortcut{display:inline-flex;align-
     }
 
     // ルーム作成は先に専用画面を表示する。確認まではルームを発行しない。
+    function slSetRoomEntryPanel(panel) {
+        const choice=document.getElementById('slRoomChoice');
+        const creation=document.getElementById('slRoomCreatePanel');
+        const joining=document.getElementById('slRoomJoinPanel');
+        if(!choice || !creation || !joining)return;
+        choice.hidden=panel!=='choice';
+        creation.hidden=panel!=='create';
+        joining.hidden=panel!=='join';
+        if(panel==='join'){
+          document.getElementById('slRoomJoinFeedback').textContent='';
+          document.getElementById('slRoomJoinId').focus();
+        }
+    }
+    let slRoomJoinBusy=false;
+    async function slJoinRoomById(event){
+        event.preventDefault();
+        if(currentRoomId || slRoomJoinBusy)return;
+        const input=document.getElementById('slRoomJoinId');
+        const message=document.getElementById('slRoomJoinFeedback');
+        const button=document.getElementById('slRoomJoinSubmit');
+        const id=String(input.value||'').trim().toUpperCase();
+        if(!/^[A-Z0-9]{4,32}$/.test(id)){
+          message.textContent='ルームIDは半角英数字で入力してください。';return;
+        }
+        slRoomJoinBusy=true;
+        button.disabled=true;
+        message.textContent='ルームを確認しています…';
+        try{
+          await ensureRoomAuth();
+          const snapshot=await db.ref('rooms/'+id+'/settings').once('value');
+          if(!snapshot.exists()){
+            message.textContent='ルームが見つかりません。IDを確認してください。';return;
+          }
+          message.textContent='ルームに入室します…';
+          const target=new URL(window.location.href);
+          target.searchParams.set('room',id);
+          target.searchParams.delete('_refresh');
+          window.location.assign(target.pathname+target.search+target.hash);
+        }catch(error){
+          console.error('ルームID入室エラー:',error);
+          message.textContent='ルームを確認できませんでした。通信状況をご確認ください。';
+        }finally{
+          slRoomJoinBusy=false;
+          button.disabled=false;
+        }
+    }
     function createRoom() {
         if (currentRoomId) return;
+        slSetRoomEntryPanel('choice');
         document.getElementById('roomCreateMessage').textContent = '';
         document.getElementById('confirmRoomCreation').disabled = false;
         const cancelRoomButton = document.getElementById('cancelRoomCreation');
