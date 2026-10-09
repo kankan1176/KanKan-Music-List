@@ -3724,6 +3724,108 @@ body.sl-redesign.theme-white .modal button:not(.primary-btn):not(.active):not(.s
 body.sl-redesign.theme-white .modal .primary-btn,body.sl-redesign.theme-white .modal button.active{color:#fff!important}
 @media(max-width:820px){body.sl-redesign.theme-white #slTopbar{background:#edf3fc!important}}
 
+
+/* Ver2.0.1 light-only final surface & contrast pass. */
+body.sl-redesign.theme-white{
+ --sl-bg:#f3f6fc;--sl-bg2:#eaf0f9;--sl-panel:#fff;--sl-panel2:#eef4fc;--sl-panel3:#e2ebf8;
+ --sl-text:#193252;--sl-muted:#526984;--sl-border-soft:#d2dfef;
+ --bg-color:#f3f6fc;--panel-bg:#fff;--text-color:#193252;--border-color:#c7d7e9;
+ --btn-bg:#edf3fc;--btn-hover:#dce8fb;--th-bg:#e2ecfa;--th-text:#203a5d;
+}
+/* A light base for the complete content surface, not just the sidebar. */
+body.sl-redesign.theme-white .container,
+body.sl-redesign.theme-white #mainContent,
+body.sl-redesign.theme-white #slMainContent,
+body.sl-redesign.theme-white #slPageContent,
+body.sl-redesign.theme-white #slContent,
+body.sl-redesign.theme-white #loadingArea{background-color:#f3f6fc!important;color:#193252!important}
+body.sl-redesign.theme-white #slTopbar,
+body.sl-redesign.theme-white #slFilterbar,
+body.sl-redesign.theme-white #slListMeta,
+body.sl-redesign.theme-white #slListToolbar,
+body.sl-redesign.theme-white #masterActionsBar,
+body.sl-redesign.theme-white #myListBulkBar,
+body.sl-redesign.theme-white #myListClipboardHeader,
+body.sl-redesign.theme-white .bulk-actions,
+body.sl-redesign.theme-white .list-actions{background:#eaf1fa!important;color:#1b3557!important;border-color:#cad9ec!important}
+body.sl-redesign.theme-white #slTopbar *,
+body.sl-redesign.theme-white #slListMeta *,
+body.sl-redesign.theme-white .pagination-controls span{color:#203a5c}
+body.sl-redesign.theme-white #tableWrapper,
+body.sl-redesign.theme-white #tableBody,
+body.sl-redesign.theme-white #tableBody tr,
+body.sl-redesign.theme-white #tableBody td,
+body.sl-redesign.theme-white .data-table tbody tr{background-color:#fff!important;color:#203a5c!important;border-color:#d9e5f3!important}
+body.sl-redesign.theme-white #tableBody tr:nth-child(even),
+body.sl-redesign.theme-white .data-table tbody tr:nth-child(even){background-color:#edf3fb!important}
+body.sl-redesign.theme-white #tableBody tr:hover,
+body.sl-redesign.theme-white .data-table tbody tr:hover{background-color:#dfebfc!important}
+body.sl-redesign.theme-white #tableBody tr td:first-child,
+body.sl-redesign.theme-white .data-table td:first-child{color:#48627f!important}
+body.sl-redesign.theme-white #tableBody a,
+body.sl-redesign.theme-white .data-table a{color:#135cb4!important}
+body.sl-redesign.theme-white #tableWrapper th,
+body.sl-redesign.theme-white .data-table thead,
+body.sl-redesign.theme-white .data-table thead th{background:#dce8f7!important;color:#1b3556!important}
+body.sl-redesign.theme-white #paginationControls,
+body.sl-redesign.theme-white #tablePagination,
+body.sl-redesign.theme-white .table-pagination,
+body.sl-redesign.theme-white #tableWrapper .pagination{background:#eaf1fb!important;color:#284766!important;border-color:#c7d7eb!important}
+/* Room landing: these components used hard-coded #0e203a/#122b4e regardless of theme. */
+body.sl-redesign.theme-white #roomCreateModal,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-layout{background:#f3f6fc!important;color:#193252!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice-button{background:#fff!important;color:#1b3556!important;border-color:#b9cde7!important;box-shadow:0 6px 18px rgba(36,76,125,.08)!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice-button:hover,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice-button:focus-visible{background:#e8f1ff!important;border-color:#4d81d6!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice-button strong{color:#193454!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-choice-button small{color:#55708e!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-entry-panel{background:#fff!important;color:#1d3758!important;border-color:#cad9ed!important;box-shadow:0 6px 20px rgba(39,74,124,.08)!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-entry-panel h3,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-entry-panel label{color:#1a3455!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-entry-panel p{color:#536e8b!important}
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-form,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-info,
+body.sl-redesign.theme-white #roomCreateModal .sl-room-create-card{color:#1a3455!important}
+/* Session panels and informational sections */
+body.sl-redesign.theme-white #roomStatusWrapper,
+body.sl-redesign.theme-white #roomMembersArea,
+body.sl-redesign.theme-white #roomListPanel,
+body.sl-redesign.theme-white #roomListTabs,
+body.sl-redesign.theme-white #roomShareNotice,
+body.sl-redesign.theme-white .room-members-area,
+body.sl-redesign.theme-white .side-guide-card{background:#fff!important;color:#1d385a!important;border-color:#cbd9eb!important}
+body.sl-redesign.theme-white #roomListTabs button:not(.active){background:#edf3fc!important;color:#1e426f!important;border-color:#c7d7eb!important}
+/* Dialogs: text, cards and secondary controls */
+body.sl-redesign.theme-white .modal-overlay:not(#roomCreateModal):not(#addSongModal){background:#f3f6fc!important}
+body.sl-redesign.theme-white .modal,
+body.sl-redesign.theme-white .modal .setting-group,
+body.sl-redesign.theme-white .modal .friend-item,
+body.sl-redesign.theme-white .modal .shared-song,
+body.sl-redesign.theme-white .modal .room-common-member-item{color:#1b3555;border-color:#cbd9ea}
+body.sl-redesign.theme-white .modal .friend-item,
+body.sl-redesign.theme-white .modal .shared-song,
+body.sl-redesign.theme-white .modal .room-common-member-item{background:#edf3fb!important}
+body.sl-redesign.theme-white .modal .modal-close{color:#254766!important}
+body.sl-redesign.theme-white #addSongModal .sl-add-info-card,
+body.sl-redesign.theme-white #addSongModal .sl-add-form-card{background:#fff!important;color:#1a3455!important}
+body.sl-redesign.theme-white #addSongModal input,
+body.sl-redesign.theme-white #addSongModal select,
+body.sl-redesign.theme-white #addSongModal textarea{background:#fff!important;color:#193454!important;border-color:#bfd1e8!important}
+/* Buttons should remain high contrast, including actions in row lists. */
+body.sl-redesign.theme-white button.primary-btn,
+body.sl-redesign.theme-white button.active:not(.genre-btn):not(.sl-dock-tab):not(.sl-nav-common){color:#fff!important}
+body.sl-redesign.theme-white #tableBody button,
+body.sl-redesign.theme-white #tableBody select{color:#173658!important;border-color:#b8cce7!important}
+/* Home background artwork can remain, but text and update items must be readable. */
+body.sl-redesign.theme-white .sl-home-update,
+body.sl-redesign.theme-white .sl-home-update-list article{background:#fff!important;color:#1d3656!important;border-color:#d3dfef!important}
+body.sl-redesign.theme-white .sl-home-update-list article{background:#eef4fc!important}
+body.sl-redesign.theme-white .sl-home-update-list article:hover{background:#eef4fc!important;border-color:#d3dfef!important}
+body.sl-redesign.theme-white .sl-home-update-list strong{color:#1b3455!important}
+body.sl-redesign.theme-white .sl-home-update-list small{color:#536c89!important}
+body.sl-redesign.theme-white .sl-home-update-title h1{color:#1b3455!important}
+/* Dock has its own independent navy/light setting by design; don't overwrite it. */
+
 </style>
 </head>
 <body>
