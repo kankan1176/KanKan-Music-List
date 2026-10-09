@@ -3,7 +3,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script></head><body><main><div class="top"><div><h1>🛡️ ルーム管理</h1><p>管理者専用 · Firebase Realtime Database</p></div><div><a class="action" href="admin.html">管理者ページに戻る</a> <button id="loginBtn">Googleでログイン</button> <button id="logoutBtn" hidden>ログアウト</button></div></div>
-<p id="message" role="status">ログイン状態を確認中…</p><section id="panel" hidden><div class="stats"><div class="stat"><span>総ルーム数</span><strong id="total">—</strong></div><div class="stat"><span>接続中ルーム</span><strong id="active">—</strong></div><div class="stat"><span>空ルーム</span><strong id="empty">—</strong></div></div><div class="top"><p class="hint">接続人数は /members の登録数を使用します。切断反映には遅延があります。<br>削除は空ルームだけ許可し、削除直前にもサーバー側で再判定します。</p><div class="toolbar-actions"><button id="refreshBtn">一覧を更新</button><button id="bulkDeleteBtn" class="danger" disabled>接続者0人の部屋を一括削除</button></div></div><div style="overflow-x:auto"><table><thead><tr><th><button class="sort" type="button" data-sort="id" aria-pressed="false">ルームID <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="createdAt" aria-pressed="true">作成日時 <span class="arrow">▼</span></button></th><th><button class="sort" type="button" data-sort="members" aria-pressed="false">接続者 <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="songs" aria-pressed="false">曲数 <span class="arrow"></span></button></th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></section></main>
+<p id="message" role="status">ログイン状態を確認中…</p><section id="panel" hidden><div class="stats"><div class="stat"><span>総ルーム数</span><strong id="total">—</strong></div><div class="stat"><span>接続中ルーム</span><strong id="active">—</strong></div><div class="stat"><span>空ルーム</span><strong id="empty">—</strong></div></div><div class="top"><p class="hint">接続人数は /members の登録数を使用します。切断反映には遅延があります。<br>管理者は接続中のルームも個別削除できます。接続者0人の一括削除は従来どおり空ルームのみ対象です。</p><div class="toolbar-actions"><button id="refreshBtn">一覧を更新</button><button id="bulkDeleteBtn" class="danger" disabled>接続者0人の部屋を一括削除</button></div></div><div style="overflow-x:auto"><table><thead><tr><th><button class="sort" type="button" data-sort="id" aria-pressed="false">ルームID <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="createdAt" aria-pressed="true">作成日時 <span class="arrow">▼</span></button></th><th><button class="sort" type="button" data-sort="members" aria-pressed="false">接続者 <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="songs" aria-pressed="false">曲数 <span class="arrow"></span></button></th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></section></main>
 <script>
 'use strict';
 const config={
@@ -20,6 +20,7 @@ const $=id=>document.getElementById(id);let currentUser=null,roomsData={},deleti
 function message(text,error=false){$('message').textContent=text;$('message').classList.toggle('error',error)}
 function isAdminUser(u){return !!u&&!u.isAnonymous&&u.providerData?.some(p=>p.providerId==='google.com')}
 function formatDate(v){const n=Number(v);if(!Number.isFinite(n)||n<=0)return '不明';return new Date(n<1e11?n*1000:n).toLocaleString('ja-JP')}
+// 日時不明の旧ルームも削除対象（削除可否は接続者数のみで判定）
 const memberCount=room=>room&&room.members&&typeof room.members==='object'?Object.keys(room.members).length:0;
 async function reload(){if(!currentUser)return;message('ルーム情報を取得中…');try{const s=await db.ref('rooms').once('value');roomsData=s.val()||{};render();message('最新の情報を表示しています。')}catch(e){message('一覧の取得に失敗しました。ルールの管理者読み取り権限を確認してください。 '+e.message,true)}}
 function sortedEntries(){
@@ -46,7 +47,7 @@ function render(){
       const td=document.createElement('td');td.textContent=value;tr.append(td);
     }
     const td=document.createElement('td'),b=document.createElement('button');
-    b.textContent=count?'接続中':'削除';b.className='danger';b.disabled=count!==0||busy;
+    b.textContent=count?'強制削除':'削除';b.className='danger';b.disabled=busy;b.title=count?'接続中の参加者も退出扱いになり、ルーム情報を削除します。':'空ルームを削除します。';
     b.addEventListener('click',()=>deleteRoom(id));td.append(b);tr.append(td);tbody.append(tr);
   }
   if(!total){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='ルームはありません';tr.append(td);tbody.append(tr)}
@@ -59,14 +60,14 @@ function render(){
     button.querySelector('.arrow').textContent=selected?(sortDirection==='asc'?'▲':'▼'):'';
   });
 }
-// Always confirm current occupancy immediately before each deletion. The root multi-path
-// update is checked again by Realtime Database Rules at commit time.
-async function removeEmptyRoom(id){
+// Admin-only removal. Active room removal is deliberate and requires explicit confirmation.
+// Bulk deletion still checks occupancy before every attempt.
+async function removeRoomAdmin(id,{onlyEmpty=false}={}){
   const roomRef=db.ref('rooms/'+id);
   const snap=await roomRef.once('value');
   if(!snap.exists())return 'missing';
-  if(memberCount(snap.val())!==0)return 'occupied';
-  // 共有リストの有無を確認する。既に存在しない共有リストを削除要求に
+  if(onlyEmpty && memberCount(snap.val())!==0)return 'occupied';
+  // 旧形式（settingsがない）も含めて共有リストの有無を確認。存在しない共有リストを削除要求に
   // 含めると、旧ルールの data.exists() 条件で permission_denied になる。
   const sharedSnap=await db.ref('roomSharedLists/'+id).once('value');
   const updates={['rooms/'+id]:null};
@@ -76,12 +77,14 @@ async function removeEmptyRoom(id){
 }
 async function deleteRoom(id){
   if(!currentUser||deletingRoomId||bulkDeleting)return;
-  if(!window.confirm('空ルーム「'+id+'」を削除しますか？\n予約曲とルーム共有リストも削除されます。'))return;
+  const knownCount=memberCount(roomsData[id]);
+  const prompt=knownCount>0?'【接続中ルームの強制削除】\nルーム「'+id+'」には表示上 '+knownCount+' 人が接続中です。\n参加中のユーザーの画面にも影響し、予約・確定・完了の曲と共有リストが削除されます。\nこの操作は元に戻せません。強制削除しますか？':'ルーム「'+id+'」を削除しますか？\n予約曲とルーム共有リストも削除されます。';
+  if(!window.confirm(prompt))return;
   deletingRoomId=id;render();
   try{
-    message('削除直前の接続状況を確認中…');
-    const result=await removeEmptyRoom(id);
-    message(result==='deleted'?'ルーム '+id+' を削除しました。':result==='occupied'?'接続者がいるため削除できません。':'このルームは既にありません。',result==='occupied');
+    message('管理者権限でルームを削除中…');
+    const result=await removeRoomAdmin(id);
+    message(result==='deleted'?'ルーム '+id+' を削除しました。':'このルームは既にありません。');
   }catch(e){message('削除できませんでした。'+(e.code==='PERMISSION_DENIED'||String(e.message).includes('PERMISSION_DENIED')?'Realtime Databaseの管理者削除ルールが未反映、または削除権限がありません。修正版ルールを確認してください。 ':'')+e.message,true)}
   finally{deletingRoomId=null;await reload();}
 }
@@ -96,7 +99,7 @@ async function deleteAllEmptyRooms(){
     for(let i=0;i<ids.length;i++){
       message('空ルームを整理中… '+(i+1)+' / '+ids.length+' 件（削除済み '+deleted+' 件）');
       try{
-        const result=await removeEmptyRoom(ids[i]);
+        const result=await removeRoomAdmin(ids[i],{onlyEmpty:true});
         if(result==='deleted')deleted++;
         else if(result==='occupied')occupied++;
         else missing++;
