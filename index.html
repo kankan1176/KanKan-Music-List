@@ -1157,8 +1157,8 @@ body.in-room #slNavShare{display:flex!important;}
 #slSearchHost{min-width:0;width:100%;max-width:720px;justify-self:end}
 #slSearchHost #searchInput{
   width:100%!important;height:45px!important;box-sizing:border-box;margin:0!important;padding:9px 16px!important;
-  border:1px solid rgba(112,144,216,.24)!important;border-radius:14px!important;
-  background:rgba(18,34,62,.92)!important;color:#eaf2ff!important;
+  border:1px solid var(--border-color)!important;border-radius:14px!important;
+  background:var(--btn-bg)!important;color:var(--text-color)!important;
   box-shadow:inset 0 1px rgba(255,255,255,.025)!important;font-size:13px!important;
 }
 #slSearchHost #searchInput::placeholder{color:#8192b2}
@@ -1192,7 +1192,6 @@ body.in-room #slNavShare{display:flex!important;}
   box-shadow:0 6px 18px rgba(47,99,234,.24)!important;
 }
 #slListMeta{flex:0 0 auto;display:flex;align-items:center;gap:7px;max-width:32%;overflow:hidden}
-#slListMeta #songCountDisplay{margin:0!important;color:#68c8ff!important;font-size:10px!important;white-space:nowrap}
 #slListMeta #artistFilterIndicator{min-width:0;max-width:240px;overflow:hidden}
 
 /* ================= MAIN LIST ================= */
@@ -1229,7 +1228,6 @@ body.sl-redesign .data-table th{background:#11213b!important;color:#dce8fb!impor
 body.sl-redesign .data-table td{font-size:11px!important;border-color:rgba(117,145,196,.14)!important}
 body.sl-redesign .data-table tbody tr:nth-child(even){background:rgba(255,255,255,.008)}
 body.sl-redesign .data-table tbody tr:hover{background:#112746!important}
-body.sl-redesign .pagination-container{background:#0a172a!important;border-top:1px solid var(--sl-border-soft)!important}
 
 /* MY LIST */
 body.sl-redesign.my-list-mode #myListBulkBar{display:flex!important;gap:7px!important;align-items:center!important}
@@ -1674,9 +1672,6 @@ body.sl-redesign{
   min-height:36px!important;
 }
 
-#slListMeta #songCountDisplay{
-  font-size:11px!important;
-}
 
 /* 一覧 */
 body.sl-redesign .data-table th{
@@ -1692,9 +1687,6 @@ body.sl-redesign .data-table td{
 body.sl-redesign .data-table button,
 body.sl-redesign .data-table select{
   font-size:11.5px!important;
-}
-body.sl-redesign .pagination-container{
-  font-size:12px!important;
 }
 
 /* 上部操作バー */
@@ -2184,7 +2176,7 @@ body.sl-add-song-open #homeLanding{
 .sl-add-song-heading h2{
   margin:0!important;
   padding:0!important;
-  color:#fff!important;
+  color:var(--sl-text)!important;
   font-size:32px!important;
   line-height:1.1!important;
   font-weight:950!important;
@@ -2192,7 +2184,7 @@ body.sl-add-song-open #homeLanding{
 
 .sl-add-song-heading p{
   margin:7px 0 0!important;
-  color:#9baaca!important;
+  color:var(--sl-muted)!important;
   font-size:12.5px!important;
   line-height:1.5!important;
 }
@@ -2242,14 +2234,14 @@ body.sl-add-song-open #homeLanding{
 
 .sl-add-song-section-title strong{
   display:block;
-  color:#f1f6ff;
+  color:var(--sl-text);
   font-size:14px;
 }
 
 .sl-add-song-section-title small{
   display:block;
   margin-top:3px;
-  color:#899bbb;
+  color:var(--sl-muted);
   font-size:9.5px;
 }
 
@@ -2274,7 +2266,7 @@ body.sl-add-song-open #homeLanding{
   align-items:center;
   gap:6px;
   margin-bottom:6px!important;
-  color:#dce7f8!important;
+  color:var(--sl-text)!important;
   font-size:12.5px!important;
   font-weight:850!important;
 }
@@ -2292,13 +2284,13 @@ body.sl-add-song-open #homeLanding{
 }
 
 .sl-required{
-  color:#ffacb4;
+  color:var(--sl-red);
   background:rgba(240,75,95,.14);
   border:1px solid rgba(245,92,109,.25);
 }
 
 .sl-optional{
-  color:#8fa1c1;
+  color:var(--sl-muted);
   background:rgba(112,137,184,.10);
   border:1px solid rgba(112,137,184,.16);
 }
@@ -2344,7 +2336,7 @@ body.sl-add-song-open #homeLanding{
 #addSongFeedback{
   min-height:20px;
   margin:0 0 9px!important;
-  color:#78caff;
+  color:var(--link-color);
   font-size:11px!important;
   line-height:1.5!important;
 }
@@ -2369,7 +2361,7 @@ body.sl-add-song-open #homeLanding{
 
 .sl-add-submit-btn{
   min-width:210px;
-  background:linear-gradient(90deg,#2b87f2,#6b4eea)!important;
+  background:linear-gradient(90deg,var(--primary),#6b4eea)!important;
   border-color:#6380ff!important;
   color:#fff!important;
 }
@@ -2403,13 +2395,13 @@ body.sl-add-song-open #homeLanding{
 
 .sl-add-guide-list strong{
   display:block;
-  color:#eaf1ff;
+  color:var(--sl-text);
   font-size:11.5px;
 }
 
 .sl-add-guide-list p{
   margin:3px 0 0!important;
-  color:#8fa0bf!important;
+  color:var(--sl-muted)!important;
   font-size:9.5px!important;
   line-height:1.5!important;
 }
@@ -2424,7 +2416,7 @@ body.sl-add-song-open #homeLanding{
 
 .sl-add-flow-box>strong{
   font-size:11px;
-  color:#dce8fb;
+  color:var(--sl-text);
 }
 
 .sl-add-flow{
@@ -2446,7 +2438,7 @@ body.sl-add-song-open #homeLanding{
 }
 
 .sl-add-flow b{
-  color:#478cff;
+  color:var(--link-color);
   font-size:10px;
 }
 
@@ -2459,13 +2451,13 @@ body.sl-add-song-open #homeLanding{
 }
 
 .sl-add-note strong{
-  color:#ffd27a;
+  color:var(--sl-amber);
   font-size:10.5px;
 }
 
 .sl-add-note p{
   margin:3px 0 0!important;
-  color:#9ca9bf!important;
+  color:var(--sl-muted)!important;
   font-size:9px!important;
   line-height:1.45!important;
 }
@@ -2637,7 +2629,7 @@ body.sl-add-song-open #homeLanding{
   gap:10px!important;
   min-height:52px!important;
   padding:7px 12px!important;
-  background:#0a172a!important;
+  background:var(--panel-bg)!important;
   border-top:1px solid var(--sl-border-soft)!important;
 }
 
@@ -2663,9 +2655,9 @@ body.sl-add-song-open #homeLanding{
   margin:0!important;
   padding:5px 8px;
   border-radius:8px;
-  background:rgba(18,38,70,.58);
-  border:1px solid rgba(99,137,210,.16);
-  color:#68c8ff!important;
+  background:var(--btn-bg);
+  border:1px solid var(--border-color);
+  color:var(--link-color)!important;
   font-size:11px!important;
   line-height:1.35;
   font-weight:750;
@@ -2875,13 +2867,13 @@ body.sl-redesign.sl-overlay-page-open #homeLanding{
 }
 /* A modal must never reveal stale tables, home text or genre pills */
 body.sl-redesign .modal-overlay:not(#roomCreateModal):not(#addSongModal){
-  background:#06101f!important;
+  background:var(--bg-color)!important;
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
   isolation:isolate!important;
 }
 html.entry-home body.sl-redesign .modal-overlay:not(#roomCreateModal):not(#addSongModal){
-  background:#06101f!important;
+  background:var(--bg-color)!important;
 }
 body.sl-redesign.sl-add-song-open #addSongModal.sl-add-song-page-overlay{
   top:0!important;
@@ -2890,7 +2882,7 @@ body.sl-redesign.sl-add-song-open #addSongModal.sl-add-song-page-overlay{
   right:0!important;
   height:100dvh!important;
   padding:12px 24px!important;
-  background:#06101f!important;
+  background:var(--bg-color)!important;
   align-items:flex-start!important;
   justify-content:center!important;
   backdrop-filter:none!important;
@@ -2902,7 +2894,7 @@ body.sl-redesign.sl-add-song-open #addSongModal .sl-add-song-page{
 }
 body.sl-redesign.sl-room-create-open #roomCreateModal.sl-room-create-overlay{
   top:0!important;
-  background:#06101f!important;
+  background:var(--bg-color)!important;
   backdrop-filter:none!important;
 }
 /* Prevent "transparent" modal panels from inheriting backgrounds */
@@ -2939,7 +2931,7 @@ body.sl-redesign .modal-overlay:not(#roomCreateModal):not(#addSongModal){
   padding:14px!important;
   align-items:center!important;
   justify-content:center!important;
-  background:#06101f!important;
+  background:var(--bg-color)!important;
   border:0!important;
   box-shadow:none!important;
   backdrop-filter:none!important;
@@ -2984,7 +2976,7 @@ body.sl-redesign.sl-add-song-open #addSongModal .sl-add-song-page{
 /* Friends page 3-area redesign, retaining original Firebase hooks and IDs */
 body.sl-redesign #friendsModal.modal-overlay{
  position:fixed!important;inset:0 0 0 var(--sl-side)!important;
- padding:18px!important;background:#06101f!important;
+ padding:18px!important;background:var(--bg-color)!important;
  display:none;align-items:stretch!important;justify-content:center!important;
  overflow:hidden!important;border:0!important;z-index:1950!important;
 }
@@ -3081,11 +3073,7 @@ body:not(.in-room) #slRoomDock,
 body.sl-room-create-open:not(.in-room) #slRoomDock {display:none!important}
 body:not(.in-room) #slRoomDockHandle {display:none!important}
 #slRoomDock{--sl-dock-fs:1;--sl-dock-card-pad:7px;--sl-dock-card-gap:5px;--sl-dock-card-bg:#10213b;--sl-dock-surface:#0b1930;--sl-dock-foreground:#eef4ff;--sl-dock-subtle:#8394b4;--sl-dock-edge:rgba(113,145,208,.18);--sl-dock-status:#61dea2;--sl-dock-badge-bg:#182a49;--sl-dock-badge-ink:#eef4ff}
-#slRoomDock[data-dock-color="charcoal"]{background:#171b23!important;--sl-dock-card-bg:#272d39;--sl-dock-surface:#212632;--sl-dock-foreground:#f4f5f7;--sl-dock-subtle:#a6b0c0;--sl-dock-edge:#40495a}
-#slRoomDock[data-dock-color="purple"]{background:#1c1536!important;--sl-dock-card-bg:#342552;--sl-dock-surface:#281c43;--sl-dock-foreground:#f5efff;--sl-dock-subtle:#c2afd9;--sl-dock-edge:#63517d}
 #slRoomDock[data-dock-color="light"]{background:#eef3fb!important;--sl-dock-card-bg:#ffffff;--sl-dock-surface:#e6ecf8;--sl-dock-foreground:#172b48;--sl-dock-subtle:#5c6b82;--sl-dock-edge:#bdcbdf;--sl-dock-status:#166534;--sl-dock-badge-bg:#dbeafe;--sl-dock-badge-ink:#172b48}
-#slRoomDock[data-dock-density="compact"]{--sl-dock-card-pad:4px;--sl-dock-card-gap:3px}
-#slRoomDock[data-dock-density="relaxed"]{--sl-dock-card-pad:12px;--sl-dock-card-gap:10px}
 #slRoomDock .sl-dock-song{grid-template-columns:18px minmax(0,1fr) auto!important;gap:var(--sl-dock-card-gap)!important;margin-bottom:var(--sl-dock-card-gap)!important;padding:var(--sl-dock-card-pad)!important;background:var(--sl-dock-card-bg)!important;border-color:var(--sl-dock-edge)!important}
 #slRoomDock .sl-dock-section{background:var(--sl-dock-surface)!important;border-color:var(--sl-dock-edge)!important}
 #slRoomDock .sl-room-dock-top strong,#slRoomDock .sl-dock-title,#slRoomDock .sl-dock-section header strong{color:var(--sl-dock-foreground)!important}
@@ -3171,7 +3159,7 @@ body.sl-redesign.sl-room-create-open #roomCreateModal.sl-room-create-overlay{
   height:100dvh!important;
   padding:22px 20px!important;
   box-sizing:border-box!important;
-  background:#06101f!important;
+  background:var(--bg-color)!important;
   z-index:1950!important;
   overflow:auto!important;
 }
@@ -3563,13 +3551,13 @@ body.sl-redesign #addSongModal .sl-add-note p{
    Light declarations MUST remain scoped to body.theme-white.
    ========================================================== */
 body.sl-redesign.theme-white{
-  --bg-color:#ffffff;--text-color:#101010;--panel-bg:#ffffff;
+  --bg-color:var(--sl-bg);--text-color:var(--sl-text);--panel-bg:var(--sl-panel);
   --border-color:#c7d9f3;--btn-bg:#f0f5fe;--btn-hover:#e0eafb;
   --primary:#2563eb;--primary-text:#ffffff;--link-color:#1452bb;
   --th-bg:#e7effb;--th-hover:#dce9fd;--th-text:#101010;
   --sl-border-soft:#c7d9f3;
-  --sl-light-page:#ffffff;--sl-light-panel:#ffffff;--sl-light-soft:#edf4fe;
-  --sl-light-row:#e8f1fe;--sl-light-ink:#101010;--sl-light-muted:#4a5e7a;
+  --sl-bg:#ffffff;--sl-panel:#ffffff;--sl-text:#101010;--sl-muted:#526784;
+  --sl-red:#b42338;--sl-green:#166534;--sl-amber:#8a5800;
   color:#101010!important;background:#fff!important;color-scheme:light;
 }
 body.sl-redesign.theme-white .container,
@@ -3596,13 +3584,13 @@ body.sl-redesign.theme-white #slTopbar,
 body.sl-redesign.theme-white #slFilterbar{background:#fff!important;border-color:#c7d9f3!important;box-shadow:none!important}
 body.sl-redesign.theme-white .sl-page-heading h1{color:#101010!important}
 body.sl-redesign.theme-white .sl-page-heading p,
-body.sl-redesign.theme-white #slListMeta #songCountDisplay{color:#526784!important}
+body.sl-redesign.theme-white #slBottomMetaHost #songCountDisplay{color:#526784!important}
 body.sl-redesign.theme-white #slSearchHost #searchInput,
 body.sl-redesign.theme-white input.search-box,
 body.sl-redesign.theme-white #friendCodeInput,
-body.sl-redesign.theme-white #friendSearchInput{background:#fff!important;color:#101010!important;border:1px solid #bad0ef!important;box-shadow:none!important}
+body.sl-redesign.theme-white #friendSearchInput{background:#fff!important;color:#101010!important}
 body.sl-redesign.theme-white input::placeholder,
-body.sl-redesign.theme-white textarea::placeholder{color:#72839d!important;opacity:1!important}
+body.sl-redesign.theme-white textarea::placeholder{color:var(--sl-muted)!important;opacity:1!important}
 body.sl-redesign.theme-white #slGenreHost .genre-btn{background:#fff!important;color:#193657!important;border-color:#c7d9f3!important}
 body.sl-redesign.theme-white #slGenreHost .genre-btn.active{background:linear-gradient(110deg,#286ce9,#7350ed)!important;color:#fff!important;border-color:#5187f3!important}
 body.sl-redesign.theme-white #slGenreHost .genre-btn:not(.active):hover{background:#eaf2ff!important;color:#101010!important}
@@ -3614,7 +3602,7 @@ body.sl-redesign.theme-white #tableWrapper{background:#fff!important;border-colo
 body.sl-redesign.theme-white .table-header-wrapper,
 body.sl-redesign.theme-white .data-table th{background:#dfebfb!important;color:#111!important;border-color:#c7d9f3!important}
 body.sl-redesign.theme-white .table-body-wrapper,
-body.sl-redesign.theme-white .pagination-container{background:#fff!important;color:#101010!important;border-color:#c7d9f3!important}
+body.sl-redesign.theme-white #songPagination{background:#fff!important;color:#101010!important;border-color:#c7d9f3!important}
 body.sl-redesign.theme-white .data-table tbody tr:nth-child(odd){background:#fff!important}
 body.sl-redesign.theme-white .data-table tbody tr:nth-child(even){background:#e9f2ff!important}
 body.sl-redesign.theme-white .data-table tbody tr:hover{background:#dbeaff!important}
@@ -3623,8 +3611,8 @@ body.sl-redesign.theme-white .data-table th,
 body.sl-redesign.theme-white .data-table td:not(a){color:#101010!important;border-color:#d4e1f3!important}
 body.sl-redesign.theme-white .data-table a,
 body.sl-redesign.theme-white .artist-filter-button{color:#1452bb!important}
-body.sl-redesign.theme-white :is(.pagination-container,#masterActionsBar,#myListClipboardHeader,#myListBulkBar) button:not(.primary-btn):not(.active){background:#f0f5fe!important;color:#173451!important;border-color:#c1d4ef!important}
-body.sl-redesign.theme-white :is(.pagination-container,#masterActionsBar,#myListClipboardHeader,#myListBulkBar) button.active{background:linear-gradient(110deg,#286ce9,#7350ed)!important;color:white!important}
+body.sl-redesign.theme-white :is(#songPagination,#masterActionsBar,#myListClipboardHeader,#myListBulkBar) button:not(.primary-btn):not(.active){background:#f0f5fe!important;color:#173451!important;border-color:#c1d4ef!important}
+body.sl-redesign.theme-white :is(#songPagination,#masterActionsBar,#myListClipboardHeader,#myListBulkBar) button.active{background:linear-gradient(110deg,#286ce9,#7350ed)!important;color:white!important}
 body.sl-redesign.theme-white .my-part-icons button:not(.active){background:#f0f5fe!important;color:#193657!important;border-color:#bed1ec!important}
 body.sl-redesign.theme-white .my-part-icons button.active{background:linear-gradient(110deg,#286ce9,#7350ed)!important;color:#fff!important}
 /* Home has a gentle background, no dark framing. */
@@ -3686,8 +3674,6 @@ body.sl-redesign.theme-white .modal-overlay .modal button.active{background:line
 body.sl-redesign.theme-white .modal-overlay .modal .modal-close{color:#244468!important;background:transparent!important}
 /* Right dock automatically follows global light theme; typography scaling is preserved. */
 body.sl-redesign.theme-white #slRoomDock{background:#f5f8ff!important;--sl-dock-card-bg:#fff;--sl-dock-surface:#edf4fe;--sl-dock-foreground:#101010;--sl-dock-subtle:#536884;--sl-dock-edge:#c7d9f3;--sl-dock-status:#166534;--sl-dock-badge-bg:#dbeafe;--sl-dock-badge-ink:#172b48;color:#101010!important;border-color:#c7d9f3!important}
-body.sl-redesign.theme-white #slRoomDock .sl-dock-song{background:#fff!important}
-body.sl-redesign.theme-white #slRoomDock .sl-dock-section{background:#edf4fe!important}
 body.sl-redesign.theme-white #slDockDesignPanel{background:#fff!important;color:#101010!important;border-color:#c7d9f3!important}
 body.sl-redesign.theme-white #slDockDesignPanel :is(label,strong,small,span,p){color:#101010!important}
 @media(max-width:820px){body.sl-redesign.theme-white #slTopbar,body.sl-redesign.theme-white #slFilterbar{background:#fff!important}}
@@ -7504,7 +7490,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         const message = value ? validateNewChordWikiUrl(value) : '';
         const status = document.getElementById('newCodeUrlCheck');
         status.textContent = message || (value ? '✓ Key変更に対応するURL形式です。' : '');
-        status.style.color = message ? '#dc3545' : '#28a745';
+        status.style.color = message ? 'var(--sl-red)' : 'var(--sl-green)';
         newCodeUrlInput.setCustomValidity(message);
     });
 
