@@ -3294,6 +3294,56 @@ body.sl-redesign.sl-room-mylist #slFavArtistsShortcut{display:inline-flex;align-
 #roomCreateModal #slRoomJoinId{background:#07162b;border:1px solid #5373a5;color:#fff;border-radius:9px;padding:13px 14px;font-size:20px;letter-spacing:.07em;text-transform:uppercase;min-height:49px;box-sizing:border-box;width:100%}
 #roomCreateModal #slRoomJoinFeedback{min-height:24px;margin:0;color:#eecb88}
 @media(max-width:620px){#roomCreateModal .sl-room-choice{grid-template-columns:1fr}#roomCreateModal .sl-room-choice-button{min-height:130px}}
+
+/* Friends page: remove the enclosing card and use the full content canvas. */
+body.sl-redesign #friendsModal.modal-overlay{
+  padding:0!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+}
+body.sl-redesign #friendsModal .sl-friends-workspace{
+  width:100%!important;
+  max-width:none!important;
+  height:100%!important;
+  max-height:100%!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+#friendsModal .sl-friends-header{
+  padding:16px 22px!important;
+}
+#friendsModal .sl-friends-layout{
+  grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);
+  padding:12px 18px 16px!important;
+  gap:14px!important;
+}
+#friendsModal .sl-friends-panel{min-width:0;}
+#friendsModal .sl-friends-right{
+  grid-template-rows:minmax(220px,auto) minmax(160px,1fr);
+}
+@media(max-width:1000px) and (min-width:681px){
+  #friendsModal .sl-friends-layout{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    padding:10px!important;
+    gap:10px!important;
+  }
+}
+@media(max-width:680px){
+  body.sl-redesign #friendsModal.modal-overlay{padding:0!important;}
+  #friendsModal .sl-friends-header{padding:12px!important;}
+  #friendsModal .sl-friends-layout{
+    display:flex;
+    flex-direction:column;
+    padding:10px!important;
+    gap:10px!important;
+    overflow-y:auto;
+  }
+  #friendsModal .sl-friends-main{min-height:245px;max-height:360px;flex-shrink:0;}
+  #friendsModal .sl-friends-right{display:flex;flex-direction:column;overflow:visible;}
+}
 </style>
 </head>
 <body>
@@ -4139,7 +4189,6 @@ body.sl-redesign.sl-room-mylist #slFavArtistsShortcut{display:inline-flex;align-
   <div class="sl-add-song-page" role="main" aria-labelledby="slAddSongPageTitle">
 
     <header class="sl-add-song-heading">
-      <span class="sl-add-song-heading-icon" aria-hidden="true">📄＋</span>
       <div>
         <h2 id="slAddSongPageTitle">新規楽曲追加</h2>
         <p>シェアリスコアに未登録の楽曲を、管理者へ登録申請できます。</p>
