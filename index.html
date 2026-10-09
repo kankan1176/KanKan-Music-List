@@ -3553,6 +3553,135 @@ body.sl-redesign #addSongModal .sl-add-note p{
 
 /* ライトテーマ配色は再設計のため一時撤去。ダークテーマを基準とする。 */
 
+
+/* ==========================================================
+   LIGHT THEME 2026.10 — clean rebuild from dark baseline
+   ダークテーマの宣言は変更せず、theme-white限定で上書きする。
+   OBS右ドックは別デザイン設定のため対象外。
+   ========================================================== */
+body.sl-redesign.theme-white{
+ --sl-bg:#f3f6fc;--sl-panel:#ffffff;--sl-text:#192e4d;
+ --sl-muted:#536984;--sl-border:rgba(91,121,165,.32);--sl-border-soft:#d5dfed;
+ --bg-color:#f3f6fc;--panel-bg:#ffffff;--text-color:#192e4d;
+ --border-color:#cbd7e7;--btn-bg:#eaf1fb;--btn-hover:#dce8f9;
+ --primary:#2563db;--primary-text:#ffffff;--link-color:#145bbb;
+ --th-bg:#e5edfa;--th-hover:#d8e5f7;--th-text:#1c3455;
+ color:var(--sl-text)!important;background:#f3f6fc!important;
+ color-scheme:light;
+}
+html:has(body.sl-redesign.theme-white){background:#f3f6fc!important}
+body.sl-redesign.theme-white #slSidebar{
+ background:linear-gradient(180deg,#ffffff,#f2f6fc)!important;
+ border-right:1px solid #d4deec!important;box-shadow:6px 0 18px rgba(38,70,121,.07)!important;
+}
+body.sl-redesign.theme-white .sl-sidebar-brand strong,
+body.sl-redesign.theme-white .sl-sidebar-nav button,
+body.sl-redesign.theme-white .sl-sidebar-nav a{color:#1c3455}
+body.sl-redesign.theme-white .sl-sidebar-brand small,
+body.sl-redesign.theme-white .sl-sidebar-footer,
+body.sl-redesign.theme-white .sl-sidebar-footer *{color:#617795}
+body.sl-redesign.theme-white .sl-sidebar-nav button:hover,
+body.sl-redesign.theme-white .sl-sidebar-nav a:hover{background:#e9f0ff;color:#1e4d95}
+body.sl-redesign.theme-white .sl-sidebar-nav .active{color:#fff!important}
+body.sl-redesign.theme-white #slTopbar,
+body.sl-redesign.theme-white #slFilterbar,
+body.sl-redesign.theme-white .controls,
+body.sl-redesign.theme-white #roomListPanel{background:#ffffff!important;color:#192e4d!important;border-color:#d0ddef!important}
+body.sl-redesign.theme-white #slTopbar h1,
+body.sl-redesign.theme-white #slTopbar h2,
+body.sl-redesign.theme-white #slFilterbar h2{color:#172f52!important}
+body.sl-redesign.theme-white #tableWrapper,
+body.sl-redesign.theme-white .table-body-wrapper,
+body.sl-redesign.theme-white .table-header-wrapper{background:#fff!important;color:#1b3252!important;border-color:#ccd9ea!important}
+body.sl-redesign.theme-white #tableWrapper table,
+body.sl-redesign.theme-white #tableWrapper tbody,
+body.sl-redesign.theme-white #tableWrapper tbody tr,
+body.sl-redesign.theme-white #tableWrapper tbody td{background:#fff!important;color:#1a3151!important;border-color:#e2e9f4!important}
+body.sl-redesign.theme-white #tableWrapper tbody tr:nth-child(even),
+body.sl-redesign.theme-white #tableWrapper tbody tr:nth-child(even) td{background:#f3f7fe!important}
+body.sl-redesign.theme-white #tableWrapper tbody tr:hover,
+body.sl-redesign.theme-white #tableWrapper tbody tr:hover td{background:#e7f0ff!important}
+body.sl-redesign.theme-white #tableWrapper thead,
+body.sl-redesign.theme-white #tableWrapper th,
+body.sl-redesign.theme-white .table-header-wrapper th{background:#dfeafb!important;color:#193454!important}
+body.sl-redesign.theme-white #tableWrapper a,
+body.sl-redesign.theme-white .artist-filter-button{color:#155bb9!important}
+body.sl-redesign.theme-white .search-box,
+body.sl-redesign.theme-white .setting-input,
+body.sl-redesign.theme-white input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),
+body.sl-redesign.theme-white textarea,
+body.sl-redesign.theme-white select{background:#fff!important;color:#192e4d!important;border-color:#b8cbe4!important}
+body.sl-redesign.theme-white input::placeholder,
+body.sl-redesign.theme-white textarea::placeholder{color:#657d9e!important;opacity:1}
+body.sl-redesign.theme-white button:not(.primary-btn):not(.active):not(.sl-nav-logout):not(.sl-room-create-primary),
+body.sl-redesign.theme-white .genre-btn:not(.active){color:#1c375a;border-color:#c3d3e8}
+body.sl-redesign.theme-white .genre-btn.active,
+body.sl-redesign.theme-white button.primary-btn{background:#2563db!important;color:#fff!important;border-color:#2563db!important}
+/* Top / release notes */
+body.sl-redesign.theme-white #homeLanding,
+body.sl-redesign.theme-white .sl-home-visual{background:#f3f6fc!important;color:#1c3151!important}
+body.sl-redesign.theme-white .sl-home-brand-text,
+body.sl-redesign.theme-white .sl-home-tagline,
+body.sl-redesign.theme-white .sl-home-version{color:#1c3151!important}
+body.sl-redesign.theme-white .sl-home-update{background:#fff!important;border-color:#c9d8eb!important;box-shadow:0 12px 30px rgba(45,75,130,.08)!important}
+body.sl-redesign.theme-white .sl-home-update-title{background:#edf3fc!important;border-color:#d6e0ef!important}
+body.sl-redesign.theme-white .sl-home-update-title h1,
+body.sl-redesign.theme-white .sl-home-update-list strong{color:#1d3657!important}
+body.sl-redesign.theme-white .sl-home-update-title small,
+body.sl-redesign.theme-white .sl-home-update-list small{color:#536b8c!important}
+body.sl-redesign.theme-white .sl-home-update-list article{background:#f4f7fd!important;border-color:#d8e4f2!important}
+/* Room landing & room create */
+body.sl-redesign.theme-white #slRoomChoice,
+body.sl-redesign.theme-white .sl-room-entry-panel,
+body.sl-redesign.theme-white #roomCreateModal,
+body.sl-redesign.theme-white .sl-room-create-page{background:#f3f6fc!important;color:#1d3657!important}
+body.sl-redesign.theme-white .sl-room-choice-button,
+body.sl-redesign.theme-white .sl-room-create-card,
+body.sl-redesign.theme-white .sl-room-create-info>div,
+body.sl-redesign.theme-white .sl-room-create-note{background:#fff!important;border-color:#cbd9ea!important;color:#193454!important;box-shadow:0 5px 18px rgba(35,78,145,.06)!important}
+body.sl-redesign.theme-white .sl-room-choice-button strong,
+body.sl-redesign.theme-white .sl-room-create-heading h2,
+body.sl-redesign.theme-white .sl-room-create-info strong{color:#193454!important}
+body.sl-redesign.theme-white .sl-room-choice-button small,
+body.sl-redesign.theme-white .sl-room-create-heading p,
+body.sl-redesign.theme-white .sl-room-create-info small{color:#59708e!important}
+/* Add-song page */
+body.sl-redesign.theme-white #addSongModal,
+body.sl-redesign.theme-white .sl-add-song-page{background:#f3f6fc!important;color:#1b3454!important}
+body.sl-redesign.theme-white .sl-add-song-card,
+body.sl-redesign.theme-white .sl-add-guide-list>*,
+body.sl-redesign.theme-white .sl-add-flow-box,
+body.sl-redesign.theme-white .sl-add-note{background:#fff!important;color:#1b3454!important;border-color:#ccdaec!important}
+body.sl-redesign.theme-white .sl-add-song-page h1,
+body.sl-redesign.theme-white .sl-add-song-page h2,
+body.sl-redesign.theme-white .sl-add-song-page strong,
+body.sl-redesign.theme-white .sl-add-song-page label{color:#1b3454!important}
+body.sl-redesign.theme-white .sl-add-song-page small,
+body.sl-redesign.theme-white .sl-add-song-page p{color:#586f8f!important}
+/* Friends workspace */
+body.sl-redesign.theme-white #friendsModal,
+body.sl-redesign.theme-white .sl-friends-workspace{background:#f3f6fc!important;color:#1b3454!important}
+body.sl-redesign.theme-white .sl-friends-header,
+body.sl-redesign.theme-white .sl-friends-panel,
+body.sl-redesign.theme-white .friends-section,
+body.sl-redesign.theme-white .friend-item{background:#fff!important;color:#1b3454!important;border-color:#cbd9eb!important}
+body.sl-redesign.theme-white #friendsModal h2,
+body.sl-redesign.theme-white #friendsModal h3,
+body.sl-redesign.theme-white .friend-name{color:#1a3455!important}
+body.sl-redesign.theme-white .sl-friends-caption,
+body.sl-redesign.theme-white .sl-friends-info{color:#5a7190!important}
+/* Generic modals (leave independently styled OBS dock untouched) */
+body.sl-redesign.theme-white .modal-overlay:not(#roomCreateModal):not(#addSongModal):not(#friendsModal){background:rgba(39,60,94,.24)!important}
+body.sl-redesign.theme-white .modal-overlay .modal{background:#fff!important;color:#1a3352!important;border-color:#c7d7eb!important;box-shadow:0 18px 40px rgba(42,72,121,.17)!important}
+body.sl-redesign.theme-white .modal h2,
+body.sl-redesign.theme-white .modal h3,
+body.sl-redesign.theme-white .modal label,
+body.sl-redesign.theme-white .modal p,
+body.sl-redesign.theme-white .modal li{color:#1b3455!important}
+body.sl-redesign.theme-white .sl-help-nav button:not(.active){background:#edf3fc!important;color:#23456d!important}
+body.sl-redesign.theme-white .sl-help-group-title{color:#536b8d!important}
+/* Right session dock: intentional exception, independently themed navy / light. */
+
 </style>
 </head>
 <body>
@@ -4668,6 +4797,7 @@ body.sl-redesign #addSongModal .sl-add-note p{
             <label>🎨 UIカラーテーマ</label>
             <select id="themeSelect" onchange="changeTheme()">
                 <option value="dark">ダーク</option>
+                <option value="white">ライト</option>
             </select>
         </div>
         <div class="setting-group">
@@ -7260,7 +7390,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     const GUEST_THEME_STORAGE = 'sharelistscore_guest_theme';
-    const VALID_THEMES = ['dark']; // ライトは配色を一から設計した後に再追加
+    const VALID_THEMES = ['dark', 'white']; // ダーク・ライトの2テーマ
     function applyTheme(theme) {
         const selected = VALID_THEMES.includes(theme) ? theme : 'dark';
         // body.classNameを丸ごと書き換えると、ルーム参加状態(in-room)が消えるためテーマクラスだけ変更する。
