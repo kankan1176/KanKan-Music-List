@@ -3344,6 +3344,28 @@ body.sl-redesign #friendsModal .sl-friends-workspace{
   #friendsModal .sl-friends-main{min-height:245px;max-height:360px;flex-shrink:0;}
   #friendsModal .sl-friends-right{display:flex;flex-direction:column;overflow:visible;}
 }
+
+/* お気に入りアーティスト：件数、リスト、確認ボタンの不自然な折り返しを防止 */
+body.sl-redesign #favoriteArtistsModal .modal{max-width:650px!important;width:min(650px,calc(100vw - 30px))!important;box-sizing:border-box;padding:24px!important;}
+body.sl-redesign #favoriteArtistsModal .sl-fav-artists-heading{display:flex!important;align-items:baseline;flex-wrap:wrap;column-gap:12px;row-gap:4px;padding-right:34px!important;}
+body.sl-redesign #favoriteArtistsModal .sl-fav-artists-heading > span{min-width:0;overflow-wrap:normal;word-break:keep-all;}
+body.sl-redesign #favoriteArtistsModal #favoriteArtistsTotal{font-size:16px!important;white-space:nowrap;flex-shrink:0;}
+body.sl-redesign #favoriteArtistsModal .sl-fav-artist-row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--border-color);min-width:0;}
+body.sl-redesign #favoriteArtistsModal .sl-fav-artist-name{flex:1 1 0;min-width:0;text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.45!important;padding:10px 12px!important;}
+body.sl-redesign #favoriteArtistsModal .sl-fav-artist-remove{flex:0 0 auto;white-space:nowrap;padding:9px 14px!important;}
+body.sl-redesign #artistConfirmModal .modal{max-width:470px!important;width:min(470px,calc(100vw - 28px))!important;box-sizing:border-box;padding:24px!important;}
+body.sl-redesign #artistConfirmModal .artist-confirm-actions{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;gap:10px!important;}
+body.sl-redesign #artistConfirmModal #artistFavoriteControl{display:flex!important;min-width:0!important;white-space:normal!important;gap:8px!important;margin:0!important;}
+body.sl-redesign #artistConfirmModal #artistFavoriteControl > span{height:auto!important;line-height:1.4!important;font-size:14px!important;white-space:normal!important;}
+body.sl-redesign #artistConfirmModal #artistModalStar{flex:0 0 42px!important;width:42px!important;height:42px!important;min-height:42px!important;padding:0!important;font-size:24px!important;}
+body.sl-redesign #artistConfirmModal .artist-confirm-actions > button{white-space:nowrap!important;min-width:67px;}
+body.sl-redesign #artistConfirmModal #confirmArtistName{overflow-wrap:anywhere;}
+@media(max-width:520px){
+ body.sl-redesign #favoriteArtistsModal .modal{padding:18px!important;}
+ body.sl-redesign #favoriteArtistsModal .sl-fav-artists-heading > span{font-size:23px!important;}
+ body.sl-redesign #artistConfirmModal .artist-confirm-actions{grid-template-columns:1fr 1fr!important;}
+ body.sl-redesign #artistConfirmModal #artistFavoriteControl{grid-column:1/-1;justify-content:space-between;}
+}
 </style>
 </head>
 <body>
@@ -4055,7 +4077,7 @@ body.sl-redesign #friendsModal .sl-friends-workspace{
 <div class="modal-overlay" id="favoriteArtistsModal" onclick="closeModal(event,'favoriteArtistsModal')" style="z-index:1050;">
  <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;width:94%;">
   <span class="modal-close" onclick="closeModal(null,'favoriteArtistsModal')">&times;</span>
-  <h2>⭐ お気に入りアーティスト一覧 <small id="favoriteArtistsTotal" style="font-size:12px;"></small></h2>
+  <h2 class="sl-fav-artists-heading"><span>⭐ お気に入りアーティスト一覧</span><small id="favoriteArtistsTotal"></small></h2>
   <p style="font-size:12px;opacity:.8;">お気に入り登録は、楽曲のマイリスト登録には影響しません。アーティスト名から全曲一覧に絞り込めます。</p>
   <div id="favoriteArtistsList" style="max-height:min(55dvh,500px);overflow:auto;"></div>
   <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button type="button" onclick="closeModal(null,'favoriteArtistsModal')">閉じる</button></div>
@@ -4991,10 +5013,10 @@ body.sl-redesign #friendsModal .sl-friends-workspace{
         list.replaceChildren();
         if (!names.length) {list.textContent='お気に入りアーティストはまだ登録されていません。';return;}
         names.forEach(name=>{
-            const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 3px;border-bottom:1px solid var(--border-color)';
-            const link=document.createElement('button');link.type='button';link.textContent='⭐ '+name;link.style.cssText='flex:1;text-align:left;white-space:normal;overflow-wrap:anywhere;';
+            const row=document.createElement('div');row.className='sl-fav-artist-row';
+            const link=document.createElement('button');link.type='button';link.textContent='⭐ '+name;link.className='sl-fav-artist-name';
             link.onclick=()=>{closeModal(null,'favoriteArtistsModal');closeModal(null,'myPageModal');if(myListMode && !currentRoomId) {myListMode=false;document.body.classList.remove('my-list-mode');} const search=document.getElementById('searchInput'); if(search){search.value=name;search.dispatchEvent(new Event('input',{bubbles:true}));} renderTable();};
-            const remove=document.createElement('button');remove.type='button';remove.textContent='解除';remove.title=name+'のお気に入りを解除';
+            const remove=document.createElement('button');remove.type='button';remove.textContent='解除';remove.title=name+'のお気に入りを解除';remove.className='sl-fav-artist-remove';
             remove.onclick=()=>{pendingArtists[artistDbKey(name)]=false;updateMyListBar();renderFavoriteArtistsList();renderTable();};
             row.append(link,remove);list.append(row);
         });
