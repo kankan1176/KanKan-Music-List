@@ -191,54 +191,19 @@
       messagingSenderId: "759342880820",
       appId: "1:759342880820:web:9af0af755e35926a281261"
     };
-    // メイン画面で①確定した配色の「表示を確認」専用プレビュー。
-    // URLをコピーした通常のOBS URLには影響せず、実際のOBSへの反映はコピーしたCSSで行う。
-    (function applyConfirmedStylePreview() {
-        const query = new URLSearchParams(window.location.search);
-        if (query.get('obsPreview') !== '1') return;
-        const frame = query.get('previewFrame');
-        const text = query.get('previewText');
-        const background = query.get('previewBg');
-        const transparencyRaw = query.get('previewOpacity');
-        const transparency = Number(transparencyRaw);
-        const validColor = value => /^#[0-9a-fA-F]{6}$/.test(value || '');
-        if (![frame, text, background].every(validColor) || transparencyRaw === null || !Number.isInteger(transparency) || transparency < 0 || transparency > 100) return;
-        const rgb = [1, 3, 5].map(i => parseInt(background.slice(i, i + 2), 16));
-        const alpha = Number(((100 - transparency) / 100).toFixed(2));
-        const bg = `rgba(${rgb.join(', ')}, ${alpha})`;
-        const previewStyle = document.createElement('style');
-        previewStyle.id = 'confirmed-obs-style-preview';
-        previewStyle.textContent = `:root {
-            --primary: ${frame}; --primary-light: ${frame};
-            --text-color: ${text}; --panel-bg: ${bg};
-        }
-        .obs-container { background:${bg} !important; border-color:${frame} !important; color:${text} !important; }
-        .obs-header { border-bottom-color:${frame} !important; }
-        .obs-title,.obs-song-title,.obs-song-artist,.empty-notice,.obs-song-info { color:${text} !important; }
-        .obs-counter { background:${frame} !important; color:${text} !important; }
-        .obs-song-item { border-left-color:${frame} !important; color:${text} !important; }
-        .obs-song-num { color:${frame} !important; }`;
-        document.head.appendChild(previewStyle);
-    })();
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const obsAuth = firebase.auth();
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('room');
-    let allSongsCache = [];
 
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9eDly-go13EEWyrFv-cBvdI8oY8YSUNNXyXw6tpP60SqWlFUQC8sPY9hTGRobkxNoQYgq67UBR0Er/pub?gid=0&single=true&output=csv";
-
-    // OBSはCSVとFirebase認証を並行して準備し、両方が完了したらキューを購読する。
-    // 認証が復元される前に匿名ログインを重ねないよう onAuthStateChanged を使用する。
-    let csvReady = false;
+    // OBSは公開CSVに依存せず、完了曲だけを楽曲IDでFirebaseから個別取得する。
+    // これによりマスター差し替え後も、同じ楽曲IDなら即時反映される。
     let authReady = false;
     let subscribed = false;
     let latestQueueRef = null;
-    let songById = new Map();
-    let legacySongById = new Map();
+    const songCache = new Map();
     const noticeEl = document.getElementById('obsCompletedContainer');
 
     function showObsError(message, error) {
@@ -246,22 +211,46 @@
         noticeEl.innerHTML = '<div class="empty-notice">' + escapeHtml(message) + '</div>';
     }
 
+    async function fetchSongById(songId) {
+        const id = String(songId ?? '');
+        if (!id) return null;
+        if (songCache.has(id)) return songCache.get(id);
+        try {
+            const snap = await db.ref('songs/' + id).once('value');
+            const raw = snap.val();
+            if (!raw || typeof raw !== 'object' || !String(raw.title || '').trim()) {
+                songCache.set(id, null);
+                return null;
+            }
+            const song = {
+                _id: id,
+                '曲名': String(raw.title || ''),
+                'アーティスト': String(raw.artist || '')
+            };
+            songCache.set(id, song);
+            return song;
+        } catch (error) {
+            console.warn('[OBS] 楽曲取得失敗:', id, error);
+            return null;
+        }
+    }
+
     function subscribeWhenReady() {
-        if (subscribed || !csvReady || !authReady || !roomId) return;
+        if (subscribed || !authReady || !roomId) return;
         subscribed = true;
         latestQueueRef = db.ref('rooms/' + roomId + '/queue');
-        latestQueueRef.on('value', (snapshot) => {
+        latestQueueRef.on('value', async (snapshot) => {
             const queue = snapshot.val() || {};
+            const rawCompleted = Object.values(queue)
+                .filter(item => item && item.status === 'completed')
+                .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
             const completedItems = [];
-            Object.keys(queue).forEach(qId => {
-                const item = queue[qId];
-                if (!item || item.status !== 'completed') return;
-                const id = String(item.songId ?? '');
-                const songData = songById.get(id) || (/^\d+$/.test(id) ? legacySongById.get(id) : null);
+            for (const item of rawCompleted) {
+                const songData = await fetchSongById(item.songId);
                 if (songData) completedItems.push({ ...item, songData });
-                else console.warn('[OBS] マスターで見つからない楽曲ID:', id);
-            });
-            completedItems.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+                else console.warn('[OBS] マスターで見つからない楽曲ID:', String(item.songId ?? ''));
+            }
             renderObsList(completedItems);
         }, (error) => {
             subscribed = false;
@@ -292,47 +281,7 @@
             }
         }, error => showObsError('⚠️ Firebaseの認証状態を確認できません。', error));
 
-        Papa.parse(SHEET_CSV_URL, {
-            download: true,
-            header: false,
-            skipEmptyLines: true,
-            encoding: 'UTF-8',
-            complete: function(results) {
-                const rawData = results.data || [];
-                const headerIndex = rawData.findIndex(row => row.some(v => String(v).trim() === '曲名'));
-                if (headerIndex < 0) {
-                    showObsError('⚠️ 公開CSVに「曲名」列がありません。');
-                    return;
-                }
-                const headers = rawData[headerIndex].map(v => String(v).trim());
-                const idColumn = headers.indexOf('楽曲ID');
-                if (idColumn < 0) {
-                    showObsError('⚠️ 公開CSVに「楽曲ID」列がありません。');
-                    return;
-                }
-                const rows = rawData.slice(headerIndex + 1).filter(row => row.some(cell => String(cell || '').trim()));
-                const seen = new Set();
-                if (rows.some(row => {
-                    const id = String(row[idColumn] || '').trim();
-                    if (!id || seen.has(id)) return true;
-                    seen.add(id);
-                    return false;
-                })) {
-                    showObsError('⚠️ 楽曲IDに空欄または重複があります。');
-                    return;
-                }
-                allSongsCache = rows.map((row, idx) => {
-                    const obj = { _id: String(row[idColumn]).trim(), _legacyId: String(idx) };
-                    headers.forEach((h, i) => { obj[h] = row[i] || ''; });
-                    return obj;
-                });
-                songById = new Map(allSongsCache.map(song => [song._id, song]));
-                legacySongById = new Map(allSongsCache.map(song => [song._legacyId, song]));
-                csvReady = true;
-                subscribeWhenReady();
-            },
-            error: (error) => showObsError('⚠️ スプレッドシートの取得に失敗しました。', error)
-        });
+        subscribeWhenReady();
     }
 
     function escapeHtml(str) {
