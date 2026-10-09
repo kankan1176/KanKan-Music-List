@@ -1,9 +1,9 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>シェアリスコア 管理者・ルーム管理</title>
-<style>:root{color-scheme:dark;font-family:system-ui,'Noto Sans JP',sans-serif}body{margin:0;background:#081629;color:#edf4ff}main{max-width:1100px;margin:auto;padding:24px 18px}h1{font-size:27px}p{line-height:1.7;color:#aebed6}.top{display:flex;gap:15px;align-items:center;justify-content:space-between;flex-wrap:wrap}.stats{display:flex;gap:12px;margin:22px 0;flex-wrap:wrap}.stat{flex:1;background:#122846;border:1px solid #325176;padding:18px;border-radius:12px;min-width:130px}.stat strong{font-size:28px;display:block}button,a.action{font:inherit;padding:10px 14px;border:1px solid #5275a1;background:#243d61;color:white;border-radius:9px;cursor:pointer;text-decoration:none}button:hover,a.action:hover{background:#335985}button.danger{background:#9a2b3a;border-color:#c55c68}button:disabled{opacity:.45;cursor:not-allowed}table{width:100%;border-collapse:collapse;background:#10223c;border-radius:12px;overflow:hidden}th,td{padding:13px;border-bottom:1px solid #2d4665;text-align:left}th{color:#a9c4e6}code{color:#b9daff}#message{min-height:25px}.muted{color:#aebed6}.error{color:#ffadba}a{color:#96cbff}.hint{font-size:13px}tr:hover{background:#183354}@media(max-width:700px){main{padding:14px}table{font-size:12px}th,td{padding:8px 5px}h1{font-size:22px}button{padding:9px}}</style>
+<style>:root{color-scheme:dark;font-family:system-ui,'Noto Sans JP',sans-serif}body{margin:0;background:#081629;color:#edf4ff}main{max-width:1100px;margin:auto;padding:24px 18px}h1{font-size:27px}p{line-height:1.7;color:#aebed6}.top{display:flex;gap:15px;align-items:center;justify-content:space-between;flex-wrap:wrap}.stats{display:flex;gap:12px;margin:22px 0;flex-wrap:wrap}.stat{flex:1;background:#122846;border:1px solid #325176;padding:18px;border-radius:12px;min-width:130px}.stat strong{font-size:28px;display:block}button,a.action{font:inherit;padding:10px 14px;border:1px solid #5275a1;background:#243d61;color:white;border-radius:9px;cursor:pointer;text-decoration:none}button:hover,a.action:hover{background:#335985}button.danger{background:#9a2b3a;border-color:#c55c68}button:disabled{opacity:.45;cursor:not-allowed}table{width:100%;border-collapse:collapse;background:#10223c;border-radius:12px;overflow:hidden}th,td{padding:13px;border-bottom:1px solid #2d4665;text-align:left}th{color:#a9c4e6}code{color:#b9daff}#message{min-height:25px}.muted{color:#aebed6}.error{color:#ffadba}a{color:#96cbff}.hint{font-size:13px}tr:hover{background:#183354}th button.sort{border:0;background:transparent;padding:4px 2px;color:#c3d8f6;font-weight:750;white-space:nowrap}th button.sort:hover,th button.sort[aria-pressed="true"]{color:#fff;text-decoration:underline}#bulkDeleteBtn{background:#9a2b3a;border-color:#c55c68}#bulkDeleteBtn:disabled{opacity:.45}.toolbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.busy-note{color:#aebed6;font-size:13px}@media(max-width:700px){main{padding:14px}table{font-size:12px}th,td{padding:8px 5px}h1{font-size:22px}button{padding:9px}}</style>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script></head><body><main><div class="top"><div><h1>🛡️ ルーム管理</h1><p>管理者専用 · Firebase Realtime Database</p></div><div><a class="action" href="admin.html">管理者ページに戻る</a> <button id="loginBtn">Googleでログイン</button> <button id="logoutBtn" hidden>ログアウト</button></div></div>
-<p id="message" role="status">ログイン状態を確認中…</p><section id="panel" hidden><div class="stats"><div class="stat"><span>総ルーム数</span><strong id="total">—</strong></div><div class="stat"><span>接続中ルーム</span><strong id="active">—</strong></div><div class="stat"><span>空ルーム</span><strong id="empty">—</strong></div></div><div class="top"><p class="hint">接続人数は /members の登録数を使用します。切断反映には遅延があります。<br>削除は空ルームだけ許可し、削除直前にもサーバー側で再判定します。</p><button id="refreshBtn">一覧を更新</button></div><div style="overflow-x:auto"><table><thead><tr><th>ルームID</th><th>作成日時</th><th>接続者</th><th>曲数</th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></section></main>
+<p id="message" role="status">ログイン状態を確認中…</p><section id="panel" hidden><div class="stats"><div class="stat"><span>総ルーム数</span><strong id="total">—</strong></div><div class="stat"><span>接続中ルーム</span><strong id="active">—</strong></div><div class="stat"><span>空ルーム</span><strong id="empty">—</strong></div></div><div class="top"><p class="hint">接続人数は /members の登録数を使用します。切断反映には遅延があります。<br>削除は空ルームだけ許可し、削除直前にもサーバー側で再判定します。</p><div class="toolbar-actions"><button id="refreshBtn">一覧を更新</button><button id="bulkDeleteBtn" class="danger" disabled>接続者0人の部屋を一括削除</button></div></div><div style="overflow-x:auto"><table><thead><tr><th><button class="sort" type="button" data-sort="id" aria-pressed="false">ルームID <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="createdAt" aria-pressed="true">作成日時 <span class="arrow">▼</span></button></th><th><button class="sort" type="button" data-sort="members" aria-pressed="false">接続者 <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="songs" aria-pressed="false">曲数 <span class="arrow"></span></button></th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></section></main>
 <script>
 'use strict';
 const config={
@@ -16,15 +16,99 @@ const config={
       appId: "1:759342880820:web:9af0af755e35926a281261"
     };
 firebase.initializeApp(config);const auth=firebase.auth(),db=firebase.database();
-const $=id=>document.getElementById(id);let currentUser=null,roomsData={},deletingRoomId=null;
+const $=id=>document.getElementById(id);let currentUser=null,roomsData={},deletingRoomId=null,bulkDeleting=false,sortKey='createdAt',sortDirection='desc';
 function message(text,error=false){$('message').textContent=text;$('message').classList.toggle('error',error)}
 function isAdminUser(u){return !!u&&!u.isAnonymous&&u.providerData?.some(p=>p.providerId==='google.com')}
 function formatDate(v){const n=Number(v);if(!Number.isFinite(n)||n<=0)return '不明';return new Date(n<1e11?n*1000:n).toLocaleString('ja-JP')}
 const memberCount=room=>room&&room.members&&typeof room.members==='object'?Object.keys(room.members).length:0;
 async function reload(){if(!currentUser)return;message('ルーム情報を取得中…');try{const s=await db.ref('rooms').once('value');roomsData=s.val()||{};render();message('最新の情報を表示しています。')}catch(e){message('一覧の取得に失敗しました。ルールの管理者読み取り権限を確認してください。 '+e.message,true)}}
-function render(){let total=0,active=0,empty=0;const tbody=$('rows');tbody.replaceChildren();const entries=Object.entries(roomsData).sort((a,b)=>Number(b[1]?.settings?.createdAt||0)-Number(a[1]?.settings?.createdAt||0));for(const [id,room]of entries){total++;const count=memberCount(room);count?active++:empty++;const tr=document.createElement('tr');for(const value of [id,formatDate(room?.settings?.createdAt),count+' 人',Object.keys(room?.queue||{}).length+' 曲']){const td=document.createElement('td');td.textContent=value;tr.append(td)}const td=document.createElement('td');const b=document.createElement('button');b.textContent=count?'接続中':'削除';b.className='danger';b.disabled=count!==0||!!deletingRoomId;b.addEventListener('click',()=>deleteRoom(id));td.append(b);tr.append(td);tbody.append(tr)}if(!total){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='ルームはありません';tr.append(td);tbody.append(tr)}$('total').textContent=String(total);$('active').textContent=String(active);$('empty').textContent=String(empty)}
-async function deleteRoom(id){if(!currentUser||deletingRoomId)return;deletingRoomId=id;document.querySelectorAll("#rows button").forEach(b=>b.disabled=true);try{message('削除直前の接続状況を確認中…');const snap=await db.ref('rooms/'+id).once('value');if(!snap.exists()){message('このルームは既にありません。');await reload();return}if(memberCount(snap.val())!==0){message('接続者がいるため削除できません。',true);await reload();return}const typed=window.prompt('空ルーム '+id+' を完全削除します。確認のためルームIDを入力してください。\n予約曲とルーム共有リストも消えます。');if(typed!==id){message('削除をキャンセルしました。');return}message('削除処理を実行中…'); // shared list and room deleted atomically; Rules check pre-state at write time.
-await db.ref().update({['roomSharedLists/'+id]:null,['rooms/'+id]:null});message('ルーム '+id+' を削除しました。');await reload()}catch(e){message('削除できませんでした。参加者の再入室またはルールの拒否が考えられます。 '+e.message,true);await reload()}finally{deletingRoomId=null;render()}}
+function sortedEntries(){
+  const records=Object.entries(roomsData);
+  records.sort(([aid,a],[bid,b])=>{
+    let diff=0;
+    if(sortKey==='id')diff=aid.localeCompare(bid,'ja',{numeric:true,sensitivity:'base'});
+    else if(sortKey==='createdAt')diff=(Number(a?.settings?.createdAt)||0)-(Number(b?.settings?.createdAt)||0);
+    else if(sortKey==='members')diff=memberCount(a)-memberCount(b);
+    else if(sortKey==='songs')diff=Object.keys(a?.queue||{}).length-Object.keys(b?.queue||{}).length;
+    return (diff===0?aid.localeCompare(bid,'ja',{numeric:true}):diff)*(sortDirection==='asc'?1:-1);
+  });
+  return records;
+}
+function render(){
+  let total=0,active=0,empty=0;
+  const tbody=$('rows');tbody.replaceChildren();
+  const busy=!!deletingRoomId||bulkDeleting;
+  for(const [id,room]of sortedEntries()){
+    total++;
+    const count=memberCount(room);count?active++:empty++;
+    const tr=document.createElement('tr');
+    for(const value of [id,formatDate(room?.settings?.createdAt),count+' 人',Object.keys(room?.queue||{}).length+' 曲']){
+      const td=document.createElement('td');td.textContent=value;tr.append(td);
+    }
+    const td=document.createElement('td'),b=document.createElement('button');
+    b.textContent=count?'接続中':'削除';b.className='danger';b.disabled=count!==0||busy;
+    b.addEventListener('click',()=>deleteRoom(id));td.append(b);tr.append(td);tbody.append(tr);
+  }
+  if(!total){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='ルームはありません';tr.append(td);tbody.append(tr)}
+  $('total').textContent=String(total);$('active').textContent=String(active);$('empty').textContent=String(empty);
+  $('bulkDeleteBtn').disabled=busy||empty===0||!currentUser;
+  $('refreshBtn').disabled=busy;
+  document.querySelectorAll('th button.sort').forEach(button=>{
+    const selected=button.dataset.sort===sortKey;
+    button.setAttribute('aria-pressed',String(selected));
+    button.querySelector('.arrow').textContent=selected?(sortDirection==='asc'?'▲':'▼'):'';
+  });
+}
+// Always confirm current occupancy immediately before each deletion. The root multi-path
+// update is checked again by Realtime Database Rules at commit time.
+async function removeEmptyRoom(id){
+  const snap=await db.ref('rooms/'+id).once('value');
+  if(!snap.exists())return 'missing';
+  if(memberCount(snap.val())!==0)return 'occupied';
+  await db.ref().update({['roomSharedLists/'+id]:null,['rooms/'+id]:null});
+  return 'deleted';
+}
+async function deleteRoom(id){
+  if(!currentUser||deletingRoomId||bulkDeleting)return;
+  if(!window.confirm('空ルーム「'+id+'」を削除しますか？\n予約曲とルーム共有リストも削除されます。'))return;
+  deletingRoomId=id;render();
+  try{
+    message('削除直前の接続状況を確認中…');
+    const result=await removeEmptyRoom(id);
+    message(result==='deleted'?'ルーム '+id+' を削除しました。':result==='occupied'?'接続者がいるため削除できません。':'このルームは既にありません。',result==='occupied');
+  }catch(e){message('削除できませんでした。接続状況またはルールをご確認ください。 '+e.message,true)}
+  finally{deletingRoomId=null;await reload();}
+}
+async function deleteAllEmptyRooms(){
+  if(!currentUser||bulkDeleting||deletingRoomId)return;
+  const ids=Object.entries(roomsData).filter(([,room])=>memberCount(room)===0).map(([id])=>id);
+  if(!ids.length){message('削除対象の空ルームはありません。');return}
+  if(!window.confirm('接続者0人のルーム '+ids.length+' 件を削除しますか？\n各ルームを削除する直前に接続状況を再確認します。\n削除は元に戻せません。'))return;
+  bulkDeleting=true;render();
+  let deleted=0,occupied=0,missing=0,failed=0;
+  try{
+    for(let i=0;i<ids.length;i++){
+      message('空ルームを整理中… '+(i+1)+' / '+ids.length+' 件（削除済み '+deleted+' 件）');
+      try{
+        const result=await removeEmptyRoom(ids[i]);
+        if(result==='deleted')deleted++;
+        else if(result==='occupied')occupied++;
+        else missing++;
+      }catch(e){failed++;console.error('空ルーム削除失敗:',ids[i],e)}
+    }
+  }finally{
+    bulkDeleting=false;
+    await reload();
+    message('一括削除結果：削除 '+deleted+' 件、接続者あり '+occupied+' 件、削除済み '+missing+' 件、失敗 '+failed+' 件。',failed>0);
+  }
+}
+document.querySelectorAll('th button.sort').forEach(button=>button.addEventListener('click',()=>{
+  const nextKey=button.dataset.sort;
+  if(sortKey===nextKey)sortDirection=sortDirection==='asc'?'desc':'asc';
+  else{sortKey=nextKey;sortDirection=nextKey==='id'?'asc':'desc'}
+  render();
+}));
+$('bulkDeleteBtn').onclick=deleteAllEmptyRooms;
 $('loginBtn').onclick=async()=>{try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())}catch(e){message('ログインできませんでした。'+e.message,true)}};$('logoutBtn').onclick=()=>auth.signOut();$('refreshBtn').onclick=reload;
 auth.onAuthStateChanged(async u=>{currentUser=null;$('panel').hidden=true;$('logoutBtn').hidden=!u;$('loginBtn').hidden=!!u;if(!isAdminUser(u)){message('管理者のGoogleアカウントでログインしてください。');return}try{const snap=await db.ref('admins/'+u.uid).once('value');if(snap.val()!==true){message('管理者権限がありません。',true);return}currentUser=u;$('panel').hidden=false;await reload()}catch(e){message('管理者認証に失敗しました。 '+e.message,true)}});
 </script></body></html>
