@@ -62,10 +62,16 @@ function render(){
 // Always confirm current occupancy immediately before each deletion. The root multi-path
 // update is checked again by Realtime Database Rules at commit time.
 async function removeEmptyRoom(id){
-  const snap=await db.ref('rooms/'+id).once('value');
+  const roomRef=db.ref('rooms/'+id);
+  const snap=await roomRef.once('value');
   if(!snap.exists())return 'missing';
   if(memberCount(snap.val())!==0)return 'occupied';
-  await db.ref().update({['roomSharedLists/'+id]:null,['rooms/'+id]:null});
+  // 共有リストの有無を確認する。既に存在しない共有リストを削除要求に
+  // 含めると、旧ルールの data.exists() 条件で permission_denied になる。
+  const sharedSnap=await db.ref('roomSharedLists/'+id).once('value');
+  const updates={['rooms/'+id]:null};
+  if(sharedSnap.exists())updates['roomSharedLists/'+id]=null;
+  await db.ref().update(updates);
   return 'deleted';
 }
 async function deleteRoom(id){
@@ -76,7 +82,7 @@ async function deleteRoom(id){
     message('削除直前の接続状況を確認中…');
     const result=await removeEmptyRoom(id);
     message(result==='deleted'?'ルーム '+id+' を削除しました。':result==='occupied'?'接続者がいるため削除できません。':'このルームは既にありません。',result==='occupied');
-  }catch(e){message('削除できませんでした。接続状況またはルールをご確認ください。 '+e.message,true)}
+  }catch(e){message('削除できませんでした。'+(e.code==='PERMISSION_DENIED'||String(e.message).includes('PERMISSION_DENIED')?'Realtime Databaseの管理者削除ルールが未反映、または削除権限がありません。修正版ルールを確認してください。 ':'')+e.message,true)}
   finally{deletingRoomId=null;await reload();}
 }
 async function deleteAllEmptyRooms(){
@@ -94,7 +100,7 @@ async function deleteAllEmptyRooms(){
         if(result==='deleted')deleted++;
         else if(result==='occupied')occupied++;
         else missing++;
-      }catch(e){failed++;console.error('空ルーム削除失敗:',ids[i],e)}
+      }catch(e){failed++;console.error('空ルーム削除失敗:',ids[i],e);if(failed===1)message('削除に失敗しました（'+ids[i]+'）：'+e.message,true)}
     }
   }finally{
     bulkDeleting=false;
