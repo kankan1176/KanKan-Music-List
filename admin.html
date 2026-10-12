@@ -6,17 +6,17 @@
 <div class="top"><div><h1>🛡️ シェアリスコア 管理者ページ</h1><p>Firebase Realtime Database 管理ダッシュボード</p></div><div><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" hidden>ログアウト</button></div></div>
 <p id="message" role="status">ログイン状態を確認中…</p>
 <section id="panel" hidden><div class="layout"><nav class="sidebar" aria-label="管理者メニュー"><button data-go="home">🏠 トップ</button><button data-go="master">📚 楽曲マスタ管理</button><button data-go="requests">🎼 新規楽曲追加申請管理</button><button data-go="users">👥 ユーザー管理</button><button data-go="rooms">🌐 ルーム管理</button></nav><div class="content">
-<section data-view-panel="home"><h2>管理者トップ</h2><p>管理する項目を選択してください。</p><div class="cards">
+<section data-view-panel="home"><h2>管理者トップ</h2><div class="card"><div class="top"><h2>📬 新着メッセージ</h2><button id="refreshNewsBtn">更新</button></div><p id="newsStatus" role="status"></p><div id="newsItems"></div></div><p>管理する項目を選択してください。</p><div class="cards">
 <button class="feature" data-go="master"><h2>📚 楽曲マスタ管理</h2><p>マスタCSV出力</p></button>
 <button class="feature" data-go="requests"><h2>🎼 新規楽曲追加申請管理</h2><p>申請内容確認</p></button>
 <button class="feature" data-go="users"><h2>👥 ユーザー管理</h2><p>ユーザーID・名前・ログイン履歴</p></button>
 <button class="feature" data-go="rooms"><h2>🌐 ルーム管理</h2><p>ルーム一覧・一括管理</p></button>
 </div></section>
 <section data-view-panel="master" hidden><h2>📚 楽曲マスタ管理</h2><div class="card"><p>Realtime Databaseの <code>/songs</code> をCSV形式で出力します。</p><p>登録曲数：<strong id="masterCount">—</strong></p><button id="exportMasterBtn">マスタCSV出力</button><p id="masterStatus" role="status"></p></div></section>
-<section data-view-panel="requests" hidden><h2>🎼 新規楽曲追加申請管理</h2><div class="card"><p>新規追加・編集申請の内容を確認できます。この画面は閲覧専用です。</p><button onclick="loadRequests()">更新</button><p id="requestsStatus" role="status"></p><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="楽曲追加申請一覧" tabindex="0"><table><thead><tr><th>種別</th><th>曲名</th><th>アーティスト</th><th>状態</th><th>申請日時</th><th>操作</th></tr></thead><tbody id="requestRows"></tbody></table></div></div></section>
+<section data-view-panel="requests" hidden><h2>🎼 新規楽曲追加申請管理</h2><div class="card"><p>未承認の新規追加・アーティスト補完申請を確認し、承認または却下できます。承認すると公開マスターに反映されます。</p><button onclick="loadRequests()">更新</button><p id="requestsStatus" role="status"></p><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="楽曲追加申請一覧" tabindex="0"><table><thead><tr><th>種別</th><th>曲名</th><th>アーティスト</th><th>状態</th><th>申請日時</th><th>操作</th></tr></thead><tbody id="requestRows"></tbody></table></div></div></section>
 <section data-view-panel="users" hidden><h2>👥 ユーザー管理</h2><div class="card"><p>公開プロフィールを表示します。現在のデータベースにはログイン履歴が存在しないため、日時は表示できません。</p><button onclick="loadUsers()">更新</button><p id="usersStatus" role="status"></p><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="公開ユーザー一覧" tabindex="0"><table><thead><tr><th>ユーザーID</th><th>名前</th><th>ログイン履歴</th></tr></thead><tbody id="userRows"></tbody></table></div></div></section>
 <section data-view-panel="rooms" hidden><h2>🌐 ルーム管理</h2><div class="stats"><div class="stat"><span>総ルーム数</span><strong id="total">—</strong></div><div class="stat"><span>接続中ルーム</span><strong id="active">—</strong></div><div class="stat"><span>空ルーム</span><strong id="empty">—</strong></div></div><div class="top"><p class="hint">接続人数は /members の登録数を使用します。切断反映には遅延があります。<br>管理者は接続中のルームも個別削除できます。接続者0人の一括削除は従来どおり空ルームのみ対象です。</p><div class="toolbar-actions"><button id="refreshBtn">一覧を更新</button><button id="bulkDeleteBtn" class="danger" disabled>接続者0人の部屋を一括削除</button></div></div><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="ルーム一覧" tabindex="0"><table><thead><tr><th><button class="sort" type="button" data-sort="id" aria-pressed="false">ルームID <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="createdAt" aria-pressed="true">作成日時 <span class="arrow">▼</span></button></th><th><button class="sort" type="button" data-sort="members" aria-pressed="false">接続者 <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="songs" aria-pressed="false">曲数 <span class="arrow"></span></button></th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></section>
-</div></div></section></main><dialog id="requestDialog"><h2>申請内容</h2><pre id="requestDetail"></pre><form method="dialog"><button>閉じる</button></form></dialog>
+</div></div></section></main><dialog id="requestDialog"><h2>申請内容</h2><pre id="requestDetail"></pre><div id="requestActions" class="toolbar-actions"></div><p id="reviewStatus" role="status"></p><form method="dialog"><button>閉じる</button></form></dialog>
 <script>'use strict';
 const config={
       apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
@@ -160,6 +160,7 @@ function showView(which){
   document.querySelectorAll('[data-view-panel]').forEach(el=>el.hidden=el.dataset.viewPanel!==which);
   document.querySelectorAll('[data-go]').forEach(el=>el.setAttribute('aria-current',el.dataset.go===which?'page':'false'));
   if(!currentUser)return;
+  if(which==='home')void loadNews();
   if(which==='master')void loadSongMasterInfo();
   if(which==='requests')void loadRequests();
   if(which==='users')void loadUsers();
@@ -191,19 +192,104 @@ async function exportMasterCsv(){
 $('exportMasterBtn').addEventListener('click',exportMasterCsv);
 function emptyRow(id,columns,text){const tr=document.createElement('tr'),td=textCell(tr,text);td.colSpan=columns;$(id).append(tr)}
 function textCell(tr,value){const td=document.createElement('td');td.textContent=value??'';tr.append(td);return td}
+const songFields=['title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
+let reviewBusy=false,newsVersion=0,requestsVersion=0;
+const pendingRequest=v=>v.status==='pending';
+function requestEntries(adds,edits){
+  const entries=[];
+  adds.forEach(owner=>owner.forEach(item=>entries.push({...item.val(),kind:'add',label:'新規追加',owner:owner.key,id:item.key,path:'songAddRequests/'+owner.key+'/'+item.key})));
+  edits.forEach(song=>song.forEach(item=>entries.push({...item.val(),kind:'edit',label:'編集申請',owner:item.key,id:song.key,path:'songEditRequests/'+song.key+'/'+item.key})));
+  return entries.sort((x,y)=>(Number(y.createdAt)||0)-(Number(x.createdAt)||0));
+}
+async function fetchRequests(){
+  const snaps=await Promise.all([db.ref('songAddRequests').once('value'),db.ref('songEditRequests').once('value')]);
+  return requestEntries(...snaps);
+}
+const requestStatus=v=>({pending:'未承認',approved:'承認済み',rejected:'却下済み'}[v.status]||v.status||'不明');
+function openRequest(v){
+  $('requestDetail').textContent=JSON.stringify(v,null,2);$('reviewStatus').textContent='';$('requestActions').replaceChildren();
+  if(pendingRequest(v)){
+    for(const [status,label] of [['approved','承認して反映'],['rejected','却下']]){
+      const button=document.createElement('button');button.textContent=label;button.disabled=reviewBusy;
+      if(status==='rejected')button.className='danger';
+      button.onclick=()=>reviewRequest(v,status);$('requestActions').append(button);
+    }
+  }
+  if(!$('requestDialog').open)$('requestDialog').showModal();
+}
+async function reviewRequest(v,status){
+  const user=currentUser;if(!user||reviewBusy)return;
+  if(!window.confirm('「'+(v.title||v.id)+'」を'+(status==='approved'?'承認して公開マスターへ反映':'却下')+'しますか？'))return;
+  reviewBusy=true;$('requestActions').querySelectorAll('button').forEach(b=>b.disabled=true);$('reviewStatus').textContent='処理中…';
+  try{
+    const snap=await db.ref(v.path).once('value'),request=snap.val();
+    if(!request||!pendingRequest(request))throw Error('この申請は処理済み、または削除されています。更新して確認してください。');
+    const updates={},timestamp=firebase.database.ServerValue.TIMESTAMP;
+    if(status==='approved'){
+      // The request push ID is stable across retries and prevents duplicate songs.
+      const songId=v.id;
+      let song;
+      if(v.kind==='add'){
+        if(!String(request.title||'').trim()||!String(request.artist||'').trim())throw Error('曲名・アーティストが必要です。');
+        const existing=await db.ref('songs/'+songId).once('value');
+        if(existing.exists())throw Error('同じIDの楽曲が既に存在します。申請とマスターを確認してください。');
+        song={id:songId};for(const field of songFields)song[field]=String(request[field]||'').trim();
+        song.createdAt=timestamp;
+      }else{
+        if(request.type!=='artistFill')throw Error('この編集申請の形式は承認に対応していません。');
+        const existing=await db.ref('songs/'+songId).once('value');
+        if(!existing.exists())throw Error('編集対象の楽曲がありません。');
+        song=existing.val();
+        if(String(song.artist||'').trim())throw Error('アーティストは既に登録されています。内容を確認し、この申請を却下してください。');
+        if(!String(request.artist||'').trim())throw Error('補完するアーティストが空です。');
+        const logId=db.ref('songEditLogs').push().key;
+        updates['songEditLogs/'+logId]={songId,songTitleBefore:song.title||'',songTitleAfter:song.title||'',editorUid:user.uid,editorName:user.displayName||'',editorEmail:user.email||'',editedAt:timestamp,changes:{artist:{before:'',after:request.artist}}};
+        song={...song,artist:String(request.artist).trim()};
+      }
+      song.updatedAt=timestamp;updates['songs/'+songId]=song;
+      updates['masterMeta/revision']=db.ref().push().key;
+      updates[v.path+'/approvedSongId']=songId;
+    }
+    updates[v.path+'/status']=status;updates[v.path+'/reviewedAt']=timestamp;updates[v.path+'/reviewedBy']=user.uid;
+    if(currentUser!==user)throw Error('ログイン状態が変更されました。');
+    // Song, history, revision and review status either all succeed or all fail.
+    await db.ref().update(updates);
+    if(currentUser!==user)return;
+    $('requestActions').replaceChildren();$('reviewStatus').textContent=status==='approved'?'承認し、公開マスターに反映しました。':'申請を却下しました。';
+    void loadRequests();void loadNews();
+  }catch(e){if(currentUser===user)$('reviewStatus').textContent='処理できませんでした: '+e.message+'（権限エラーの場合は管理者の書込ルールを確認してください）';}
+  finally{reviewBusy=false;$('requestActions').querySelectorAll('button').forEach(b=>b.disabled=false);}
+}
 async function loadRequests(){
+  const user=currentUser,version=++requestsVersion;if(!user)return;
   $('requestsStatus').textContent='申請を取得しています…';$('requestRows').replaceChildren();
   try{
-    const [a,b]=await Promise.all([db.ref('songAddRequests').once('value'),db.ref('songEditRequests').once('value')]);
-    const entries=[];
-    a.forEach(owner=>owner.forEach(item=>{entries.push({type:'新規追加',owner:owner.key,id:item.key,...(item.val()||{})})}));
-    b.forEach(song=>song.forEach(item=>{entries.push({type:'編集申請',owner:item.key,id:song.key,...(item.val()||{})})}));
-    entries.sort((x,y)=>(Number(y.createdAt)||0)-(Number(x.createdAt)||0));
-    entries.slice(0,300).forEach(v=>{const tr=document.createElement('tr');textCell(tr,v.type);textCell(tr,v.title||v.songId||v.id);textCell(tr,v.artist||'—');textCell(tr,v.status||'—');textCell(tr,formatDate(v.createdAt));const td=textCell(tr,'');const btn=document.createElement('button');btn.textContent='内容確認';btn.onclick=()=>{const msg=JSON.stringify(v,null,2);$('requestDetail').textContent=msg;$('requestDialog').showModal()};td.append(btn);$('requestRows').append(tr)});
+    const entries=await fetchRequests();if(currentUser!==user||version!==requestsVersion)return;
+    entries.sort((a,b)=>Number(pendingRequest(b))-Number(pendingRequest(a))||(Number(b.createdAt)||0)-(Number(a.createdAt)||0));
+    entries.slice(0,300).forEach(v=>{const tr=document.createElement('tr');textCell(tr,v.label);textCell(tr,v.title||v.songId||v.id);textCell(tr,v.artist||'—');textCell(tr,requestStatus(v));textCell(tr,formatDate(v.createdAt));const td=textCell(tr,'');const btn=document.createElement('button');btn.textContent=pendingRequest(v)?'確認・承認':'内容確認';btn.onclick=()=>openRequest(v);td.append(btn);$('requestRows').append(tr)});
     if(!entries.length)emptyRow('requestRows',6,'申請はありません');
-    $('requestsStatus').textContent=entries.length+'件の申請を取得しました。表示は新しい順で最大300件です。';
-  }catch(e){$('requestsStatus').textContent='申請を取得できません: '+e.message+' （管理者用の読取権限をご確認ください）'}
+    $('requestsStatus').textContent=entries.length+'件（未承認 '+entries.filter(pendingRequest).length+'件）。未承認を優先して最大300件表示します。';
+  }catch(e){if(currentUser===user&&version===requestsVersion)$('requestsStatus').textContent='申請を取得できません: '+e.message;}
 }
+async function loadNews(){
+  const user=currentUser,version=++newsVersion;if(!user)return;
+  $('newsStatus').textContent='新着情報を取得しています…';$('newsItems').replaceChildren();
+  const results=await Promise.allSettled([fetchRequests(),db.ref('songEditLogs').orderByChild('editedAt').limitToLast(30).once('value')]);
+  if(currentUser!==user||version!==newsVersion)return;
+  const items=[],errors=[];
+  if(results[0].status==='fulfilled')for(const v of results[0].value.filter(pendingRequest))items.push({time:v.createdAt,title:'未承認の'+v.label+'：'+(v.title||v.id),detail:v.artist||'',open:()=>openRequest(v)});
+  else errors.push('申請: '+results[0].reason.message);
+  if(results[1].status==='fulfilled')results[1].value.forEach(s=>{const v=s.val();items.push({time:v.editedAt,title:'楽曲編集：'+(v.songTitleAfter||v.songTitleBefore||v.songId),detail:(v.editorName||v.editorUid||'不明')+' ／ '+Object.keys(v.changes||{}).join('・'),open:()=>{$('requestDetail').textContent=JSON.stringify(v,null,2);$('requestActions').replaceChildren();$('reviewStatus').textContent='';if(!$('requestDialog').open)$('requestDialog').showModal();}})});
+  else errors.push('編集履歴: '+results[1].reason.message);
+  items.sort((a,b)=>(Number(b.time)||0)-(Number(a.time)||0));
+  for(const item of items.slice(0,30)){
+    const article=document.createElement('article'),title=document.createElement('h3'),detail=document.createElement('p'),button=document.createElement('button');
+    title.textContent=item.title;detail.textContent=formatDate(item.time)+' ／ '+item.detail;button.textContent='内容確認';button.onclick=item.open;article.append(title,detail,button);$('newsItems').append(article);
+  }
+  const pending=results[0].status==='fulfilled'?results[0].value.filter(pendingRequest).length:null;
+  $('newsStatus').textContent=(pending===null?'':('未承認 '+pending+'件。'))+(items.length?'新しい順に最大30件表示しています。':errors.length?'':'新着情報はありません。')+(errors.length?' 取得できない情報があります：'+errors.join(' ／ '):'');
+}
+$('refreshNewsBtn').onclick=loadNews;
 async function loadUsers(){
   $('usersStatus').textContent='公開ユーザープロフィールを取得しています…';$('userRows').replaceChildren();
   try{
