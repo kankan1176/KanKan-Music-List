@@ -6,7 +6,7 @@ const style=document.createElement('style');style.textContent=`
 `;document.head.append(style);
 const dialog=document.createElement('dialog');dialog.id='setlistShareDialog';dialog.innerHTML=`
 <div class="setlist-top"><h2>セットリストを共有</h2><button type="button" aria-label="閉じる" id="setlistClose">✕</button></div>
-<div class="setlist-controls"><label>ルーム名<input id="setlistRoomName" maxlength="80" placeholder="ルーム名を入力"></label><label>日付<input id="setlistDate" type="date" required></label><label>背景<select id="setlistTheme"><option value="white">白背景</option><option value="black">黒背景</option></select></label></div>
+<div class="setlist-controls"><label>ルーム名<input id="setlistRoomName" maxlength="80" placeholder="ルーム名を入力"></label><label>日付<input id="setlistDate" type="date" required></label><label>デザイン<select id="setlistTheme"><option value="paper">① くしゃ紙・明朝</option><option value="white">② 白い紙・ゴシック</option><option value="black">③ 黒いテクスチャ・明朝</option></select></label></div>
 <p class="setlist-note">完了曲を右バーの並び順で表示します。1枚20曲まで。画像は横長1.91:1です。</p>
 <div class="setlist-preview" id="setlistPreview"></div><p id="setlistShareStatus" role="status"></p>
 <div class="setlist-actions"><button type="button" id="setlistSave">↓ 画像保存</button><button type="button" id="setlistX">𝕏 投稿</button><button type="button" id="setlistNative">↗ その他のアプリへ共有</button><button type="button" id="setlistCopy">投稿文をコピー</button></div>
@@ -15,29 +15,63 @@ const $=id=>document.getElementById(id);let songs=[],roomId='',generation=0,file
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
 function status(text){$('setlistShareStatus').textContent=text;}
 function valid(){if(!currentRoomId||currentRoomId!==roomId){status('ルームが変更されました。閉じて開き直してください。');return false;}if(!$('setlistRoomName').value.trim()){status('ルーム名を入力してください。');$('setlistRoomName').focus();return false;}if(!$('setlistDate').value){status('日付を指定してください。');return false;}return true;}
-function wrap(ctx,text,width,maxLines,size){
- ctx.font=`${size}px Georgia,"Noto Serif JP","Yu Mincho",serif`;let lines=[''];for(const ch of Array.from(String(text))){if(ctx.measureText(lines.at(-1)+ch).width>width&&lines.at(-1))lines.push(ch);else lines[lines.length-1]+=ch;}return lines;
+const fonts={serif:'"Yu Mincho","Hiragino Mincho ProN","Noto Serif CJK JP",Georgia,serif',sans:'"Yu Gothic","Hiragino Kaku Gothic ProN","Noto Sans CJK JP",sans-serif',hand:'"Yu Kyokasho","Klee","Hiragino Mincho ProN","Yu Mincho",cursive'};
+// Text is fitted into independent rectangles, so even long titles cannot enter the artist area.
+function drawText(ctx,text,x,y,width,height,size,family,color,maxLines=1){
+ let lines=[];
+ for(;size>=10;size--){
+  ctx.font=`${size}px ${family}`;lines=[''];
+  for(const ch of Array.from(String(text))){if(ctx.measureText(lines.at(-1)+ch).width>width&&lines.at(-1))lines.push(ch);else lines[lines.length-1]+=ch;}
+  if(lines.length<=maxLines&&lines.length*size*1.3<=height)break;
+ }
+ ctx.save();ctx.beginPath();ctx.rect(x,y,width,height);ctx.clip();ctx.fillStyle=color;ctx.textBaseline='top';
+ const visible=lines.slice(0,Math.max(1,Math.floor(height/(size*1.3))));
+ if(visible.length<lines.length){let last=visible.at(-1);while(ctx.measureText(last+'…').width>width)last=last.slice(0,-1);visible[visible.length-1]=last+'…';}
+ visible.forEach((line,i)=>ctx.fillText(line,x,y+i*size*1.3));ctx.restore();
 }
-function drawText(ctx,text,x,y,width,size,maxLines,color){
- let lines;do{lines=wrap(ctx,text,width,maxLines,size);if(lines.length<=maxLines||size<=12)break;size--;}while(true);
- ctx.fillStyle=color;lines.forEach((line,i)=>ctx.fillText(line,x,y+i*size*1.3));
+const backgrounds=new Map();
+function background(theme){
+ if(backgrounds.has(theme))return backgrounds.get(theme);
+ const c=document.createElement('canvas');c.width=1910;c.height=1000;const ctx=c.getContext('2d');
+ let seed=1729;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+ ctx.fillStyle=theme==='black'?'#202122':theme==='paper'?'#e9e3da':'#fafaf8';ctx.fillRect(0,0,c.width,c.height);
+ // Layered translucent grain and creases are local assets: exports do not depend on remote images.
+ for(let i=0;i<(theme==='black'?8500:5000);i++){
+  const x=random()*1910,y=random()*1000,r=theme==='white'?1+random()*10:3+random()*95;
+  const g=ctx.createRadialGradient(x,y,0,x,y,r);const light=random()>.5;
+  g.addColorStop(0,theme==='black'?(light?'rgba(210,210,210,.055)':'rgba(0,0,0,.15)'):(theme==='white'?(light?'rgba(255,255,255,.02)':'rgba(105,90,74,.006)'):(light?'rgba(255,255,255,.13)':'rgba(105,90,74,.035)')));g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);
+ }
+ if(theme==='paper')for(let i=0;i<65;i++){
+  const x=random()*1910,y=random()*1000,dx=(random()-.5)*600,dy=(random()-.5)*500;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+dx*.45+50,y+dy*.45-30,x+dx,y+dy);ctx.lineWidth=2+random()*7;ctx.strokeStyle='rgba(105,85,68,.10)';ctx.stroke();ctx.translate(3,-3);ctx.strokeStyle='rgba(255,255,255,.24)';ctx.stroke();ctx.translate(-3,3);
+ }
+ backgrounds.set(theme,c);return c;
 }
 function render(){
- const version=++generation;files=[];$('setlistPreview').replaceChildren();const name=$('setlistRoomName').value.trim()||'ルーム名',date=$('setlistDate').value.replaceAll('-','.'),black=$('setlistTheme').value==='black';const bg=black?'#101112':'#faf9f6',ink=black?'#f5f3ee':'#191a1b',muted=black?'#b6b6b3':'#666764';
- const pages=Math.ceil(songs.length/20);const jobs=[];
+ const version=++generation;files=[];$('setlistPreview').replaceChildren();const name=$('setlistRoomName').value.trim()||'ルーム名',date=$('setlistDate').value.replaceAll('-','. '),theme=$('setlistTheme').value,black=theme==='black';
+ const ink=black?'#faf9f5':'#111213',family=theme==='white'?fonts.sans:fonts.serif;
+ const pages=Math.ceil(songs.length/20),jobs=[];
  for(let page=0;page<pages;page++){
   const canvas=document.createElement('canvas');canvas.width=1910;canvas.height=1000;canvas.setAttribute('aria-label',`セットリスト ${page+1}/${pages}`);$('setlistPreview').append(canvas);
-  const ctx=canvas.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,1910,1000);
-  ctx.textAlign='center';ctx.font='24px Georgia,"Yu Mincho",serif';ctx.fillStyle=muted;ctx.fillText('〜本日のセットリスト〜',955,65);ctx.textAlign='left';
-  ctx.strokeStyle=muted;ctx.globalAlpha=.35;ctx.beginPath();ctx.moveTo(635,145);ctx.lineTo(635,860);ctx.stroke();ctx.globalAlpha=1;
-  drawText(ctx,name,90,370,470,68,4,ink);ctx.font='26px Georgia,serif';ctx.fillStyle=muted;ctx.fillText(date,94,750);ctx.fillRect(94,785,70,2);
-  const batch=songs.slice(page*20,page*20+20),columns=batch.length>10?2:1,perColumn=Math.ceil(batch.length/columns),width=columns===2?490:1050,rowHeight=Math.min(115,720/perColumn);
-  batch.forEach((song,i)=>{const col=Math.floor(i/perColumn),row=i%perColumn,x=710+col*580,y=175+row*rowHeight;ctx.fillStyle=muted;ctx.font='18px Georgia,serif';ctx.fillText(String(page*20+i+1).padStart(2,'0'),x,y);drawText(ctx,song.title,x+45,y,width-45,columns===2?24:34,2,ink);drawText(ctx,song.artist,x+45,y+rowHeight*.8,width-45,18,1,muted);ctx.globalAlpha=.22;ctx.fillStyle=muted;ctx.fillRect(x,y+rowHeight-6,width,1);ctx.globalAlpha=1;});
-  ctx.textAlign='right';ctx.font='18px Georgia,serif';ctx.fillStyle=muted;ctx.fillText(`${page+1} / ${pages}`,1815,945);ctx.textAlign='left';
-  jobs.push(new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(new File([blob],`setlist-${$('setlistDate').value}-${page+1}.png`,{type:'image/png'})):reject(Error('画像を生成できませんでした。')),'image/png')));
+  const ctx=canvas.getContext('2d');ctx.drawImage(background(theme),0,0);ctx.textBaseline='top';
+  drawText(ctx,'〜本日のセットリスト〜',125,100,470,40,27,fonts.sans,ink);
+  ctx.fillStyle=ink;ctx.globalAlpha=.65;ctx.fillRect(675,100,2,800);ctx.fillRect(110,410,440,2);ctx.globalAlpha=1;
+  drawText(ctx,name,120,285,450,115,85,black?fonts.hand:family,ink,2);
+  drawText(ctx,date,120,820,440,55,32,fonts.hand,ink);
+  const batch=songs.slice(page*20,page*20+20),columns=batch.length>10?2:1,perColumn=Math.ceil(batch.length/columns),columnWidth=columns===2?510:1070,rowHeight=Math.min(85,790/perColumn);
+  batch.forEach((song,i)=>{
+   const col=Math.floor(i/perColumn),row=i%perColumn,x=750+col*560,y=100+row*rowHeight;
+   drawText(ctx,String(page*20+i+1).padStart(2,'0'),x,y+6,48,rowHeight-12,28,fonts.serif,ink);
+   // Match the references: title and smaller artist side by side. Reserve a fixed artist column.
+   const titleWidth=columns===2?250:680,artistX=x+76+titleWidth+22,artistWidth=columnWidth-(artistX-x);
+   drawText(ctx,song.title,x+76,y,titleWidth,rowHeight-16,columns===2?32:44,family,ink,2);
+   drawText(ctx,song.artist,artistX,y+10,artistWidth,rowHeight-24,columns===2?20:23,fonts.sans,ink,2);
+  });
+  drawText(ctx,`${page+1} / ${pages}`,1795,950,85,30,18,fonts.serif,ink);
+  jobs.push(new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(new File([blob],`setlist-${$('setlistDate').value}-${theme}-${page+1}.png`,{type:'image/png'})):reject(Error('画像を生成できませんでした。')),'image/png')));
  }
  status(songs.length?`${songs.length}曲・${pages}枚`:'完了曲がありません。');
- Promise.all(jobs).then(result=>{if(version===generation)files=result;}).catch(e=>status(e.message));
+ Promise.all(jobs).then(result=>{if(version===generation)files=result;}).catch(e=>{if(version===generation)status(e.message);});
 }
 window.openSetlistShare=async()=>{
  if(!currentRoomId){alert('ルーム内で利用できます。');return;}
