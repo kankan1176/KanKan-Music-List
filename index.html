@@ -6168,7 +6168,7 @@ body.sl-redesign.theme-white #slDockDesignPanel :is(label,strong,small,span,p){c
         roomSharesListenerRef=db.ref(`${ROOM_LIST_BASE}/${currentRoomId}`);
         roomSharesListenerRef.on('value',snap=>{roomRawShares=snap.val()||{};rebuildRoomSharedLists();const sharing=Object.keys(roomSharedLists).length;setRoomShareMessage(sharing<2 ? `現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。` : '保存済みの曲・Key・担当パートを共有中。緑色は2人以上の共通曲です。');},err=>{console.error('ルーム共有閲覧失敗',err);setRoomShareMessage('共有リストを表示できません。データルールを確認してください。');});
         roomMemberListRef=db.ref(`rooms/${currentRoomId}/members`);
-        roomMemberListRef.on('value',snap=>{roomMembersRaw=snap.val()||{};refreshVisibleRoomMembers();void rememberSessionGoogleUsers();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
+        roomMemberListRef.on('value',snap=>{roomMembersRaw=snap.val()||{};refreshVisibleRoomMembers();void rememberSessionGoogleUsers();if(window.rememberRoomHistory)void window.rememberRoomHistory();const sharing=Object.keys(roomSharedLists).length;if(sharing<2)setRoomShareMessage(`現在${sharing}人の保存済みマイリストを共有中。共通曲の色付けにはGoogleログイン済みの2人以上が必要です。`);});
         startRoomOwnPublishing();
     }
     function renderRoomSongMembers(id) {
@@ -10798,5 +10798,6 @@ html, body { background: transparent !important; color: ${text} !important; }
 })();
 </script>
 <script src="setlist-share.js"></script>
+<script src="room-history.js"></script>
 </body>
 </html>
