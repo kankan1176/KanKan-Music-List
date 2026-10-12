@@ -7,7 +7,7 @@ const style=document.createElement('style');style.textContent=`
 const dialog=document.createElement('dialog');dialog.id='setlistShareDialog';dialog.innerHTML=`
 <div class="setlist-top"><h2>セットリストを共有</h2><button type="button" aria-label="閉じる" id="setlistClose">✕</button></div>
 <div class="setlist-controls"><label>ルーム名<input id="setlistRoomName" maxlength="80" placeholder="ルーム名を入力"></label><label>日付<input id="setlistDate" type="date" required></label><label>デザイン<select id="setlistTheme"><option value="paper">① くしゃ紙・明朝</option><option value="white">② 白い紙・ゴシック</option><option value="black">③ 黒いテクスチャ・明朝</option></select></label></div>
-<p class="setlist-note">完了曲を右バーの並び順で表示します。1枚20曲まで。画像は横長1.91:1です。</p>
+<p class="setlist-note">完了曲を右バーの並び順で表示します。1枚20曲以内で、各画像の曲数を均等に分けます。画像は横長1.91:1です。</p>
 <div class="setlist-preview" id="setlistPreview"></div><p id="setlistShareStatus" role="status"></p>
 <div class="setlist-actions"><button type="button" id="setlistSave">↓ 画像保存</button><button type="button" id="setlistX">𝕏 投稿</button><button type="button" id="setlistNative">↗ その他のアプリへ共有</button><button type="button" id="setlistCopy">投稿文をコピー</button></div>
 <p class="setlist-note">Xボタンは投稿文を開きます。保存した画像を添付してください。Discordへは「その他のアプリへ共有」または画像保存から投稿できます。共有先は端末によって異なります。</p>`;document.body.append(dialog);
@@ -58,14 +58,24 @@ function render(){
   ctx.fillStyle=ink;ctx.globalAlpha=.65;ctx.fillRect(675,100,2,800);ctx.fillRect(110,410,440,2);ctx.globalAlpha=1;
   drawText(ctx,name,120,285,450,115,85,black?fonts.hand:family,ink,2);
   drawText(ctx,date,120,820,440,55,32,fonts.hand,ink);
-  const batch=songs.slice(page*20,page*20+20),columns=batch.length>10?2:1,perColumn=Math.ceil(batch.length/columns),columnWidth=columns===2?510:1070,rowHeight=Math.min(85,790/perColumn);
+  const start=Math.floor(page*songs.length/pages),end=Math.floor((page+1)*songs.length/pages);
+  const batch=songs.slice(start,end),columns=batch.length>10?2:1,perColumn=Math.ceil(batch.length/columns),columnWidth=columns===2?510:1070,rowHeight=Math.min(85,790/perColumn);
   batch.forEach((song,i)=>{
    const col=Math.floor(i/perColumn),row=i%perColumn,x=750+col*560,y=100+row*rowHeight;
-   drawText(ctx,String(page*20+i+1).padStart(2,'0'),x,y+6,48,rowHeight-12,28,fonts.serif,ink);
-   // Match the references: title and smaller artist side by side. Reserve a fixed artist column.
-   const titleWidth=columns===2?250:680,artistX=x+76+titleWidth+22,artistWidth=columnWidth-(artistX-x);
-   drawText(ctx,song.title,x+76,y,titleWidth,rowHeight-16,columns===2?32:44,family,ink,2);
-   drawText(ctx,song.artist,artistX,y+10,artistWidth,rowHeight-24,columns===2?20:23,fonts.sans,ink,2);
+   drawText(ctx,String(start+i+1).padStart(2,'0'),x,y+6,48,rowHeight-12,28,fonts.serif,ink);
+   // Measure the whole row before drawing; artist follows the actual title with a constant gap.
+   const textX=x+76,available=columnWidth-76,gap=24;
+   let titleSize=columns===2?26:34,artistSize=columns===2?16:20,titleWidth,artistWidth;
+   const measure=()=>{ctx.font=`${titleSize}px ${family}`;titleWidth=ctx.measureText(song.title).width;ctx.font=`${artistSize}px ${fonts.sans}`;artistWidth=ctx.measureText(song.artist).width;};
+   measure();
+   while(titleWidth+gap+artistWidth>available&&(titleSize>10||artistSize>10)){
+    if(titleSize>10)titleSize--;else artistSize--;measure();
+   }
+   ctx.save();ctx.beginPath();ctx.rect(textX,y,available,rowHeight-12);ctx.clip();ctx.textBaseline='alphabetic';ctx.fillStyle=ink;
+   const baseline=y+Math.min(rowHeight-16,36);
+   ctx.font=`${titleSize}px ${family}`;ctx.fillText(song.title,textX,baseline);
+   ctx.font=`${artistSize}px ${fonts.sans}`;ctx.fillText(song.artist,textX+titleWidth+gap,baseline);
+   ctx.restore();
   });
   drawText(ctx,`${page+1} / ${pages}`,1795,950,85,30,18,fonts.serif,ink);
   jobs.push(new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(new File([blob],`setlist-${$('setlistDate').value}-${theme}-${page+1}.png`,{type:'image/png'})):reject(Error('画像を生成できませんでした。')),'image/png')));
