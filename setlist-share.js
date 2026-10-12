@@ -32,28 +32,22 @@ function drawText(ctx,text,x,y,width,height,size,family,color,maxLines=1){
 const backgrounds=new Map();
 function background(theme){
  if(backgrounds.has(theme))return backgrounds.get(theme);
- const c=document.createElement('canvas');c.width=1910;c.height=1000;const ctx=c.getContext('2d');
- let seed=1729;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- ctx.fillStyle=theme==='black'?'#202122':theme==='paper'?'#e9e3da':'#fafaf8';ctx.fillRect(0,0,c.width,c.height);
- // Layered translucent grain and creases are local assets: exports do not depend on remote images.
- for(let i=0;i<(theme==='black'?8500:5000);i++){
-  const x=random()*1910,y=random()*1000,r=theme==='white'?1+random()*10:3+random()*95;
-  const g=ctx.createRadialGradient(x,y,0,x,y,r);const light=random()>.5;
-  g.addColorStop(0,theme==='black'?(light?'rgba(210,210,210,.055)':'rgba(0,0,0,.15)'):(theme==='white'?(light?'rgba(255,255,255,.02)':'rgba(105,90,74,.006)'):(light?'rgba(255,255,255,.13)':'rgba(105,90,74,.035)')));g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);
- }
- if(theme==='paper')for(let i=0;i<65;i++){
-  const x=random()*1910,y=random()*1000,dx=(random()-.5)*600,dy=(random()-.5)*500;
-  ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+dx*.45+50,y+dy*.45-30,x+dx,y+dy);ctx.lineWidth=2+random()*7;ctx.strokeStyle='rgba(105,85,68,.10)';ctx.stroke();ctx.translate(3,-3);ctx.strokeStyle='rgba(255,255,255,.24)';ctx.stroke();ctx.translate(-3,3);
- }
- backgrounds.set(theme,c);return c;
+ const pending=new Promise((resolve,reject)=>{
+  const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{backgrounds.delete(theme);reject(Error('背景画像を読み込めませんでした。デザインを選び直して再試行してください。'));};
+  img.src=new URL('assets/setlist/'+theme+'.jpg',document.baseURI).href;
+ });
+ backgrounds.set(theme,pending);return pending;
 }
-function render(){
+async function render(){
  const version=++generation;files=[];$('setlistPreview').replaceChildren();const name=$('setlistRoomName').value.trim()||'ルーム名',date=$('setlistDate').value.replaceAll('-','. '),theme=$('setlistTheme').value,black=theme==='black';
  const ink=black?'#faf9f5':'#111213',family=theme==='white'?fonts.sans:fonts.serif;
  const pages=Math.ceil(songs.length/20),jobs=[];
+ let image;status('背景画像を読み込み中…');
+ try{image=await background(theme);}catch(e){if(version===generation)status(e.message);return;}
+ if(version!==generation)return;
  for(let page=0;page<pages;page++){
   const canvas=document.createElement('canvas');canvas.width=1910;canvas.height=1000;canvas.setAttribute('aria-label',`セットリスト ${page+1}/${pages}`);$('setlistPreview').append(canvas);
-  const ctx=canvas.getContext('2d');ctx.drawImage(background(theme),0,0);ctx.textBaseline='top';
+  const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0,1910,1000);ctx.textBaseline='top';
   drawText(ctx,'〜本日のセットリスト〜',125,100,470,40,27,fonts.sans,ink);
   ctx.fillStyle=ink;ctx.globalAlpha=.65;ctx.fillRect(675,100,2,800);ctx.fillRect(110,410,440,2);ctx.globalAlpha=1;
   drawText(ctx,name,120,285,450,115,85,black?fonts.hand:family,ink,2);
