@@ -5,13 +5,13 @@ const style=document.createElement('style');style.textContent=`
 #setlistShareDialog{width:min(920px,96vw);max-height:92dvh;overflow:auto;border:1px solid var(--border-color,#ccc);border-radius:20px;background:var(--panel-bg,#fff);color:var(--text-color,#111);padding:24px}#setlistShareDialog::backdrop{background:#0009}.setlist-top,.setlist-controls,.setlist-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.setlist-top{justify-content:space-between}.setlist-controls label{display:grid;gap:6px;flex:1;min-width:150px}.setlist-controls input,.setlist-controls select{padding:10px;width:100%;font:inherit;border:1px solid #888;border-radius:8px;background:var(--panel-bg,#fff);color:inherit}.setlist-preview canvas{width:100%;height:auto;display:block;margin:18px 0;border:1px solid #888;border-radius:8px}.setlist-actions button,.setlist-top button{padding:12px 18px;border-radius:12px;cursor:pointer;font:inherit}.setlist-actions{border-top:1px solid #8885;padding-top:18px}.setlist-note{font-size:13px;line-height:1.7}#setlistShareStatus{min-height:1.5em}@media(max-width:600px){#setlistShareDialog{margin:auto auto 0;width:100%;max-width:100%;max-height:90dvh;border-radius:20px 20px 0 0;padding:18px}.setlist-actions button{flex:1 1 40%}}
 `;document.head.append(style);
 const dialog=document.createElement('dialog');dialog.id='setlistShareDialog';dialog.innerHTML=`
-<div class="setlist-top"><h2>セットリストを共有</h2><button type="button" aria-label="閉じる" id="setlistClose">✕</button></div>
+<div class="setlist-top"><h2>セットリスト画像を保存</h2><button type="button" aria-label="閉じる" id="setlistClose">✕</button></div>
 <div class="setlist-controls"><label>ルーム名<input id="setlistRoomName" maxlength="80" placeholder="ルーム名を入力"></label><label>日付<input id="setlistDate" type="date" required></label><label>デザイン<select id="setlistTheme"><option value="paper">① くしゃ紙・明朝</option><option value="white">② 白い紙・ゴシック</option><option value="black">③ 黒いテクスチャ・明朝</option></select></label></div>
 <p class="setlist-note">完了曲を右バーの並び順で表示します。1枚20曲以内で、各画像の曲数を均等に分けます。画像は横長1.91:1です。</p>
 <div class="setlist-preview" id="setlistPreview"></div><p id="setlistShareStatus" role="status"></p>
-<div class="setlist-actions"><button type="button" id="setlistSave">↓ 画像保存</button><button type="button" id="setlistX">𝕏 投稿</button><button type="button" id="setlistNative">↗ その他のアプリへ共有</button><button type="button" id="setlistCopy">投稿文をコピー</button></div>
-<p class="setlist-note">X投稿ボタンで共有メニューを開き、Xを選択すると画像を渡せます。Discordは「その他のアプリへ共有」から選んでください。画像共有に非対応の端末では、画像を保存して投稿に添付してください。共有先は端末によって異なります。</p>`;document.body.append(dialog);
-const $=id=>document.getElementById(id);let songs=[],roomId='',generation=0,files=[],busy=false;
+<div class="setlist-actions"><button type="button" id="setlistSave">↓ 画像保存</button></div>
+<p class="setlist-note">「画像保存」でPNG画像を保存できます。X・Discordなどに投稿する場合は、保存した画像を投稿画面に添付してください。</p>`;document.body.append(dialog);
+const $=id=>document.getElementById(id);let songs=[],roomId='',generation=0,files=[];
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
 function status(text){$('setlistShareStatus').textContent=text;}
 function valid(){if(!currentRoomId||currentRoomId!==roomId){status('ルームが変更されました。閉じて開き直してください。');return false;}if(!$('setlistRoomName').value.trim()){status('ルーム名を入力してください。');$('setlistRoomName').focus();return false;}if(!$('setlistDate').value){status('日付を指定してください。');return false;}return true;}
@@ -85,23 +85,7 @@ window.openSetlistShare=async()=>{
  for(const [,q]of entries){const song=queueSongDataById(q.songId);if(!song){alert('楽曲情報を読み込み中です。少し待ってから再度開いてください。');return;}songs.push({title:String(song['曲名']||'不明な曲'),artist:String(song['アーティスト']||'—')});}
  $('setlistDate').value=today();render();if(!dialog.open)dialog.showModal();
 };
-function postText(){return `${$('setlistRoomName').value.trim()}\n${$('setlistDate').value}\n〜本日のセットリスト〜\n`+songs.map((s,i)=>`${i+1}. ${s.title} / ${s.artist}`).join('\n');}
 $('setlistClose').onclick=()=>dialog.close();
 for(const id of ['setlistRoomName','setlistDate','setlistTheme'])$(id).addEventListener('input',render);
 $('setlistSave').onclick=()=>{if(!valid())return;if(!files.length){status('画像生成中です。少し待ってから再試行してください。');return;}for(const file of files){const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}status('画像を保存しました。複数枚の保存を求められた場合は許可してください。');};
-$('setlistX').onclick=()=>shareSetlist('X');
-$('setlistCopy').onclick=async()=>{if(!valid())return;try{await navigator.clipboard.writeText(postText());status('投稿文をコピーしました。');}catch{status('コピーできませんでした。ブラウザのクリップボード権限を確認してください。');}};
-async function shareSetlist(target){
- if(!valid()||busy)return;
- if(!files.length){status('画像生成中です。少し待ってから再試行してください。');return;}
- if(!navigator.canShare?.({files})||!navigator.share){status('この端末は画像共有に対応していません。「画像保存」で保存し、'+(target==='X'?'X':'X・Discord')+'の投稿画面に添付してください。');return;}
- busy=true;$('setlistX').disabled=true;$('setlistNative').disabled=true;
- status(target==='X'?'共有メニューでXを選んでください。':'共有するアプリを選んでください。');
- try{
-  await navigator.share({files,title:$('setlistRoomName').value.trim(),text:`${$('setlistRoomName').value.trim()} / ${$('setlistDate').value}\n〜本日のセットリスト〜`});
-  status('共有先へ画像を渡しました。投稿は共有先のアプリで確認・実行してください。');
- }catch(e){status(e.name==='AbortError'?'共有をキャンセルしました。':'共有できませんでした。「画像保存」から投稿してください。');}
- finally{busy=false;$('setlistX').disabled=false;$('setlistNative').disabled=false;}
-}
-$('setlistNative').onclick=()=>shareSetlist();
 })();
