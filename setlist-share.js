@@ -2,11 +2,11 @@
 (()=>{
 'use strict';
 const style=document.createElement('style');style.textContent=`
-#setlistShareDialog{width:min(920px,96vw);max-height:92dvh;overflow:auto;border:1px solid var(--border-color,#ccc);border-radius:20px;background:var(--panel-bg,#fff);color:var(--text-color,#111);padding:24px}#setlistShareDialog::backdrop{background:#0009}.setlist-top,.setlist-controls,.setlist-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.setlist-top{justify-content:space-between}.setlist-controls label{display:grid;gap:6px;flex:1;min-width:150px}.setlist-controls input,.setlist-controls select{padding:10px;width:100%;font:inherit;border:1px solid #888;border-radius:8px;background:var(--panel-bg,#fff);color:inherit}.setlist-preview canvas{width:100%;height:auto;display:block;margin:18px 0;border:1px solid #888;border-radius:8px}.setlist-actions button,.setlist-top button{padding:12px 18px;border-radius:12px;cursor:pointer;font:inherit}.setlist-actions{border-top:1px solid #8885;padding-top:18px}.setlist-note{font-size:13px;line-height:1.7}#setlistShareStatus{min-height:1.5em}@media(max-width:600px){#setlistShareDialog{margin:auto auto 0;width:100%;max-width:100%;max-height:90dvh;border-radius:20px 20px 0 0;padding:18px}.setlist-actions button{flex:1 1 40%}}
+#setlistShareDialog{width:min(920px,96vw);max-height:92dvh;overflow:auto;border:1px solid var(--border-color,#ccc);border-radius:20px;background:var(--panel-bg,#fff);color:var(--text-color,#111);padding:24px}#setlistShareDialog::backdrop{background:#0009}.setlist-top,.setlist-controls,.setlist-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.setlist-top{justify-content:space-between}.setlist-controls label{display:grid;gap:6px;flex:1;min-width:150px}.setlist-controls input,.setlist-controls select{padding:10px;width:100%;font:inherit;border:1px solid #888;border-radius:8px;background:var(--panel-bg,#fff);color:inherit}.setlist-preview canvas{width:100%;height:auto;display:block;margin:18px 0;border:1px solid #888;border-radius:8px}.setlist-actions button,.setlist-top button{padding:12px 18px;border-radius:12px;cursor:pointer;font:inherit}.setlist-actions{border-top:1px solid #8885;padding-top:18px}.setlist-note{font-size:13px;line-height:1.7}#setlistShareStatus{min-height:1.5em}#setlistDate{cursor:pointer}#setlistDate::-webkit-calendar-picker-indicator{display:none}@media(max-width:600px){#setlistShareDialog{margin:auto auto 0;width:100%;max-width:100%;max-height:90dvh;border-radius:20px 20px 0 0;padding:18px}.setlist-actions button{flex:1 1 40%}}
 `;document.head.append(style);
 const dialog=document.createElement('dialog');dialog.id='setlistShareDialog';dialog.innerHTML=`
 <div class="setlist-top"><h2>セットリスト画像を保存</h2><button type="button" aria-label="閉じる" id="setlistClose">✕</button></div>
-<div class="setlist-controls"><label>ルーム名<input id="setlistRoomName" maxlength="80" placeholder="ルーム名を入力"></label><label>日付<input id="setlistDate" type="date" required></label><label>デザイン<select id="setlistTheme"><option value="paper">① くしゃ紙・明朝</option><option value="white">② 白い紙・ゴシック</option><option value="black">③ 黒いテクスチャ・明朝</option></select></label></div>
+<div class="setlist-controls"><label>ルーム名<input id="setlistRoomName" maxlength="80" placeholder="ルーム名を入力"></label><label>日付<input id="setlistDate" type="date" required></label><label>背景<select id="setlistTheme"><option value="paper">① くしゃ紙</option><option value="white">② 白い紙</option><option value="black">③ 黒いテクスチャ</option></select></label><label>文字配置<select id="setlistLayout"><option value="left">① 左にルーム名</option><option value="corner">② 右下にルーム名</option><option value="top">③ 上にルーム名</option></select></label></div>
 <p class="setlist-note">完了曲を右バーの並び順で表示します。1枚20曲以内で、各画像の曲数を均等に分けます。画像は横長1.91:1です。</p>
 <div class="setlist-preview" id="setlistPreview"></div><p id="setlistShareStatus" role="status"></p>
 <div class="setlist-actions"><button type="button" id="setlistSave">↓ 画像保存</button></div>
@@ -40,7 +40,7 @@ function background(theme){
 }
 async function render(){
  const version=++generation;files=[];$('setlistPreview').replaceChildren();const name=$('setlistRoomName').value.trim()||'ルーム名',date=$('setlistDate').value.replaceAll('-','. '),theme=$('setlistTheme').value,black=theme==='black';
- const ink=black?'#faf9f5':'#111213',family=theme==='white'?fonts.sans:fonts.serif;
+ const layout=$('setlistLayout').value,ink=black?'#faf9f5':'#111213',family=layout==='left'?fonts.sans:fonts.serif;
  const pages=Math.ceil(songs.length/20),jobs=[];
  let image;status('背景画像を読み込み中…');
  try{image=await background(theme);}catch(e){if(version===generation)status(e.message);return;}
@@ -48,14 +48,31 @@ async function render(){
  for(let page=0;page<pages;page++){
   const canvas=document.createElement('canvas');canvas.width=1910;canvas.height=1000;canvas.setAttribute('aria-label',`セットリスト ${page+1}/${pages}`);$('setlistPreview').append(canvas);
   const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0,1910,1000);ctx.textBaseline='top';
-  drawText(ctx,'〜本日のセットリスト〜',125,100,470,40,27,fonts.sans,ink);
-  ctx.fillStyle=ink;ctx.globalAlpha=.65;ctx.fillRect(675,100,2,800);ctx.fillRect(110,410,440,2);ctx.globalAlpha=1;
-  drawText(ctx,name,120,285,450,115,85,black?fonts.hand:family,ink,2);
-  drawText(ctx,date,120,820,440,55,32,fonts.hand,ink);
-  const start=Math.floor(page*songs.length/pages),end=Math.floor((page+1)*songs.length/pages);
-  const batch=songs.slice(start,end),columns=batch.length>10?2:1,perColumn=Math.ceil(batch.length/columns),columnWidth=columns===2?510:1070,rowHeight=Math.min(85,790/perColumn);
+  const start=Math.floor(page*songs.length/pages),end=Math.floor((page+1)*songs.length/pages),batch=songs.slice(start,end);
+  let originX,originY,columnStep,columnWidth,columns,perColumn,rowHeight;
+  ctx.fillStyle=ink;
+  if(layout==='left'){
+   drawText(ctx,'〜本日のセットリスト〜',125,100,470,40,27,fonts.sans,ink);
+   ctx.globalAlpha=.65;ctx.fillRect(675,100,2,800);ctx.fillRect(110,410,440,2);ctx.globalAlpha=1;
+   drawText(ctx,name,120,285,450,115,85,fonts.sans,ink,2);
+   drawText(ctx,date,120,820,440,55,32,fonts.hand,ink);
+   columns=batch.length>10?2:1;originX=750;originY=100;columnStep=560;columnWidth=columns===2?510:1070;
+  }else if(layout==='corner'){
+   drawText(ctx,'〜本日のセットリスト〜',1475,775,385,38,24,fonts.sans,ink);
+   drawText(ctx,name,1450,815,400,70,62,fonts.hand,ink);
+   ctx.globalAlpha=.65;ctx.fillRect(1450,905,400,2);ctx.globalAlpha=1;
+   drawText(ctx,date,1580,925,270,35,25,fonts.hand,ink);
+   columns=2;originX=180;originY=100;columnStep=580;columnWidth=540;
+  }else{
+   drawText(ctx,'〜本日のセットリスト〜',110,65,370,40,26,fonts.sans,ink);
+   drawText(ctx,date,155,120,330,45,30,fonts.hand,ink);
+   drawText(ctx,name,545,55,510,85,70,fonts.serif,ink);
+   ctx.globalAlpha=.65;ctx.fillRect(465,155,590,2);ctx.globalAlpha=1;
+   columns=2;originX=140;originY=235;columnStep=810;columnWidth=755;
+  }
+  perColumn=Math.ceil(batch.length/columns);rowHeight=Math.min(layout==='left'?85:70,(layout==='top'?680:700)/perColumn);
   batch.forEach((song,i)=>{
-   const col=Math.floor(i/perColumn),row=i%perColumn,x=750+col*560,y=100+row*rowHeight;
+   const col=Math.floor(i/perColumn),row=i%perColumn,x=originX+col*columnStep,y=originY+row*rowHeight;
    drawText(ctx,String(start+i+1).padStart(2,'0'),x,y+6,48,rowHeight-12,28,fonts.serif,ink);
    // Measure the whole row before drawing; artist follows the actual title with a constant gap.
    const textX=x+76,available=columnWidth-76,gap=24;
@@ -72,7 +89,7 @@ async function render(){
    ctx.restore();
   });
   drawText(ctx,`${page+1} / ${pages}`,1795,950,85,30,18,fonts.serif,ink);
-  jobs.push(new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(new File([blob],`setlist-${$('setlistDate').value}-${theme}-${page+1}.png`,{type:'image/png'})):reject(Error('画像を生成できませんでした。')),'image/png')));
+  jobs.push(new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(new File([blob],`setlist-${$('setlistDate').value}-${theme}-${layout}-${page+1}.png`,{type:'image/png'})):reject(Error('画像を生成できませんでした。')),'image/png')));
  }
  status(songs.length?`${songs.length}曲・${pages}枚`:'完了曲がありません。');
  Promise.all(jobs).then(result=>{if(version===generation)files=result;}).catch(e=>{if(version===generation)status(e.message);});
@@ -85,7 +102,10 @@ window.openSetlistShare=async()=>{
  for(const [,q]of entries){const song=queueSongDataById(q.songId);if(!song){alert('楽曲情報を読み込み中です。少し待ってから再度開いてください。');return;}songs.push({title:String(song['曲名']||'不明な曲'),artist:String(song['アーティスト']||'—')});}
  $('setlistDate').value=today();render();if(!dialog.open)dialog.showModal();
 };
+function openDatePicker(){try{$('setlistDate').showPicker?.();}catch{ /* Native date input remains editable if showPicker is unavailable. */ }}
+$('setlistDate').addEventListener('click',openDatePicker);
+$('setlistDate').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openDatePicker();}});
 $('setlistClose').onclick=()=>dialog.close();
-for(const id of ['setlistRoomName','setlistDate','setlistTheme'])$(id).addEventListener('input',render);
+for(const id of ['setlistRoomName','setlistDate','setlistTheme','setlistLayout'])$(id).addEventListener('input',render);
 $('setlistSave').onclick=()=>{if(!valid())return;if(!files.length){status('画像生成中です。少し待ってから再試行してください。');return;}for(const file of files){const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}status('画像を保存しました。複数枚の保存を求められた場合は許可してください。');};
 })();
