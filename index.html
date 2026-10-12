@@ -10324,6 +10324,16 @@ html, body { background: transparent !important; color: ${text} !important; }
     const b=document.createElement('button');b.type='button';b.textContent=label;b.title=title;b.setAttribute('aria-label',title);b.className=cls;b.addEventListener('click',handler);return b;
   }
 
+  function slDockWikiButton(item){
+    const n=Number(item.keyOffset??0);
+    const key=Number.isInteger(n)&&n>=-5&&n<=6?n:0;
+    const url=chordWikiUrlForKey(item.songData?.['コードwiki'],key);
+    const label=url?'コードWikiを開く（Key '+displayKey(key)+'・別タブ）':'コードWikiのリンクが未登録です';
+    const button=slActionButton('🎸',label,'sl-act-back',()=>{if(url)window.open(url,'_blank','noopener,noreferrer');});
+    button.disabled=!url;
+    return button;
+  }
+
   function slRenderDockList(status,items){
     const map={
       reserved:{list:'slDockReservedList',count:'slDockReservedCount',badge:'slReservedBadge',empty:'予約はありません'},
@@ -10358,6 +10368,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       main.append(title,artist);
 
       const actions=document.createElement('div');actions.className='sl-dock-actions';
+      if(status==='reserved'||status==='confirmed')actions.append(slDockWikiButton(item));
       if(status==='reserved'){
         actions.append(
           slActionButton('✅','演奏確定へ','sl-act-ok',()=>slDockChangeStatus(item.qId,'confirmed')),
