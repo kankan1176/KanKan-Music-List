@@ -1352,6 +1352,12 @@ body.sl-room-dock-collapsed #slRoomDockHandle span{display:inline-block;transfor
 .sl-dock-title{font-size:10.5px;font-weight:850;color:#eef4ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .sl-dock-artist{margin-top:2px;font-size:8.5px;color:#8394b4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sl-dock-actions{display:flex;gap:3px;align-items:center}
+#slRoomDock .sl-dock-section header{flex-wrap:wrap}
+#slRoomDock .sl-dock-bulk{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+#slRoomDock .sl-dock-bulk button{width:auto!important;min-height:28px;padding:4px 7px!important;font-size:11px!important;white-space:nowrap;border-radius:6px}
+#slRoomDock .sl-dock-selected-count{font-size:10px;color:var(--sl-dock-foreground);flex-basis:100%;text-align:right}
+#slRoomDock .sl-dock-selected-count:empty{display:none}
+#slRoomDock .sl-dock-select{width:17px!important;min-width:17px!important;height:17px!important;margin:0 5px 0 0;padding:0;accent-color:#6487ff;cursor:pointer}
 .sl-dock-actions button{min-width:27px;height:27px;padding:3px 5px;border-radius:7px;font-size:9px;font-weight:850}
 .sl-act-back{background:#b8dfff!important;color:#163b66!important;border-color:#76b9f0!important}
 .sl-act-ok{background:#bcefd8!important;color:#155a3c!important;border-color:#75d6a6!important}
@@ -10096,6 +10102,49 @@ html, body { background: transparent !important; color: ${text} !important; }
   let slDockFeedbackTimer=null;
   let slReorderBusy=false;
   const slDockPendingIds=new Set();
+  const slDockSelection={reserved:new Set(),confirmed:new Set(),completed:new Set()};
+  let slDockBulkBusy=false;
+  function slRenderDockSelection(status){
+    const header=document.querySelector('.sl-dock-section[data-status="'+status+'"] header');
+    if(!header)return;
+    let toolbar=header.querySelector('.sl-dock-bulk');
+    if(!toolbar){toolbar=document.createElement('div');toolbar.className='sl-dock-bulk';header.insertBefore(toolbar,header.querySelector('b'));}
+    toolbar.replaceChildren();
+    const selected=slDockSelection[status],count=selected.size;
+    const counter=document.createElement('span');counter.textContent=count?'選択 '+count+'曲':'';counter.className='sl-dock-selected-count';toolbar.append(counter);
+    if(status!=='reserved'){
+      const back=slActionButton('⏪ 戻す','選択した曲を'+(status==='confirmed'?'予約':'演奏確定')+'へ戻す','sl-act-back',()=>slDockBulkAction(status,'back'));
+      back.disabled=!count||slDockBulkBusy||slDockPendingIds.size>0;toolbar.append(back);
+    }
+    if(status!=='completed'){
+      const remove=slActionButton('❌ 削除','選択した曲を削除','sl-act-delete',()=>slDockBulkAction(status,'delete'));
+      remove.disabled=!count||slDockBulkBusy||slDockPendingIds.size>0;toolbar.append(remove);
+    }
+  }
+  async function slDockBulkAction(status,action){
+    if(!slHasRoom()||slDockBulkBusy||slReorderBusy||slDockPendingIds.size)return;
+    if(!slDockSelection[status]||!['back','delete'].includes(action)||(status==='reserved'&&action==='back')||(status==='completed'&&action==='delete'))return;
+    const ids=slQueueGroups()[status].map(item=>item.qId).filter(id=>slDockSelection[status].has(id));
+    if(!ids.length)return;
+    if(action==='delete'&&!window.confirm('選択した'+ids.length+'曲を削除しますか？'))return;
+    const roomId=currentRoomId,target=status==='confirmed'?'reserved':'confirmed',order=Date.now();
+    slDockBulkBusy=true;ids.forEach(id=>slDockPendingIds.add(id));slRenderRoomDock();
+    const changed=[];let failed=0,skipped=0;
+    try{
+      // Use the existing per-song write permissions and compare status again on the server.
+      for(const [index,id] of ids.entries()){
+        try{
+          const result=await db.ref('rooms/'+roomId+'/queue/'+id).transaction(current=>{
+            if(!current||current.status!==status)return;
+            return action==='delete'?null:{...current,status:target,order:order+index};
+          },undefined,false);
+          if(result.committed){changed.push(id);slDockSelection[status].delete(id);}else skipped++;
+        }catch(err){failed++;console.error('選択曲の操作失敗',id,err);}
+      }
+      slDockFeedback(changed.length+'曲を'+(action==='delete'?'削除しました。':'戻しました。')+(skipped?' 他の参加者が変更済み：'+skipped+'曲。':'')+(failed?' 失敗：'+failed+'曲。選択を残しています。再試行してください。':''),failed>0);
+    }
+    finally{slDockBulkBusy=false;ids.forEach(id=>slDockPendingIds.delete(id));slRenderRoomDock();}
+  }
   function slDockFeedback(message,error=false){
     const box=slById('slDockFeedback');
     if(!box)return;
@@ -10348,6 +10397,9 @@ html, body { background: transparent !important; color: ${text} !important; }
     const cfg=map[status],list=slById(cfg.list);
     [slById(cfg.count),slById(cfg.badge)].forEach(el=>{if(el)el.textContent=String(items.length);});
     if(!list)return;
+    const present=new Set(items.map(item=>item.qId));
+    for(const id of slDockSelection[status])if(!present.has(id))slDockSelection[status].delete(id);
+    slRenderDockSelection(status);
     list.replaceChildren();
 
     if(!items.length){
@@ -10374,20 +10426,13 @@ html, body { background: transparent !important; color: ${text} !important; }
 
       const actions=document.createElement('div');actions.className='sl-dock-actions';
       if(status==='reserved'||status==='confirmed')actions.append(slDockWikiButton(item));
-      if(status==='reserved'){
-        actions.append(
-          slActionButton('✅','演奏確定へ','sl-act-ok',()=>slDockChangeStatus(item.qId,'confirmed')),
-          slActionButton('❌','予約から削除','sl-act-delete',()=>slDockRemove(item.qId))
-        );
-      }else if(status==='confirmed'){
-        actions.append(
-          slActionButton('⏪','予約へ戻す','sl-act-back',()=>slDockChangeStatus(item.qId,'reserved')),
-          slActionButton('✅','完了へ','sl-act-ok',()=>slDockChangeStatus(item.qId,'completed')),
-          slActionButton('❌','演奏確定から削除','sl-act-delete',()=>slDockRemove(item.qId))
-        );
-      }else{
-        actions.append(slActionButton('⏪','演奏確定へ戻す','sl-act-back',()=>slDockChangeStatus(item.qId,'confirmed')));
-      }
+      const select=document.createElement('input');select.type='checkbox';select.className='sl-dock-select';
+      select.checked=slDockSelection[status].has(item.qId);select.disabled=slDockBulkBusy||slDockPendingIds.has(item.qId);
+      select.setAttribute('aria-label',title.textContent+'を選択');
+      select.addEventListener('change',()=>{if(select.checked)slDockSelection[status].add(item.qId);else slDockSelection[status].delete(item.qId);slRenderDockSelection(status);});
+      actions.prepend(select);
+      if(status==='reserved')actions.append(slActionButton('✅','演奏確定へ','sl-act-ok',()=>slDockChangeStatus(item.qId,'confirmed')));
+      else if(status==='confirmed')actions.append(slActionButton('✅','完了へ','sl-act-ok',()=>slDockChangeStatus(item.qId,'completed')));
 
       if(slDockPendingIds.has(item.qId)){
         row.classList.add('sl-dock-pending');
