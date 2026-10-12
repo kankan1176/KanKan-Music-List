@@ -10,7 +10,7 @@ const dialog=document.createElement('dialog');dialog.id='setlistShareDialog';dia
 <p class="setlist-note">完了曲を右バーの並び順で表示します。1枚20曲以内で、各画像の曲数を均等に分けます。画像は横長1.91:1です。</p>
 <div class="setlist-preview" id="setlistPreview"></div><p id="setlistShareStatus" role="status"></p>
 <div class="setlist-actions"><button type="button" id="setlistSave">↓ 画像保存</button><button type="button" id="setlistX">𝕏 投稿</button><button type="button" id="setlistNative">↗ その他のアプリへ共有</button><button type="button" id="setlistCopy">投稿文をコピー</button></div>
-<p class="setlist-note">Xボタンは投稿文を開きます。保存した画像を添付してください。Discordへは「その他のアプリへ共有」または画像保存から投稿できます。共有先は端末によって異なります。</p>`;document.body.append(dialog);
+<p class="setlist-note">X投稿ボタンで共有メニューを開き、Xを選択すると画像を渡せます。Discordは「その他のアプリへ共有」から選んでください。画像共有に非対応の端末では、画像を保存して投稿に添付してください。共有先は端末によって異なります。</p>`;document.body.append(dialog);
 const $=id=>document.getElementById(id);let songs=[],roomId='',generation=0,files=[],busy=false;
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
 function status(text){$('setlistShareStatus').textContent=text;}
@@ -89,7 +89,19 @@ function postText(){return `${$('setlistRoomName').value.trim()}\n${$('setlistDa
 $('setlistClose').onclick=()=>dialog.close();
 for(const id of ['setlistRoomName','setlistDate','setlistTheme'])$(id).addEventListener('input',render);
 $('setlistSave').onclick=()=>{if(!valid())return;if(!files.length){status('画像生成中です。少し待ってから再試行してください。');return;}for(const file of files){const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}status('画像を保存しました。複数枚の保存を求められた場合は許可してください。');};
-$('setlistX').onclick=()=>{if(!valid())return;const text=`${$('setlistRoomName').value.trim()}\n${$('setlistDate').value}\n〜本日のセットリスト〜`;window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank','noopener,noreferrer');status('Xで、保存したセットリスト画像を添付してください。');};
+$('setlistX').onclick=()=>shareSetlist('X');
 $('setlistCopy').onclick=async()=>{if(!valid())return;try{await navigator.clipboard.writeText(postText());status('投稿文をコピーしました。');}catch{status('コピーできませんでした。ブラウザのクリップボード権限を確認してください。');}};
-$('setlistNative').onclick=async()=>{if(!valid()||busy)return;if(!files.length){status('画像生成中です。少し待ってから再試行してください。');return;}if(!navigator.canShare?.({files})||!navigator.share){status('この端末は画像共有に対応していません。「画像保存」からX・Discordに添付してください。');return;}busy=true;try{await navigator.share({files,title:$('setlistRoomName').value.trim(),text:`${$('setlistRoomName').value.trim()} / ${$('setlistDate').value}\n〜本日のセットリスト〜`});status('共有先へ画像を渡しました。');}catch(e){status(e.name==='AbortError'?'共有をキャンセルしました。':'共有できませんでした。「画像保存」から投稿してください。');}finally{busy=false;}};
+async function shareSetlist(target){
+ if(!valid()||busy)return;
+ if(!files.length){status('画像生成中です。少し待ってから再試行してください。');return;}
+ if(!navigator.canShare?.({files})||!navigator.share){status('この端末は画像共有に対応していません。「画像保存」で保存し、'+(target==='X'?'X':'X・Discord')+'の投稿画面に添付してください。');return;}
+ busy=true;$('setlistX').disabled=true;$('setlistNative').disabled=true;
+ status(target==='X'?'共有メニューでXを選んでください。':'共有するアプリを選んでください。');
+ try{
+  await navigator.share({files,title:$('setlistRoomName').value.trim(),text:`${$('setlistRoomName').value.trim()} / ${$('setlistDate').value}\n〜本日のセットリスト〜`});
+  status('共有先へ画像を渡しました。投稿は共有先のアプリで確認・実行してください。');
+ }catch(e){status(e.name==='AbortError'?'共有をキャンセルしました。':'共有できませんでした。「画像保存」から投稿してください。');}
+ finally{busy=false;$('setlistX').disabled=false;$('setlistNative').disabled=false;}
+}
+$('setlistNative').onclick=()=>shareSetlist();
 })();
