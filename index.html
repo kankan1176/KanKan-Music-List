@@ -3704,6 +3704,10 @@ html.entry-home body.sl-redesign .sl-home-update-list:focus-visible{outline:2px 
 html.entry-home body.sl-redesign .home-copyright{position:static!important;transform:none!important;margin:0!important;width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}
 @media(max-height:480px){html.entry-home body.sl-redesign .sl-home-brand img{display:none}html.entry-home body.sl-redesign .sl-home-brand-text{font-size:28px!important}html.entry-home body.sl-redesign .sl-home-visual{gap:8px!important}}
 </style>
+<script src="ui-translations.js?v=20261013-1"></script>
+<style id="translated-layout">
+html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywhere}html:not([lang="ja"]) .sl-dock-actions{min-width:0;max-width:48%}html:not([lang="ja"]) .sl-dock-actions button,html:not([lang="ja"]) .sl-dock-actions a{white-space:normal;height:auto;overflow-wrap:anywhere}html:not([lang="ja"]) .sl-home-update-list article{min-height:0}html:not([lang="ja"]) #setlistShareDialog label,html:not([lang="ja"]) #setlistShareDialog p{overflow-wrap:anywhere}
+</style>
 </head>
 <body>
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
@@ -3866,14 +3870,14 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
         <section class="sl-help-section active" data-help="first" aria-labelledby="slHelpChapter-first">
         <h3 id="slHelpChapter-first">まずはこの順番で使ってみましょう</h3>
         <p>シェアリスコアは、演奏できる曲を自分のリストにまとめ、仲間と「何を演奏するか」を決めるサービスです。楽曲を探すだけなら、ログインせずに始められます。</p><div class="sl-help-note">
-        <p><strong>ひとりで準備する：</strong>ログイン → 曲を探す → マイリストへ登録。<br><strong>仲間と使う：</strong>ルームを作成・参加 → 曲を予約 → 演奏確定 → 完了。</p></div>
+        <p data-i18n-sentence><strong>ひとりで準備する：</strong>ログイン → 曲を探す → マイリストへ登録。<br><strong>仲間と使う：</strong>ルームを作成・参加 → 曲を予約 → 演奏確定 → 完了。</p></div>
         <ol>
-        <li><strong>Googleでログインします。</strong>マイリストを保存する場合は、画面左下の「Googleでログイン」を選びます。</li>
-        <li><strong>演奏できる曲を1曲探します。</strong>「全曲一覧」を開き、上部の検索欄へ曲名やアーティスト名を入力します。</li>
-        <li><strong>自分のリストへ追加します。</strong>曲の「＋登録」を選び、「マイリスト」でKeyと担当パートを設定します。</li>
-        <li><strong>仲間のルームへ参加します。</strong>主催者のリンクを開くか、「ルーム」から作成・参加します。</li>
-        <li><strong>演奏の順番を決めます。</strong>候補を予約し、演奏する曲を確定、終わった曲を完了にします。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>最初の1曲がマイリストに入り、仲間と演奏候補を確認できれば準備完了です。</p></div><div class="sl-help-links">
+        <li data-i18n-sentence><strong>Googleでログインします。</strong>マイリストを保存する場合は、画面左下の「Googleでログイン」を選びます。</li>
+        <li data-i18n-sentence><strong>演奏できる曲を1曲探します。</strong>「全曲一覧」を開き、上部の検索欄へ曲名やアーティスト名を入力します。</li>
+        <li data-i18n-sentence><strong>自分のリストへ追加します。</strong>曲の「＋登録」を選び、「マイリスト」でKeyと担当パートを設定します。</li>
+        <li data-i18n-sentence><strong>仲間のルームへ参加します。</strong>主催者のリンクを開くか、「ルーム」から作成・参加します。</li>
+        <li data-i18n-sentence><strong>演奏の順番を決めます。</strong>候補を予約し、演奏する曲を確定、終わった曲を完了にします。</li></ol><div class="sl-help-goal">
+        <p data-i18n-sentence><strong>完了の目安：</strong>最初の1曲がマイリストに入り、仲間と演奏候補を確認できれば準備完了です。</p></div><div class="sl-help-links">
         <button type="button" onclick="slHelpOpen('account')">ログインの手順</button>
         <button type="button" onclick="slHelpOpen('all')">曲の探し方</button>
         <button type="button" onclick="slHelpOpen('manual')">画像付きマニュアル</button></div>
@@ -3881,53 +3885,53 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
         <figcaption>トップ画面。ログインの入口は左メニューの下部です。 画像を選ぶと別タブで拡大できます。</figcaption></figure></section>
         <section class="sl-help-section" data-help="account" aria-labelledby="slHelpChapter-account">
         <h3 id="slHelpChapter-account">ログインして、自分の名前を設定する</h3>
-        <p><strong>準備：</strong>個人のマイリストやフレンド機能にはGoogleログインを使います。ゲストでもルームに参加できますが、個人リストの保存・共有にはログインが必要です。</p>
+        <p data-i18n-sentence><strong>準備：</strong>個人のマイリストやフレンド機能にはGoogleログインを使います。ゲストでもルームに参加できますが、個人リストの保存・共有にはログインが必要です。</p>
         <ol>
-        <li>左メニュー下部の<strong>「Googleでログイン」</strong>を選び、Googleの画面でアカウントを選択します。スマートフォンは先に「☰」でメニューを開きます。</li>
-        <li>ログイン後、左上のアカウント表示を選んで<strong>「アカウント設定」</strong>を開きます。</li>
-        <li>「ユーザー名（セッション用）」に仲間が分かる名前を入力し、<strong>「変更」</strong>を選びます。</li>
-        <li>基本担当パートを選び、<strong>「保存」</strong>を選びます。これは今後新たに登録する曲に適用され、登録済みの曲は変更されません。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>「ゲスト利用中」からログイン中の表示に変わり、ユーザー名を確認できれば設定できています。</p></div><div class="sl-help-note">
+        <li data-i18n-sentence>左メニュー下部の<strong>「Googleでログイン」</strong>を選び、Googleの画面でアカウントを選択します。スマートフォンは先に「☰」でメニューを開きます。</li>
+        <li data-i18n-sentence>ログイン後、左上のアカウント表示を選んで<strong>「アカウント設定」</strong>を開きます。</li>
+        <li data-i18n-sentence>「ユーザー名（セッション用）」に仲間が分かる名前を入力し、<strong>「変更」</strong>を選びます。</li>
+        <li data-i18n-sentence>基本担当パートを選び、<strong>「保存」</strong>を選びます。これは今後新たに登録する曲に適用され、登録済みの曲は変更されません。</li></ol><div class="sl-help-goal">
+        <p data-i18n-sentence><strong>完了の目安：</strong>「ゲスト利用中」からログイン中の表示に変わり、ユーザー名を確認できれば設定できています。</p></div><div class="sl-help-note">
         <p>ログイン画面が開かないときは、ブラウザーがポップアップをブロックしていないか確認します。共有端末では利用後にログアウトしてください。</p></div></section>
         <section class="sl-help-section" data-help="all" aria-labelledby="slHelpChapter-all">
         <h3 id="slHelpChapter-all">全曲一覧から演奏したい曲を探す</h3>
-        <p><strong>準備：</strong>曲名やアーティスト名が分かれば検索できます。閲覧のみならログインは不要です。</p>
+        <p data-i18n-sentence><strong>準備：</strong>曲名やアーティスト名が分かれば検索できます。閲覧のみならログインは不要です。</p>
         <ol>
-        <li>左メニューの<strong>「全曲一覧」</strong>を選びます。</li>
+        <li data-i18n-sentence>左メニューの<strong>「全曲一覧」</strong>を選びます。</li>
         <li>上部の検索欄に曲名、アーティスト、アニメ名などを入力します。検索語を短くすると候補を広く探せます。</li>
-        <li>必要に応じてジャンルボタンを選びます。絞り込みを外すときは検索語を消し、ジャンルを<strong>「すべて」</strong>に戻します。</li>
+        <li data-i18n-sentence>必要に応じてジャンルボタンを選びます。絞り込みを外すときは検索語を消し、ジャンルを<strong>「すべて」</strong>に戻します。</li>
         <li>曲名を選んで詳細情報を確認します。ChordWikiのリンクがある曲はコード譜を開けます。</li>
-        <li>自分が演奏できる曲は<strong>「＋登録」</strong>でマイリストへ追加します（Googleログインが必要です）。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>目的の曲を見つけ、曲名・アーティスト・詳細を確認できれば完了です。</p></div>
+        <li data-i18n-sentence>自分が演奏できる曲は<strong>「＋登録」</strong>でマイリストへ追加します（Googleログインが必要です）。</li></ol><div class="sl-help-goal">
+        <p data-i18n-sentence><strong>完了の目安：</strong>目的の曲を見つけ、曲名・アーティスト・詳細を確認できれば完了です。</p></div>
         <figure class="sl-help-screen"><a href="assets/manual/screenshots/02-all.png" target="_blank" rel="noopener" aria-label="全曲一覧の検索欄、ジャンルと登録ボタン（画像を別タブで拡大）"><img src="assets/manual/screenshots/02-all.png" alt="全曲一覧の検索欄、ジャンルと登録ボタン" loading="lazy" decoding="async"></a>
         <figcaption>検索欄は右上、ジャンルはその下、登録ボタンは各曲の左側にあります。楽曲は説明用サンプルです。 画像を選ぶと別タブで拡大できます。</figcaption></figure><div class="sl-help-note">
         <p>「Key一括リセット」は検索の解除ではありません。登録済みの保存Keyも原曲の0へ戻るため、検索し直したいときは検索欄とジャンルを操作してください。</p></div></section>
         <section class="sl-help-section" data-help="my" aria-labelledby="slHelpChapter-my">
         <h3 id="slHelpChapter-my">演奏できる曲と、自分の設定を保存する</h3>
-        <p><strong>準備：</strong>Googleでログインし、全曲一覧から演奏できる曲を登録してください。「マイリスト」は自分用の楽曲リストです。</p>
+        <p data-i18n-sentence><strong>準備：</strong>Googleでログインし、全曲一覧から演奏できる曲を登録してください。「マイリスト」は自分用の楽曲リストです。</p>
         <ol>
-        <li>左メニューの<strong>「マイリスト」</strong>を選びます。登録した曲があることを確認します。</li>
-        <li>曲ごとの<strong>Key</strong>を設定します。0は原曲、+1は半音上、-1は半音下です。例：歌いやすく2半音下げるなら-2を選びます。</li>
+        <li data-i18n-sentence>左メニューの<strong>「マイリスト」</strong>を選びます。登録した曲があることを確認します。</li>
+        <li data-i18n-sentence>曲ごとの<strong>Key</strong>を設定します。0は原曲、+1は半音上、-1は半音下です。例：歌いやすく2半音下げるなら-2を選びます。</li>
         <li>担当パートを選びます。ボーカル、ギターなど、演奏できるパートを複数選べます。</li>
         <li>変更後は保存失敗の通知が出ていないことを確認します。通知が出た場合は通信状況を確認し、「再試行」を選びます。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>登録曲ごとのKeyと担当パートが、自分の希望する設定になっていれば完了です。</p></div>
+        <p data-i18n-sentence><strong>完了の目安：</strong>登録曲ごとのKeyと担当パートが、自分の希望する設定になっていれば完了です。</p></div>
         <h4>複数の曲をまとめて編集する</h4>
         <ol>
         <li>対象の曲をチェックします。「表示中を選択」は現在のページの曲を選びます。</li>
         <li>一括編集欄でKeyや担当パート、パートON／OFFを指定します。</li>
-        <li><strong>「選択曲に適用」</strong>を選び、対象曲の設定を確認します。</li></ol><div class="sl-help-note">
+        <li data-i18n-sentence><strong>「選択曲に適用」</strong>を選び、対象曲の設定を確認します。</li></ol><div class="sl-help-note">
         <p>「選択曲を削除」は自分のマイリストから削除します。全曲一覧の楽曲自体は削除されません。削除前に選択した曲を確認してください。</p></div><div class="sl-help-links">
         <button type="button" onclick="slHelpOpen('import')">表からまとめて登録する方法</button></div></section>
         <section class="sl-help-section" data-help="import" aria-labelledby="slHelpChapter-import">
         <h3 id="slHelpChapter-import">Excel・スプレッドシートの曲をまとめて登録する</h3>
-        <p><strong>準備：</strong>Googleでログインし、曲名・アーティストなどが並んだ表を用意します。文章ではなく、2列以上のセル範囲をコピーします。</p>
+        <p data-i18n-sentence><strong>準備：</strong>Googleでログインし、曲名・アーティストなどが並んだ表を用意します。文章ではなく、2列以上のセル範囲をコピーします。</p>
         <ol>
         <li>ExcelやGoogleスプレッドシートで曲名・アーティストのセル範囲を選択し、コピーします。URLとKeyの列は必要に応じて用意します。</li>
-        <li>マイリストの<strong>「貼り付けからのマイリスト一括登録」</strong>を開き、<strong>「クリップボードの表を読み取る」</strong>を選びます。</li>
-        <li>列を「曲名」「アーティスト」「URL」「Key」「使用しない」に割り当て、<strong>「この列設定で確定」</strong>を選びます。</li>
-        <li>解析結果で一致曲と未一致曲を確認し、<strong>「一致曲の登録内容を確認」</strong>へ進みます。</li>
-        <li>Keyなどの内容を確認し、<strong>「確定して登録」</strong>を選びます。結果の件数を確認して「完了」を選びます。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>登録結果の件数を確認し、マイリストに対象曲が表示されれば完了です。</p></div><div class="sl-help-note">
+        <li data-i18n-sentence>マイリストの<strong>「貼り付けからのマイリスト一括登録」</strong>を開き、<strong>「クリップボードの表を読み取る」</strong>を選びます。</li>
+        <li data-i18n-sentence>列を「曲名」「アーティスト」「URL」「Key」「使用しない」に割り当て、<strong>「この列設定で確定」</strong>を選びます。</li>
+        <li data-i18n-sentence>解析結果で一致曲と未一致曲を確認し、<strong>「一致曲の登録内容を確認」</strong>へ進みます。</li>
+        <li data-i18n-sentence>Keyなどの内容を確認し、<strong>「確定して登録」</strong>を選びます。結果の件数を確認して「完了」を選びます。</li></ol><div class="sl-help-goal">
+        <p data-i18n-sentence><strong>完了の目安：</strong>登録結果の件数を確認し、マイリストに対象曲が表示されれば完了です。</p></div><div class="sl-help-note">
         <p>未一致・エラー・重複行は登録されません。URLがない場合は曲名とアーティストの完全一致で照合します。既に登録した曲はKeyが更新され、担当パートは維持されます。確定前に内容を確認してください。</p></div>
         <details>
         <summary>Keyが空欄の場合・未一致の曲の扱い</summary>
@@ -3936,31 +3940,31 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
         <p>マイリストの「クリップボードの使い方を見る」には、コピー・列設定・解析・確認・結果を画像付きで説明した5ページのガイドがあります。</p></section>
         <section class="sl-help-section" data-help="room" aria-labelledby="slHelpChapter-room">
         <h3 id="slHelpChapter-room">仲間とセットリストを共有する</h3>
-        <p><strong>ルームとは：</strong>参加者で候補曲や演奏状況を共有する場所です。主催者は作成、参加者は共有リンクまたはルームIDから入室します。</p>
+        <p data-i18n-sentence><strong>ルームとは：</strong>参加者で候補曲や演奏状況を共有する場所です。主催者は作成、参加者は共有リンクまたはルームIDから入室します。</p>
         <h4>自分が主催するとき</h4>
         <ol>
-        <li>左メニューの<strong>「ルーム」</strong>を開き、「ルームを作成」を選びます。</li>
-        <li>確認画面の<strong>「ルームを作成」</strong>で確定します。ルームIDは自動で発行されます。</li>
-        <li>入室後、左メニューの<strong>「URL共有」</strong>などからルームURLをコピーし、仲間へ送ります。</li></ol>
+        <li data-i18n-sentence>左メニューの<strong>「ルーム」</strong>を開き、「ルームを作成」を選びます。</li>
+        <li data-i18n-sentence>確認画面の<strong>「ルームを作成」</strong>で確定します。ルームIDは自動で発行されます。</li>
+        <li data-i18n-sentence>入室後、左メニューの<strong>「URL共有」</strong>などからルームURLをコピーし、仲間へ送ります。</li></ol>
         <figure class="sl-help-screen"><a href="assets/manual/screenshots/05-room-create.png" target="_blank" rel="noopener" aria-label="ルーム作成の確認画面（画像を別タブで拡大）"><img src="assets/manual/screenshots/05-room-create.png" alt="ルーム作成の確認画面" loading="lazy" decoding="async"></a>
         <figcaption>右下の「ルームを作成」で作成を確定します。 画像を選ぶと別タブで拡大できます。</figcaption></figure>
         <h4>仲間のルームに参加するとき</h4>
         <ol>
-        <li>共有されたルームURLを開きます。IDで参加する場合は「ルーム」→<strong>「ルームに入る」</strong>を選びます。</li>
-        <li>主催者から受け取ったルームIDを入力し、<strong>「入室する」</strong>を選びます。</li>
+        <li data-i18n-sentence>共有されたルームURLを開きます。IDで参加する場合は「ルーム」→<strong>「ルームに入る」</strong>を選びます。</li>
+        <li data-i18n-sentence>主催者から受け取ったルームIDを入力し、<strong>「入室する」</strong>を選びます。</li>
         <li>入室後、ユーザー名と参加者を確認します。個人マイリストを共有する場合はGoogleログインを使います。</li></ol>
         <figure class="sl-help-screen"><a href="assets/manual/screenshots/06-room-join.png" target="_blank" rel="noopener" aria-label="ルームID入力欄と入室するボタン（画像を別タブで拡大）"><img src="assets/manual/screenshots/06-room-join.png" alt="ルームID入力欄と入室するボタン" loading="lazy" decoding="async"></a>
         <figcaption>ルームIDは主催者から受け取ったものを入力します。 画像を選ぶと別タブで拡大できます。</figcaption></figure><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>目的のルームに入り、参加者と同じ演奏候補を確認できれば完了です。</p></div><div class="sl-help-note">
+        <p data-i18n-sentence><strong>完了の目安：</strong>目的のルームに入り、参加者と同じ演奏候補を確認できれば完了です。</p></div><div class="sl-help-note">
         <p>IDが分からないときは主催者に確認します。終了時はルームの「退室」から退出します。</p></div></section>
         <section class="sl-help-section" data-help="progress" aria-labelledby="slHelpChapter-progress">
         <h3 id="slHelpChapter-progress">演奏する曲を決め、進行を記録する</h3>
-        <p><strong>準備：</strong>ルームへ入室してください。演奏状況は参加者で共有されるため、相談しながら操作します。</p>
+        <p data-i18n-sentence><strong>準備：</strong>ルームへ入室してください。演奏状況は参加者で共有されるため、相談しながら操作します。</p>
         <ol>
-        <li>全曲一覧や共通曲から演奏候補を探し、<strong>予約</strong>します。共通曲では、選んだ参加者が全員登録している曲を探せます。</li>
-        <li>右側のセッション進行バーで<strong>「予約」</strong>を確認します。演奏すると決めた曲を確定すると「演奏確定」へ移動します。</li>
-        <li>演奏が終わった曲を<strong>完了</strong>にすると、「完了」へ移動します。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>演奏した曲が「完了」に並び、セットリストが残れば完了です。</p></div>
+        <li data-i18n-sentence>全曲一覧や共通曲から演奏候補を探し、<strong>予約</strong>します。共通曲では、選んだ参加者が全員登録している曲を探せます。</li>
+        <li data-i18n-sentence>右側のセッション進行バーで<strong>「予約」</strong>を確認します。演奏すると決めた曲を確定すると「演奏確定」へ移動します。</li>
+        <li data-i18n-sentence>演奏が終わった曲を<strong>完了</strong>にすると、「完了」へ移動します。</li></ol><div class="sl-help-goal">
+        <p data-i18n-sentence><strong>完了の目安：</strong>演奏した曲が「完了」に並び、セットリストが残れば完了です。</p></div>
         <h4>間違えたとき・複数曲を操作するとき</h4>
         <ul>
         <li>「戻す」は演奏確定から予約、完了から演奏確定へ戻します。</li>
@@ -3971,56 +3975,56 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
         <p>スマートフォンや狭い画面では進行バーが折りたたまれます。開閉ボタンで表示し、「予約」「確定」「完了」を切り替えて確認します。</p></div></section>
         <section class="sl-help-section" data-help="obs" aria-labelledby="slHelpChapter-obs">
         <h3 id="slHelpChapter-obs">配信画面にルームのセットリストを表示する</h3>
-        <p><strong>準備：</strong>OBS Studioと、参加中のルームが必要です。この機能は配信を行う人向けです。</p>
+        <p data-i18n-sentence><strong>準備：</strong>OBS Studioと、参加中のルームが必要です。この機能は配信を行う人向けです。</p>
         <ol>
-        <li>ルーム参加中に<strong>「OBSカスタムCSS設定」</strong>を開きます。</li>
-        <li><strong>「URLをコピー」</strong>を選び、OBSのソースに「ブラウザ」を追加して、URL欄へ貼り付けます。</li>
-        <li>シェアリスコアで枠色・文字色・背景色・背景透明度を選び、<strong>「① 確定」</strong>を選びます。「表示を確認」で見え方を確認できます。</li>
-        <li><strong>「② CSS生成」→「③ CSSをコピー」</strong>の順に操作し、OBSのブラウザソースの「カスタムCSS」へ貼り付けます。</li>
+        <li data-i18n-sentence>ルーム参加中に<strong>「OBSカスタムCSS設定」</strong>を開きます。</li>
+        <li data-i18n-sentence><strong>「URLをコピー」</strong>を選び、OBSのソースに「ブラウザ」を追加して、URL欄へ貼り付けます。</li>
+        <li data-i18n-sentence>シェアリスコアで枠色・文字色・背景色・背景透明度を選び、<strong>「① 確定」</strong>を選びます。「表示を確認」で見え方を確認できます。</li>
+        <li data-i18n-sentence><strong>「② CSS生成」→「③ CSSをコピー」</strong>の順に操作し、OBSのブラウザソースの「カスタムCSS」へ貼り付けます。</li>
         <li>OBSで実際の表示を確認します。完了した曲が演奏順で表示されます。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>OBSのプレビューにセットリストが表示され、選んだ配色になれば完了です。</p></div><div class="sl-help-note">
+        <p data-i18n-sentence><strong>完了の目安：</strong>OBSのプレビューにセットリストが表示され、選んだ配色になれば完了です。</p></div><div class="sl-help-note">
         <p>透明度は0%が不透明、100%が透明です。色を変更したら、もう一度「確定 → CSS生成 → コピー」を行い、OBSにも貼り直します。</p></div></section>
         <section class="sl-help-section" data-help="friends" aria-labelledby="slHelpChapter-friends">
         <h3 id="slHelpChapter-friends">仲間の公開マイリストと共通曲を探す</h3>
-        <p><strong>準備：</strong>Googleでログインし、相手のフレンドコードを教えてもらいます。</p>
+        <p data-i18n-sentence><strong>準備：</strong>Googleでログインし、相手のフレンドコードを教えてもらいます。</p>
         <ol>
-        <li>左メニューの<strong>「フレンド」</strong>を選びます。自分のフレンドコードは「コピー」で相手に共有できます。</li>
-        <li>「フレンドコードで探す」に相手のコードを入力し、<strong>「検索」</strong>を選びます。</li>
+        <li data-i18n-sentence>左メニューの<strong>「フレンド」</strong>を選びます。自分のフレンドコードは「コピー」で相手に共有できます。</li>
+        <li data-i18n-sentence>「フレンドコードで探す」に相手のコードを入力し、<strong>「検索」</strong>を選びます。</li>
         <li>検索結果から相手の公開マイリストを開きます。曲名・ジャンルなどで絞り込めます。</li>
-        <li><strong>「自分との共通曲のみ」</strong>にチェックすると、一緒に演奏できる曲を探せます。「お気に入りアーティスト」も確認できます。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>相手の公開リストを開き、一緒に演奏したい曲を確認できれば完了です。</p></div><div class="sl-help-note">
+        <li data-i18n-sentence><strong>「自分との共通曲のみ」</strong>にチェックすると、一緒に演奏できる曲を探せます。「お気に入りアーティスト」も確認できます。</li></ol><div class="sl-help-goal">
+        <p data-i18n-sentence><strong>完了の目安：</strong>相手の公開リストを開き、一緒に演奏したい曲を確認できれば完了です。</p></div><div class="sl-help-note">
         <p>相手のデータを直接変更することはできません。リストがまだ表示されない場合は、相手にログインとマイリストの保存を確認してもらってください。</p></div></section>
         <section class="sl-help-section" data-help="add" aria-labelledby="slHelpChapter-add">
         <h3 id="slHelpChapter-add">全曲一覧にない楽曲を登録申請する</h3>
-        <p><strong>準備：</strong>同じ曲が登録済みでないか検索し、原曲のChordWiki URLを用意します。</p>
+        <p data-i18n-sentence><strong>準備：</strong>同じ曲が登録済みでないか検索し、原曲のChordWiki URLを用意します。</p>
         <ol>
-        <li>左メニューの<strong>「新規楽曲追加」</strong>を選びます。</li>
+        <li data-i18n-sentence>左メニューの<strong>「新規楽曲追加」</strong>を選びます。</li>
         <li>曲名・アーティスト名・ChordWiki URLなど、画面で必須と表示された項目を入力します。URLは原曲ページのものを使います。</li>
-        <li>表記や内容を確認し、<strong>「管理者へ登録申請」</strong>を選びます。</li>
+        <li data-i18n-sentence>表記や内容を確認し、<strong>「管理者へ登録申請」</strong>を選びます。</li>
         <li>画面の送信結果を確認します。楽曲は管理者の確認・承認後に全曲一覧へ反映されます。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>申請の送信結果を確認できれば、この操作は完了です。送信直後に全曲一覧へ表示されなくても、承認待ちの場合があります。</p></div><div class="sl-help-note">
+        <p data-i18n-sentence><strong>完了の目安：</strong>申請の送信結果を確認できれば、この操作は完了です。送信直後に全曲一覧へ表示されなくても、承認待ちの場合があります。</p></div><div class="sl-help-note">
         <p>「全曲一覧への楽曲申請」と「自分のマイリストへの登録」は別の操作です。公開された後、演奏できる曲を自分のマイリストへ登録してください。</p></div></section>
         <section class="sl-help-section" data-help="settings" aria-labelledby="slHelpChapter-settings">
         <h3 id="slHelpChapter-settings">見やすい画面に調整する</h3>
         <ol>
-        <li>左メニューの<strong>「設定」</strong>を開きます。</li>
-        <li><strong>UIカラーテーマ</strong>でダーク／ライトを選びます。</li>
-        <li><strong>言語</strong>と<strong>フォント</strong>を選び、読みやすい表示に調整します。フォントの見え方は端末によって異なります。</li>
-        <li>最新の情報が表示されないときは、<strong>「最新情報を再読み込み」</strong>を選びます。</li></ol><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>文字と背景が見やすい状態になれば設定完了です。</p></div>
+        <li data-i18n-sentence>左メニューの<strong>「設定」</strong>を開きます。</li>
+        <li data-i18n-sentence><strong>UIカラーテーマ</strong>でダーク／ライトを選びます。</li>
+        <li data-i18n-sentence><strong>言語</strong>と<strong>フォント</strong>を選び、読みやすい表示に調整します。フォントの見え方は端末によって異なります。</li>
+        <li data-i18n-sentence>最新の情報が表示されないときは、<strong>「最新情報を再読み込み」</strong>を選びます。</li></ol><div class="sl-help-goal">
+        <p data-i18n-sentence><strong>完了の目安：</strong>文字と背景が見やすい状態になれば設定完了です。</p></div>
         <figure class="sl-help-screen"><a href="assets/manual/screenshots/07-settings.png" target="_blank" rel="noopener" aria-label="カラーテーマ・言語・フォントと再読み込みの設定画面（画像を別タブで拡大）"><img src="assets/manual/screenshots/07-settings.png" alt="カラーテーマ・言語・フォントと再読み込みの設定画面" loading="lazy" decoding="async"></a>
         <figcaption>上からテーマ、言語、フォントを選べます。 画像を選ぶと別タブで拡大できます。</figcaption></figure><div class="sl-help-note">
         <p>ユーザー名と基本担当パートは「設定」ではなく、左上のアカウント表示から開く「アカウント設定」で変更します。</p></div></section>
         <section class="sl-help-section" data-help="mobile" aria-labelledby="slHelpChapter-mobile">
         <h3 id="slHelpChapter-mobile">スマートフォンのメニューと画面の見方</h3>
         <ol>
-        <li>トップ画面左上の<strong>「☰」</strong>をタップしてメニューを開きます。</li>
+        <li data-i18n-sentence>トップ画面左上の<strong>「☰」</strong>をタップしてメニューを開きます。</li>
         <li>「全曲一覧」「マイリスト」「ルーム」など、使いたい項目を選びます。Googleログインの入口はメニューの下部にあります。</li>
-        <li>ヘルプでは上部の<strong>「読みたい項目」</strong>を選ぶと、各操作の説明へ切り替わります。本文を上下にスクロールして読めます。</li>
+        <li data-i18n-sentence>ヘルプでは上部の<strong>「読みたい項目」</strong>を選ぶと、各操作の説明へ切り替わります。本文を上下にスクロールして読めます。</li>
         <li>画像をタップすると別タブで拡大できます。読み終わったらサイトのタブへ戻って操作を続けます。</li></ol>
         <figure class="sl-help-phone"><a href="assets/manual/screenshots/13-mobile.png" target="_blank" rel="noopener" aria-label="スマートフォンのトップ画面と左上のメニューボタン（画像を別タブで拡大）"><img src="assets/manual/screenshots/13-mobile.png" alt="スマートフォンのトップ画面と左上のメニューボタン" loading="lazy" decoding="async"></a>
         <figcaption>左上の「☰」がメニューの入口です。 画像を選ぶと別タブで拡大できます。</figcaption></figure><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>メニューから目的の画面へ進めれば準備完了です。</p></div></section>
+        <p data-i18n-sentence><strong>完了の目安：</strong>メニューから目的の画面へ進めれば準備完了です。</p></div></section>
         <section class="sl-help-section" data-help="trouble" aria-labelledby="slHelpChapter-trouble">
         <h3 id="slHelpChapter-trouble">よくあるつまずきと確認する場所</h3>
         <details open>
@@ -4047,10 +4051,10 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
         <section class="sl-help-section" data-help="manual" aria-labelledby="slHelpChapter-manual">
         <h3 id="slHelpChapter-manual">画面を見ながら読む・PDFで保存する</h3>
         <p>トップ、検索、ルーム、設定などを14枚の画面画像で説明した、全16ページのマニュアルです。別タブで読むか、PDFを保存して確認できます。</p><div class="sl-help-links"><a class="sl-help-link" href="assets/manual/shareliscore-manual-v0.1.html" target="_blank" rel="noopener">画像付きマニュアルを読む（別タブ）</a><a class="sl-help-link" href="assets/manual/shareliscore-manual-v0.1.pdf" target="_blank" rel="noopener">PDFを開く（16ページ）</a><a class="sl-help-link" href="assets/manual/shareliscore-manual-v0.1.pdf" download="シェアリスコア操作マニュアル-試作版.pdf">PDFをダウンロード</a></div><div class="sl-help-note">
-        <p><strong>このマニュアルは試作版です。</strong>2026年10月13日作成。楽曲一覧の画像には説明用サンプルを使っています。実際の画面と異なる場合があります。ログイン後の保存やルーム同期、OBSでの実表示は未検証で、対象の章に注記しています。</p></div>
+        <p data-i18n-sentence><strong>このマニュアルは試作版です。</strong>2026年10月13日作成。楽曲一覧の画像には説明用サンプルを使っています。実際の画面と異なる場合があります。ログイン後の保存やルーム同期、OBSでの実表示は未検証で、対象の章に注記しています。</p></div>
         <h4>このヘルプの読み方</h4>
         <p>初めての方は「01 はじめての使い方」から順に進めてください。各項目は準備、操作手順、完了の目安をまとめています。迷ったら「13 困ったとき」から状況に合う項目を確認できます。</p><div class="sl-help-goal">
-        <p><strong>完了の目安：</strong>使いたい操作の説明を開ける、またはPDFを保存できれば完了です。</p></div></section></div>
+        <p data-i18n-sentence><strong>完了の目安：</strong>使いたい操作の説明を開ける、またはPDFを保存できれば完了です。</p></div></section></div>
     </div>
   </div>
 </div>
@@ -4906,21 +4910,21 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
    <div id="clipboardHelpPages" style="flex:1;min-height:0;overflow:hidden;">
 <section class="clipboard-help-page" data-page="0" style="display:block;"border:1px solid var(--border-color);border-radius:10px;padding:10px;background:rgba(255,255,255,.02);">
         <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">① スプレッドシートからコピペ</h3>
-        <p style="margin:0 0 10px;">曲名・アーティスト・コードWiki・Key などの列を含むセル範囲を、表のままコピーします。<br><strong>Key列について：</strong>原曲を0として半音単位で指定できます（例：+3、-2）。指定したKeyはマイリストに保存され、ChordWikiを開く際にはそのKeyで自動移調したURLが使用されます。</p>
+        <p style="margin:0 0 10px;">曲名・アーティスト・コードWiki・Key などの列を含むセル範囲を、表のままコピーします。<br>Key列について：原曲を0として半音単位で指定できます（例：+3、-2）。指定したKeyはマイリストに保存され、ChordWikiを開く際にはそのKeyで自動移調したURLが使用されます。</p>
         <img src="clipboard-help-step1-spreadsheet.png" alt="スプレッドシートで曲名・アーティスト・コードWiki・Keyの列を選択してコピーしている画面" style="display:block;width:auto;max-width:100%;max-height:min(52dvh,520px);object-fit:contain;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
       </section>
 <section class="clipboard-help-page" data-page="1" style="display:none;"border:1px solid var(--border-color);border-radius:10px;padding:10px;background:rgba(255,255,255,.02);">
         <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">② コピペした情報のヘッダーを指定</h3>
-        <p style="margin:0 0 10px;">「📋 クリップボードの表を読み取る」を押すと列設定ダイアログが開きます。各列を <strong>曲名 / アーティスト / URL（任意） / Key（任意） / 使用しない</strong> に割り当て、<strong>「✅ この列設定で確定」</strong> を押します。</p>
+        <p style="margin:0 0 10px;">「📋 クリップボードの表を読み取る」を押すと列設定ダイアログが開きます。各列を 曲名 / アーティスト / URL（任意） / Key（任意） / 使用しない に割り当て、「✅ この列設定で確定」 を押します。</p>
         <img src="clipboard-help-step2-header.png" alt="クリップボードの列を設定するダイアログで各列の意味を選択している画面" style="display:block;width:auto;max-width:100%;max-height:min(52dvh,520px);object-fit:contain;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
       </section>
 <section class="clipboard-help-page" data-page="2" style="display:none;"border:1px solid var(--border-color);border-radius:10px;padding:10px;background:rgba(255,255,255,.02);">
         <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">③ 解析結果を確認</h3>
-        <p style="margin:0 0 10px;">解析結果ダイアログでは、先頭に <strong>解析曲数｜一致曲数｜Key変更数｜エラー・未一致曲数</strong> が表示されます。</p>
+        <p style="margin:0 0 10px;">解析結果ダイアログでは、先頭に 解析曲数｜一致曲数｜Key変更数｜エラー・未一致曲数 が表示されます。</p>
         <ul style="margin:0 0 12px 1.2em;padding:0;">
           <li><span style="color:#49d18b;font-weight:700;">緑</span>：楽曲データ一致</li>
           <li><span style="color:#ff7b88;font-weight:700;">赤</span>：楽曲未登録（楽曲情報の新規登録可能）</li>
-          <li><strong>Key変更数</strong>：既にマイリストにある同一曲で、登録済みKeyと今回のKeyが異なる曲数</li>
+          <li>Key変更数：既にマイリストにある同一曲で、登録済みKeyと今回のKeyが異なる曲数</li>
         </ul>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:10px;align-items:start;">
           <img src="clipboard-help-step3-analysis-mixed.png" alt="解析結果ダイアログで一致曲と未一致曲が色分けされて表示されている画面" style="display:block;width:auto;max-width:100%;max-height:min(34dvh,330px);object-fit:contain;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
@@ -4929,12 +4933,12 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
       </section>
 <section class="clipboard-help-page" data-page="3" style="display:none;"border:1px solid var(--border-color);border-radius:10px;padding:10px;background:rgba(255,255,255,.02);">
         <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">④ 確認して登録</h3>
-        <p style="margin:0 0 10px;">解析結果で <strong>「✅ 一致曲の登録内容を確認」</strong> を押すと、一括登録確認ダイアログが開きます。内容を確認して <strong>「✅ 確定して登録」</strong> を押すと、データへ保存されます。</p>
+        <p style="margin:0 0 10px;">解析結果で 「✅ 一致曲の登録内容を確認」 を押すと、一括登録確認ダイアログが開きます。内容を確認して 「✅ 確定して登録」 を押すと、データへ保存されます。</p>
         <img src="clipboard-help-step4-confirm.png" alt="一括登録の確認ダイアログで内容確認後に確定して登録する画面" style="display:block;width:auto;max-width:100%;max-height:min(52dvh,520px);object-fit:contain;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
       </section>
 <section class="clipboard-help-page" data-page="4" style="display:none;"border:1px solid var(--border-color);border-radius:10px;padding:10px;background:rgba(255,255,255,.02);">
         <h3 style="margin:0 0 8px;font-size:18px;color:var(--primary);">⑤ 登録結果表示で完了</h3>
-        <p style="margin:0 0 10px;">登録が終わると結果ダイアログが表示されます。<strong>新規マイリスト登録数 / Key更新数 / 登録対象外数</strong> を確認して完了です。</p>
+        <p style="margin:0 0 10px;">登録が終わると結果ダイアログが表示されます。新規マイリスト登録数 / Key更新数 / 登録対象外数 を確認して完了です。</p>
         <img src="clipboard-help-step5-result.png" alt="一括登録結果ダイアログで登録件数と結果が表示されている画面" style="display:block;width:auto;max-width:100%;max-height:min(52dvh,520px);object-fit:contain;margin:0 auto;border:1px solid var(--border-color);border-radius:8px;background:#111;">
       </section>
    </div>
@@ -5161,9 +5165,58 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
       "✅ 確定して登録": {ko:"✅ 확인 후 등록",en:"✅ Confirm and save","zh-TW":"✅ 確認並儲存"},
       "📋 一括登録結果": {ko:"📋 일괄 등록 결과",en:"📋 Import results","zh-TW":"📋 批次加入結果"}
     });
+    // Match full UI messages. Substituted names/IDs remain untouched.
+    Object.assign(UI_I18N, window.SL_UI_TRANSLATIONS || {});
+    const uiNormalize = value => String(value).replace(/\s+/g,' ').trim();
+    const normalizedUi = new Map(Object.entries(UI_I18N).map(([key,value])=>[uiNormalize(key),value]));
+    const uiPatterns = Object.entries(window.SL_UI_TRANSLATIONS || {}).filter(([key])=>/\{\w+\}/.test(key)).map(([key,values])=>{
+        const names=[];
+        const escape=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        let source='',last=0;
+        for(const match of uiNormalize(key).matchAll(/\{(\w+)\}/g)){
+            source+=escape(uiNormalize(key).slice(last,match.index));names.push(match[1]);
+            source+=/^(count|total|page|pages|start|end|line)$/.test(match[1])?'([0-9,]+)':match[1]==='key'?'([+−-]?[0-9]+(?: ?[（(][^）)]+[）)])?)':'(.+?)';
+            last=match.index+match[0].length;
+        }
+        source+=escape(uiNormalize(key).slice(last));
+        return {regex:new RegExp('^'+source+'$','u'),names,values};
+    });
+    function uiExtended(text,language){
+        const normalized=uiNormalize(text),direct=normalizedUi.get(normalized)?.[language];
+        if(direct!==undefined)return direct;
+        for(const pattern of uiPatterns){
+            const match=normalized.match(pattern.regex);if(!match)continue;
+            return pattern.values[language].replace(/\{(\w+)\}/g,(_,name)=>{
+                const value=match[pattern.names.indexOf(name)+1];
+                return ['status','parts','error'].includes(name)?(UI_I18N[value]?.[language]||value):value;
+            });
+        }
+        // Decoration around fixed labels, without replacing arbitrary substrings.
+        const decorated=normalized.match(/^([^\p{L}\p{N}ぁ-ヿ一-鿿]*)(.*?)(\s*[▶▷◀◁↗←→]+)?$/u);
+        if(decorated){const translated=normalizedUi.get(decorated[2])?.[language];if(translated!==undefined)return decorated[1]+translated+(decorated[3]||'');if(decorated[1]||decorated[3]){const core=uiText(decorated[2],language);if(core!==decorated[2])return decorated[1]+core+(decorated[3]||'');}}
+        const lines=text.split(/(\n+)/);if(lines.length>1)return lines.map(part=>/^\n+$/.test(part)?part:uiText(part,language)).join('');
+        const sentences=text.match(/[^。]+。|[^。]+$/g);if(sentences?.length>1){return sentences.map(part=>{const leading=part.match(/^\s*/)[0];return leading+uiText(part.trim(),language);}).join(' ');}
+        // Error details from Firebase remain intact; translate only a recognized prefix.
+        const error=text.match(/^(.+?[：:])\s*(.+)$/s);
+        if(error&&normalizedUi.get(error[1])?.[language])return normalizedUi.get(error[1])[language]+' '+error[2];
+        return text;
+    }
+    const translatedSentences = new WeakMap();
+    function translateRichSentences(root){
+        const elements=[...(root.matches?.('[data-i18n-sentence]')?[root]:[]),...root.querySelectorAll('[data-i18n-sentence]')];
+        for(const el of elements){
+            let saved=translatedSentences.get(el);
+            if(!saved){saved={source:el.textContent,html:el.innerHTML,language:'ja'};translatedSentences.set(el,saved);}
+            if(saved.language===activeLanguage)continue;
+            if(activeLanguage==='ja')el.innerHTML=saved.html;
+            else {const text=uiText(saved.source,activeLanguage);if(text===saved.source)el.innerHTML=saved.html;else el.textContent=text;}
+            saved.language=activeLanguage;
+        }
+    }
     const translatedAttributes = new WeakMap();
     function uiText(japanese, language=activeLanguage) {
         if (language === 'ja') return japanese;
+        const extended=uiExtended(japanese,language);if(extended!==japanese)return extended;
         const exact = UI_I18N[japanese];
         if (exact && exact[language]) return exact[language];
         // Translate fixed interface fragments without rewriting any song/artist names.
@@ -5190,11 +5243,13 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
     }
     function shouldSkipI18n(el) {
         if (!el || !el.closest) return true;
-        if (el.closest('script,style,code,textarea,#tableBody .col-title,#tableBody .col-artist,#detailTitle,#detailArtist,#detailLyricist,#detailComposer,#detailArranger,#confirmArtistName,#myListRemovalSongName,#roomMembersList,#friendSharedSongs,#friendsList .friend-name,#incomingFriendRequests .friend-name,#outgoingFriendRequests .friend-name,#myFriendCode,#loginStatus.logged-in,#mobileIdentity.mobile-person-name')) return true;
+        if (el.closest('script,style,code,textarea,#tableBody .col-title,#tableBody .col-artist,#detailTitle,#detailArtist,#detailLyricist,#detailComposer,#detailArranger,#confirmArtistName,#myListRemovalSongName,#roomMembersList,#friendsList .friend-name,#incomingFriendRequests .friend-name,#outgoingFriendRequests .friend-name,#myFriendCode,#loginStatus.logged-in,#mobileIdentity.mobile-person-name')) return true;
+        if(el.closest('[translate="no"],.sl-dock-title,.sl-dock-artist,.shared-song-name,.shared-song-artist,.friend-name,.sl-history-user-name,.clipboard-source-data'))return true;
         return false;
     }
     function translateTextNode(node) {
-        if (shouldSkipI18n(node.parentElement)) return;
+        if (shouldSkipI18n(node.parentElement) || node.parentElement.closest("[data-i18n-sentence]")) return;
+        if(node.parentElement?.tagName==='OPTION'&&!node.parentElement.hasAttribute('value'))node.parentElement.value=node.parentElement.textContent;
         const value=node.nodeValue;
         const old=translatedNodes.get(node);
         // A node may be overwritten by the app's existing live rendering; use that fresh Japanese string.
@@ -5205,7 +5260,7 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
     }
     function translateAttributes(el) {
         if (shouldSkipI18n(el) || !el.hasAttribute) return;
-        const names=['placeholder','title','aria-label'];
+        const names=['placeholder','title','aria-label','alt'];
         let cache=translatedAttributes.get(el);
         if(!cache){cache={};translatedAttributes.set(el,cache);}
         for(const name of names){
@@ -5222,10 +5277,11 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
         if(!root) return;
         if(root.nodeType===3){translateTextNode(root);return;}
         if(root.nodeType!==1 || shouldSkipI18n(root)) return;
+        translateRichSentences(root);
         translateAttributes(root);
         const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(node){return shouldSkipI18n(node.parentElement)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT;}});
         let n;while((n=walk.nextNode()))translateTextNode(n);
-        const descendants=root.querySelectorAll('[placeholder],[title],[aria-label]');
+        const descendants=root.querySelectorAll('[placeholder],[title],[aria-label],[alt]');
         for(const el of descendants)translateAttributes(el);
     }
     function applyLanguage(lang) {
@@ -5238,6 +5294,7 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
         if(languageAppReady && typeof syncMobileNav==='function')syncMobileNav();
         if(languageManualReady && document.getElementById('manualModal')?.style.display==='flex')renderManualPage();
         translateUiTree();
+        window.dispatchEvent(new CustomEvent('sl-language-change',{detail:activeLanguage}));
     }
     async function changeLanguage() {
         const selected=document.getElementById('languageSelect').value;
@@ -5270,8 +5327,9 @@ html.entry-home body.sl-redesign .home-copyright{position:static!important;trans
             else if(r.type==='attributes')translateAttributes(r.target);
           }
         });
-        languageObserver.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']});
+        languageObserver.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label','alt']});
     }
+    for(const method of ['alert','confirm','prompt']){const native=window[method].bind(window);window[method]=(message,...args)=>native(uiText(String(message)),...args);}
     (()=>{let stored='ja';try{stored=localStorage.getItem(LANGUAGE_STORAGE)||'ja';}catch(_){}applyLanguage(stored);startI18nObserver();})();
 
     let resolveInitialAuth;
@@ -7838,7 +7896,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         for(const [value,label] of options){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option);}
         select.value=clipboardTableMapping[i];select.onchange=()=>{clipboardTableMapping[i]=select.value;clipboardMappingConfirmed=false;clipboardImportRows=[];document.getElementById('clipboardImportRegister').disabled=true;document.getElementById('clipboardImportPreview').replaceChildren();document.getElementById('clipboardMappingFeedback').textContent='列割り当てを確定してください。';};th.append(select);head.append(th);
       }grid.append(head);
-      for(const row of table.rows.slice(0,5)){const tr=document.createElement('tr');for(let i=0;i<table.width;i++){const td=document.createElement('td');td.textContent=String(row[i]??'');td.style.cssText='padding:6px;border:1px solid var(--border-color);max-width:220px;overflow-wrap:anywhere;';tr.append(td);}grid.append(tr);}
+      for(const row of table.rows.slice(0,5)){const tr=document.createElement('tr');for(let i=0;i<table.width;i++){const td=document.createElement('td');td.setAttribute('translate','no');td.textContent=String(row[i]??'');td.style.cssText='padding:6px;border:1px solid var(--border-color);max-width:220px;overflow-wrap:anywhere;';tr.append(td);}grid.append(tr);}
       scroller.append(grid);box.append(scroller);
       const note=document.createElement('p');note.textContent='先頭5行をプレビュー表示。列の順序は自由です。同じ項目を複数列に指定しないでください。';note.style.fontSize='12px';box.append(note);
     }
@@ -7932,7 +7990,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       const canRequest=!confirmation&&row.status==='error'&&!!row.title&&!!row.artist&&(
         row.reason.startsWith('マスター未一致')||row.reason==='ChordWiki URLに一致するマスター曲がありません');
       const request=canRequest?`<button type="button" class="clipboard-apply-request" onclick="clipboardRequestUnmatched(${row.line})">➕ 新規楽曲登録申請</button>`:'';
-      return `<div class="clipboard-row ${cls}"><strong>${row.line}行目 ${status}：${label}</strong><small>${escapeHtml(row.reason||(good?'登録Key '+clipboardKeyLabel(row.key)+already:''))}${proposal}</small>${picker}${request}</div>`;
+      return `<div class="clipboard-row ${cls}"><strong><span>${row.line}行目</span> <span>${status}</span>：<span translate="no">${label}</span></strong><small>${escapeHtml(row.reason||(good?'登録Key '+clipboardKeyLabel(row.key)+already:''))}${proposal}</small>${picker}${request}</div>`;
     }
     function clipboardOpenMapping(){
       if(!clipboardTableData){document.getElementById('clipboardImportSummary').textContent='先にクリップボードの表を読み取ってください。';return;}
@@ -11073,3 +11131,4 @@ html, body { background: transparent !important; color: ${text} !important; }
 <script src="room-history.js"></script>
 </body>
 </html>
+
