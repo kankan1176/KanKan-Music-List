@@ -40,7 +40,7 @@ function background(theme){
  backgrounds.set(theme,pending);return pending;
 }
 async function render(){
- const version=++generation;files=[];$('setlistPreview').replaceChildren();const name=$('setlistRoomName').value.trim()||'ルーム名',date=$('setlistDate').value.replaceAll('-','. '),theme=$('setlistTheme').value,black=theme==='black';
+ const version=++generation;files=[];$('setlistPreview').replaceChildren();const name=$('setlistRoomName').value.trim()||uiText('ルーム名'),date=$('setlistDate').value.replaceAll('-','. '),theme=$('setlistTheme').value,black=theme==='black';
  const layout=$('setlistLayout').value,ink=black?'#faf9f5':'#111213',family=layout==='left'?fonts.sans:fonts.serif;
  const pages=Math.ceil(songs.length/20),jobs=[];
  let image;status('背景画像を読み込み中…');
@@ -53,19 +53,19 @@ async function render(){
   let originX,originY,columnStep,columnWidth,columns,perColumn,rowHeight;
   ctx.fillStyle=ink;
   if(layout==='left'){
-   drawText(ctx,'〜本日のセットリスト〜',125,100,470,40,27,fonts.sans,ink);
+   drawText(ctx,uiText('〜本日のセットリスト〜'),125,100,470,40,27,fonts.sans,ink);
    ctx.globalAlpha=.65;ctx.fillRect(675,100,2,800);ctx.fillRect(110,410,440,2);ctx.globalAlpha=1;
    drawText(ctx,name,120,285,450,115,85,fonts.sans,ink,2);
    drawText(ctx,date,120,820,440,55,32,fonts.hand,ink);
    columns=batch.length>10?2:1;originX=750;originY=100;columnStep=560;columnWidth=columns===2?510:1070;
   }else if(layout==='corner'){
-   drawText(ctx,'〜本日のセットリスト〜',1475,775,385,38,24,fonts.sans,ink);
+   drawText(ctx,uiText('〜本日のセットリスト〜'),1475,775,385,38,24,fonts.sans,ink);
    drawText(ctx,name,1450,815,400,70,62,fonts.hand,ink);
    ctx.globalAlpha=.65;ctx.fillRect(1450,905,400,2);ctx.globalAlpha=1;
    drawText(ctx,date,1580,925,270,35,25,fonts.hand,ink);
    columns=2;originX=180;originY=100;columnStep=580;columnWidth=540;
   }else{
-   drawText(ctx,'〜本日のセットリスト〜',110,65,370,40,26,fonts.sans,ink);
+   drawText(ctx,uiText('〜本日のセットリスト〜'),110,65,370,40,26,fonts.sans,ink);
    drawText(ctx,date,155,120,330,45,30,fonts.hand,ink);
    drawText(ctx,name,545,55,510,85,70,fonts.serif,ink);
    ctx.globalAlpha=.65;ctx.fillRect(465,155,590,2);ctx.globalAlpha=1;
@@ -106,6 +106,7 @@ window.openSetlistShare=async()=>{
 function openDatePicker(){try{$('setlistDate').showPicker?.();}catch{ /* Native date input remains editable if showPicker is unavailable. */ }}
 $('setlistDate').addEventListener('click',openDatePicker);
 $('setlistDate').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openDatePicker();}});
+window.addEventListener('sl-language-change',()=>{if(dialog.open)void render();});
 $('setlistClose').onclick=()=>dialog.close();
 for(const id of ['setlistRoomName','setlistDate','setlistTheme','setlistLayout'])$(id).addEventListener('input',render);
 $('setlistSave').onclick=()=>{if(!valid())return;if(!files.length){status('画像生成中です。少し待ってから再試行してください。');return;}for(const file of files){const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}status('画像を保存しました。複数枚の保存を求められた場合は許可してください。');};
