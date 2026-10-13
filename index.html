@@ -3691,6 +3691,7 @@ body.sl-redesign.theme-white #slDockDesignPanel :is(label,strong,small,span,p){c
 @media(max-width:820px){body.sl-redesign.theme-white #slTopbar,body.sl-redesign.theme-white #slFilterbar{background:#fff!important}}
 
 </style>
+<link rel="stylesheet" href="assets/help-manual.css?v=20261013-1">
 </head>
 <body>
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
@@ -3812,61 +3813,232 @@ body.sl-redesign.theme-white #slDockDesignPanel :is(label,strong,small,span,p){c
   </div>
 </aside>
 
-<!-- ヘルプ -->
+<!-- ヘルプ：初心者向け操作マニュアル -->
 <div class="modal-overlay" id="slHelpModal" onclick="closeModal(event,'slHelpModal')">
   <div class="modal sl-help-modal" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="slHelpTitle">
-    <span class="modal-close" onclick="closeModal(null,'slHelpModal')">&times;</span>
-    <h2 id="slHelpTitle">🚨 ヘルプ</h2>
+    <button type="button" class="modal-close" aria-label="ヘルプを閉じる" onclick="closeModal(null,'slHelpModal')">&times;</button>
+    <h2 id="slHelpTitle">📖 ヘルプ・使い方</h2>
+    <p class="sl-help-intro">初めての方は「はじめての使い方」から。画像付きマニュアルとPDFも用意しています。</p>
+    <div class="sl-help-mobile-chapters"><label for="slHelpChapterSelect">読みたい項目</label><select id="slHelpChapterSelect" onchange="slHelpOpen(this.value)">
+        <option value="first">01 はじめての使い方</option>
+        <option value="account">02 ログイン・名前の設定</option>
+        <option value="all">03 曲を探す・詳細を見る</option>
+        <option value="my">04 マイリスト・Key・パート</option>
+        <option value="import">05 表から一括登録する</option>
+        <option value="room">06 ルームを作る・入る</option>
+        <option value="progress">07 予約・演奏確定・完了</option>
+        <option value="obs">08 OBSで配信に表示する</option>
+        <option value="friends">09 フレンドの曲を見る</option>
+        <option value="add">10 未登録曲を申請する</option>
+        <option value="settings">11 表示・文字の設定</option>
+        <option value="mobile">12 スマートフォンで使う</option>
+        <option value="trouble">13 困ったとき</option>
+        <option value="manual">14 画像付きマニュアル・PDF</option></select></div>
     <div class="sl-help-layout">
-      <nav class="sl-help-nav">
-        <button type="button" class="active" onclick="slHelpOpen('first',this)">■ はじめての使い方</button>
-        <div class="sl-help-group-title">■ 各種説明</div>
-        <button type="button" onclick="slHelpOpen('all',this)">・全曲一覧について</button>
-        <button type="button" onclick="slHelpOpen('my',this)">・マイリストについて</button>
-        <button type="button" onclick="slHelpOpen('room',this)">・ルーム機能について</button>
-        <button type="button" onclick="slHelpOpen('obs',this)">・OBSカスタムCSSについて</button>
-        <button type="button" onclick="slHelpOpen('friends',this)">・フレンド機能について</button>
-      </nav>
-
-      <div class="sl-help-content">
-        <section class="sl-help-section active" data-help="first">
-          <h3>はじめての使い方</h3>
-          <p>シェアリスコアは、自分が演奏できる曲をマイリストに登録し、セッション参加者同士で共有するためのサービスです。</p>
-          <ol>
-            <li><strong>Googleでログイン</strong>すると、マイリスト・Key・担当パートを保存できます。</li>
-            <li><strong>全曲一覧</strong>で曲名・アーティスト・ジャンルなどから楽曲を探します。</li>
-            <li>演奏できる曲を<strong>マイリストへ登録</strong>し、自分用Keyと担当パートを設定します。</li>
-            <li><strong>ルームを作成</strong>してURLを参加者へ共有します。</li>
-            <li>共通曲や一覧から候補を<strong>予約 → 演奏確定 → 完了</strong>の順に進めます。</li>
-          </ol>
-        </section>
-        <section class="sl-help-section" data-help="all">
-          <h3>全曲一覧について</h3>
-          <p>登録されている楽曲を検索・閲覧する画面です。曲名、アーティスト、タイアップ、検索用語、作詞・作曲・編曲などから検索できます。</p>
-          <ul><li>ジャンルボタンで楽曲を絞り込めます。</li><li>曲名から詳細情報やChordWikiリンクを確認できます。</li><li>Googleログイン中はマイリスト登録と自分用Key設定ができます。</li><li>ルーム参加中は一覧から演奏候補を予約できます。</li></ul>
-        </section>
-        <section class="sl-help-section" data-help="my">
-          <h3>マイリストについて</h3>
-          <p>自分が演奏できる曲を管理する個人リストです。曲ごとにKeyと担当パートを保存できます。</p>
-          <ul><li>担当パートは複数選択できます。</li><li>複数曲を選択してKey・担当パートを一括編集できます。</li><li>ExcelやGoogleスプレッドシートからの一括登録にも対応しています。</li><li>マイリストから削除しても全曲一覧の楽曲データは削除されません。</li></ul>
-        </section>
-        <section class="sl-help-section" data-help="room">
-          <h3>ルーム機能について</h3>
-          <p>参加者同士でマイリストを共有し、演奏曲をリアルタイムで決める機能です。</p>
-          <ul><li>「共通曲」で選択した参加者全員が登録している曲を確認できます。</li><li><strong>予約：</strong>☑️確定 / ❎削除</li><li><strong>演奏確定：</strong>🔙戻す / ☑️完了 / ❎削除</li><li><strong>完了：</strong>🔙戻す</li></ul>
-          <p>右側のセッション進行バーから「予約 ⇄ 演奏確定 ⇄ 完了」を直接操作できます。</p>
-        </section>
-        <section class="sl-help-section" data-help="obs">
-          <h3>OBSカスタムCSSについて</h3>
-          <p>ルームのセットリストをOBSブラウザソースへ表示するための機能です。</p>
-          <ol><li>ルーム参加中に「OBS配信」を開きます。</li><li>ルーム用URLをOBSブラウザソースへ設定します。</li><li>枠色・文字色・背景色・透明度を選択します。</li><li>生成したCSSをOBSのカスタムCSSへ貼り付けます。</li></ol>
-        </section>
-        <section class="sl-help-section" data-help="friends">
-          <h3>フレンド機能について</h3>
-          <p>フレンドコードでユーザーを検索し、公開マイリストやお気に入りアーティストを確認できます。</p>
-          <ul><li>フレンドの公開マイリストを閲覧できます。</li><li>自分との共通曲に絞り込めます。</li><li>過去に同じルームへ参加したユーザーも確認できます。</li><li>相手のデータを直接変更することはできません。</li></ul>
-        </section>
-      </div>
+      <nav class="sl-help-nav" aria-label="操作マニュアルの目次">
+        <button type="button" data-help-target="first" class="active" aria-current="page" onclick="slHelpOpen('first',this)">01 はじめての使い方</button>
+        <button type="button" data-help-target="account" class="" aria-current="false" onclick="slHelpOpen('account',this)">02 ログイン・名前の設定</button>
+        <button type="button" data-help-target="all" class="" aria-current="false" onclick="slHelpOpen('all',this)">03 曲を探す・詳細を見る</button>
+        <button type="button" data-help-target="my" class="" aria-current="false" onclick="slHelpOpen('my',this)">04 マイリスト・Key・パート</button>
+        <button type="button" data-help-target="import" class="" aria-current="false" onclick="slHelpOpen('import',this)">05 表から一括登録する</button>
+        <button type="button" data-help-target="room" class="" aria-current="false" onclick="slHelpOpen('room',this)">06 ルームを作る・入る</button>
+        <button type="button" data-help-target="progress" class="" aria-current="false" onclick="slHelpOpen('progress',this)">07 予約・演奏確定・完了</button>
+        <button type="button" data-help-target="obs" class="" aria-current="false" onclick="slHelpOpen('obs',this)">08 OBSで配信に表示する</button>
+        <button type="button" data-help-target="friends" class="" aria-current="false" onclick="slHelpOpen('friends',this)">09 フレンドの曲を見る</button>
+        <button type="button" data-help-target="add" class="" aria-current="false" onclick="slHelpOpen('add',this)">10 未登録曲を申請する</button>
+        <button type="button" data-help-target="settings" class="" aria-current="false" onclick="slHelpOpen('settings',this)">11 表示・文字の設定</button>
+        <button type="button" data-help-target="mobile" class="" aria-current="false" onclick="slHelpOpen('mobile',this)">12 スマートフォンで使う</button>
+        <button type="button" data-help-target="trouble" class="" aria-current="false" onclick="slHelpOpen('trouble',this)">13 困ったとき</button>
+        <button type="button" data-help-target="manual" class="" aria-current="false" onclick="slHelpOpen('manual',this)">14 画像付きマニュアル・PDF</button></nav>
+      <div class="sl-help-content" tabindex="0" role="region" aria-label="操作手順">
+        <section class="sl-help-section active" data-help="first" aria-labelledby="slHelpChapter-first">
+        <h3 id="slHelpChapter-first">まずはこの順番で使ってみましょう</h3>
+        <p>シェアリスコアは、演奏できる曲を自分のリストにまとめ、仲間と「何を演奏するか」を決めるサービスです。楽曲を探すだけなら、ログインせずに始められます。</p><div class="sl-help-note">
+        <p><strong>ひとりで準備する：</strong>ログイン → 曲を探す → マイリストへ登録。<br><strong>仲間と使う：</strong>ルームを作成・参加 → 曲を予約 → 演奏確定 → 完了。</p></div>
+        <ol>
+        <li><strong>Googleでログインします。</strong>マイリストを保存する場合は、画面左下の「Googleでログイン」を選びます。</li>
+        <li><strong>演奏できる曲を1曲探します。</strong>「全曲一覧」を開き、上部の検索欄へ曲名やアーティスト名を入力します。</li>
+        <li><strong>自分のリストへ追加します。</strong>曲の「＋登録」を選び、「マイリスト」でKeyと担当パートを設定します。</li>
+        <li><strong>仲間のルームへ参加します。</strong>主催者のリンクを開くか、「ルーム」から作成・参加します。</li>
+        <li><strong>演奏の順番を決めます。</strong>候補を予約し、演奏する曲を確定、終わった曲を完了にします。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>最初の1曲がマイリストに入り、仲間と演奏候補を確認できれば準備完了です。</p></div><div class="sl-help-links">
+        <button type="button" onclick="slHelpOpen('account')">ログインの手順</button>
+        <button type="button" onclick="slHelpOpen('all')">曲の探し方</button>
+        <button type="button" onclick="slHelpOpen('manual')">画像付きマニュアル</button></div>
+        <figure class="sl-help-screen"><a href="assets/manual/screenshots/01-home.png" target="_blank" rel="noopener" aria-label="トップ画面と左側メニュー（画像を別タブで拡大）"><img src="assets/manual/screenshots/01-home.png" alt="トップ画面と左側メニュー" loading="lazy" decoding="async"></a>
+        <figcaption>トップ画面。ログインの入口は左メニューの下部です。 画像を選ぶと別タブで拡大できます。</figcaption></figure></section>
+        <section class="sl-help-section" data-help="account" aria-labelledby="slHelpChapter-account">
+        <h3 id="slHelpChapter-account">ログインして、自分の名前を設定する</h3>
+        <p><strong>準備：</strong>個人のマイリストやフレンド機能にはGoogleログインを使います。ゲストでもルームに参加できますが、個人リストの保存・共有にはログインが必要です。</p>
+        <ol>
+        <li>左メニュー下部の<strong>「Googleでログイン」</strong>を選び、Googleの画面でアカウントを選択します。スマートフォンは先に「☰」でメニューを開きます。</li>
+        <li>ログイン後、左上のアカウント表示を選んで<strong>「アカウント設定」</strong>を開きます。</li>
+        <li>「ユーザー名（セッション用）」に仲間が分かる名前を入力し、<strong>「変更」</strong>を選びます。</li>
+        <li>基本担当パートを選び、<strong>「保存」</strong>を選びます。これは今後新たに登録する曲に適用され、登録済みの曲は変更されません。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>「ゲスト利用中」からログイン中の表示に変わり、ユーザー名を確認できれば設定できています。</p></div><div class="sl-help-note">
+        <p>ログイン画面が開かないときは、ブラウザーがポップアップをブロックしていないか確認します。共有端末では利用後にログアウトしてください。</p></div></section>
+        <section class="sl-help-section" data-help="all" aria-labelledby="slHelpChapter-all">
+        <h3 id="slHelpChapter-all">全曲一覧から演奏したい曲を探す</h3>
+        <p><strong>準備：</strong>曲名やアーティスト名が分かれば検索できます。閲覧のみならログインは不要です。</p>
+        <ol>
+        <li>左メニューの<strong>「全曲一覧」</strong>を選びます。</li>
+        <li>上部の検索欄に曲名、アーティスト、アニメ名などを入力します。検索語を短くすると候補を広く探せます。</li>
+        <li>必要に応じてジャンルボタンを選びます。絞り込みを外すときは検索語を消し、ジャンルを<strong>「すべて」</strong>に戻します。</li>
+        <li>曲名を選んで詳細情報を確認します。ChordWikiのリンクがある曲はコード譜を開けます。</li>
+        <li>自分が演奏できる曲は<strong>「＋登録」</strong>でマイリストへ追加します（Googleログインが必要です）。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>目的の曲を見つけ、曲名・アーティスト・詳細を確認できれば完了です。</p></div>
+        <figure class="sl-help-screen"><a href="assets/manual/screenshots/02-all.png" target="_blank" rel="noopener" aria-label="全曲一覧の検索欄、ジャンルと登録ボタン（画像を別タブで拡大）"><img src="assets/manual/screenshots/02-all.png" alt="全曲一覧の検索欄、ジャンルと登録ボタン" loading="lazy" decoding="async"></a>
+        <figcaption>検索欄は右上、ジャンルはその下、登録ボタンは各曲の左側にあります。楽曲は説明用サンプルです。 画像を選ぶと別タブで拡大できます。</figcaption></figure><div class="sl-help-note">
+        <p>「Key一括リセット」は検索の解除ではありません。登録済みの保存Keyも原曲の0へ戻るため、検索し直したいときは検索欄とジャンルを操作してください。</p></div></section>
+        <section class="sl-help-section" data-help="my" aria-labelledby="slHelpChapter-my">
+        <h3 id="slHelpChapter-my">演奏できる曲と、自分の設定を保存する</h3>
+        <p><strong>準備：</strong>Googleでログインし、全曲一覧から演奏できる曲を登録してください。「マイリスト」は自分用の楽曲リストです。</p>
+        <ol>
+        <li>左メニューの<strong>「マイリスト」</strong>を選びます。登録した曲があることを確認します。</li>
+        <li>曲ごとの<strong>Key</strong>を設定します。0は原曲、+1は半音上、-1は半音下です。例：歌いやすく2半音下げるなら-2を選びます。</li>
+        <li>担当パートを選びます。ボーカル、ギターなど、演奏できるパートを複数選べます。</li>
+        <li>変更後は保存失敗の通知が出ていないことを確認します。通知が出た場合は通信状況を確認し、「再試行」を選びます。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>登録曲ごとのKeyと担当パートが、自分の希望する設定になっていれば完了です。</p></div>
+        <h4>複数の曲をまとめて編集する</h4>
+        <ol>
+        <li>対象の曲をチェックします。「表示中を選択」は現在のページの曲を選びます。</li>
+        <li>一括編集欄でKeyや担当パート、パートON／OFFを指定します。</li>
+        <li><strong>「選択曲に適用」</strong>を選び、対象曲の設定を確認します。</li></ol><div class="sl-help-note">
+        <p>「選択曲を削除」は自分のマイリストから削除します。全曲一覧の楽曲自体は削除されません。削除前に選択した曲を確認してください。</p></div><div class="sl-help-links">
+        <button type="button" onclick="slHelpOpen('import')">表からまとめて登録する方法</button></div></section>
+        <section class="sl-help-section" data-help="import" aria-labelledby="slHelpChapter-import">
+        <h3 id="slHelpChapter-import">Excel・スプレッドシートの曲をまとめて登録する</h3>
+        <p><strong>準備：</strong>Googleでログインし、曲名・アーティストなどが並んだ表を用意します。文章ではなく、2列以上のセル範囲をコピーします。</p>
+        <ol>
+        <li>ExcelやGoogleスプレッドシートで曲名・アーティストのセル範囲を選択し、コピーします。URLとKeyの列は必要に応じて用意します。</li>
+        <li>マイリストの<strong>「貼り付けからのマイリスト一括登録」</strong>を開き、<strong>「クリップボードの表を読み取る」</strong>を選びます。</li>
+        <li>列を「曲名」「アーティスト」「URL」「Key」「使用しない」に割り当て、<strong>「この列設定で確定」</strong>を選びます。</li>
+        <li>解析結果で一致曲と未一致曲を確認し、<strong>「一致曲の登録内容を確認」</strong>へ進みます。</li>
+        <li>Keyなどの内容を確認し、<strong>「確定して登録」</strong>を選びます。結果の件数を確認して「完了」を選びます。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>登録結果の件数を確認し、マイリストに対象曲が表示されれば完了です。</p></div><div class="sl-help-note">
+        <p>未一致・エラー・重複行は登録されません。URLがない場合は曲名とアーティストの完全一致で照合します。既に登録した曲はKeyが更新され、担当パートは維持されます。確定前に内容を確認してください。</p></div>
+        <details>
+        <summary>Keyが空欄の場合・未一致の曲の扱い</summary>
+        <p>Keyが空欄ならURLのkeyを使い、どちらもなければ0（原曲）になります。表のKeyとURLのKeyが異なる場合は確認画面で選びます。未一致の曲は新規楽曲登録申請へ進めますが、管理者承認まで全曲一覧には反映されません。</p></details>
+        <h4>画面ごとに確認したいとき</h4>
+        <p>マイリストの「クリップボードの使い方を見る」には、コピー・列設定・解析・確認・結果を画像付きで説明した5ページのガイドがあります。</p></section>
+        <section class="sl-help-section" data-help="room" aria-labelledby="slHelpChapter-room">
+        <h3 id="slHelpChapter-room">仲間とセットリストを共有する</h3>
+        <p><strong>ルームとは：</strong>参加者で候補曲や演奏状況を共有する場所です。主催者は作成、参加者は共有リンクまたはルームIDから入室します。</p>
+        <h4>自分が主催するとき</h4>
+        <ol>
+        <li>左メニューの<strong>「ルーム」</strong>を開き、「ルームを作成」を選びます。</li>
+        <li>確認画面の<strong>「ルームを作成」</strong>で確定します。ルームIDは自動で発行されます。</li>
+        <li>入室後、左メニューの<strong>「URL共有」</strong>などからルームURLをコピーし、仲間へ送ります。</li></ol>
+        <figure class="sl-help-screen"><a href="assets/manual/screenshots/05-room-create.png" target="_blank" rel="noopener" aria-label="ルーム作成の確認画面（画像を別タブで拡大）"><img src="assets/manual/screenshots/05-room-create.png" alt="ルーム作成の確認画面" loading="lazy" decoding="async"></a>
+        <figcaption>右下の「ルームを作成」で作成を確定します。 画像を選ぶと別タブで拡大できます。</figcaption></figure>
+        <h4>仲間のルームに参加するとき</h4>
+        <ol>
+        <li>共有されたルームURLを開きます。IDで参加する場合は「ルーム」→<strong>「ルームに入る」</strong>を選びます。</li>
+        <li>主催者から受け取ったルームIDを入力し、<strong>「入室する」</strong>を選びます。</li>
+        <li>入室後、ユーザー名と参加者を確認します。個人マイリストを共有する場合はGoogleログインを使います。</li></ol>
+        <figure class="sl-help-screen"><a href="assets/manual/screenshots/06-room-join.png" target="_blank" rel="noopener" aria-label="ルームID入力欄と入室するボタン（画像を別タブで拡大）"><img src="assets/manual/screenshots/06-room-join.png" alt="ルームID入力欄と入室するボタン" loading="lazy" decoding="async"></a>
+        <figcaption>ルームIDは主催者から受け取ったものを入力します。 画像を選ぶと別タブで拡大できます。</figcaption></figure><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>目的のルームに入り、参加者と同じ演奏候補を確認できれば完了です。</p></div><div class="sl-help-note">
+        <p>IDが分からないときは主催者に確認します。終了時はルームの「退室」から退出します。</p></div></section>
+        <section class="sl-help-section" data-help="progress" aria-labelledby="slHelpChapter-progress">
+        <h3 id="slHelpChapter-progress">演奏する曲を決め、進行を記録する</h3>
+        <p><strong>準備：</strong>ルームへ入室してください。演奏状況は参加者で共有されるため、相談しながら操作します。</p>
+        <ol>
+        <li>全曲一覧や共通曲から演奏候補を探し、<strong>予約</strong>します。共通曲では、選んだ参加者が全員登録している曲を探せます。</li>
+        <li>右側のセッション進行バーで<strong>「予約」</strong>を確認します。演奏すると決めた曲を確定すると「演奏確定」へ移動します。</li>
+        <li>演奏が終わった曲を<strong>完了</strong>にすると、「完了」へ移動します。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>演奏した曲が「完了」に並び、セットリストが残れば完了です。</p></div>
+        <h4>間違えたとき・複数曲を操作するとき</h4>
+        <ul>
+        <li>「戻す」は演奏確定から予約、完了から演奏確定へ戻します。</li>
+        <li>曲にチェックを付けると、選んだ曲をまとめて操作できます。対象曲と移動先を確認してください。</li>
+        <li>予約・演奏確定の「削除」は候補を取り消す操作です。マイリストから曲を削除する操作とは別です。</li></ul>
+        <h4>演奏した曲を画像にする</h4>
+        <p>完了欄の「画像保存」からセットリスト画像の作成画面を開けます。画面の案内に従って保存してください。</p><div class="sl-help-note">
+        <p>スマートフォンや狭い画面では進行バーが折りたたまれます。開閉ボタンで表示し、「予約」「確定」「完了」を切り替えて確認します。</p></div></section>
+        <section class="sl-help-section" data-help="obs" aria-labelledby="slHelpChapter-obs">
+        <h3 id="slHelpChapter-obs">配信画面にルームのセットリストを表示する</h3>
+        <p><strong>準備：</strong>OBS Studioと、参加中のルームが必要です。この機能は配信を行う人向けです。</p>
+        <ol>
+        <li>ルーム参加中に<strong>「OBSカスタムCSS設定」</strong>を開きます。</li>
+        <li><strong>「URLをコピー」</strong>を選び、OBSのソースに「ブラウザ」を追加して、URL欄へ貼り付けます。</li>
+        <li>シェアリスコアで枠色・文字色・背景色・背景透明度を選び、<strong>「① 確定」</strong>を選びます。「表示を確認」で見え方を確認できます。</li>
+        <li><strong>「② CSS生成」→「③ CSSをコピー」</strong>の順に操作し、OBSのブラウザソースの「カスタムCSS」へ貼り付けます。</li>
+        <li>OBSで実際の表示を確認します。完了した曲が演奏順で表示されます。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>OBSのプレビューにセットリストが表示され、選んだ配色になれば完了です。</p></div><div class="sl-help-note">
+        <p>透明度は0%が不透明、100%が透明です。色を変更したら、もう一度「確定 → CSS生成 → コピー」を行い、OBSにも貼り直します。</p></div></section>
+        <section class="sl-help-section" data-help="friends" aria-labelledby="slHelpChapter-friends">
+        <h3 id="slHelpChapter-friends">仲間の公開マイリストと共通曲を探す</h3>
+        <p><strong>準備：</strong>Googleでログインし、相手のフレンドコードを教えてもらいます。</p>
+        <ol>
+        <li>左メニューの<strong>「フレンド」</strong>を選びます。自分のフレンドコードは「コピー」で相手に共有できます。</li>
+        <li>「フレンドコードで探す」に相手のコードを入力し、<strong>「検索」</strong>を選びます。</li>
+        <li>検索結果から相手の公開マイリストを開きます。曲名・ジャンルなどで絞り込めます。</li>
+        <li><strong>「自分との共通曲のみ」</strong>にチェックすると、一緒に演奏できる曲を探せます。「お気に入りアーティスト」も確認できます。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>相手の公開リストを開き、一緒に演奏したい曲を確認できれば完了です。</p></div><div class="sl-help-note">
+        <p>相手のデータを直接変更することはできません。リストがまだ表示されない場合は、相手にログインとマイリストの保存を確認してもらってください。</p></div></section>
+        <section class="sl-help-section" data-help="add" aria-labelledby="slHelpChapter-add">
+        <h3 id="slHelpChapter-add">全曲一覧にない楽曲を登録申請する</h3>
+        <p><strong>準備：</strong>同じ曲が登録済みでないか検索し、原曲のChordWiki URLを用意します。</p>
+        <ol>
+        <li>左メニューの<strong>「新規楽曲追加」</strong>を選びます。</li>
+        <li>曲名・アーティスト名・ChordWiki URLなど、画面で必須と表示された項目を入力します。URLは原曲ページのものを使います。</li>
+        <li>表記や内容を確認し、<strong>「管理者へ登録申請」</strong>を選びます。</li>
+        <li>画面の送信結果を確認します。楽曲は管理者の確認・承認後に全曲一覧へ反映されます。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>申請の送信結果を確認できれば、この操作は完了です。送信直後に全曲一覧へ表示されなくても、承認待ちの場合があります。</p></div><div class="sl-help-note">
+        <p>「全曲一覧への楽曲申請」と「自分のマイリストへの登録」は別の操作です。公開された後、演奏できる曲を自分のマイリストへ登録してください。</p></div></section>
+        <section class="sl-help-section" data-help="settings" aria-labelledby="slHelpChapter-settings">
+        <h3 id="slHelpChapter-settings">見やすい画面に調整する</h3>
+        <ol>
+        <li>左メニューの<strong>「設定」</strong>を開きます。</li>
+        <li><strong>UIカラーテーマ</strong>でダーク／ライトを選びます。</li>
+        <li><strong>言語</strong>と<strong>フォント</strong>を選び、読みやすい表示に調整します。フォントの見え方は端末によって異なります。</li>
+        <li>最新の情報が表示されないときは、<strong>「最新情報を再読み込み」</strong>を選びます。</li></ol><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>文字と背景が見やすい状態になれば設定完了です。</p></div>
+        <figure class="sl-help-screen"><a href="assets/manual/screenshots/07-settings.png" target="_blank" rel="noopener" aria-label="カラーテーマ・言語・フォントと再読み込みの設定画面（画像を別タブで拡大）"><img src="assets/manual/screenshots/07-settings.png" alt="カラーテーマ・言語・フォントと再読み込みの設定画面" loading="lazy" decoding="async"></a>
+        <figcaption>上からテーマ、言語、フォントを選べます。 画像を選ぶと別タブで拡大できます。</figcaption></figure><div class="sl-help-note">
+        <p>ユーザー名と基本担当パートは「設定」ではなく、左上のアカウント表示から開く「アカウント設定」で変更します。</p></div></section>
+        <section class="sl-help-section" data-help="mobile" aria-labelledby="slHelpChapter-mobile">
+        <h3 id="slHelpChapter-mobile">スマートフォンのメニューと画面の見方</h3>
+        <ol>
+        <li>トップ画面左上の<strong>「☰」</strong>をタップしてメニューを開きます。</li>
+        <li>「全曲一覧」「マイリスト」「ルーム」など、使いたい項目を選びます。Googleログインの入口はメニューの下部にあります。</li>
+        <li>ヘルプでは上部の<strong>「読みたい項目」</strong>を選ぶと、各操作の説明へ切り替わります。本文を上下にスクロールして読めます。</li>
+        <li>画像をタップすると別タブで拡大できます。読み終わったらサイトのタブへ戻って操作を続けます。</li></ol>
+        <figure class="sl-help-phone"><a href="assets/manual/screenshots/13-mobile.png" target="_blank" rel="noopener" aria-label="スマートフォンのトップ画面と左上のメニューボタン（画像を別タブで拡大）"><img src="assets/manual/screenshots/13-mobile.png" alt="スマートフォンのトップ画面と左上のメニューボタン" loading="lazy" decoding="async"></a>
+        <figcaption>左上の「☰」がメニューの入口です。 画像を選ぶと別タブで拡大できます。</figcaption></figure><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>メニューから目的の画面へ進めれば準備完了です。</p></div></section>
+        <section class="sl-help-section" data-help="trouble" aria-labelledby="slHelpChapter-trouble">
+        <h3 id="slHelpChapter-trouble">よくあるつまずきと確認する場所</h3>
+        <details open>
+        <summary>マイリストを開けない・登録できない</summary>
+        <p>Googleログインが必要です。「ゲスト利用中」の表示なら、メニュー下部からログインしてください。ポップアップをブロックしていないかも確認します。</p></details>
+        <details>
+        <summary>曲が見つからない</summary>
+        <p>検索語を短くする、曲名とアーティスト名を別々に試す、ジャンルを「すべて」に戻す順で確認します。登録済み曲の除外が有効なら解除してください。未登録なら「新規楽曲追加」から申請します。</p></details>
+        <details>
+        <summary>マイリストの変更を保存できない</summary>
+        <p>通信状況を確認し、保存失敗の通知の「再試行」を選びます。保存できたことを確認してから画面を閉じてください。</p></details>
+        <details>
+        <summary>ルームに入れない</summary>
+        <p>主催者から受け取ったURLやIDを確認します。別のルームに入っていないか、入力に余分な空白がないかも確認してください。</p></details>
+        <details>
+        <summary>表から一括登録しても曲が増えない</summary>
+        <p>解析結果と登録結果を確認してください。未一致・エラー・重複行は登録されません。曲名・アーティストの列設定と表記を見直します。未登録の楽曲申請は、管理者の承認が必要です。</p></details>
+        <details>
+        <summary>画面の情報が古い・更新されない</summary>
+        <p>「設定」→「最新情報を再読み込み」を試し、通信状況を確認します。共同操作では参加者に同じルームへ入っているかも確認してください。</p></details>
+        <details>
+        <summary>OBSの配色が変わらない</summary>
+        <p>「① 確定」→「② CSS生成」→「③ CSSをコピー」を行い、OBSのブラウザソースのカスタムCSSへ貼り直します。URLが現在のルームのものかも確認してください。</p></details></section>
+        <section class="sl-help-section" data-help="manual" aria-labelledby="slHelpChapter-manual">
+        <h3 id="slHelpChapter-manual">画面を見ながら読む・PDFで保存する</h3>
+        <p>トップ、検索、ルーム、設定などを14枚の画面画像で説明した、全16ページのマニュアルです。別タブで読むか、PDFを保存して確認できます。</p><div class="sl-help-links"><a class="sl-help-link" href="assets/manual/shareliscore-manual-v0.1.html" target="_blank" rel="noopener">画像付きマニュアルを読む（別タブ）</a><a class="sl-help-link" href="assets/manual/shareliscore-manual-v0.1.pdf" target="_blank" rel="noopener">PDFを開く（16ページ）</a><a class="sl-help-link" href="assets/manual/shareliscore-manual-v0.1.pdf" download="シェアリスコア操作マニュアル-試作版.pdf">PDFをダウンロード</a></div><div class="sl-help-note">
+        <p><strong>このマニュアルは試作版です。</strong>2026年10月13日作成。楽曲一覧の画像には説明用サンプルを使っています。実際の画面と異なる場合があります。ログイン後の保存やルーム同期、OBSでの実表示は未検証で、対象の章に注記しています。</p></div>
+        <h4>このヘルプの読み方</h4>
+        <p>初めての方は「01 はじめての使い方」から順に進めてください。各項目は準備、操作手順、完了の目安をまとめています。迷ったら「13 困ったとき」から状況に合う項目を確認できます。</p><div class="sl-help-goal">
+        <p><strong>完了の目安：</strong>使いたい操作の説明を開ける、またはPDFを保存できれば完了です。</p></div></section></div>
     </div>
   </div>
 </div>
@@ -6533,6 +6705,11 @@ body.sl-redesign.theme-white #slDockDesignPanel :is(label,strong,small,span,p){c
     const localizedManualData = {"ko":{"1":{"title":"📖 사용 가이드 (1/10) - 시작하기","content":"<ul><li>셰어리스코어는 곡 검색, 개인 마이리스트, 친구 공유 및 세션 룸을 지원하는 세트리스트 도구입니다.</li><li>모든 곡 목록 열람과 곡 추가는 Google 로그인이 없어도 가능합니다.</li><li>Google 로그인하면 마이리스트와 친구 기능을 사용할 수 있습니다.</li><li>게스트도 익명 인증으로 방에 참가할 수 있습니다.</li></ul>"},"2":{"title":"📖 사용 가이드 (2/10) - 전체 곡에서 찾기","content":"<ul><li>검색창에 곡명이나 아티스트 등을 입력하세요.</li><li>장르로 필터링하고 표 제목을 눌러 정렬할 수 있습니다.</li><li>곡명을 누르면 상세 정보와 ChordWiki 링크가 열립니다.</li><li>아티스트 이름으로 필터링하고 ⭐로 즐겨찾기할 수 있습니다(로그인 필요).</li></ul>"},"3":{"title":"📖 사용 가이드 (3/10) - 곡 추가 및 키","content":"<ul><li>곡 추가에서 제목, 아티스트, 원곡 ChordWiki URL, 장르 등을 입력하세요.</li><li>등록 후 공개 CSV 반영까지 시간이 걸릴 수 있습니다.</li><li>키 ◀ ▶는 반음 단위입니다. 미등록 곡은 키를 선택한 다음 등록을 눌러야 마이리스트에 저장됩니다.</li></ul>"},"4":{"title":"📖 사용 가이드 (4/10) - 마이리스트","content":"<ul><li>Google 로그인 후 상단 마이리스트 버튼으로 전환하세요.</li><li>등록 버튼으로 추가하고 삭제는 확인 화면에서 예를 눌러 실행합니다.</li><li>키와 연주 파트는 자동 저장되며 한 곡에 여러 파트를 지정할 수 있습니다.</li><li>곡 상세 화면에서도 등록하거나 삭제할 수 있습니다.</li></ul>"},"5":{"title":"📖 사용 가이드 (5/10) - 마이리스트 일괄 편집","content":"<ul><li>체크박스, Shift+클릭(범위), Ctrl+클릭(개별)로 여러 곡을 선택합니다.</li><li>연주 파트를 지정하고 파트 ON/OFF 및 키를 선택한 뒤 선택한 곡에 적용을 누르세요.</li><li>선택한 곡 삭제는 마이리스트에서만 제거하며 공개 곡 데이터는 삭제하지 않습니다.</li></ul>"},"6":{"title":"📖 사용 가이드 (6/10) - 마이페이지 및 설정","content":"<ul><li>내 계정: 사용자 이름과 기본 연주 파트를 등록합니다.</li><li>친구: 친구 ID 확인, 신규 신청, 승인, 친구 목록을 관리합니다.</li><li>설정: UI 색상 테마, 언어, 글꼴 및 데이터 새로고침을 변경할 수 있습니다.</li><li>캐시 전체 삭제는 보통 필요하지 않습니다. 표시가 오래되었을 때 새로고침을 사용하세요.</li></ul>"},"7":{"title":"📖 사용 가이드 (7/10) - 친구 기능","content":"<ul><li>친구 ID를 공유하거나 상대방 ID를 입력해 신청합니다.</li><li>상대방이 승인하면 양쪽 친구 목록에 표시됩니다.</li><li>마이리스트 보기에서 저장된 키와 연주 파트도 확인할 수 있습니다.</li><li>공통곡만 추출하거나 겹치는 곡을 강조해서 볼 수 있습니다.</li></ul>"},"8":{"title":"📖 사용 가이드 (8/10) - 방 만들기 및 참가","content":"<ul><li>방 만들기를 눌러 URL을 발급하고 친구에게 공유하세요.</li><li>방에서는 전체 곡 목록에서 예약할 수 있으며 마이리스트에서 시작해도 전체 곡을 선택할 수 있습니다.</li><li>게스트도 참가 가능하지만 개인 마이리스트 공유에는 Google 로그인이 필요합니다.</li><li>방에서 나가면 해당 참가자의 공유 목록도 해제됩니다.</li></ul>"},"9":{"title":"📖 사용 가이드 (9/10) - 방 공통곡 및 진행 관리","content":"<ul><li>전환 버튼으로 전체 곡, 공통곡, 내 곡과 멤버별 마이리스트를 볼 수 있습니다.</li><li>서로 다른 Google 로그인 멤버 2명 이상이 같은 곡 UUID를 등록하면 공통곡에 표시됩니다.</li><li>곡 상세에서 등록한 멤버 이름, 키와 연주 파트를 확인할 수 있습니다.</li><li>예약 → 확정 → 완료 상태는 모든 멤버에게 실시간 동기화됩니다.</li></ul>"},"10":{"title":"📖 사용 가이드 (10/10) - OBS 표시 및 문제 해결","content":"<ul><li>방에 참가했을 때만 OBS 사용자 CSS 버튼이 표시됩니다.</li><li>현재 방 전용 URL을 OBS의 브라우저 소스로 설정하세요.</li><li>색상과 투명도를 선택하고 ① 적용 → 미리보기 → ② CSS 생성 → ③ 복사 순서로 변경합니다.</li><li>OBS에는 완료된 곡이 연주 순서대로 표시됩니다.</li><li>정보가 오래되었으면 설정에서 최신 정보 새로고침을 사용하세요.</li></ul>"}},"en":{"1":{"title":"📖 User guide (1/10) - Getting started","content":"<ul><li>Share List Score is a setlist tool for song search, personal lists, friend sharing, and session rooms.</li><li>You can browse all songs and add songs without Google sign-in.</li><li>Sign in with Google to use My list and Friends.</li><li>Guests can also join rooms using anonymous authentication.</li></ul>"},"2":{"title":"📖 User guide (2/10) - Browse the song catalog","content":"<ul><li>Search by title, artist, and other terms.</li><li>Filter by genre; click a column heading to sort.</li><li>Tap a song title for details and its ChordWiki link.</li><li>Filter by artist and use ⭐ to favorite an artist (when signed in).</li></ul>"},"3":{"title":"📖 User guide (3/10) - Adding songs and changing keys","content":"<ul><li>Use Add song to enter the title, artist, original ChordWiki URL, genre, and more.</li><li>New entries may take some time to appear in the published CSV.</li><li>The ◀ ▶ key controls move by semitone. For unsaved songs, choose the key first, then press Add to save it to My list.</li></ul>"},"4":{"title":"📖 User guide (4/10) - My list","content":"<ul><li>After Google sign-in, use My list in the header.</li><li>Press Add to save a song. Press Remove and confirm with Yes to delete it from your list.</li><li>Key and instrument changes save automatically; multiple instruments are supported per song.</li><li>You can also add or remove songs from the song details dialog.</li></ul>"},"5":{"title":"📖 User guide (5/10) - Bulk-edit My list","content":"<ul><li>Use checkboxes, Shift+click for ranges, or Ctrl+click for individual songs.</li><li>Choose an instrument, Part ON/OFF and/or a key, then press Apply to selected.</li><li>Remove selected songs removes them from My list only, not from the public song catalog.</li></ul>"},"6":{"title":"📖 User guide (6/10) - My page and settings","content":"<ul><li>My account: edit your username and default instrument.</li><li>Friends: view your friend ID, send and accept requests, and manage your friend list.</li><li>Settings: change UI colors, language and font, or reload the latest data.</li><li>Clearing all cache is normally unnecessary. Reload only if the displayed information is stale.</li></ul>"},"7":{"title":"📖 User guide (7/10) - Friends","content":"<ul><li>Share your friend ID or send a request using their ID.</li><li>Once accepted, both users appear in each other’s friend list.</li><li>View list shows your friend’s saved keys and instruments too.</li><li>Filter to common songs or highlight songs you both have saved.</li></ul>"},"8":{"title":"📖 User guide (8/10) - Create and join a room","content":"<ul><li>Create a room to generate a URL and share it with your bandmates.</li><li>Queue songs from the entire catalog, even if you opened the room from My list.</li><li>Guests can join; sharing a personal list requires Google sign-in.</li><li>Leaving a room removes that member’s shared room list.</li></ul>"},"9":{"title":"📖 User guide (9/10) - Room common songs and performance","content":"<ul><li>Switch between All songs, Common songs, Mine, and individual member lists.</li><li>When at least two different Google users have saved the same song UUID, it appears among common songs.</li><li>View member names, keys and instruments in song details.</li><li>Queue → Confirm → Complete is synchronized with everyone in real time.</li></ul>"},"10":{"title":"📖 User guide (10/10) - OBS overlay and troubleshooting","content":"<ul><li>OBS custom CSS appears only while you are in a room.</li><li>Set the room-specific URL as a Browser source in OBS.</li><li>Choose colors and transparency, then ① Apply → Preview → ② Generate CSS → ③ Copy.</li><li>OBS shows completed songs in performance order.</li><li>If information is stale, use Reload latest data in Settings.</li></ul>"}},"zh-TW":{"1":{"title":"📖 使用指南 (1/10) - 開始使用","content":"<ul><li>シェアリスコア是一款支援歌曲搜尋、個人清單、好友分享及 Session 房間的演出歌單工具。</li><li>瀏覽所有歌曲及新增歌曲不需要 Google 登入。</li><li>使用 Google 登入後即可使用個人清單及好友功能。</li><li>訪客也可以透過匿名驗證加入房間。</li></ul>"},"2":{"title":"📖 使用指南 (2/10) - 瀏覽全部歌曲","content":"<ul><li>在搜尋欄輸入歌名、歌手等關鍵字。</li><li>可依曲風篩選，點選欄位標題進行排序。</li><li>點選歌名可查看歌曲詳情及 ChordWiki 連結。</li><li>也可以依歌手篩選，並在登入後以 ⭐ 收藏喜愛的歌手。</li></ul>"},"3":{"title":"📖 使用指南 (3/10) - 新增歌曲與變調","content":"<ul><li>開啟新增歌曲，填寫歌名、歌手、ChordWiki 原曲網址、曲風等。</li><li>新增後可能需要一段時間才會顯示於公開 CSV。</li><li>◀ ▶ 每次調整一個半音。尚未收藏的歌曲需先選調性，再按加入清單才能儲存。</li></ul>"},"4":{"title":"📖 使用指南 (4/10) - 我的清單","content":"<ul><li>透過 Google 登入後，點選上方的個人清單切換畫面。</li><li>按加入清單收藏歌曲；按移除後再選擇「是」即可解除。</li><li>調性及演奏樂器會自動儲存，每首歌可設定多種樂器。</li><li>也可以在歌曲詳情中加入或移除收藏。</li></ul>"},"5":{"title":"📖 使用指南 (5/10) - 批次編輯個人清單","content":"<ul><li>使用核取方塊、Shift＋點擊（範圍）或 Ctrl＋點擊（個別）選取多首歌曲。</li><li>選擇演奏樂器、啟用／停用及調性後，按「套用至所選歌曲」。</li><li>移除所選歌曲只會從個人清單中移除，不會刪除公開歌曲資料。</li></ul>"},"6":{"title":"📖 使用指南 (6/10) - 個人頁面與設定","content":"<ul><li>我的帳戶：設定使用者名稱及預設演奏樂器。</li><li>好友：查看自己的好友 ID、送出邀請、接受邀請及管理好友清單。</li><li>設定：可調整 UI 色彩、語言、字型及重新載入最新資料。</li><li>一般不需要清除整個快取；顯示資訊過舊時再重新載入即可。</li></ul>"},"7":{"title":"📖 使用指南 (7/10) - 好友功能","content":"<ul><li>分享自己的好友 ID，或輸入對方的 ID 送出邀請。</li><li>對方接受後，雙方都會出現在彼此的好友清單。</li><li>查看清單時，也能看到好友已儲存的調性及演奏樂器。</li><li>可以篩選共同歌曲，或醒目標示兩人都收藏的歌曲。</li></ul>"},"8":{"title":"📖 使用指南 (8/10) - 建立與加入房間","content":"<ul><li>按建立房間產生網址，並分享給其他樂手。</li><li>在房間內可從全部歌曲預約，即使從個人清單進入也不受限制。</li><li>訪客可以參加，但分享個人清單需要 Google 登入。</li><li>離開房間時，該成員的房間共享清單也會解除。</li></ul>"},"9":{"title":"📖 使用指南 (9/10) - 房間共同歌曲與演出管理","content":"<ul><li>利用切換按鈕查看所有歌曲、共同歌曲、自己或各成員的清單。</li><li>當兩位以上不同的 Google 登入使用者收藏相同歌曲 UUID 時，該歌曲會顯示於共同歌曲。</li><li>歌曲詳情可檢視收藏者、調性及演奏樂器。</li><li>預約 → 確認 → 完成會即時同步給房間內所有人。</li></ul>"},"10":{"title":"📖 使用指南 (10/10) - OBS 顯示與問題排除","content":"<ul><li>只有在加入房間時才會顯示 OBS 自訂 CSS 按鈕。</li><li>請把目前房間專用網址設為 OBS 的瀏覽器來源。</li><li>設定顏色及透明度後，依序按①確認 → 預覽 → ②產生 CSS → ③複製。</li><li>OBS 會依演出順序顯示已完成的歌曲。</li><li>顯示資料過舊時，請至設定中選擇重新載入最新資料。</li></ul>"}}};
     languageManualReady = true;
     function openManualModal() {
+        if(activeLanguage==='ja' && typeof window.slNavigate==='function'){
+            void window.slNavigate('help');
+            window.slHelpOpen('first');
+            return;
+        }
         currentManualPage = 1;
         renderManualPage();
         openModal('manualModal');
@@ -10081,9 +10258,22 @@ html, body { background: transparent !important; color: ${text} !important; }
   };
 
   window.slHelpOpen=function(key,button){
-    document.querySelectorAll('#slHelpModal .sl-help-section').forEach(s=>s.classList.toggle('active',s.dataset.help===key));
-    document.querySelectorAll('#slHelpModal .sl-help-nav button').forEach(b=>b.classList.toggle('active',b===button));
-    const c=document.querySelector('#slHelpModal .sl-help-content');if(c)c.scrollTop=0;
+    const sections=[...document.querySelectorAll('#slHelpModal .sl-help-section')];
+    if(!sections.some(section=>section.dataset.help===key))return;
+    sections.forEach(section=>section.classList.toggle('active',section.dataset.help===key));
+    document.querySelectorAll('#slHelpModal .sl-help-nav button').forEach(item=>{
+      const active=item.dataset.helpTarget===key;
+      item.classList.toggle('active',active);
+      item.setAttribute('aria-current',active?'page':'false');
+      if(active){
+        const nav=item.parentElement;
+        const target=item.getBoundingClientRect(),bounds=nav.getBoundingClientRect();
+        if(target.top<bounds.top)nav.scrollTop+=target.top-bounds.top;
+        else if(target.bottom>bounds.bottom)nav.scrollTop+=target.bottom-bounds.bottom;
+      }
+    });
+    const select=document.getElementById('slHelpChapterSelect');if(select)select.value=key;
+    const content=document.querySelector('#slHelpModal .sl-help-content');if(content)content.scrollTop=0;
   };
 
   function slQueueGroups(){

@@ -1,0 +1,43 @@
+/* Beginner guide: independent chapter navigation and readable content. */
+body.sl-redesign #slHelpModal .sl-help-modal{
+  display:flex!important;flex-direction:column!important;width:min(1100px,100%)!important;
+  max-width:1100px!important;height:min(860px,calc(100dvh - 48px))!important;
+  max-height:calc(100dvh - 48px)!important;padding:22px!important;overflow:hidden!important;
+}
+#slHelpModal .sl-help-modal>h2{margin:0 35px 6px 0;flex-shrink:0}
+#slHelpModal .sl-help-intro{margin:0 0 12px;font-size:14px;line-height:1.6;flex-shrink:0}
+#slHelpModal .sl-help-layout{flex:1;min-height:0;grid-template-columns:230px minmax(0,1fr)!important;gap:18px!important;overflow:hidden}
+#slHelpModal .sl-help-nav{display:flex!important;flex-direction:column!important;overflow-y:auto;min-height:0;padding-right:12px!important;align-content:start}
+#slHelpModal .sl-help-nav button{font-size:14px!important;line-height:1.5!important;min-height:44px!important;flex-shrink:0}
+#slHelpModal .sl-help-content{max-height:none!important;min-height:0;overflow-y:auto;overflow-x:hidden;padding:2px 12px 20px 0!important;scrollbar-gutter:stable;overscroll-behavior:contain}
+#slHelpModal .sl-help-section h3{font-size:23px!important;line-height:1.5!important;margin:0 0 12px!important}
+#slHelpModal .sl-help-section h4{font-size:17px!important;line-height:1.6;margin:22px 0 8px}
+#slHelpModal .sl-help-section p,#slHelpModal .sl-help-section li{font-size:15px!important;line-height:1.9!important;overflow-wrap:anywhere}
+#slHelpModal .sl-help-section li{margin:8px 0}
+#slHelpModal .sl-help-note,#slHelpModal .sl-help-goal{border:1px solid var(--sl-border-soft);background:rgba(66,139,230,.09);border-radius:10px;padding:12px 14px;margin:14px 0}
+#slHelpModal .sl-help-goal{border-left:4px solid #27ad95}
+#slHelpModal .sl-help-note p,#slHelpModal .sl-help-goal p{margin:0}
+#slHelpModal .sl-help-links{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+#slHelpModal a.sl-help-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #558bcc;border-radius:9px;padding:8px 14px;color:var(--text-color);font-size:14px;font-weight:700;text-decoration:none;background:rgba(66,139,230,.12)}
+#slHelpModal a.sl-help-link:hover{background:rgba(66,139,230,.25)}
+#slHelpModal :is(a,button,select,summary):focus-visible{outline:3px solid #4facf7;outline-offset:3px}
+#slHelpModal .sl-help-section figure{margin:16px 0}
+#slHelpModal .sl-help-section figure img{display:block;width:100%;height:auto;border:1px solid var(--sl-border-soft);border-radius:9px}
+#slHelpModal .sl-help-section figcaption{font-size:12px;line-height:1.7;margin-top:7px;opacity:.85}
+#slHelpModal .sl-help-section .sl-help-phone img{width:min(230px,100%);margin:auto}
+#slHelpModal .sl-help-section details{border:1px solid var(--sl-border-soft);border-radius:9px;padding:12px;margin:12px 0}
+#slHelpModal .sl-help-section summary{cursor:pointer;font-size:15px;line-height:1.7;font-weight:700}
+#slHelpModal .sl-help-mobile-chapters{display:none}
+body.sl-redesign.theme-white #slHelpModal :is(.sl-help-note,.sl-help-goal){background:#edf6ff;color:#142c4d}
+body.sl-redesign.theme-white #slHelpModal a.sl-help-link{color:#142c4d;background:#edf4fe}
+@media(max-width:900px){
+  body.sl-redesign #slHelpModal .sl-help-modal{height:calc(100dvh - 28px)!important;max-height:calc(100dvh - 28px)!important;padding:16px!important}
+  #slHelpModal .sl-help-layout{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr);gap:0!important}
+  #slHelpModal .sl-help-nav{display:none!important}
+  #slHelpModal .sl-help-mobile-chapters{display:block;flex-shrink:0;margin-bottom:14px}
+  #slHelpModal .sl-help-mobile-chapters label{display:block;font-size:13px;margin-bottom:5px}
+  #slHelpModal .sl-help-mobile-chapters select{width:100%;max-width:100%;min-height:44px;font-size:15px}
+  #slHelpModal .sl-help-content{padding-right:5px!important}
+  #slHelpModal .sl-help-section h3{font-size:21px!important}
+  #slHelpModal .sl-help-intro{font-size:13px!important}
+}
