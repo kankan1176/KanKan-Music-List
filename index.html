@@ -3704,9 +3704,12 @@ html.entry-home body.sl-redesign .sl-home-update-list:focus-visible{outline:2px 
 html.entry-home body.sl-redesign .home-copyright{position:static!important;transform:none!important;margin:0!important;width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}
 @media(max-height:480px){html.entry-home body.sl-redesign .sl-home-brand img{display:none}html.entry-home body.sl-redesign .sl-home-brand-text{font-size:28px!important}html.entry-home body.sl-redesign .sl-home-visual{gap:8px!important}}
 </style>
-<script src="ui-translations.js?v=20261013-1"></script>
+<script src="ui-translations.js?v=20261015-1"></script>
 <style id="translated-layout">
 html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywhere}html:not([lang="ja"]) .sl-dock-actions{min-width:0;max-width:48%}html:not([lang="ja"]) .sl-dock-actions button,html:not([lang="ja"]) .sl-dock-actions a{white-space:normal;height:auto;overflow-wrap:anywhere}html:not([lang="ja"]) .sl-home-update-list article{min-height:0}html:not([lang="ja"]) #setlistShareDialog label,html:not([lang="ja"]) #setlistShareDialog p{overflow-wrap:anywhere}
+</style>
+<style id="clipboard-candidate-layout">
+.clipboard-candidate-label{display:grid;gap:6px;margin-top:10px;min-width:0}.clipboard-candidate-select{width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:9px;font:inherit;background:var(--panel-bg);color:var(--text-color);border:1px solid var(--border-color);border-radius:7px}.clipboard-matched-target{margin-top:6px;font-size:12px;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -3932,7 +3935,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         <li data-i18n-sentence>解析結果で一致曲と未一致曲を確認し、<strong>「一致曲の登録内容を確認」</strong>へ進みます。</li>
         <li data-i18n-sentence>Keyなどの内容を確認し、<strong>「確定して登録」</strong>を選びます。結果の件数を確認して「完了」を選びます。</li></ol><div class="sl-help-goal">
         <p data-i18n-sentence><strong>完了の目安：</strong>登録結果の件数を確認し、マイリストに対象曲が表示されれば完了です。</p></div><div class="sl-help-note">
-        <p>未一致・エラー・重複行は登録されません。URLがない場合は曲名とアーティストの完全一致で照合します。既に登録した曲はKeyが更新され、担当パートは維持されます。確定前に内容を確認してください。</p></div>
+        <p>未一致・エラー・重複行は登録されません。URLがない場合も曲名とアーティストから照合し、大文字・小文字、半角・全角、スペースや句読点の違いを吸収します。複数候補がある行は登録先を選択するか、その行を除外してください。既に登録した曲はKeyが更新され、担当パートは維持されます。確定前に内容を確認してください。</p></div>
         <details>
         <summary>Keyが空欄の場合・未一致の曲の扱い</summary>
         <p>Keyが空欄ならURLのkeyを使い、どちらもなければ0（原曲）になります。表のKeyとURLのKeyが異なる場合は確認画面で選びます。未一致の曲は新規楽曲登録申請へ進めますが、管理者承認まで全曲一覧には反映されません。</p></details>
@@ -4855,7 +4858,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
 
   <div class="clipboard-actions" style="justify-content:flex-start;"><button type="button" class="primary-btn" onclick="clipboardReadFromSystem()">📋 クリップボードの表を読み取る</button><button type="button" id="clipboardRemapButton" onclick="clipboardOpenMapping()" disabled>⚙️ 列の設定を変更</button></div>
 
-  <p style="font-size:12px;opacity:.82;line-height:1.55;">URLを省略した場合は曲名・アーティスト名の完全一致だけを登録。Keyが未記載ならURLのkeyを使い、両方未記載なら0（原曲）です。既存マイリスト曲はKeyを更新し、担当パートは維持します。マスター側のアーティストが空欄で、曲名＋ChordWiki URLが一意に一致した場合は、貼り付けたアーティスト名を管理者へ補完申請します。承認までは公開マスターを変更しません。</p>
+  <p style="font-size:12px;opacity:.82;line-height:1.55;">URLを省略しても曲名・アーティスト名から照合します。大文字・小文字、半角・全角、スペースや句読点などの表記ゆれを吸収し、複数候補がある行は登録先を選択します。Keyが未記載ならURLのkeyを使い、両方未記載なら0（原曲）です。既存マイリスト曲はKeyを更新し、担当パートは維持します。マスター側のアーティストが空欄で、曲名＋ChordWiki URLが一意に一致した場合は、貼り付けたアーティスト名を管理者へ補完申請します。承認までは公開マスターを変更しません。</p>
   <div id="clipboardImportSummary" role="status" aria-live="polite">Excel・スプレッドシートで2列以上をコピーし、「クリップボードの表を読み取る」を押してください。</div>
   <div id="clipboardImportPreview" aria-label="貼り付け楽曲の照合結果" hidden></div>
   <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardImportModal')">閉じる</button><button type="button" class="primary-btn" id="clipboardImportRegister" disabled onclick="clipboardShowAnalysisResult()">🔍 解析結果を見る</button></div>
@@ -4879,6 +4882,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
   <h2 id="clipboardAnalysisTitle">🔍 クリップボード解析結果</h2>
   <div id="clipboardAnalysisSummary" role="status" aria-live="polite"></div>
   <p class="clipboard-analysis-hint">未一致の曲は「新規楽曲登録申請」から曲名・アーティストを引き継げます。ChordWiki原曲URLと必須項目を確認して申請してください。管理者承認までは公開マスターへ反映されません。</p>
+  <p class="clipboard-analysis-hint">複数候補がある行は、登録先を選択するか「この行は登録しない」を選んでください。未選択の候補が残っている間は登録確認に進めません。</p>
   <div id="clipboardAnalysisRows" aria-label="解析された曲の一覧"></div>
   <div class="clipboard-actions clipboard-analysis-footer"><button type="button" onclick="closeModal(null,'clipboardAnalysisModal')">戻る</button><button type="button" class="primary-btn" id="clipboardAnalysisRegister" onclick="clipboardOpenConfirmation()" disabled>✅ 一致曲の登録内容を確認</button></div>
  </div>
@@ -7913,7 +7917,30 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     let clipboardImportRows=[],clipboardImportBusy=false,clipboardImportText='',clipboardRawText='';
     function clipboardTrim(x){return String(x??'').trim();}
-    function clipboardExactPair(t,a){return clipboardTrim(t)+'\u001f'+clipboardTrim(a);}
+    // Normalize only presentation differences. Different letters/words remain different songs.
+    function clipboardMatchText(value){
+      return clipboardTrim(value).normalize('NFKC').toLowerCase().replace(/[\p{White_Space}\p{Punctuation}]/gu,'');
+    }
+    function clipboardNormalizedPair(t,a){return clipboardMatchText(t)+'\u001f'+clipboardMatchText(a);}
+    const clipboardCandidateSelections=new Map();
+    let clipboardCandidateSignature='';
+    function clipboardInputSignature(){return clipboardRawText+'\u001e'+JSON.stringify(clipboardTableMapping);}
+    function clipboardRegistrationSignature(rows){return JSON.stringify(rows.map(row=>[row.line,row.status,row.songId,row.key,row.conflict,row.explicitKey,row.urlKey,row.artistProposal,row.matchedTitle,row.matchedArtist]));}
+    function clipboardImportFingerprint(){return clipboardInputSignature()+'\u001e'+JSON.stringify([...clipboardCandidateSelections].sort((a,b)=>a[0]-b[0]));}
+    function clipboardSelectCandidate(line,songId){
+      if(clipboardImportBusy)return;
+      const row=clipboardImportRows.find(item=>item.line===line);
+      if(!row||!(songId===''||songId==='__skip__'||row.candidates?.some(song=>song._id===songId)))return;
+      if(songId)clipboardCandidateSelections.set(line,songId);else clipboardCandidateSelections.delete(line);
+      closeModal(null,'clipboardConfirmModal');
+      clipboardPreview();
+    }
+    function clipboardCandidateLabel(song){
+      const title=clipboardTrim(song['曲名']),artist=clipboardTrim(song['アーティスト'])||'—';
+      const wiki=bulkCsvParseUrl(song['コードwiki']||song['コードWiki']||'');
+      const genre=genreOf(song,1);
+      return title+' / '+artist+(genre?' / '+genre:'')+(wiki?' / '+wiki.title:'');
+    }
     function clipboardParseKey(raw){
       const text=clipboardTrim(raw).normalize('NFKC');
       if(!text)return {specified:false,key:0};
@@ -7926,44 +7953,55 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     function clipboardIsHeader(fields){const xs=fields.map(v=>bulkCsvHeader(v));return xs.some(v=>bulkCsvAliases.title.includes(v))&&xs.some(v=>bulkCsvAliases.artist.includes(v));}
     function clipboardAnalyze(text){
+      if(!masterLoaded)return {rows:[],error:'全曲マスターを読み込み中です。少し待ってから再試行してください。'};
       const table=clipboardEnsureMapping(text);
       const mapped=table?clipboardMappedRecords(table):null;
       if(mapped?.error)return mapped;
       if(!table)return {error:'Excel・スプレッドシートからコピーした、2列以上の表データを貼り付けてください（文章形式には対応していません）。',rows:[]};
       const records=mapped;
+      const signature=String(text)+'\u001e'+JSON.stringify(clipboardTableMapping);
+      if(signature!==clipboardCandidateSignature){clipboardCandidateSelections.clear();clipboardCandidateSignature=signature;}
       if(records.length>CLIPBOARD_IMPORT_MAX)return {error:`一度に登録できるのは${CLIPBOARD_IMPORT_MAX}曲までです。分割してください。`,rows:[]};
       const byPair=new Map(),byUrl=new Map();
       for(const song of allData){
-        const pair=clipboardExactPair(song['曲名'],song['アーティスト']);
+        if(!song._id||!clipboardMatchText(song['曲名']))continue;
+        const pair=clipboardNormalizedPair(song['曲名'],song['アーティスト']);
         if(!byPair.has(pair))byPair.set(pair,[]);byPair.get(pair).push(song);
         const p=bulkCsvParseUrl(song['コードwiki']||song['コードWiki']||'');
         if(p){if(!byUrl.has(p.urlKey))byUrl.set(p.urlKey,[]);byUrl.get(p.urlKey).push(song);}
       }
       const seen=new Set();
       const rows=records.map(rec=>{
-        const row={...rec,status:'ok',reason:'',songId:'',key:0,conflict:false,urlKey:null,explicitKey:null,artistProposal:false};
+        const row={...rec,status:'ok',reason:'',songId:'',key:0,conflict:false,urlKey:null,explicitKey:null,artistProposal:false,candidates:[],selectionRequired:false};
         const key=clipboardParseKey(rec.rawKey),u=rec.rawUrl?bulkCsvParseUrl(rec.rawUrl):null;
-        if(!rec.title||!rec.artist){row.status='error';row.reason='曲名とアーティスト名の両方が必要です';return row;}
+        if(!clipboardMatchText(rec.title)||!clipboardMatchText(rec.artist)){row.status='error';row.reason='曲名とアーティスト名の両方が必要です';return row;}
         if(key.error){row.status='error';row.reason=key.error;return row;}
         if(rec.rawUrl&&!u){row.status='error';row.reason='ChordWiki URLが不正です（形式・Key範囲を確認）';return row;}
-        const pair=byPair.get(clipboardExactPair(rec.title,rec.artist))||[];
+        const pair=byPair.get(clipboardNormalizedPair(rec.title,rec.artist))||[];
         let matches=pair;
         if(u){
           const urls=byUrl.get(u.urlKey)||[];
           // The URL can identify a song whose master artist has not been filled yet.
           // Never overwrite an existing artist or infer one from the URL alone.
-          matches=urls.filter(song=>clipboardTrim(song['曲名'])===rec.title &&
-            (clipboardTrim(song['アーティスト'])===rec.artist || !clipboardTrim(song['アーティスト'])));
+          matches=urls.filter(song=>clipboardMatchText(song['曲名'])===clipboardMatchText(rec.title) &&
+            (clipboardMatchText(song['アーティスト'])===clipboardMatchText(rec.artist) || !clipboardTrim(song['アーティスト'])));
           if(!matches.length){
             row.status='error';
             row.reason=urls.length?'URLと曲名・アーティスト名が同じマスター曲に一致しません（既存のアーティストは上書きしません）':'ChordWiki URLに一致するマスター曲がありません';
             return row;
           }
         }
-        if(!matches.length){row.status='error';row.reason='マスター未一致（URLがない場合、曲名・アーティスト名の完全一致が必要です）';return row;}
-        const ids=new Set(matches.map(x=>x._id));
-        if(ids.size!==1){row.status='error';row.reason='同じ条件に複数のマスター曲があり、登録先を特定できません';return row;}
-        const target=matches[0];row.songId=target._id;
+        if(!matches.length){row.status='error';row.reason='マスター未一致（表記ゆれを除いて一致する曲がありません）';return row;}
+        row.candidates=[...new Map(matches.map(song=>[song._id,song])).values()];
+        const selected=clipboardCandidateSelections.get(rec.line);
+        row.selectionRequired=row.candidates.length>1||!!selected;
+        if(selected==='__skip__'){row.status='skipped';row.reason='この行は登録しません';return row;}
+        let target;
+        if(selected)target=row.candidates.find(song=>song._id===selected);
+        else if(row.candidates.length===1)target=row.candidates[0];
+        if(!target){row.status='candidate';row.reason='複数候補があります。登録先を選択するか、この行を除外してください。';return row;}
+        row.songId=target._id;
+        row.matchedTitle=clipboardTrim(target['曲名']);row.matchedArtist=clipboardTrim(target['アーティスト']);
         if(seen.has(row.songId)){row.status='error';row.reason='貼り付け内の重複曲（先の行だけを対象にします）';return row;}
         seen.add(row.songId);
         row.artistProposal=!!u&&!clipboardTrim(target['アーティスト']);
@@ -7981,16 +8019,18 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     function clipboardKeyLabel(n){return n>0?'+'+n:String(n);}
     function clipboardRowHtml(row,confirmation=false){
-      const good=row.status==='ok', cls=good?'ok':row.status==='conflict'?'warning':'error';
-      const status=good?'✅ 一致':row.status==='conflict'?'⚠ Key要確認':'✕ 登録対象外';
+      const good=row.status==='ok', cls=good?'ok':['conflict','candidate'].includes(row.status)?'warning':'error';
+      const status=good?'✅ 一致':row.status==='conflict'?'⚠ Key要確認':row.status==='candidate'?'⚠ 候補を選択':row.status==='skipped'?'− 登録しない':'✕ 登録対象外';
       const label=`${escapeHtml(row.title||'曲名なし')} / ${escapeHtml(row.artist||'アーティスト名なし')}`;
       const already=row.songId&&bulkCsvAlreadyPersonal(row.songId)?(row.personalKeyChanged?'・マイリスト登録済（Key変更）':'・マイリスト登録済（同じKey）'):'';
       const proposal=row.artistProposal?' / 📝 アーティスト補完は管理者確認待ち':'';
       const picker=confirmation&&row.conflict?`<label style="display:block;margin-top:5px;">登録するKey：<select class="clipboard-key-conflict" data-clipboard-line="${row.line}" aria-label="${escapeHtml(row.title)}の登録Key"><option value="explicit">指定Key ${clipboardKeyLabel(row.explicitKey)}</option><option value="url">URLのKey ${clipboardKeyLabel(row.urlKey)}</option></select></label>`:'';
       const canRequest=!confirmation&&row.status==='error'&&!!row.title&&!!row.artist&&(
         row.reason.startsWith('マスター未一致')||row.reason==='ChordWiki URLに一致するマスター曲がありません');
+      const selection=!confirmation&&row.selectionRequired?`<label class="clipboard-candidate-label"><span>登録先の候補</span><select class="clipboard-candidate-select" aria-label="登録先の候補" onchange="clipboardSelectCandidate(${row.line},this.value)"><option value="">候補を選択してください</option><option value="__skip__" ${row.status==='skipped'?'selected':''}>この行は登録しない</option>${row.candidates.map(song=>`<option value="${escapeHtml(song._id)}" translate="no" ${row.songId===song._id?'selected':''}>${escapeHtml(clipboardCandidateLabel(song))}</option>`).join('')}</select></label>`:'';
+      const resolved=row.songId?`<div class="clipboard-matched-target"><span>登録先：</span><span translate="no">${escapeHtml(row.matchedTitle)} / ${escapeHtml(row.matchedArtist||row.artist)}</span></div>`:'';
       const request=canRequest?`<button type="button" class="clipboard-apply-request" onclick="clipboardRequestUnmatched(${row.line})">➕ 新規楽曲登録申請</button>`:'';
-      return `<div class="clipboard-row ${cls}"><strong><span>${row.line}行目</span> <span>${status}</span>：<span translate="no">${label}</span></strong><small>${escapeHtml(row.reason||(good?'登録Key '+clipboardKeyLabel(row.key)+already:''))}${proposal}</small>${picker}${request}</div>`;
+      return `<div class="clipboard-row ${cls}"><strong><span>${row.line}行目</span> <span>${status}</span>：<span translate="no">${label}</span></strong><small>${escapeHtml(row.reason||(good?'登録Key '+clipboardKeyLabel(row.key)+already:''))}${proposal}</small>${resolved}${selection}${picker}${request}</div>`;
     }
     function clipboardOpenMapping(){
       if(!clipboardTableData){document.getElementById('clipboardImportSummary').textContent='先にクリップボードの表を読み取ってください。';return;}
@@ -8008,9 +8048,13 @@ html, body { background: transparent !important; color: ${text} !important; }
       closeModal(null,'clipboardMappingModal');
       clipboardPreview();
     }
-    function openClipboardImportModal(){
+    async function openClipboardImportModal(){
       if(!signedInUser||signedInUser.isAnonymous)return alert('貼り付け登録にはGoogleログインが必要です。');
       if(currentRoomId)return alert('マイリストへの一括登録はルーム外で行ってください。');
+      const uid=signedInUser.uid;
+      try{await promoteServerPageToFullMaster('クリップボード一括登録');}
+      catch(error){alert('全曲マスターを読み込めませんでした。通信状況を確認して再試行してください。');return;}
+      if(signedInUser?.uid!==uid||currentRoomId)return;
       closeModal(null,'addSongModal');openModal('clipboardImportModal');
     }
     async function clipboardReadFromSystem(){
@@ -8037,15 +8081,19 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     function clipboardPreview(){
       if(!clipboardMappingConfirmed){document.getElementById('clipboardImportSummary').textContent='列の設定を先に確定してください。';return {rows:[],error:'列の設定が未確定です'};}
-      const raw=clipboardRawText;clipboardImportText=raw+'\u001e'+JSON.stringify(clipboardTableMapping);
+      const raw=clipboardRawText;
       const result=clipboardAnalyze(raw),area=document.getElementById('clipboardAnalysisRows'),summary=document.getElementById('clipboardImportSummary');
+      clipboardImportText=clipboardImportFingerprint();
       clipboardImportRows=result.rows;area.innerHTML=result.rows.map(r=>clipboardRowHtml(r)).join('');
       const ok=result.rows.filter(r=>['ok','conflict'].includes(r.status)).length;
+      const excluded=result.rows.filter(row=>['error','skipped'].includes(row.status)).length;
       const keyChanges=result.rows.filter(r=>['ok','conflict'].includes(r.status)&&r.personalKeyChanged).length;
-      summary.textContent=result.error||`解析曲数 ${result.rows.length}曲｜一致曲数 ${ok}曲｜Key変更数 ${keyChanges}曲｜エラー・未一致曲数 ${result.rows.length-ok}曲`;
+      summary.textContent=result.error||`解析曲数 ${result.rows.length}曲｜一致曲数 ${ok}曲｜Key変更数 ${keyChanges}曲｜登録対象外 ${excluded}曲`;
       if(!result.rows.length&&!result.error)summary.textContent='Excel・スプレッドシートの2列以上の表をコピーし、読み取りボタンを押してください。';
       document.getElementById('clipboardImportRegister').disabled=!result.rows.length;
-      document.getElementById('clipboardAnalysisRegister').disabled=!ok;
+      const pending=result.rows.filter(row=>row.status==='candidate').length;
+      if(pending)summary.textContent+='\n候補未選択：'+pending+'曲';
+      document.getElementById('clipboardAnalysisRegister').disabled=!ok||pending>0;
       document.getElementById('clipboardAnalysisSummary').textContent=summary.textContent;
       if(result.rows.length)openModal('clipboardAnalysisModal');
       return result;
@@ -8070,7 +8118,8 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
     function clipboardOpenConfirmation(){
       if(clipboardImportBusy)return;
-      const result=clipboardPreview(),valid=result.rows.filter(r=>['ok','conflict'].includes(r.status));if(!valid.length)return;
+      const result=clipboardPreview();if(result.rows.some(row=>row.status==='candidate'))return;
+      const valid=result.rows.filter(r=>['ok','conflict'].includes(r.status));if(!valid.length)return;
       document.getElementById('clipboardConfirmSummary').textContent=`一致した${valid.length}曲をマイリストへ登録またはKey更新します。うち${valid.filter(r=>r.artistProposal).length}曲は、マスターの空欄アーティストを管理者へ補完申請します（承認後に反映）。${valid.filter(r=>r.personalKeyChanged).length}曲は既存マイリストとKeyが異なります。なお指定KeyとURLのKeyが異なる${valid.filter(r=>r.conflict).length}曲は登録するKeyを選んでください。エラー・未一致の${result.rows.length-valid.length}曲は除外します。`;
       document.getElementById('clipboardConfirmRows').innerHTML=result.rows.map(r=>clipboardRowHtml(r,true)).join('');
       document.getElementById('clipboardConfirmFeedback').textContent='';openModal('clipboardConfirmModal');
@@ -8078,7 +8127,10 @@ html, body { background: transparent !important; color: ${text} !important; }
     async function clipboardCommit(){
       if(clipboardImportBusy)return;const button=document.getElementById('clipboardConfirmApply'),feedback=document.getElementById('clipboardConfirmFeedback');
       const user=signedInUser;if(!user||user.isAnonymous||currentRoomId){feedback.textContent='Googleログイン後、ルーム外で登録してください。';return;}
-      if(clipboardRawText+'\u001e'+JSON.stringify(clipboardTableMapping)!==clipboardImportText){feedback.textContent='入力が変更されました。再度「登録内容を確認」からやり直してください。';return;}
+      if(clipboardImportFingerprint()!==clipboardImportText){feedback.textContent='入力が変更されました。再度「登録内容を確認」からやり直してください。';return;}
+      const rechecked=clipboardAnalyze(clipboardRawText);
+      if(rechecked.error||clipboardRegistrationSignature(rechecked.rows)!==clipboardRegistrationSignature(clipboardImportRows)){feedback.textContent='マスターの照合結果が変わりました。登録内容を確認し直してください。';return;}
+      if(clipboardImportRows.some(row=>row.status==='candidate')){feedback.textContent='登録先の候補を選択してください。';return;}
       clipboardImportBusy=true;button.disabled=true;const candidates=clipboardImportRows.filter(r=>['ok','conflict'].includes(r.status));
       try{
         feedback.textContent='マイリストを保存中…';
@@ -8087,7 +8139,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         const updates={},applied=[];let added=0,updated=0;
         for(const row of candidates){
           const prior=effectivePersonalSong(row.songId),parts=getSelectedParts(prior);
-          const choice=document.querySelector(`#clipboardConfirmRows [data-clipboard-line="${row.line}"]`)?.value;
+          const choice=document.querySelector(`#clipboardConfirmRows .clipboard-key-conflict[data-clipboard-line="${row.line}"]`)?.value;
           const selectedKey=row.conflict&&choice==='url'?row.urlKey:row.key;
           const personal={registered:true,excluded:false,liked:!!prior.liked,key:selectedKey,parts:parts.length?parts:(defaultPart?[defaultPart]:[]),part:parts[0]||defaultPart||''};
           updates[`users/${user.uid}/songs/${row.songId}`]=personal;applied.push([row.songId,personal]);
@@ -8116,7 +8168,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         }
         closeModal(null,'clipboardConfirmModal');closeModal(null,'clipboardImportModal');
         const extra=artistRows.length?`\nアーティスト補完申請：送信成功 ${proposed}曲 / 失敗 ${proposalErrors.length}曲（承認後にマスターへ反映）${proposalErrors.length?'\n⚠ 未送信：'+proposalErrors.join('、')+'。マイリスト登録は完了済みです。データの申請用ルールを確認してください。':''}`:'';
-        document.getElementById('clipboardImportResult').textContent=`✅ データへのマイリスト保存が完了しました。\n新規マイリスト登録：${added}曲\n既存曲のKey更新：${updated}曲\n登録対象外（未一致・エラー・重複）：${clipboardImportRows.length-candidates.length}曲\n担当パートは既存の設定を維持しています。${extra}`;
+        document.getElementById('clipboardImportResult').textContent=`✅ データへのマイリスト保存が完了しました。\n新規マイリスト登録：${added}曲\n既存曲のKey更新：${updated}曲\n登録対象外（未一致・エラー・重複・除外）：${clipboardImportRows.length-candidates.length}曲\n担当パートは既存の設定を維持しています。${extra}`;
         openModal('clipboardResultModal');
       }catch(error){console.error('クリップボード一括登録失敗',error);feedback.textContent=`❌ 登録できませんでした：${error.message||'通信やデータの権限を確認してください。'}（再試行できます）`;}
       finally{clipboardImportBusy=false;button.disabled=false;}
@@ -11131,4 +11183,5 @@ html, body { background: transparent !important; color: ${text} !important; }
 <script src="room-history.js"></script>
 </body>
 </html>
+
 
