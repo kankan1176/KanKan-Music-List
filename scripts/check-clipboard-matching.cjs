@@ -13,6 +13,7 @@ const fixtures=[
  {_id:'yui-original','曲名':'Rolling star','アーティスト':'YUI','コードwiki':'https://ja.chordwiki.org/wiki/RollingStarOriginal'},
  {_id:'yui-band','曲名':'Rolling star','アーティスト':'yui','コードwiki':'https://ja.chordwiki.org/wiki/RollingStarBand'},
  {_id:'empty-artist','曲名':'空欄','アーティスト':'','コードwiki':'https://ja.chordwiki.org/wiki/EmptyArtist'},
+ {_id:'aiko','曲名':'カブトムシ','アーティスト':'aiko','コードwiki':'https://ja.chordwiki.org/wiki/Kabutomushi'},
  {_id:'other','曲名':'Rolling start','アーティスト':'YUK','コードwiki':'https://ja.chordwiki.org/wiki/Other'}
 ];
 (async()=>{
@@ -114,8 +115,25 @@ const fixtures=[
   assert.equal(fill.rows[0].artistProposal,true);
   await page.evaluate(()=>clipboardOpenConfirmation());await page.evaluate(()=>clipboardCommit());
   assert.equal(await page.evaluate(()=>proposals[0].path),'songEditRequests/empty-artist/tester');
+  await page.evaluate(()=>closeModal(null,'clipboardResultModal'));
+  // Screenshot regression: artist-first tables must not become 215 unmatched rows.
+  const inferred=await page.evaluate(()=>{clipboardTableSignature='';clipboardRawText='aiko\tカブトムシ';clipboardEnsureMapping(clipboardRawText);clipboardMappingConfirmed=true;return {mapping:clipboardTableMapping,result:clipboardAnalyze(clipboardRawText)};});
+  assert.deepEqual(inferred.mapping,['artist','title']);assert.equal(inferred.result.rows[0].songId,'aiko');
+  await analyze('aiko\tカブトムシ',['title','artist']);await page.evaluate(()=>clipboardPreview());
+  assert.equal(await page.locator('#clipboardSwapColumnsButton').isVisible(),true);
+  await page.locator('#clipboardSwapColumnsButton').click();
+  assert.equal(await page.evaluate(()=>clipboardImportRows[0].songId),'aiko');
+  assert.equal(await page.locator('#clipboardSwapColumnsButton').isVisible(),false);
+  const header=await page.evaluate(()=>{clipboardTableSignature='';clipboardEnsureMapping('アーティスト\t曲名\naiko\tカブトムシ');return clipboardTableMapping;});
+  assert.deepEqual(header,['artist','title']);
+  await analyze('aiko\thttps://ja.chordwiki.org/wiki/Kabutomushi\t+2\tカブトムシ',['title','url','key','artist']);await page.evaluate(()=>clipboardPreview());
+  await page.evaluate(()=>clipboardSwapTitleArtist());
+  assert.deepEqual(await page.evaluate(()=>clipboardTableMapping),['artist','url','key','title']);
+  assert.equal(await page.evaluate(()=>clipboardImportRows[0].songId),'aiko');assert.equal(await page.evaluate(()=>clipboardImportRows[0].key),2);
+  const large=await page.evaluate(()=>{allData=Array.from({length:215},(_,i)=>({_id:'bulk'+i,'曲名':'曲'+i,'アーティスト':'Artist'+i}));clipboardTableSignature='';clipboardRawText=allData.map(song=>song['アーティスト']+'\t'+song['曲名']).join('\n');clipboardEnsureMapping(clipboardRawText);clipboardMappingConfirmed=true;return clipboardAnalyze(clipboardRawText);});
+  assert.equal(large.rows.length,215);assert.equal(large.rows.filter(row=>row.status==='ok').length,215);
   await page.evaluate(()=>{masterLoaded=false;});
   const partial=await analyze('青と夏\tMrs GREEN APPLE');assert.equal(partial.rows.length,0);assert.match(partial.error,/全曲マスター/);
-  console.log('PASS: normalized names, candidate selection/exclusion, full catalog, duplicate prevention, URL/key handling, metadata preservation, stale-match guard, approved import paths, and localized mobile UI');
+  console.log('PASS: normalized names, candidate selection/exclusion, full catalog, duplicate prevention, URL/key handling, metadata preservation, stale-match guard, approved import paths, and localized mobile UI, artist-first inference and 215-row reversed-column regression');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exit(1)});
