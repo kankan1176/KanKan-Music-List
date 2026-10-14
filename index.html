@@ -3704,12 +3704,12 @@ html.entry-home body.sl-redesign .sl-home-update-list:focus-visible{outline:2px 
 html.entry-home body.sl-redesign .home-copyright{position:static!important;transform:none!important;margin:0!important;width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}
 @media(max-height:480px){html.entry-home body.sl-redesign .sl-home-brand img{display:none}html.entry-home body.sl-redesign .sl-home-brand-text{font-size:28px!important}html.entry-home body.sl-redesign .sl-home-visual{gap:8px!important}}
 </style>
-<script src="ui-translations.js?v=20261015-2"></script>
+<script src="ui-translations.js?v=20261015-3"></script>
 <style id="translated-layout">
 html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywhere}html:not([lang="ja"]) .sl-dock-actions{min-width:0;max-width:48%}html:not([lang="ja"]) .sl-dock-actions button,html:not([lang="ja"]) .sl-dock-actions a{white-space:normal;height:auto;overflow-wrap:anywhere}html:not([lang="ja"]) .sl-home-update-list article{min-height:0}html:not([lang="ja"]) #setlistShareDialog label,html:not([lang="ja"]) #setlistShareDialog p{overflow-wrap:anywhere}
 </style>
 <style id="clipboard-candidate-layout">
-.clipboard-analysis-mapping-controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.clipboard-analysis-mapping-controls p{width:100%;margin:0;font-size:13px;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls button{white-space:normal;padding:8px 12px;max-width:100%;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls [hidden]{display:none!important}.clipboard-candidate-label{display:grid;gap:6px;margin-top:10px;min-width:0}.clipboard-candidate-select{width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:9px;font:inherit;background:var(--panel-bg);color:var(--text-color);border:1px solid var(--border-color);border-radius:7px}.clipboard-matched-target{margin-top:6px;font-size:12px;overflow-wrap:anywhere}
+#clipboardAnalysisModal .clipboard-analysis-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}#clipboardAnalysisModal .clipboard-analysis-body #clipboardAnalysisRows{overflow:visible;min-height:0;max-height:none}#clipboardAnalysisModal .modal>h2{flex:0 0 auto}#clipboardAnalysisActionStatus{width:100%;margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}#clipboardNextCandidate[hidden]{display:none!important}.clipboard-analysis-mapping-controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.clipboard-analysis-mapping-controls p{width:100%;margin:0;font-size:13px;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls button{white-space:normal;padding:8px 12px;max-width:100%;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls [hidden]{display:none!important}.clipboard-candidate-label{display:grid;gap:6px;margin-top:10px;min-width:0}.clipboard-candidate-select{width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:9px;font:inherit;background:var(--panel-bg);color:var(--text-color);border:1px solid var(--border-color);border-radius:7px}.clipboard-matched-target{margin-top:6px;font-size:12px;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -4881,6 +4881,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
   <button type="button" class="clipboard-top-close" aria-label="閉じる" onclick="closeModal(null,'clipboardAnalysisModal')">&times;</button>
   <h2 id="clipboardAnalysisTitle">🔍 クリップボード解析結果</h2>
   <div id="clipboardAnalysisSummary" role="status" aria-live="polite"></div>
+  <div class="clipboard-analysis-body">
   <p class="clipboard-analysis-hint">未一致の曲は「新規楽曲登録申請」から曲名・アーティストを引き継げます。ChordWiki原曲URLと必須項目を確認して申請してください。管理者承認までは公開マスターへ反映されません。</p>
   <p class="clipboard-analysis-hint">複数候補がある行は、登録先を選択するか「この行は登録しない」を選んでください。未選択の候補が残っている間は登録確認に進めません。</p>
   <div class="clipboard-analysis-mapping-controls">
@@ -4889,7 +4890,8 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
     <button type="button" onclick="clipboardReopenMapping()">⚙️ 列の設定を変更</button>
   </div>
   <div id="clipboardAnalysisRows" aria-label="解析された曲の一覧"></div>
-  <div class="clipboard-actions clipboard-analysis-footer"><button type="button" onclick="closeModal(null,'clipboardAnalysisModal')">戻る</button><button type="button" class="primary-btn" id="clipboardAnalysisRegister" onclick="clipboardOpenConfirmation()" disabled>✅ 一致曲の登録内容を確認</button></div>
+  </div>
+  <div class="clipboard-actions clipboard-analysis-footer"><p id="clipboardAnalysisActionStatus" role="status" aria-live="polite"></p><button type="button" id="clipboardNextCandidate" onclick="clipboardFocusNextCandidate()" hidden>次の未選択候補へ</button><button type="button" onclick="closeModal(null,'clipboardAnalysisModal')">戻る</button><button type="button" class="primary-btn" id="clipboardAnalysisRegister" onclick="clipboardOpenConfirmation()" disabled>✅ 一致曲の登録内容を確認</button></div>
  </div>
 </div>
 <div class="modal-overlay" id="clipboardConfirmModal" onclick="closeModal(event,'clipboardConfirmModal')" style="z-index:1110;">
@@ -4899,7 +4901,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
   <div id="clipboardConfirmRows" aria-label="一致状況とKeyの確認"></div>
   <p style="font-size:12px;">KeyとURLのKeyが異なる曲は、どちらで登録するか選択してください。エラー・未一致・重複行は登録されません。</p>
   <div id="clipboardConfirmFeedback" role="status" aria-live="polite" style="font-size:12px;min-height:16px;"></div>
-  <div class="clipboard-actions"><button type="button" onclick="closeModal(null,'clipboardConfirmModal')">照合結果に戻る</button><button type="button" class="primary-btn" id="clipboardConfirmApply" onclick="clipboardCommit()">✅ 確定して登録</button></div>
+  <div class="clipboard-actions"><button type="button" onclick="clipboardReturnToAnalysis()">照合結果に戻る</button><button type="button" class="primary-btn" id="clipboardConfirmApply" onclick="clipboardCommit()">✅ 確定して登録</button></div>
  </div>
 </div>
 <div class="modal-overlay" id="clipboardResultModal" onclick="closeModal(event,'clipboardResultModal')" style="z-index:1120;">
@@ -7493,6 +7495,8 @@ html, body { background: transparent !important; color: ${text} !important; }
         'addSongModal',
         'clipboardImportModal',
         'clipboardMappingModal',
+        'clipboardAnalysisModal',
+        'clipboardConfirmModal',
         'accountModal',
         'settingsModal',
         'songEditRequestModal',
@@ -8045,7 +8049,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       const picker=confirmation&&row.conflict?`<label style="display:block;margin-top:5px;">登録するKey：<select class="clipboard-key-conflict" data-clipboard-line="${row.line}" aria-label="${escapeHtml(row.title)}の登録Key"><option value="explicit">指定Key ${clipboardKeyLabel(row.explicitKey)}</option><option value="url">URLのKey ${clipboardKeyLabel(row.urlKey)}</option></select></label>`:'';
       const canRequest=!confirmation&&row.status==='error'&&!!row.title&&!!row.artist&&(
         row.reason.startsWith('マスター未一致')||row.reason==='ChordWiki URLに一致するマスター曲がありません');
-      const selection=!confirmation&&row.selectionRequired?`<label class="clipboard-candidate-label"><span>登録先の候補</span><select class="clipboard-candidate-select" aria-label="登録先の候補" onchange="clipboardSelectCandidate(${row.line},this.value)"><option value="">候補を選択してください</option><option value="__skip__" ${row.status==='skipped'?'selected':''}>この行は登録しない</option>${row.candidates.map(song=>`<option value="${escapeHtml(song._id)}" translate="no" ${row.songId===song._id?'selected':''}>${escapeHtml(clipboardCandidateLabel(song))}</option>`).join('')}</select></label>`:'';
+      const selection=!confirmation&&row.selectionRequired?`<label class="clipboard-candidate-label"><span>登録先の候補</span><select class="clipboard-candidate-select" data-clipboard-candidate-line="${row.line}" aria-label="登録先の候補" onchange="clipboardSelectCandidate(${row.line},this.value)"><option value="">候補を選択してください</option><option value="__skip__" ${row.status==='skipped'?'selected':''}>この行は登録しない</option>${row.candidates.map(song=>`<option value="${escapeHtml(song._id)}" translate="no" ${row.songId===song._id?'selected':''}>${escapeHtml(clipboardCandidateLabel(song))}</option>`).join('')}</select></label>`:'';
       const resolved=row.songId?`<div class="clipboard-matched-target"><span>登録先：</span><span translate="no">${escapeHtml(row.matchedTitle)} / ${escapeHtml(row.matchedArtist||row.artist)}</span></div>`:'';
       const request=canRequest?`<button type="button" class="clipboard-apply-request" onclick="clipboardRequestUnmatched(${row.line})">➕ 新規楽曲登録申請</button>`:'';
       return `<div class="clipboard-row ${cls}"><strong><span>${row.line}行目</span> <span>${status}</span>：<span translate="no">${label}</span></strong><small>${escapeHtml(row.reason||(good?'登録Key '+clipboardKeyLabel(row.key)+already:''))}${proposal}</small>${resolved}${selection}${picker}${request}</div>`;
@@ -8097,6 +8101,15 @@ html, body { background: transparent !important; color: ${text} !important; }
         summary.textContent='クリップボードを読み取れませんでした。ブラウザのクリップボードへのアクセスを許可し、HTTPSで開いて再度お試しください。'+(error?.message?'（'+error.message+'）':'');
       }
     }
+    function clipboardFocusNextCandidate(){
+      const row=clipboardImportRows.find(item=>item.status==='candidate');if(!row)return;
+      const select=document.querySelector(`#clipboardAnalysisRows [data-clipboard-candidate-line="${row.line}"]`);
+      if(select){select.scrollIntoView({block:'center'});select.focus({preventScroll:true});}
+    }
+    function clipboardReturnToAnalysis(){
+      if(clipboardImportBusy)return;
+      closeModal(null,'clipboardConfirmModal');clipboardPreview();
+    }
     function clipboardPreview(){
       if(!clipboardMappingConfirmed){document.getElementById('clipboardImportSummary').textContent='列の設定を先に確定してください。';return {rows:[],error:'列の設定が未確定です'};}
       const raw=clipboardRawText;
@@ -8106,6 +8119,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       document.getElementById('clipboardReversedColumnsHint').hidden=!reversed;
       document.getElementById('clipboardSwapColumnsButton').hidden=!reversed;
       clipboardImportText=clipboardImportFingerprint();
+      const scrollHost=area.closest('.clipboard-analysis-body')||area;const previousScroll=scrollHost.scrollTop;
       clipboardImportRows=result.rows;area.innerHTML=result.rows.map(r=>clipboardRowHtml(r)).join('');
       const ok=result.rows.filter(r=>['ok','conflict'].includes(r.status)).length;
       const excluded=result.rows.filter(row=>['error','skipped'].includes(row.status)).length;
@@ -8116,6 +8130,9 @@ html, body { background: transparent !important; color: ${text} !important; }
       const pending=result.rows.filter(row=>row.status==='candidate').length;
       if(pending)summary.textContent+='\n候補未選択：'+pending+'曲';
       document.getElementById('clipboardAnalysisRegister').disabled=!ok||pending>0;
+      document.getElementById('clipboardNextCandidate').hidden=!pending;
+      document.getElementById('clipboardAnalysisActionStatus').textContent=pending?`未選択候補が${pending}曲あります。候補を選ぶか、その行を除外してください。`:ok?`${ok}曲の登録内容を確認できます。登録対象外：${excluded}曲。`:'登録できる曲がありません。列の設定や未一致の内容を確認してください。';
+      scrollHost.scrollTop=previousScroll;
       document.getElementById('clipboardAnalysisSummary').textContent=summary.textContent;
       if(result.rows.length)openModal('clipboardAnalysisModal');
       return result;
@@ -8156,7 +8173,7 @@ html, body { background: transparent !important; color: ${text} !important; }
       const valid=result.rows.filter(r=>['ok','conflict'].includes(r.status));if(!valid.length)return;
       document.getElementById('clipboardConfirmSummary').textContent=`一致した${valid.length}曲をマイリストへ登録またはKey更新します。うち${valid.filter(r=>r.artistProposal).length}曲は、マスターの空欄アーティストを管理者へ補完申請します（承認後に反映）。${valid.filter(r=>r.personalKeyChanged).length}曲は既存マイリストとKeyが異なります。なお指定KeyとURLのKeyが異なる${valid.filter(r=>r.conflict).length}曲は登録するKeyを選んでください。エラー・未一致の${result.rows.length-valid.length}曲は除外します。`;
       document.getElementById('clipboardConfirmRows').innerHTML=result.rows.map(r=>clipboardRowHtml(r,true)).join('');
-      document.getElementById('clipboardConfirmFeedback').textContent='';openModal('clipboardConfirmModal');
+      document.getElementById('clipboardConfirmFeedback').textContent='';closeModal(null,'clipboardAnalysisModal');openModal('clipboardConfirmModal');
     }
     async function clipboardCommit(){
       if(clipboardImportBusy)return;const button=document.getElementById('clipboardConfirmApply'),feedback=document.getElementById('clipboardConfirmFeedback');
@@ -8200,14 +8217,23 @@ html, body { background: transparent !important; color: ${text} !important; }
             }catch(err){console.error('アーティスト補完申請失敗',row.songId,err);proposalErrors.push(`${row.line}行目「${row.title}」`);}
           }
         }
-        closeModal(null,'clipboardConfirmModal');closeModal(null,'clipboardImportModal');
+        closeModal(null,'clipboardConfirmModal');closeModal(null,'clipboardImportModal');closeModal(null,'clipboardAnalysisModal');closeModal(null,'clipboardMappingModal');
         const extra=artistRows.length?`\nアーティスト補完申請：送信成功 ${proposed}曲 / 失敗 ${proposalErrors.length}曲（承認後にマスターへ反映）${proposalErrors.length?'\n⚠ 未送信：'+proposalErrors.join('、')+'。マイリスト登録は完了済みです。データの申請用ルールを確認してください。':''}`:'';
         document.getElementById('clipboardImportResult').textContent=`✅ データへのマイリスト保存が完了しました。\n新規マイリスト登録：${added}曲\n既存曲のKey更新：${updated}曲\n登録対象外（未一致・エラー・重複・除外）：${clipboardImportRows.length-candidates.length}曲\n担当パートは既存の設定を維持しています。${extra}`;
         openModal('clipboardResultModal');
       }catch(error){console.error('クリップボード一括登録失敗',error);feedback.textContent=`❌ 登録できませんでした：${error.message||'通信やデータの権限を確認してください。'}（再試行できます）`;}
       finally{clipboardImportBusy=false;button.disabled=false;}
     }
-    function clipboardFinish(){closeModal(null,'clipboardResultModal');clipboardImportRows=[];clipboardImportText='';}
+    function clipboardFinish(){
+      if(clipboardImportBusy)return;
+      for(const id of ['clipboardImportModal','clipboardMappingModal','clipboardAnalysisModal','clipboardConfirmModal','clipboardResultModal'])closeModal(null,id);
+      clipboardImportRows=[];clipboardImportText='';clipboardRawText='';
+      clipboardTableMapping=null;clipboardTableSignature='';clipboardTableData=null;clipboardMappingConfirmed=false;
+      clipboardCandidateSelections.clear();clipboardCandidateSignature='';
+      document.getElementById('clipboardRemapButton').disabled=true;document.getElementById('clipboardImportRegister').disabled=true;document.getElementById('clipboardAnalysisRegister').disabled=true;
+      document.getElementById('clipboardAnalysisRows').replaceChildren();document.getElementById('clipboardImportPreview').replaceChildren();
+      document.getElementById('clipboardImportSummary').textContent='Excel・スプレッドシートで2列以上をコピーし、「クリップボードの表を読み取る」を押してください。';
+    }
 
     function bulkCsvAlreadyPersonal(id){const p=effectivePersonalSong(id);return !p.excluded&&!!(p.registered||p.part||getSelectedParts(p).length||p.liked);}
 
