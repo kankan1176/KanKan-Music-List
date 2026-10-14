@@ -3704,12 +3704,12 @@ html.entry-home body.sl-redesign .sl-home-update-list:focus-visible{outline:2px 
 html.entry-home body.sl-redesign .home-copyright{position:static!important;transform:none!important;margin:0!important;width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}
 @media(max-height:480px){html.entry-home body.sl-redesign .sl-home-brand img{display:none}html.entry-home body.sl-redesign .sl-home-brand-text{font-size:28px!important}html.entry-home body.sl-redesign .sl-home-visual{gap:8px!important}}
 </style>
-<script src="ui-translations.js?v=20261015-1"></script>
+<script src="ui-translations.js?v=20261015-2"></script>
 <style id="translated-layout">
 html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywhere}html:not([lang="ja"]) .sl-dock-actions{min-width:0;max-width:48%}html:not([lang="ja"]) .sl-dock-actions button,html:not([lang="ja"]) .sl-dock-actions a{white-space:normal;height:auto;overflow-wrap:anywhere}html:not([lang="ja"]) .sl-home-update-list article{min-height:0}html:not([lang="ja"]) #setlistShareDialog label,html:not([lang="ja"]) #setlistShareDialog p{overflow-wrap:anywhere}
 </style>
 <style id="clipboard-candidate-layout">
-.clipboard-candidate-label{display:grid;gap:6px;margin-top:10px;min-width:0}.clipboard-candidate-select{width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:9px;font:inherit;background:var(--panel-bg);color:var(--text-color);border:1px solid var(--border-color);border-radius:7px}.clipboard-matched-target{margin-top:6px;font-size:12px;overflow-wrap:anywhere}
+.clipboard-analysis-mapping-controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.clipboard-analysis-mapping-controls p{width:100%;margin:0;font-size:13px;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls button{white-space:normal;padding:8px 12px;max-width:100%;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls [hidden]{display:none!important}.clipboard-candidate-label{display:grid;gap:6px;margin-top:10px;min-width:0}.clipboard-candidate-select{width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:9px;font:inherit;background:var(--panel-bg);color:var(--text-color);border:1px solid var(--border-color);border-radius:7px}.clipboard-matched-target{margin-top:6px;font-size:12px;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -4883,6 +4883,11 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
   <div id="clipboardAnalysisSummary" role="status" aria-live="polite"></div>
   <p class="clipboard-analysis-hint">未一致の曲は「新規楽曲登録申請」から曲名・アーティストを引き継げます。ChordWiki原曲URLと必須項目を確認して申請してください。管理者承認までは公開マスターへ反映されません。</p>
   <p class="clipboard-analysis-hint">複数候補がある行は、登録先を選択するか「この行は登録しない」を選んでください。未選択の候補が残っている間は登録確認に進めません。</p>
+  <div class="clipboard-analysis-mapping-controls">
+    <p id="clipboardReversedColumnsHint" role="status" hidden>曲名とアーティストの列が逆になっている可能性があります。列を入れ替えて再解析できます。</p>
+    <button type="button" id="clipboardSwapColumnsButton" onclick="clipboardSwapTitleArtist()" hidden>曲名とアーティストの列を入れ替えて再解析</button>
+    <button type="button" onclick="clipboardReopenMapping()">⚙️ 列の設定を変更</button>
+  </div>
   <div id="clipboardAnalysisRows" aria-label="解析された曲の一覧"></div>
   <div class="clipboard-actions clipboard-analysis-footer"><button type="button" onclick="closeModal(null,'clipboardAnalysisModal')">戻る</button><button type="button" class="primary-btn" id="clipboardAnalysisRegister" onclick="clipboardOpenConfirmation()" disabled>✅ 一致曲の登録内容を確認</button></div>
  </div>
@@ -7874,6 +7879,17 @@ html, body { background: transparent !important; color: ${text} !important; }
       const data=header?rows.slice(1):rows;
       return {rows:data,width,header,labels:header?rows[0]:[],raw};
     }
+    function clipboardColumnDirection(table,map){
+      const titleIndex=map.indexOf('title'),artistIndex=map.indexOf('artist');
+      if(!masterLoaded||titleIndex<0||artistIndex<0)return {forward:0,reverse:0};
+      const pairs=new Set(allData.filter(song=>song._id&&clipboardMatchText(song['曲名'])&&clipboardMatchText(song['アーティスト'])).map(song=>clipboardNormalizedPair(song['曲名'],song['アーティスト'])));
+      let forward=0,reverse=0;
+      for(const row of table.rows.slice(0,CLIPBOARD_IMPORT_MAX)){
+        if(pairs.has(clipboardNormalizedPair(row[titleIndex],row[artistIndex])))forward++;
+        if(pairs.has(clipboardNormalizedPair(row[artistIndex],row[titleIndex])))reverse++;
+      }
+      return {forward,reverse};
+    }
     function clipboardDefaultMapping(table){
       const used=new Set(),map=[];
       for(let i=0;i<table.width;i++){
@@ -7882,6 +7898,8 @@ html, body { background: transparent !important; color: ${text} !important; }
         else if(i===0)v='title';else if(i===1)v='artist';else if(i===2)v='url';
         if(used.has(v))v='ignore';if(v!=='ignore')used.add(v);map.push(v);
       }
+      // No-header tables may be artist-first. Use actual catalog matches rather than fixed column positions.
+      if(!table.header){const scores=clipboardColumnDirection(table,map);if(scores.reverse>scores.forward)[map[0],map[1]]=[map[1],map[0]];}
       return map;
     }
     function clipboardRenderMapping(table){
@@ -8083,6 +8101,10 @@ html, body { background: transparent !important; color: ${text} !important; }
       if(!clipboardMappingConfirmed){document.getElementById('clipboardImportSummary').textContent='列の設定を先に確定してください。';return {rows:[],error:'列の設定が未確定です'};}
       const raw=clipboardRawText;
       const result=clipboardAnalyze(raw),area=document.getElementById('clipboardAnalysisRows'),summary=document.getElementById('clipboardImportSummary');
+      const direction=clipboardTableData?clipboardColumnDirection(clipboardTableData,clipboardTableMapping):{forward:0,reverse:0};
+      const reversed=direction.reverse>direction.forward;
+      document.getElementById('clipboardReversedColumnsHint').hidden=!reversed;
+      document.getElementById('clipboardSwapColumnsButton').hidden=!reversed;
       clipboardImportText=clipboardImportFingerprint();
       clipboardImportRows=result.rows;area.innerHTML=result.rows.map(r=>clipboardRowHtml(r)).join('');
       const ok=result.rows.filter(r=>['ok','conflict'].includes(r.status)).length;
@@ -8097,6 +8119,18 @@ html, body { background: transparent !important; color: ${text} !important; }
       document.getElementById('clipboardAnalysisSummary').textContent=summary.textContent;
       if(result.rows.length)openModal('clipboardAnalysisModal');
       return result;
+    }
+    function clipboardReopenMapping(){
+      if(clipboardImportBusy||!clipboardTableData)return;
+      closeModal(null,'clipboardConfirmModal');closeModal(null,'clipboardAnalysisModal');
+      clipboardRenderMapping(clipboardTableData);clipboardOpenMapping();
+    }
+    function clipboardSwapTitleArtist(){
+      if(clipboardImportBusy||!clipboardTableData)return;
+      const title=clipboardTableMapping.indexOf('title'),artist=clipboardTableMapping.indexOf('artist');
+      if(title<0||artist<0)return;
+      [clipboardTableMapping[title],clipboardTableMapping[artist]]=[clipboardTableMapping[artist],clipboardTableMapping[title]];
+      clipboardMappingConfirmed=true;closeModal(null,'clipboardConfirmModal');clipboardPreview();
     }
     function clipboardShowAnalysisResult(){
       if(!clipboardMappingConfirmed)return;
