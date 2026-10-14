@@ -5144,5 +5144,25 @@ window.SL_UI_TRANSLATIONS = {
     "en": "Swap title and artist columns and reanalyze",
     "ko": "곡명·아티스트 열을 바꿔 다시 분석",
     "zh-TW": "交換歌名與藝人欄位後重新分析"
+  },
+  "次の未選択候補へ": {
+    "en": "Go to the next unresolved match",
+    "ko": "다음 미선택 후보로 이동",
+    "zh-TW": "前往下一個未選候選歌曲"
+  },
+  "未選択候補が{count}曲あります。候補を選ぶか、その行を除外してください。": {
+    "en": "{count} songs still need a choice. Select a match or skip each row.",
+    "ko": "{count}곡의 후보가 미선택입니다. 후보를 선택하거나 해당 행을 제외하세요.",
+    "zh-TW": "仍有 {count} 首候選歌曲未選擇。請選擇歌曲或排除該列。"
+  },
+  "{count}曲の登録内容を確認できます。登録対象外：{errors}曲。": {
+    "en": "You can review {count} songs for import. Excluded: {errors} songs.",
+    "ko": "{count}곡의 등록 내용을 확인할 수 있습니다. 제외: {errors}곡.",
+    "zh-TW": "可確認 {count} 首歌曲的加入內容。排除：{errors} 首。"
+  },
+  "登録できる曲がありません。列の設定や未一致の内容を確認してください。": {
+    "en": "No songs can be imported. Check the column mapping and unmatched rows.",
+    "ko": "등록할 수 있는 곡이 없습니다. 열 설정과 불일치 내용을 확인하세요.",
+    "zh-TW": "沒有可加入的歌曲，請確認欄位設定與未符合內容。"
   }
 };
