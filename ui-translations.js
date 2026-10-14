@@ -5134,5 +5134,15 @@ window.SL_UI_TRANSLATIONS = {
     "en": "Loading the full song catalog for clipboard import…",
     "ko": "클립보드 일괄 등록을 위해 전체 곡 목록을 불러오는 중…",
     "zh-TW": "正在載入完整曲庫，以進行剪貼簿批次匯入…"
+  },
+  "曲名とアーティストの列が逆になっている可能性があります。列を入れ替えて再解析できます。": {
+    "en": "The title and artist columns may be reversed. Swap them to analyze again.",
+    "ko": "곡명과 아티스트 열이 반대로 지정되었을 수 있습니다. 열을 바꿔 다시 분석할 수 있습니다.",
+    "zh-TW": "歌名與藝人欄位可能顛倒，可交換欄位後重新分析。"
+  },
+  "曲名とアーティストの列を入れ替えて再解析": {
+    "en": "Swap title and artist columns and reanalyze",
+    "ko": "곡명·아티스트 열을 바꿔 다시 분석",
+    "zh-TW": "交換歌名與藝人欄位後重新分析"
   }
 };
