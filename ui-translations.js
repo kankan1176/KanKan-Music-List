@@ -5034,5 +5034,105 @@ window.SL_UI_TRANSLATIONS = {
     "en": "繁體中文（台灣）",
     "ko": "繁體中文（台灣）",
     "zh-TW": "繁體中文（台灣）"
+  },
+  "⚠ 候補を選択": {
+    "en": "⚠ Choose a match",
+    "ko": "⚠ 후보 선택",
+    "zh-TW": "⚠ 選擇候選歌曲"
+  },
+  "− 登録しない": {
+    "en": "− Skip this row",
+    "ko": "− 등록하지 않음",
+    "zh-TW": "− 不加入此列"
+  },
+  "登録先の候補": {
+    "en": "Choose the catalog song",
+    "ko": "등록할 곡 후보",
+    "zh-TW": "選擇要加入的曲庫歌曲"
+  },
+  "候補を選択してください": {
+    "en": "Select a candidate",
+    "ko": "후보를 선택하세요",
+    "zh-TW": "請選擇候選歌曲"
+  },
+  "この行は登録しない": {
+    "en": "Do not import this row",
+    "ko": "이 행은 등록하지 않음",
+    "zh-TW": "不加入此列"
+  },
+  "この行は登録しません": {
+    "en": "This row will not be imported",
+    "ko": "이 행은 등록하지 않습니다",
+    "zh-TW": "此列不會加入"
+  },
+  "登録先：": {
+    "en": "Matched song:",
+    "ko": "등록할 곡:",
+    "zh-TW": "對應歌曲："
+  },
+  "登録先の候補を選択してください。": {
+    "en": "Choose a matching song before importing.",
+    "ko": "등록할 곡 후보를 선택하세요.",
+    "zh-TW": "請先選擇要加入的候選歌曲。"
+  },
+  "複数候補があります。登録先を選択するか、この行を除外してください。": {
+    "en": "Multiple songs match. Choose a song or skip this row.",
+    "ko": "여러 곡이 일치합니다. 등록할 곡을 선택하거나 이 행을 제외하세요.",
+    "zh-TW": "有多首歌曲符合，請選擇要加入的歌曲或排除此列。"
+  },
+  "複数候補がある行は、登録先を選択するか「この行は登録しない」を選んでください。未選択の候補が残っている間は登録確認に進めません。": {
+    "en": "For rows with multiple matches, choose a song or select Do not import this row. Resolve all pending choices before continuing to confirmation.",
+    "ko": "여러 후보가 있는 행은 등록할 곡이나 이 행은 등록하지 않음을 선택하세요. 미선택 후보가 남아 있으면 등록 확인으로 진행할 수 없습니다.",
+    "zh-TW": "多候選歌曲的列請選擇要加入的歌曲，或選「不加入此列」。仍有未選擇候選歌曲時，無法前往加入確認。"
+  },
+  "マスター未一致（表記ゆれを除いて一致する曲がありません）": {
+    "en": "No catalog match, even after ignoring formatting differences.",
+    "ko": "표기 차이를 제외해도 일치하는 곡이 없습니다.",
+    "zh-TW": "忽略格式差異後仍沒有符合的曲庫歌曲。"
+  },
+  "候補未選択：{count}曲": {
+    "en": "Unresolved matches: {count} songs",
+    "ko": "후보 미선택: {count}곡",
+    "zh-TW": "候選歌曲未選：{count} 首"
+  },
+  "全曲マスターを読み込めませんでした。通信状況を確認して再試行してください。": {
+    "en": "Could not load the full song catalog. Check your connection and retry.",
+    "ko": "전체 곡 목록을 불러오지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    "zh-TW": "無法載入完整曲庫，請確認連線後重試。"
+  },
+  "全曲マスターを読み込み中です。少し待ってから再試行してください。": {
+    "en": "Loading the full song catalog. Please wait a moment and retry.",
+    "ko": "전체 곡 목록을 불러오는 중입니다. 잠시 후 다시 시도하세요.",
+    "zh-TW": "正在載入完整曲庫，請稍候再試。"
+  },
+  "マスターの照合結果が変わりました。登録内容を確認し直してください。": {
+    "en": "The catalog match changed. Review the import again.",
+    "ko": "곡 목록 대조 결과가 바뀌었습니다. 등록 내용을 다시 확인하세요.",
+    "zh-TW": "曲庫比對結果已變更，請重新確認加入內容。"
+  },
+  "解析曲数 {total}曲｜一致曲数 {count}曲｜Key変更数 {changes}曲｜登録対象外 {errors}曲": {
+    "en": "Analyzed: {total} | Matched: {count} | Key changes: {changes} | Excluded: {errors}",
+    "ko": "분석: {total}곡｜일치: {count}곡｜키 변경: {changes}곡｜제외: {errors}곡",
+    "zh-TW": "分析：{total} 首｜符合：{count} 首｜調性變更：{changes} 首｜排除：{errors} 首"
+  },
+  "登録対象外（未一致・エラー・重複・除外）：{count}曲": {
+    "en": "Not imported (unmatched/errors/duplicates/skipped): {count} songs",
+    "ko": "미등록(불일치·오류·중복·제외): {count}곡",
+    "zh-TW": "未加入（未符合、錯誤、重複、排除）：{count} 首"
+  },
+  "URLを省略しても曲名・アーティスト名から照合します。大文字・小文字、半角・全角、スペースや句読点などの表記ゆれを吸収し、複数候補がある行は登録先を選択します。Keyが未記載ならURLのkeyを使い、両方未記載なら0（原曲）です。既存マイリスト曲はKeyを更新し、担当パートは維持します。マスター側のアーティストが空欄で、曲名＋ChordWiki URLが一意に一致した場合は、貼り付けたアーティスト名を管理者へ補完申請します。承認までは公開マスターを変更しません。": {
+    "en": "Without a URL, songs are matched by title and artist, ignoring case, character width, spaces, and punctuation. Choose a song when multiple matches exist. An empty key uses the URL’s key, or 0 (original) if neither exists. Existing songs keep their instruments while their keys are updated. If the catalog artist is blank and title plus ChordWiki URL uniquely identify a song, the pasted artist is submitted for admin approval. The public catalog remains unchanged until approval.",
+    "ko": "URL이 없어도 곡명·아티스트로 대조하며 대소문자·전각/반각·공백·문장부호 차이를 허용합니다. 여러 후보가 있으면 등록할 곡을 선택하세요. 키가 없으면 URL의 키를, 둘 다 없으면 0(원곡)을 사용합니다. 기존 곡은 키만 갱신하고 연주 파트는 유지합니다. 아티스트가 비어 있고 곡명과 ChordWiki URL로 하나의 곡이 확인되면 붙여넣은 아티스트를 보완 신청합니다. 승인 전에는 공개 목록이 바뀌지 않습니다.",
+    "zh-TW": "未提供網址時也會依歌名與藝人比對，忽略大小寫、全半形、空白與標點差異。多首符合時請選擇要加入的歌曲。未填調性時採用網址調性，皆無則使用 0（原調）。既有歌曲會更新調性並保留樂器。曲庫藝人空白且歌名與 ChordWiki 網址唯一符合時，會提交貼上的藝人名稱供管理員補全審核。核准前不變更公開曲庫。"
+  },
+  "未一致・エラー・重複行は登録されません。URLがない場合も曲名とアーティストから照合し、大文字・小文字、半角・全角、スペースや句読点の違いを吸収します。複数候補がある行は登録先を選択するか、その行を除外してください。既に登録した曲はKeyが更新され、担当パートは維持されます。確定前に内容を確認してください。": {
+    "en": "Unmatched, invalid, and duplicate rows are not imported. Without a URL, title and artist are matched while ignoring case, character width, spaces, and punctuation. Choose a song or skip rows with multiple matches. Existing songs have their keys updated; instruments are preserved. Review before confirming.",
+    "ko": "불일치·오류·중복 행은 등록되지 않습니다. URL이 없어도 곡명·아티스트로 대조하며 대소문자·전각/반각·공백·문장부호 차이를 허용합니다. 여러 후보가 있는 행은 등록할 곡을 선택하거나 제외하세요. 기존 곡은 키가 갱신되고 연주 파트는 유지됩니다. 확정 전에 확인하세요.",
+    "zh-TW": "未符合、錯誤與重複列不會加入。沒有網址時也會比對歌名與藝人，忽略大小寫、全半形、空白與標點差異。多候選歌曲的列請選擇歌曲或排除。既有歌曲更新調性並保留樂器，確認前請檢查內容。"
+  },
+  "クリップボード一括登録を使うため、移行期間中は従来の全曲マスターを読み込みます…": {
+    "en": "Loading the full song catalog for clipboard import…",
+    "ko": "클립보드 일괄 등록을 위해 전체 곡 목록을 불러오는 중…",
+    "zh-TW": "正在載入完整曲庫，以進行剪貼簿批次匯入…"
   }
 };
