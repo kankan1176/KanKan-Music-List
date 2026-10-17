@@ -2,7 +2,7 @@ name: Verify live queue permissions without publishing rules
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/check-live-queue.yml']
+    paths: ['.github/workflows/check-live-queue.yml', 'scripts/check-live-queue.cjs']
   workflow_dispatch:
 permissions:
   contents: read

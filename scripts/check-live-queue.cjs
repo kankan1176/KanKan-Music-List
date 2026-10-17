@@ -11,7 +11,8 @@ const {ref,set,runTransaction}=testReq('firebase/database');
  const app=initializeApp({credential:applicationDefault(),projectId:'kankan-session-room',databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app'});
  let env;
  try{
-  const emulatorHost=process.env.FIREBASE_DATABASE_EMULATOR_HOST;delete process.env.FIREBASE_DATABASE_EMULATOR_HOST;\n  let rules;try{rules=await getDatabase().getRulesJSON();}finally{if(emulatorHost)process.env.FIREBASE_DATABASE_EMULATOR_HOST=emulatorHost;}
+  const emulatorHost=process.env.FIREBASE_DATABASE_EMULATOR_HOST;delete process.env.FIREBASE_DATABASE_EMULATOR_HOST;
+  let rules;try{rules=await getDatabase().getRulesJSON();}finally{if(emulatorHost)process.env.FIREBASE_DATABASE_EMULATOR_HOST=emulatorHost;}
   env=await initializeTestEnvironment({projectId:'demo-queue-audit',database:{host:'127.0.0.1',port:9000,rules:JSON.stringify(rules)}});
   const record=status=>({songId:'audit_song',status,addedBy:'Synthetic test',order:1000,keyOffset:0});
   await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'admins/audit_admin'),true);await set(ref(c.database(),'rooms/AUDIT'),{settings:{createdByUid:'audit_google',source:'master',createdAt:1000},members:{one:{uid:'audit_google',guest:false,name:'Synthetic google'},two:{uid:'audit_guest',guest:true,name:'Synthetic guest'}}});});
