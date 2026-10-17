@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: firebase-admin-functions-production
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   rules:
