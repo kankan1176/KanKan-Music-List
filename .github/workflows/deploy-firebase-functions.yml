@@ -1,0 +1,92 @@
+name: Deploy Firebase admin functions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'functions/**'
+      - 'firebase.json'
+      - 'scripts/check-account-control-service.cjs'
+      - 'scripts/configure-account-controls.cjs'
+      - '.github/workflows/deploy-firebase-functions.yml'
+  workflow_dispatch:
+    inputs:
+      initialize_controls:
+        description: '初回のみON：既存DBルールを保持して管理機能を有効化'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-admin-functions-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout the requested main revision
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install locked server dependencies
+        run: npm ci --prefix functions --no-audit --no-fund
+
+      - name: Verify administrative authorization and controls
+        run: node scripts/check-account-control-service.cjs
+
+      - name: Check existing Firebase credential
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo '::error::既存の FIREBASE_SERVICE_ACCOUNT シークレットが未設定です。docs/firebase-auto-deploy.md を確認してください。'
+            exit 1
+          fi
+
+      - name: Authenticate using the existing Firebase service account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Install the Firebase deployment tool
+        run: npm install --global firebase-tools@14.17.0 --no-audit --no-fund
+
+      - name: Deploy only this project's administrative functions
+        run: firebase deploy --project kankan-session-room --only functions:account-controls --non-interactive
+
+      - name: Initialize controls and preserve existing database rules
+        if: github.event_name == 'workflow_dispatch' && inputs.initialize_controls == true
+        run: node scripts/configure-account-controls.cjs --apply
+
+      - name: Retain the rules backup when initialization ran
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.initialize_controls == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebase-rules-backup-${{ github.run_id }}
+          path: .account-controls-backup/rules-*.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Summarize the deployment
+        env:
+          INITIALIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.initialize_controls == true }}
+        run: |
+          echo '### Firebase管理機能の公開' >> "$GITHUB_STEP_SUMMARY"
+          echo '- kankan-session-room / account-controls を公開しました。' >> "$GITHUB_STEP_SUMMARY"
+          if [ "$INITIALIZED" = 'true' ]; then
+            echo '- 既存のDBルールを保持して認証失効チェックを追加し、管理機能を有効化しました。' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '- DBルールと管理機能の有効・無効設定は変更していません。初回は Run workflow の initialize_controls をONにしてください。' >> "$GITHUB_STEP_SUMMARY"
+          fi
