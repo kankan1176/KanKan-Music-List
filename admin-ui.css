@@ -38,3 +38,25 @@ main{height:100vh;height:100dvh;display:flex;flex-direction:column;padding-botto
  #newsItems{max-height:320px;flex:auto}
  .quick-panel{overflow:visible}
 }
+
+
+/* Compact header and a single global cache action. */
+main{padding-top:16px}
+.page-header{padding-bottom:12px;gap:12px}
+.site-back{margin-bottom:8px}
+.page-header h1{font-size:27px;margin:4px 0 0}
+.page-header .eyebrow{font-size:9px;letter-spacing:.13em}
+.system-status{padding-top:8px;margin-bottom:14px}
+.guest-help{font-size:11px;line-height:1.75;margin:14px 0;color:var(--muted)}
+#accountControlsAllCache{border-color:#507e78;background:#1a3d38;color:#cbf5e6}
+.rename-label{margin-top:16px!important;color:#d4def0}
+@media(max-width:760px){
+ main{padding-top:10px}
+ .page-header h1{font-size:21px}
+ .page-header{padding-bottom:10px}
+ .page-header .eyebrow{display:none}
+ .site-back{font-size:11px;margin-bottom:5px}
+ .header-actions{gap:6px}
+ .header-actions button{font-size:12px;padding:8px 10px}
+ .controls-toolbar #accountControlsAllCache{width:100%}
+}

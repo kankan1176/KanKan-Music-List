@@ -33,13 +33,12 @@
       if (item.requestedName && item.requestedName !== item.name) card.append(text('small', '変更指示：' + item.requestedName));
       card.append(text('p', item.lastSeen ? '最終連絡：' + new Date(item.lastSeen).toLocaleString('ja-JP') : '端末からの連絡は未記録', 'contact'));
       const devices = item.devices || [];
-      const receipts = [['個別キャッシュ削除', item.pendingCacheId, d => d.cacheIds?.includes(item.pendingCacheId)],
-        ['全体キャッシュ削除', globalCache?.id, d => d.cacheIds?.includes(globalCache.id)],
+      const receipts = [['全体キャッシュ削除', globalCache?.id, d => d.cacheIds?.includes(globalCache.id)],
         ['ログアウト指示', item.pendingLogoutId, d => d.logoutId === item.pendingLogoutId],
         ['名前変更', item.pendingNameId, d => d.guestNameId === item.pendingNameId]];
       for (const [label, id, received] of receipts) if (id) card.append(text('small', label + '：' + devices.filter(received).length + '端末で受信済み'));
       const actions = document.createElement('div'); actions.className = 'control-actions';
-      actions.append(button('楽曲キャッシュを削除', () => run({action:'clearCache', uid:item.uid}, item.name + ' の楽曲キャッシュを削除しますか？ 保存済みマイリストは保持します。', '削除指示を送信しました。受信状況は更新ボタンで確認できます。')));
+      
       if (item.kind === 'account') {
         const logout = button('アプリからログアウト', () => run({action:'forceLogout', uid:item.uid}, item.name + ' にログアウト指示を送信しますか？ 未保存の変更が失われる場合があります。', 'ログアウト指示を送信しました。Google認証トークン自体は失効しません。'), item.uid === current()?.uid);
         logout.className = 'danger';
@@ -48,16 +47,18 @@
       } else {
         const rename = document.createElement('div'); rename.className = 'guest-rename';
         const input = document.createElement('input'); input.maxLength = 40; input.value = item.requestedName || item.name;
-        input.setAttribute('aria-label', item.name + ' の新しいゲスト名'); input.disabled = operation;
-        rename.append(input, button('ゲスト名を変更', () => {
+        input.setAttribute('aria-label', item.name + ' の新しい参加名'); input.disabled = operation || !devices.length;
+        card.append(text('small', 'ルーム参加名を変更', 'rename-label'));
+        if(!devices.length) card.append(text('small', '対象ゲストがサイトを再読み込みした後、「受信状況を更新」を押してください。'));
+        rename.append(input, button('参加名を変更', () => {
           const name = input.value.trim();
           if (!name || name.length > 40 || /[\x00-\x1f\x7f]/.test(name)) { status('名前は1〜40文字で入力してください。'); input.focus(); return; }
           return run({action:'renameGuest', uid:item.uid, name}, item.name + ' の名前を「' + name + '」へ変更しますか？', '名前の変更指示を送信しました。ルーム表示は対象端末が受信後に更新されます。');
-        })); actions.append(rename);
+        }, !devices.length)); actions.append(rename);
       }
       card.append(actions); host.append(card);
     }
-    if (!filtered.length) host.append(text('p', enabled ? (targets.length ? '条件に一致するユーザーはいません。' : '対象ユーザーはまだいません。Googleユーザーの公開プロフィールや、サイトを利用したゲスト端末がここに表示されます。') : 'ユーザー操作を利用できるか確認してください。', 'empty-state'));
+    if (!filtered.length) host.append(text('p', enabled ? (kind==='guest'&&!search ? '表示できるゲストがいません。ゲストがルームに参加してサイトに接続した後、受信状況を更新してください。' : targets.length ? '条件に一致するユーザーはいません。' : '対象ユーザーはまだいません。Googleユーザーの公開プロフィールや、サイトを利用したゲスト端末がここに表示されます。') : 'ユーザー操作を利用できるか確認してください。', 'empty-state'));
     el('accountControlsPrev').disabled = page === 0;
     el('accountControlsNext').disabled = page >= pages - 1;
     el('accountControlsPage').textContent = filtered.length + '件 / ' + (page + 1) + '・' + pages + 'ページ';
@@ -107,3 +108,4 @@
   auth.onAuthStateChanged(() => { loadVersion++; enabled = false; targets = []; globalCache = null; render(); });
   if (current()) void refresh();
 })();
+
