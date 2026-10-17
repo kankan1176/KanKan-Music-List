@@ -1,0 +1,44 @@
+const assert=require('node:assert/strict');
+const {initializeTestEnvironment,assertFails,assertSucceeds}=require('@firebase/rules-unit-testing');
+const {ref,set,get,update,serverTimestamp}=require('firebase/database');
+const {mergeFreeRules}=require('../../scripts/free-control-rules.cjs');
+const original={rules:{'.read':false,'.write':false,admins:{$uid:{'.read':'auth != null && auth.uid === $uid'}},users:{$uid:{'.read':'auth != null && auth.uid === $uid','.write':'auth != null && auth.uid === $uid'}}}};
+(async()=>{
+ const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:JSON.stringify(mergeFreeRules(original))}});
+ try{
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'admins/admin'),true);await set(ref(c.database(),'adminClientControl/config'),{enabled:true,version:1});await set(ref(c.database(),'users/member/list'),{keep:'saved'});});
+ const context=(uid,provider)=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider},auth_time:1700000000}).database();
+ const admin=context('admin','google.com'),member=context('member','google.com'),guest=context('guest','anonymous'),fake=context('admin','anonymous'),anon=env.unauthenticatedContext().database();
+ const command=()=>({id:'command-1234',issuedAt:serverTimestamp()});
+ await assertSucceeds(get(ref(anon,'adminClientControl/config')));
+ await assertFails(set(ref(member,'adminClientControl/globalCache'),command()));
+ await assertFails(set(ref(fake,'adminClientControl/globalCache'),command()));
+ await assertSucceeds(set(ref(admin,'adminClientControl/globalCache'),command()));
+ await assertSucceeds(get(ref(anon,'adminClientControl/globalCache')));
+ const registry=(kind)=>({kind,name:'Name',lastSeen:serverTimestamp(),devices:{'device-123':{lastSeen:serverTimestamp()}}});
+ await assertSucceeds(set(ref(guest,'adminClientControl/clients/guest'),registry('guest')));
+ await assertFails(set(ref(guest,'adminClientControl/clients/member'),registry('guest')));
+ await assertFails(set(ref(member,'adminClientControl/clients/member'),registry('guest')));
+ await assertSucceeds(set(ref(member,'adminClientControl/clients/member'),registry('account')));
+ await assertFails(get(ref(member,'adminClientControl/clients/guest')));
+ await assertFails(get(ref(guest,'adminClientControl/clients')));
+ await assertSucceeds(get(ref(admin,'adminClientControl/clients')));
+ await assertSucceeds(set(ref(admin,'adminClientControl/userCommands/guest/guestName'),{...command(),name:'新しい名前'}));
+ await assertFails(set(ref(admin,'adminClientControl/userCommands/member/guestName'),{...command(),name:'wrong'}));
+ await assertFails(set(ref(guest,'adminClientControl/userCommands/guest/cache'),command()));
+ await assertSucceeds(set(ref(admin,'adminClientControl/userCommands/member/logout'),command()));
+ await assertFails(set(ref(admin,'adminClientControl/userCommands/admin/logout'),command()));
+ await assertSucceeds(get(ref(member,'adminClientControl/userCommands/member')));
+ await assertFails(get(ref(guest,'adminClientControl/userCommands/member')));
+ await assertFails(get(ref(anon,'adminClientControl/userCommands/member')));
+ await assertFails(set(ref(admin,'adminClientControl/globalCache'),{...command(),extra:'unexpected'}));
+ await assertFails(set(ref(admin,'adminClientControl/globalCache'),{id:'invalid',issuedAt:1700000000000}));
+ await assertSucceeds(update(ref(guest,'adminClientControl/clients/guest'),{name:'updated',lastSeen:serverTimestamp(),'devices/device-123':{lastSeen:serverTimestamp(),cacheIds:['command-1234'],guestNameId:'command-1234'}}));
+ await assertFails(set(ref(admin,'adminClientControl/userCommands/guest/guestName'),{...command(),name:'x'.repeat(41)}));
+ await assertFails(set(ref(admin,'adminClientControl/userCommands/guest/guestName'),{...command(),name:'invalid\nname'}));
+ await assertSucceeds(get(ref(member,'users/member/list')));
+ await assertFails(get(ref(guest,'users/member/list')));
+ assert.equal((await get(ref(member,'users/member/list/keep'))).val(),'saved');
+ console.log('PASS: emulator confirms admin-only commands, own-only private reads and reports, anonymous/global cache access, Google/guest kind enforcement, guest-only rename, schema/timestamp constraints, and unchanged personal list isolation.');
+ }finally{await env.cleanup()}
+})().catch(e=>{console.error(e);process.exitCode=1});

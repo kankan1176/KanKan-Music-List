@@ -1,0 +1,58 @@
+name: Apply free admin control rules
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/free-control-rules.cjs'
+      - 'scripts/configure-free-account-controls.cjs'
+      - 'scripts/check-free-account-controls.cjs'
+      - '.github/workflows/apply-free-admin-controls.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-admin-functions-production
+  cancel-in-progress: false
+
+jobs:
+  rules:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install the locked SDK for database rules only
+        run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+      - name: Check free control code and rule preservation
+        run: node scripts/check-free-account-controls.cjs
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install local-only rule test dependencies
+        run: npm ci --prefix tests/free-controls --ignore-scripts --no-audit --no-fund
+      - name: Verify access control using a local demo database emulator
+        run: tests/free-controls/node_modules/.bin/firebase emulators:exec --project demo-free-controls --only database --config tests/free-controls/firebase.json 'node tests/free-controls/test-rules.cjs'
+      - name: Authenticate using the existing database administrator
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Apply only Realtime Database rules and free control configuration
+        run: node scripts/configure-free-account-controls.cjs --apply
+      - name: Keep the previous rules for recovery
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-control-rules-backup-${{ github.run_id }}
+          path: .account-controls-backup/free-rules-*.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7

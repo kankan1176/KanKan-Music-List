@@ -2,7 +2,7 @@
 (()=>{'use strict';
  const host=document.querySelector('[data-view-panel="users"]');if(!host)return;
  const section=document.createElement('section');section.className='card';section.id='accountControlsPanel';
- section.innerHTML='<h2>端末・アカウント操作</h2><p>強制ログアウトはGoogleアカウントの全端末が対象です。楽曲キャッシュ削除は保存済みマイリストを保持します。未接続の端末は次回アクセス時に反映されます。</p><div class="toolbar-actions"><button type="button" id="accountControlsRefresh">対象と受信状況を更新</button><button type="button" id="accountControlsAllCache" disabled>全ユーザー・ゲストの楽曲キャッシュを削除</button></div><p id="accountControlsStatus" role="status" aria-live="polite"></p><div class="table-scroll" role="region" aria-label="端末・アカウント操作一覧" tabindex="0"><table><thead><tr><th>種別・ユーザーID</th><th>名前</th><th>最終連絡・受信状況</th><th>操作</th></tr></thead><tbody id="accountControlsRows"></tbody></table></div>';
+ section.innerHTML='<h2>端末・アカウント操作</h2><p>ログアウト指示は、このアプリを利用するGoogleログイン端末が対象です。Google認証トークンの失効は行いません。楽曲キャッシュ削除は保存済みマイリストを保持します。未接続の端末は次回アクセス時に反映されます。</p><div class="toolbar-actions"><button type="button" id="accountControlsRefresh">対象と受信状況を更新</button><button type="button" id="accountControlsAllCache" disabled>全ユーザー・ゲストの楽曲キャッシュを削除</button></div><p id="accountControlsStatus" role="status" aria-live="polite"></p><div class="table-scroll" role="region" aria-label="端末・アカウント操作一覧" tabindex="0"><table><thead><tr><th>種別・ユーザーID</th><th>名前</th><th>最終連絡・受信状況</th><th>操作</th></tr></thead><tbody id="accountControlsRows"></tbody></table></div>';
  host.append(section);
  const style=document.createElement('style');style.textContent='#accountControlsPanel td{vertical-align:top;white-space:normal;overflow-wrap:anywhere}#accountControlsPanel .control-actions{display:flex;gap:7px;flex-wrap:wrap}#accountControlsPanel input{max-width:100%;box-sizing:border-box;padding:8px}#accountControlsStatus{white-space:pre-line}#accountControlsPanel small{display:block;margin-top:6px}';document.head.append(style);
  const el=id=>document.getElementById(id);let operation=false,loadVersion=0;
@@ -26,7 +26,7 @@
    const result=await window.slAccountControlCall({action:'list'},user);
    if(version!==loadVersion||current()?.uid!==user.uid)return;
    el('accountControlsRows').replaceChildren();el('accountControlsAllCache').disabled=!result.enabled||operation;
-   if(!result.enabled){status('Firebase側の初期設定が未完了です。サーバー機能と認証失効ルールの適用後に操作できます。');return;}
+   if(!result.enabled){status('Firebase側の初期設定が未完了です。無料構成用のデータベースルール適用後に操作できます。');return;}
    for(const item of result.targets||[]){
     const row=document.createElement('tr');cell(row,(item.kind==='guest'?'ゲスト':'Googleアカウント')+'\n'+item.uid);
     const nameCell=cell(row,item.name);if(item.requestedName&&item.requestedName!==item.name){const note=document.createElement('small');note.textContent='変更指示：'+item.requestedName;nameCell.append(note);}
@@ -34,15 +34,16 @@
     const devices=item.devices||[];
     if(item.pendingCacheId){const count=devices.filter(d=>d.cacheIds?.includes(item.pendingCacheId)).length;const info=document.createElement('small');info.textContent='個別キャッシュ削除：'+count+'端末で受信済み';received.append(info);}
     if(result.globalCache?.id){const count=devices.filter(d=>d.cacheIds?.includes(result.globalCache.id)).length;const info=document.createElement('small');info.textContent='全体キャッシュ削除：'+count+'端末で受信済み';received.append(info);}
+    if(item.pendingLogoutId){const count=devices.filter(d=>d.logoutId===item.pendingLogoutId).length;const info=document.createElement('small');info.textContent='ログアウト指示：'+count+'端末で受信済み';received.append(info);}
     if(item.pendingNameId){const count=devices.filter(d=>d.guestNameId===item.pendingNameId).length;const info=document.createElement('small');info.textContent='名前変更：'+count+'端末で受信済み';received.append(info);}
     const td=document.createElement('td'),actions=document.createElement('div');actions.className='control-actions';td.append(actions);row.append(td);
     actions.append(button('楽曲キャッシュを削除',()=>run({action:'clearCache',uid:item.uid},item.name+' の端末へ楽曲キャッシュの削除を指示しますか？ 保存済みマイリストは保持されます。','キャッシュ削除の指示を送信しました。端末の受信状況は更新ボタンで確認できます。')));
     if(item.kind==='account'){
-     const logout=button('強制ログアウト',()=>run({action:'forceLogout',uid:item.uid},item.name+' を全端末で強制ログアウトしますか？ 未保存の変更は失われる場合があります。','ログインを失効させました。対象ユーザーは再ログインが必要です。'));
+     const logout=button('アプリからログアウト',()=>run({action:'forceLogout',uid:item.uid},item.name+' にアプリのログアウト指示を送信しますか？ 接続中または次回アクセス時に反映します。未保存の変更は失われる場合があります。','アプリのログアウト指示を送信しました。Google認証トークン自体は失効しません。'));
      logout.className='danger';logout.disabled=operation||item.uid===user.uid;actions.append(logout);
     }else{
      const input=document.createElement('input');input.type='text';input.maxLength=40;input.value=item.requestedName||item.name;input.setAttribute('aria-label','ゲストの新しい名前');input.disabled=operation;
-     actions.append(input,button('ゲスト名を変更',()=>{const name=input.value.trim();if(!name||name.length>40){status('名前は1〜40文字で入力してください。');return;}return run({action:'renameGuest',uid:item.uid,name},item.name+' のゲスト名を「'+name+'」へ変更しますか？','ゲスト名の変更指示を送信しました。ルーム内の名前も更新しました。');}));
+     actions.append(input,button('ゲスト名を変更',()=>{const name=input.value.trim();if(!name||name.length>40){status('名前は1〜40文字で入力してください。');return;}return run({action:'renameGuest',uid:item.uid,name},item.name+' のゲスト名を「'+name+'」へ変更しますか？','ゲスト名の変更指示を送信しました。ルーム内の表示は対象端末が受信後に更新されます。');}));
     }
     el('accountControlsRows').append(row);
    }
