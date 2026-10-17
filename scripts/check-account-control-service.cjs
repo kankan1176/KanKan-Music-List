@@ -1,0 +1,42 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {createService}=require('../functions/account-control-service.cjs');
+const {mergeRules,GUARD}=require('./configure-account-controls.cjs');
+function fixture(){
+ const state={admins:{owner:true},adminControl:{config:{enabled:true,securityRulesVersion:1}},publicProfiles:{owner:{displayName:'管理者'},member:{displayName:'利用者'}},rooms:{room:{members:{one:{uid:'guest',guest:true,name:'旧名'},two:{uid:'member',guest:false,name:'会員'}},queue:{q:{status:'confirmed'}}}}};
+ const get=path=>path.split('/').filter(Boolean).reduce((node,key)=>node?.[key],state);
+ const set=(path,value)=>{const keys=path.split('/').filter(Boolean);let node=state;for(const key of keys.slice(0,-1))node=node[key]??={};if(value===null)delete node[keys.at(-1)];else node[keys.at(-1)]=structuredClone(value);};
+ const database={ref:path=>({once:async()=>({val:()=>structuredClone(get(path||''))}),set:async value=>set(path,value),update:async values=>{for(const [key,value]of Object.entries(values))set((path?path+'/':'')+key,value);}})};
+ const users={owner:{providerData:[{providerId:'google.com'}]},member:{providerData:[{providerId:'google.com'}]},guest:{providerData:[]}};
+ const revoked=[];const authentication={getUser:async uid=>{if(!users[uid])throw Object.assign(Error('not found'),{code:'auth/user-not-found'});return users[uid];},revokeRefreshTokens:async uid=>{revoked.push(uid);users[uid].tokensValidAfterTime='2026-10-17T00:00:00Z';}};
+ let counter=0;return {state,revoked,service:createService({database,authentication,now:()=>1792195200000,uuid:()=>`command-${++counter}`})};
+}
+const admin={uid:'owner',firebase:{sign_in_provider:'google.com'}},member={uid:'member',firebase:{sign_in_provider:'google.com'}},guest={uid:'guest',firebase:{sign_in_provider:'anonymous'}};
+(async()=>{
+ const {state,revoked,service}=fixture();
+ await assert.rejects(service.handle({action:'clearCache',scope:'all'},null),e=>e.code==='permission-denied');
+ await assert.rejects(service.handle({action:'clearCache',scope:'all'},member),e=>e.code==='permission-denied');
+ await assert.rejects(service.handle({action:'clearCache',scope:'all'},{...admin,firebase:{sign_in_provider:'anonymous'}}),e=>e.code==='permission-denied');
+ state.adminControl.config.enabled=false;await assert.rejects(service.handle({action:'clearCache',scope:'all'},admin),e=>e.code==='failed-precondition');state.adminControl.config.enabled=true;
+ await assert.rejects(service.handle({action:'forceLogout',uid:'owner'},admin),e=>e.code==='failed-precondition');
+ await assert.rejects(service.handle({action:'forceLogout',uid:'guest'},admin),e=>e.code==='failed-precondition');
+ assert.equal(revoked.length,0);
+ await service.handle({action:'forceLogout',uid:'member'},admin);
+ assert.deepEqual(revoked,['member']);assert.equal(state.adminControl.revocations.member,1792195200);
+ const global=await service.handle({action:'clearCache',scope:'all'},admin),individual=await service.handle({action:'clearCache',uid:'guest'},admin);
+ const publicPoll=await service.handle({action:'poll'},null);assert.equal(publicPoll.cacheCommands.length,1);assert.equal(publicPoll.cacheCommands[0].issuedBy,undefined);assert.equal(publicPoll.guestName,undefined);
+ await assert.rejects(service.handle({action:'renameGuest',uid:'member',name:'置換'},admin),e=>e.code==='failed-precondition');
+ await assert.rejects(service.handle({action:'renameGuest',uid:'guest',name:'\n'},admin),e=>e.code==='invalid-argument');
+ await assert.rejects(service.handle({action:'renameGuest',uid:'guest',name:'x'.repeat(41)},admin),e=>e.code==='invalid-argument');
+ const renamed=await service.handle({action:'renameGuest',uid:'guest',name:' 新しい名前 '},admin);
+ assert.equal(state.rooms.room.members.one.name,'新しい名前');assert.equal(state.rooms.room.members.two.name,'会員');assert.equal(state.rooms.room.queue.q.status,'confirmed');
+ const poll=await service.handle({action:'poll',deviceId:'device-123',name:'旧名',applied:{cacheIds:['forged',global.command.id,individual.command.id],guestNameId:renamed.command.id}},guest);
+ assert.equal(poll.cacheCommands.length,2);assert.equal(poll.guestName.name,'新しい名前');
+ assert.deepEqual(state.adminControl.clients.guest.devices['device-123'].cacheIds,[global.command.id,individual.command.id]);
+ const self=await service.handle({action:'poll',deviceId:'device-456',name:'会員',applied:{}},member);assert.equal(self.guestName,null);
+ const list=await service.handle({action:'list'},admin);assert.equal(list.targets.length,3);assert.equal(list.targets.find(t=>t.uid==='guest').pendingNameId,renamed.command.id);
+ const rules={rules:{'.read':false,'.write':false,users:{$uid:{'.read':'auth != null && auth.uid === $uid','.write':'auth != null && auth.uid === $uid','.validate':'newData.hasChildren()'}},songs:{'.read':true,'.write':false}}};
+ const patched=mergeRules(rules);assert.match(patched.rules.users.$uid['.read'],/auth_time/);assert.equal(patched.rules.users.$uid['.validate'],rules.rules.users.$uid['.validate']);assert.equal(patched.rules['.read'],false);assert.equal(patched.rules.adminControl['.read'],false);assert.equal(patched.rules.songs['.write'],false);assert.ok(patched.rules.songs['.read'].includes(GUARD));assert.deepEqual(mergeRules(patched),patched);assert.deepEqual(rules.rules.adminControl,undefined);
+ assert.throws(()=>mergeRules({rules:{'.read':true}}),/ルート/);
+ console.log('PASS: Google/admin enforcement, disabled configuration, real revocation adapter, individual/global cache commands, guest-only rename, command acknowledgement filtering, public response minimization, and non-granting/idempotent rules merge.');
+})().catch(error=>{console.error(error);process.exit(1)});

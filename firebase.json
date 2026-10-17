@@ -1,0 +1,3 @@
+{
+  "functions": [{ "source": "functions", "codebase": "account-controls", "ignore": ["node_modules", ".git", "*.log"] }]
+}
