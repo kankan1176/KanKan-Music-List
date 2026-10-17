@@ -43,7 +43,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertSucceeds(update(ref(admin),{'users/member/profile/displayName':'変更済み','publicProfiles/member/displayName':'変更済み','friendProfiles/member/displayName':'変更済み'}));
  assert.equal((await get(ref(member,'users/member/profile/displayName'))).val(),'変更済み');
  await assertSucceeds(get(ref(admin,'users/member/profile/displayName')));
- for(const actor of [member,guest,fake,anon]) await assertFails(set(ref(actor,'users/admin/profile/displayName'),'不正'));
+ for(const actor of [context('other','google.com'),guest,fake,anon]) await assertFails(set(ref(actor,'users/member/profile/displayName'),'不正'));
  for(const name of ['', ' ', 'x'.repeat(41), 'bad\nname', null]) await assertFails(set(ref(admin,'users/member/profile/displayName'),name));
  await assertFails(set(ref(admin,'users/unknown/profile/displayName'),'不明'));
  await assertFails(set(ref(admin,'publicProfiles/member/code'),'変更不可'));
