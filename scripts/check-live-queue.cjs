@@ -14,13 +14,18 @@ const {ref,set,runTransaction,onValue}=testReq('firebase/database');
   const emulatorHost=process.env.FIREBASE_DATABASE_EMULATOR_HOST;delete process.env.FIREBASE_DATABASE_EMULATOR_HOST;
   let rules;try{rules=await getDatabase().getRulesJSON();}finally{if(emulatorHost)process.env.FIREBASE_DATABASE_EMULATOR_HOST=emulatorHost;}
   env=await initializeTestEnvironment({projectId:'demo-queue-audit',database:{host:'127.0.0.1',port:9000,rules:JSON.stringify(rules)}});
+  const {transact}=require('../queue-actions.js');
   const record=status=>({songId:'audit_song',status,addedBy:'Synthetic test',order:1000,keyOffset:0});
   await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'admins/audit_admin'),true);await set(ref(c.database(),'rooms/AUDIT'),{settings:{createdByUid:'audit_google',source:'master',createdAt:1000},members:{one:{uid:'audit_google',guest:false,name:'Synthetic google'},two:{uid:'audit_guest',guest:true,name:'Synthetic guest'}}});});
   for(const [uid,provider]of [['audit_google','google.com'],['audit_guest','anonymous'],['audit_admin','google.com']]){
    const database=env.authenticatedContext(uid,{firebase:{sign_in_provider:provider}}).database();
    for(const [label,status,action]of [['confirmed-back','confirmed','reserved'],['completed-back','completed','confirmed'],['reserved-delete','reserved',null],['confirmed-delete','confirmed',null],['reserved-forward','reserved','confirmed']]){
     await env.withSecurityRulesDisabled(c=>set(ref(c.database(),'rooms/AUDIT/queue/q_audit'),record(status)));
-    let stop;try{await new Promise((resolve,reject)=>{stop=onValue(ref(database,'rooms/AUDIT/queue/q_audit'),()=>resolve(),reject)});const outcome=await runTransaction(ref(database,'rooms/AUDIT/queue/q_audit'),current=>!current?undefined:action===null?null:{...current,status:action,order:2000},{applyLocally:false});console.log('QUEUE_RESULT '+uid.replace('audit_','')+' '+label+' '+(outcome.committed?'allowed':'aborted'));}catch(error){console.log('QUEUE_RESULT '+uid.replace('audit_','')+' '+label+' denied '+String(error.code||'error'));}finally{if(stop)stop();}
+    const node=ref(database,'rooms/AUDIT/queue/q_audit'), listeners=new Map();
+    const compat={on(event,callback,reject){listeners.set(callback,onValue(node,callback,reject))},off(event,callback){listeners.get(callback)?.();listeners.delete(callback)},transaction:update=>runTransaction(node,update,{applyLocally:false})};
+    const outcome=await transact(compat,current=>!current?undefined:action===null?null:{...current,status:action,order:2000});
+    if(!outcome.committed)throw Error('Synthetic queue mutation did not commit');
+    console.log('QUEUE_RESULT '+uid.replace('audit_','')+' '+label+' allowed');
    }
   }
  }finally{if(env)await env.cleanup();await deleteApp(app)}

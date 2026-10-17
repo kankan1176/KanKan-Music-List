@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
-    <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
+    <script src="queue-actions.js?v=20261017-queue1"></script>
+<script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
     <!-- ブックマーク用アイコンの設定（PNG用） -->
     <link rel="icon" type="image/png" sizes="512x512" href="favicon.png?v=20261002-2">
@@ -5178,6 +5179,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
     });
     // Match full UI messages. Substituted names/IDs remain untouched.
     Object.assign(UI_I18N, window.SL_UI_TRANSLATIONS || {});
+    Object.assign(UI_I18N, {'曲の左で☑選択':{en:'Select songs on the left',ko:'곡 왼쪽에서 선택', 'zh-TW':'勾選歌曲左側方框'}});
     const uiNormalize = value => String(value).replace(/\s+/g,' ').trim();
     const normalizedUi = new Map(Object.entries(UI_I18N).map(([key,value])=>[uiNormalize(key),value]));
     const uiPatterns = Object.entries(window.SL_UI_TRANSLATIONS || {}).filter(([key])=>/\{\w+\}/.test(key)).map(([key,values])=>{
@@ -10490,7 +10492,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     if(!toolbar){toolbar=document.createElement('div');toolbar.className='sl-dock-bulk';header.insertBefore(toolbar,header.querySelector('b'));}
     toolbar.replaceChildren();
     const selected=slDockSelection[status],count=selected.size;
-    const counter=document.createElement('span');counter.textContent=count?'選択 '+count+'曲':'';counter.className='sl-dock-selected-count';toolbar.append(counter);
+    const counter=document.createElement('span');counter.textContent=count?'選択 '+count+'曲':'曲の左で☑選択';counter.className='sl-dock-selected-count';toolbar.append(counter);
     if(status!=='reserved'){
       const back=slActionButton('⏪ 戻す','選択した曲を'+(status==='confirmed'?'予約':'演奏確定')+'へ戻す','sl-act-back',()=>slDockBulkAction(status,'back'));
       back.disabled=!count||slDockBulkBusy||slDockPendingIds.size>0;toolbar.append(back);
@@ -10513,10 +10515,10 @@ html, body { background: transparent !important; color: ${text} !important; }
       // Use the existing per-song write permissions and compare status again on the server.
       for(const [index,id] of ids.entries()){
         try{
-          const result=await db.ref('rooms/'+roomId+'/queue/'+id).transaction(current=>{
+          const result=await SLQueueActions.transact(db.ref('rooms/'+roomId+'/queue/'+id),current=>{
             if(!current||current.status!==status)return;
             return action==='delete'?null:{...current,status:target,order:order+index};
-          },undefined,false);
+          },{isCurrent:()=>currentRoomId===roomId});
           if(result.committed){changed.push(id);slDockSelection[status].delete(id);}else skipped++;
         }catch(err){failed++;console.error('選択曲の操作失敗',id,err);}
       }
@@ -10550,7 +10552,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     try{
       // 他の参加者が先に状態を変えた場合は、古い画面からの操作を上書きしない。
       const ref=db.ref('rooms/'+roomId+'/queue/'+qId);
-      const result=await ref.transaction(current=>{
+      const result=await SLQueueActions.transact(ref,current=>{
         if(!current || current.status!==expectedStatus)return;
         return {...current,status:newStatus,order:Date.now()};
       },undefined,false);
@@ -10613,7 +10615,7 @@ html, body { background: transparent !important; color: ${text} !important; }
     try{
       // Never replace another user's newly created record.
       const ref=db.ref('rooms/'+pending.roomId+'/queue/'+pending.qId);
-      const result=await ref.transaction(current=>current===null?pending.record:undefined,undefined,false);
+      const result=await SLQueueActions.transact(ref,current=>current===null?pending.record:undefined,{isCurrent:()=>currentRoomId===pending.roomId});
       if(!result.committed)throw new Error('対象IDはすでに使用されています');
       if(slDockUndoEntry===pending){
         slDockUndoEntry=null;

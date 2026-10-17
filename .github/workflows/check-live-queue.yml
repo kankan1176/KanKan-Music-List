@@ -2,7 +2,7 @@ name: Verify live queue permissions without publishing rules
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/check-live-queue.yml', 'scripts/check-live-queue.cjs']
+    paths: ['.github/workflows/check-live-queue.yml', 'scripts/check-live-queue.cjs', 'scripts/check-queue-actions.cjs', 'queue-actions.js']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,6 +19,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - run: node scripts/check-queue-actions.cjs
       - run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
       - run: npm ci --prefix tests/free-controls --ignore-scripts --no-audit --no-fund
       - uses: google-github-actions/auth@v2
