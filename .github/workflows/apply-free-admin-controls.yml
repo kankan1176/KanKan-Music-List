@@ -6,6 +6,9 @@ on:
     paths:
       - 'scripts/free-control-rules.cjs'
       - 'scripts/admin-mylist-rules.cjs'
+      - 'scripts/account-name-rules.cjs'
+      - 'scripts/check-account-name.cjs'
+      - 'account-display-name.js'
       - 'scripts/check-admin-mylist.cjs'
       - 'admin-mylist-core.js'
       - 'admin-mylist-service.js'
@@ -40,6 +43,7 @@ jobs:
         run: |
           node scripts/check-free-account-controls.cjs
           node scripts/check-admin-mylist.cjs
+          node scripts/check-account-name.cjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -63,4 +67,5 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
+
 

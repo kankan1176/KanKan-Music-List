@@ -2,11 +2,12 @@ const assert=require('node:assert/strict');
 const {initializeTestEnvironment,assertFails,assertSucceeds}=require('@firebase/rules-unit-testing');
 const {ref,set,get,update,serverTimestamp,runTransaction}=require('firebase/database');
 const {mergeFreeRules}=require('../../scripts/free-control-rules.cjs');
-const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicProfiles:{'.read':true},admins:{$uid:{'.read':'auth != null && auth.uid === $uid'}},users:{$uid:{'.read':'auth != null && auth.uid === $uid','.write':'auth != null && auth.uid === $uid'}}}};
+const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicProfiles:{'.read':true,$uid:{'.validate':"newData.hasChildren(['displayName','code'])"}},friendProfiles:{$uid:{'.validate':"newData.hasChildren(['displayName','code'])"}},admins:{$uid:{'.read':'auth != null && auth.uid === $uid'}},users:{$uid:{'.read':'auth != null && auth.uid === $uid','.write':'auth != null && auth.uid === $uid'}}}};
 (async()=>{
  const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:JSON.stringify(mergeFreeRules(original))}});
  try{
- await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'admins/admin'),true);await set(ref(c.database(),'adminClientControl/config'),{enabled:true,version:1});await set(ref(c.database(),'users/member/list'),{keep:'saved'});await set(ref(c.database(),'users/member/profile/private'),{keep:'private'});await set(ref(c.database(),'users/member/songs/existing'),{registered:true,key:4,part:'Guitar',liked:true});await set(ref(c.database(),'publicProfiles/member'),{displayName:'Member'});await set(ref(c.database(),'songs'),{existing:{title:'既存',artist:'Artist'},fresh:{title:'新曲',artist:'Artist'},race:{title:'競合',artist:'Artist'}});await set(ref(c.database(),'admins/admin2'),true);});
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'admins/admin'),true);await set(ref(c.database(),'adminClientControl/config'),{enabled:true,version:1});await set(ref(c.database(),'users/member/list'),{keep:'saved'});await set(ref(c.database(),'users/member/profile/private'),{keep:'private'});await set(ref(c.database(),'users/member/songs/existing'),{registered:true,key:4,part:'Guitar',liked:true});await set(ref(c.database(),'publicProfiles/member'),{displayName:'Member',code:'SL-TEST'});await set(ref(c.database(),'songs'),{existing:{title:'既存',artist:'Artist'},fresh:{title:'新曲',artist:'Artist'},race:{title:'競合',artist:'Artist'}});await set(ref(c.database(),'admins/admin2'),true);});
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'friendProfiles/member'),{displayName:'Member',code:'SL-TEST'});});
  const context=(uid,provider)=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider},auth_time:1700000000}).database();
  const admin=context('admin','google.com'),member=context('member','google.com'),guest=context('guest','anonymous'),fake=context('admin','anonymous'),anon=env.unauthenticatedContext().database();
  const command=()=>({id:'command-1234',issuedAt:serverTimestamp()});
@@ -39,6 +40,16 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertSucceeds(get(ref(member,'users/member/list')));
  await assertFails(get(ref(guest,'users/member/list')));
  assert.equal((await get(ref(member,'users/member/list/keep'))).val(),'saved');
+ await assertSucceeds(update(ref(admin),{'users/member/profile/displayName':'変更済み','publicProfiles/member/displayName':'変更済み','friendProfiles/member/displayName':'変更済み'}));
+ assert.equal((await get(ref(member,'users/member/profile/displayName'))).val(),'変更済み');
+ await assertSucceeds(get(ref(admin,'users/member/profile/displayName')));
+ for(const actor of [member,guest,fake,anon]) await assertFails(set(ref(actor,'users/admin/profile/displayName'),'不正'));
+ for(const name of ['', ' ', 'x'.repeat(41), 'bad\nname', null]) await assertFails(set(ref(admin,'users/member/profile/displayName'),name));
+ await assertFails(set(ref(admin,'users/unknown/profile/displayName'),'不明'));
+ await assertFails(set(ref(admin,'publicProfiles/member/code'),'変更不可'));
+ await assertFails(get(ref(admin,'friendProfiles/member')));
+ assert.equal((await get(ref(admin,'friendProfiles/member/displayName'))).val(),'変更済み');
+ console.log('PASS: admin-only account display-name update; invalid names, deletion, unknown targets and unrelated profile writes denied.');
  const core=require('../../admin-mylist-core.js'),service=require('../../admin-mylist-service.js');
  const payload=core.payload(2);
  await assertSucceeds(get(ref(admin,'users/member/songs')));
@@ -67,4 +78,5 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  console.log('PASS: emulator confirms admin-only commands, own-only private reads and reports, anonymous/global cache access, Google/guest kind enforcement, guest-only rename, schema/timestamp constraints, and unchanged personal list isolation.');
  }finally{await env.cleanup()}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
 

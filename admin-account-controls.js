@@ -44,7 +44,16 @@
         const logout = button('アプリからログアウト', () => run({action:'forceLogout', uid:item.uid}, item.name + ' にログアウト指示を送信しますか？ 未保存の変更が失われる場合があります。', 'ログアウト指示を送信しました。Google認証トークン自体は失効しません。'), item.uid === current()?.uid);
         logout.className = 'danger';
         if (item.uid === current()?.uid) logout.title = '操作中の管理者自身には実行できません';
-        actions.append(logout);
+        const rename = document.createElement('div'); rename.className = 'guest-rename';
+        const input = document.createElement('input'); input.maxLength = 40; input.value = item.name;
+        input.setAttribute('aria-label', item.name + ' の新しい表示名'); input.disabled = operation;
+        card.append(text('small', 'サイト内の表示名（Googleアカウント名は変更されません）', 'rename-label'));
+        rename.append(input, button('表示名を変更', () => {
+          const name = input.value.trim();
+          if (!name || name.length > 40 || /[\x00-\x1f\x7f]/.test(name)) { status('名前は1〜40文字で入力してください。'); input.focus(); return; }
+          return run({action:'renameAccount', uid:item.uid, name}, item.name + ' の表示名を「' + name + '」へ変更しますか？', '表示名を変更しました。未接続の端末は次回アクセス時に反映されます。');
+        }));
+        actions.append(rename, logout);
       } else {
         const rename = document.createElement('div'); rename.className = 'guest-rename';
         const input = document.createElement('input'); input.maxLength = 40; input.value = item.requestedName || item.name;
@@ -109,5 +118,6 @@
   auth.onAuthStateChanged(() => { loadVersion++; enabled = false; targets = []; globalCache = null; render(); });
   if (current()) void refresh();
 })();
+
 
 

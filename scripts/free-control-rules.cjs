@@ -1,3 +1,4 @@
+const {addAccountNameRules}=require('./account-name-rules.cjs');
 'use strict';
 const {addMyListRules} = require('./admin-mylist-rules.cjs');
 const ADMIN = "auth != null && auth.token.firebase.sign_in_provider === 'google.com' && root.child('admins').child(auth.uid).val() === true";
@@ -57,7 +58,8 @@ function mergeFreeRules(original) {
   if (Object.keys(result.rules).some(key => key.startsWith('$'))) throw Error('ルートのワイルドカードを確認する必要があります。自動適用を停止しました。');
   // Preserve existing grants and add only the administrator song-list read/insert permissions.
   result.rules.adminClientControl = freeRules();
-  return addMyListRules(result);
+  return addAccountNameRules(addMyListRules(result));
 }
 module.exports = { freeRules, mergeFreeRules };
+
 

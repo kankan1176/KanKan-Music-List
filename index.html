@@ -5919,6 +5919,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         const cleanName = String(name || '').trim() || '名無し';
         myName = cleanName;
         renderRoomParticipants();
+        if (typeof syncOwnRoomDisplayName === 'function') syncOwnRoomDisplayName(cleanName);
         document.getElementById('usernameInput').value = cleanName;
         const status = document.getElementById('loginStatus');
         if (signedInUser) status.textContent = cleanName;
@@ -6398,6 +6399,15 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         stopRoomOwnSource();
         const ref=roomOwnPublishedRef;roomOwnPublishedRef=null;roomShareVersion++;
         if(ref){try{await ref.remove();}catch(e){console.warn('退出時のルーム共有リスト削除失敗。切断時削除も登録済みです',e);}}
+    }
+    function syncOwnRoomDisplayName(name) {
+        const out=roomOwnPublishedRef, version=roomShareVersion, uid=signedInUser?.uid;
+        if(!out || !uid)return;
+        roomShareWriteQueue=roomShareWriteQueue.catch(()=>{}).then(async()=>{
+            if(version!==roomShareVersion || auth.currentUser?.uid!==uid)return;
+            const snapshot=await out.once('value');
+            if(version===roomShareVersion && auth.currentUser?.uid===uid && snapshot.val()?.uid===uid)await out.update({name});
+        }).catch(error=>console.warn('ルーム表示名の同期失敗',error));
     }
     function startRoomOwnPublishing() {
         if (!currentRoomId || !mySessionId || !signedInUser || signedInUser.isAnonymous) return;
@@ -11243,7 +11253,8 @@ html, body { background: transparent !important; color: ${text} !important; }
 </script>
 <script src="setlist-share.js"></script>
 <script src="room-history.js"></script>
-<script src="admin-control-api.js?v=20261017-free1"></script><script src="admin-client-controls.js?v=20261017-free1"></script></body>
+<script src="admin-control-api.js?v=20261017-free1"></script><script src="admin-client-controls.js?v=20261017-free1"></script><script src="account-display-name.js?v=20261017-1"></script></body>
 </html>
+
 
 

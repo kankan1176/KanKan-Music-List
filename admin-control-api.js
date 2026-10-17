@@ -24,7 +24,7 @@
       // Only the authenticated owner can publish this registry entry; kind is checked against its token in rules.
       const devices = Object.values(client.devices || {});
       const item = map.get(uid) || { uid };
-      Object.assign(item, { kind: client.kind, name: client.name || item.name || '未設定', lastSeen: client.lastSeen, devices });
+      Object.assign(item, { kind: client.kind, name: (client.kind === 'account' ? profiles?.[uid]?.displayName : null) || client.name || item.name || '未設定', lastSeen: client.lastSeen, devices });
       map.set(uid, item);
     }
     for (const item of map.values()) {
@@ -73,6 +73,19 @@
       await db.ref(root + '/globalCache').set(command); return { command };
     }
     if (!uidOK(data.uid)) fail('対象ユーザーIDが不正です。');
+    if (data.action === 'renameAccount') {
+      const name = typeof data.name === 'string' ? data.name.trim() : '';
+      if (!name || name.length > 40 || /[\x00-\x1f\x7f]/.test(name)) fail('名前は1〜40文字で入力してください。');
+      const [profile, client] = await Promise.all([read('publicProfiles/' + data.uid), read(root + '/clients/' + data.uid)]);
+      if (!profile && client?.kind !== 'account') fail('Googleログインユーザーを確認できません。');
+      const friendName = await read('friendProfiles/' + data.uid + '/displayName');
+      if (!sameUser(user)) fail('ログイン状態が変更されました。');
+      const changes = { ['users/' + data.uid + '/profile/displayName']: name };
+      if (profile?.displayName != null) changes['publicProfiles/' + data.uid + '/displayName'] = name;
+      if (friendName != null) changes['friendProfiles/' + data.uid + '/displayName'] = name;
+      await db.ref().update(changes);
+      return { name };
+    }
     let type;
     if (data.action === 'clearCache') type = 'cache';
     else if (data.action === 'forceLogout') {
@@ -93,3 +106,4 @@
     return () => listeners.forEach(stop => stop());
   };
 })();
+
