@@ -29,7 +29,8 @@
     for (const item of filtered.slice(page * pageSize, (page + 1) * pageSize)) {
       const card = document.createElement('article'); card.className = 'user-card';
       card.append(text('span', item.kind === 'guest' ? 'GUEST / ゲスト' : 'GOOGLE / アカウント', 'type-label' + (item.kind === 'guest' ? ' guest' : '')),
-        text('h3', item.name), text('div', item.uid, 'uid'));
+        text('h3', item.kind === 'guest' ? item.name : ''), text('div', item.uid, 'uid'));
+      if(item.kind === 'account'){const openList=button(item.name,()=>window.dispatchEvent(new CustomEvent('sl-admin-mylist',{detail:{uid:item.uid,name:item.name}})));openList.className='account-name';openList.title='マイリストの参照・CSV代理登録';card.querySelector('h3').append(openList);}
       if (item.requestedName && item.requestedName !== item.name) card.append(text('small', '変更指示：' + item.requestedName));
       card.append(text('p', item.lastSeen ? '最終連絡：' + new Date(item.lastSeen).toLocaleString('ja-JP') : '端末からの連絡は未記録', 'contact'));
       const devices = item.devices || [];
@@ -108,4 +109,5 @@
   auth.onAuthStateChanged(() => { loadVersion++; enabled = false; targets = []; globalCache = null; render(); });
   if (current()) void refresh();
 })();
+
 

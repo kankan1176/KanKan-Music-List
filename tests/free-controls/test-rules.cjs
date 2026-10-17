@@ -1,12 +1,12 @@
 const assert=require('node:assert/strict');
 const {initializeTestEnvironment,assertFails,assertSucceeds}=require('@firebase/rules-unit-testing');
-const {ref,set,get,update,serverTimestamp}=require('firebase/database');
+const {ref,set,get,update,serverTimestamp,runTransaction}=require('firebase/database');
 const {mergeFreeRules}=require('../../scripts/free-control-rules.cjs');
-const original={rules:{'.read':false,'.write':false,admins:{$uid:{'.read':'auth != null && auth.uid === $uid'}},users:{$uid:{'.read':'auth != null && auth.uid === $uid','.write':'auth != null && auth.uid === $uid'}}}};
+const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicProfiles:{'.read':true},admins:{$uid:{'.read':'auth != null && auth.uid === $uid'}},users:{$uid:{'.read':'auth != null && auth.uid === $uid','.write':'auth != null && auth.uid === $uid'}}}};
 (async()=>{
  const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:JSON.stringify(mergeFreeRules(original))}});
  try{
- await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'admins/admin'),true);await set(ref(c.database(),'adminClientControl/config'),{enabled:true,version:1});await set(ref(c.database(),'users/member/list'),{keep:'saved'});});
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'admins/admin'),true);await set(ref(c.database(),'adminClientControl/config'),{enabled:true,version:1});await set(ref(c.database(),'users/member/list'),{keep:'saved'});await set(ref(c.database(),'users/member/profile/private'),{keep:'private'});await set(ref(c.database(),'users/member/songs/existing'),{registered:true,key:4,part:'Guitar',liked:true});await set(ref(c.database(),'publicProfiles/member'),{displayName:'Member'});await set(ref(c.database(),'songs'),{existing:{title:'既存',artist:'Artist'},fresh:{title:'新曲',artist:'Artist'},race:{title:'競合',artist:'Artist'}});await set(ref(c.database(),'admins/admin2'),true);});
  const context=(uid,provider)=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider},auth_time:1700000000}).database();
  const admin=context('admin','google.com'),member=context('member','google.com'),guest=context('guest','anonymous'),fake=context('admin','anonymous'),anon=env.unauthenticatedContext().database();
  const command=()=>({id:'command-1234',issuedAt:serverTimestamp()});
@@ -39,6 +39,32 @@ const original={rules:{'.read':false,'.write':false,admins:{$uid:{'.read':'auth 
  await assertSucceeds(get(ref(member,'users/member/list')));
  await assertFails(get(ref(guest,'users/member/list')));
  assert.equal((await get(ref(member,'users/member/list/keep'))).val(),'saved');
+ const core=require('../../admin-mylist-core.js'),service=require('../../admin-mylist-service.js');
+ const payload=core.payload(2);
+ await assertSucceeds(get(ref(admin,'users/member/songs')));
+ await assertFails(get(ref(admin,'users/member')));
+ await assertFails(get(ref(admin,'users/member/profile')));
+ await assertFails(set(ref(admin,'users/member/profile/private'),{changed:true}));
+ await assertFails(set(ref(admin,'users/member/songs/existing'),payload));
+ await assertFails(set(ref(admin,'users/member/songs/existing'),null));
+ await assertFails(set(ref(admin,'users/member/songs'),{}));
+ await assertFails(set(ref(admin,'users/member/songs/not-master'),payload));
+ await assertFails(set(ref(admin,'users/unknown/songs/fresh'),payload));
+ await assertFails(set(ref(admin,'users/member/songs/fresh'),core.payload(7)));
+ await assertFails(set(ref(admin,'users/member/songs/fresh'),core.payload(1.5)));
+ await assertFails(set(ref(guest,'users/member/songs/fresh'),payload));
+ await assertFails(set(ref(fake,'users/member/songs/fresh'),payload));
+ await assertSucceeds(set(ref(admin,'users/member/songs/fresh'),payload));
+ await assertSucceeds(set(ref(member,'users/member/songs/existing'),{registered:true,key:5,part:'Guitar',liked:true}));
+ const adapter=database=>({ref:path=>({transaction:fn=>runTransaction(ref(database,path),fn,{applyLocally:false}),once:async()=>{const snap=await get(ref(database,path));return{exists:()=>snap.exists()}}})});
+ const input=core.parseCsv('競合,Artist,+1');const master={race:{title:'競合',artist:'Artist'}};
+ const run=(database)=>service.append({database:adapter(database),uid:'member',rows:input,master,saved:{},choices:{},isAuthorized:()=>true});
+ const both=await Promise.all([run(admin),run(context('admin2','google.com'))]);
+ assert.equal(both.reduce((n,r)=>n+r.added.length,0),1);assert.equal(both.reduce((n,r)=>n+r.duplicate.length,0),1);
+ assert.equal((await get(ref(member,'users/member/songs/existing/key'))).val(),5);
+ assert.equal((await get(ref(member,'users/member/profile/private/keep'))).val(),'private');
+ console.log('PASS: administrator-only list reading and insert-only writes; existing songs/profile/private data preserved; missing master and invalid keys denied; competing imports add exactly once.');
  console.log('PASS: emulator confirms admin-only commands, own-only private reads and reports, anonymous/global cache access, Google/guest kind enforcement, guest-only rename, schema/timestamp constraints, and unchanged personal list isolation.');
  }finally{await env.cleanup()}
 })().catch(e=>{console.error(e);process.exitCode=1});
+

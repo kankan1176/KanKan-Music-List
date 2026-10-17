@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'scripts/free-control-rules.cjs'
+      - 'scripts/admin-mylist-rules.cjs'
+      - 'scripts/check-admin-mylist.cjs'
+      - 'admin-mylist-core.js'
+      - 'admin-mylist-service.js'
+      - 'tests/free-controls/test-rules.cjs'
       - 'scripts/configure-free-account-controls.cjs'
       - 'scripts/check-free-account-controls.cjs'
       - '.github/workflows/apply-free-admin-controls.yml'
@@ -32,7 +37,9 @@ jobs:
       - name: Install the locked SDK for database rules only
         run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
       - name: Check free control code and rule preservation
-        run: node scripts/check-free-account-controls.cjs
+        run: |
+          node scripts/check-free-account-controls.cjs
+          node scripts/check-admin-mylist.cjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -56,3 +63,4 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
+

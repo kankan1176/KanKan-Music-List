@@ -1,4 +1,5 @@
 'use strict';
+const {addMyListRules} = require('./admin-mylist-rules.cjs');
 const ADMIN = "auth != null && auth.token.firebase.sign_in_provider === 'google.com' && root.child('admins').child(auth.uid).val() === true";
 function commandRule(write, guest = false) {
   return {
@@ -54,8 +55,9 @@ function mergeFreeRules(original) {
   if (!result.rules || typeof result.rules !== 'object') throw Error('既存のデータベースルールがありません。');
   for (const key of ['.read', '.write']) if (![undefined, false, 'false'].includes(result.rules[key])) throw Error('ルートに包括的な許可があるため、安全な自動適用を停止しました。');
   if (Object.keys(result.rules).some(key => key.startsWith('$'))) throw Error('ルートのワイルドカードを確認する必要があります。自動適用を停止しました。');
-  // No changes to users, rooms, existing validations, or existing access conditions.
+  // Preserve existing grants and add only the administrator song-list read/insert permissions.
   result.rules.adminClientControl = freeRules();
-  return result;
+  return addMyListRules(result);
 }
 module.exports = { freeRules, mergeFreeRules };
+
