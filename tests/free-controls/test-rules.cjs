@@ -50,6 +50,33 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertFails(get(ref(admin,'friendProfiles/member')));
  assert.equal((await get(ref(admin,'friendProfiles/member/displayName'))).val(),'変更済み');
  console.log('PASS: admin-only account display-name update; invalid names, deletion, unknown targets and unrelated profile writes denied.');
+ const token='a'.repeat(48),nextToken='b'.repeat(48);
+ const setting={token,showKey:false,showParts:false};
+ const share={uid:'member',name:'Member',updatedAt:serverTimestamp(),songs:{fresh:{title:'Song',artist:'Artist',url:'https://ja.chordwiki.org/wiki/Song'}}};
+ await assertSucceeds(set(ref(member,'userListShares/member'),setting));
+ await assertFails(get(ref(anon,'userListShares/member')));
+ await assertFails(get(ref(guest,'userListShares/member')));
+ await assertFails(get(ref(anon,'publicListShares')));
+ await assertFails(set(ref(guest,'userListShares/guest'),setting));
+ await assertFails(set(ref(member,'userListShares/member'),{...setting,token:'short'}));
+ await assertFails(set(ref(guest,'publicListShares/'+token),share));
+ await assertFails(set(ref(context('other','google.com'),'publicListShares/'+token),share));
+ await assertSucceeds(set(ref(member,'publicListShares/'+token),share));
+ await assertSucceeds(get(ref(anon,'publicListShares/'+token)));
+ await assertFails(update(ref(member,'publicListShares/'+token+'/songs/fresh'),{key:2}));
+ await assertFails(update(ref(member,'publicListShares/'+token+'/songs/fresh'),{parts:['Guitar']}));
+ await assertFails(update(ref(member,'publicListShares/'+token+'/songs/fresh'),{url:'javascript:alert(1)'}));
+ await assertFails(update(ref(member,'publicListShares/'+token),{email:'private@example.test'}));
+ await assertFails(set(ref(context('other','google.com'),'userListShares/other'),setting));
+ await assertSucceeds(set(ref(member,'userListShares/member'),{...setting,showKey:true,showParts:true}));
+ await assertSucceeds(update(ref(member,'publicListShares/'+token+'/songs/fresh'),{key:2,parts:['Guitar']}));
+ await assertSucceeds(update(ref(member),{'userListShares/member':{...setting,token:nextToken},['publicListShares/'+token]:null}));
+ assert.equal((await assertSucceeds(get(ref(anon,'publicListShares/'+token)))).exists(),false);
+ await assertFails(set(ref(member,'publicListShares/'+token),share));
+ await assertSucceeds(set(ref(member,'publicListShares/'+nextToken),share));
+ await assertSucceeds(update(ref(member),{'userListShares/member':null,['publicListShares/'+nextToken]:null}));
+ await assertFails(set(ref(member,'publicListShares/'+nextToken),share));
+ console.log('PASS: anonymous token-only viewing, owner-only publish/settings, no listing/private read, opt-in fields, token ownership, rotation and stop prevent stale republication.');
  const core=require('../../admin-mylist-core.js'),service=require('../../admin-mylist-service.js');
  const payload=core.payload(2);
  await assertSucceeds(get(ref(admin,'users/member/songs')));
@@ -78,5 +105,6 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  console.log('PASS: emulator confirms admin-only commands, own-only private reads and reports, anonymous/global cache access, Google/guest kind enforcement, guest-only rename, schema/timestamp constraints, and unchanged personal list isolation.');
  }finally{await env.cleanup()}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
 
 

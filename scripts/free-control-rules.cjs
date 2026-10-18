@@ -1,3 +1,4 @@
+const {addListShareRules}=require('./list-share-rules.cjs');
 const {addAccountNameRules}=require('./account-name-rules.cjs');
 'use strict';
 const {addMyListRules} = require('./admin-mylist-rules.cjs');
@@ -58,8 +59,9 @@ function mergeFreeRules(original) {
   if (Object.keys(result.rules).some(key => key.startsWith('$'))) throw Error('ルートのワイルドカードを確認する必要があります。自動適用を停止しました。');
   // Preserve existing grants and add only the administrator song-list read/insert permissions.
   result.rules.adminClientControl = freeRules();
-  return addAccountNameRules(addMyListRules(result));
+  return addListShareRules(addAccountNameRules(addMyListRules(result)));
 }
 module.exports = { freeRules, mergeFreeRules };
+
 
 

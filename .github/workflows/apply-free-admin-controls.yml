@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - 'scripts/free-control-rules.cjs'
+      - 'scripts/list-share-rules.cjs'
+      - 'list-share-core.js'
+      - 'list-share-service.js'
+      - 'scripts/check-list-share.cjs'
       - 'scripts/admin-mylist-rules.cjs'
       - 'scripts/account-name-rules.cjs'
       - 'scripts/check-account-name.cjs'
@@ -44,6 +48,7 @@ jobs:
           node scripts/check-free-account-controls.cjs
           node scripts/check-admin-mylist.cjs
           node scripts/check-account-name.cjs
+          node scripts/check-list-share.cjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -67,5 +72,6 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
+
 
 
