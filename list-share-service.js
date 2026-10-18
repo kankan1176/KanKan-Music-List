@@ -1,6 +1,7 @@
 /* Owner-only publication. Read saved records directly; never inspect pending edits. */
-(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory;else root.SLListShareService=factory;})(typeof globalThis!=='undefined'?globalThis:this,(database,owner,isCurrent,changed,core)=>{
+(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory;else root.SLListShareService=factory;})(typeof globalThis!=='undefined'?globalThis:this,(database,owner,isCurrent,changed,core,beforePublish)=>{
  'use strict';
+ const committed=beforePublish|| (async()=>true);
  let config=null,saved=null,name='',revision=0,queue=Promise.resolve(),closed=false;
  const stops=[],cache=new Map();
  const active=()=>!closed&&isCurrent();
@@ -8,6 +9,8 @@
  function listen(path,receive){const ref=database.ref(path),fn=snapshot=>{if(!active())return;receive(snapshot.val());revision++;schedule();};ref.on('value',fn,error=>notify('error',error));stops.push(()=>ref.off('value',fn));}
  async function publish(){
   if(!active()||!config||saved===null||!name)return;
+  if(!await committed()){notify('error');return;}
+  if(!active()||!config)return;
   const version=revision,settings={...config},records=Object.entries(saved).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item)),songs={};let next=0;
   notify('syncing');
   await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{

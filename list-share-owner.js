@@ -33,7 +33,7 @@
  el('Copy').onclick=async()=>{try{await navigator.clipboard.writeText(el('Url').value);el('Status').textContent=t().copied;}catch{el('Url').focus();el('Url').select();el('Status').textContent=t().copyFail;}};
  auth.onAuthStateChanged(user=>{
   service?.close();service=null;owner=user&&!user.isAnonymous?user:null;config=null;state='off';if(dialog.open)dialog.close();
-  if(owner){const uid=owner.uid;service=SLListShareService(db,owner,()=>auth.currentUser?.uid===uid,result=>{config=result.config;state=result.state;render();},SLListShare);}
+  if(owner){const uid=owner.uid;service=SLListShareService(db,owner,()=>auth.currentUser?.uid===uid,result=>{config=result.config;state=result.state;render();},SLListShare,async()=>typeof saveInFlight!=='undefined'&&saveInFlight?await saveInFlight:true);}
   render();
  });
  window.addEventListener('sl-language-change',render);render();

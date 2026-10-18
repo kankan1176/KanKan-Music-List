@@ -21,6 +21,7 @@ const service=factory(database,{uid:'member',displayName:'Google'},()=>current,e
  state.users.member.profile.displayName='変更名';emit();await service.retry();assert.equal(state.publicListShares[token].name,'変更名');
  await service.enable({},true);assert.notEqual(state.userListShares.member.token,token);assert.equal(state.publicListShares[token],undefined);token=state.userListShares.member.token;
  await service.disable();await service.retry();assert.equal(state.publicListShares[token],undefined);assert.equal(state.userListShares.member,undefined);
+ service.close();let committed=false;const guarded=factory(database,{uid:'member'},()=>current,event=>events.push(event),core,async()=>committed);await new Promise(resolve=>setImmediate(resolve));await guarded.enable({});const guardedToken=state.userListShares.member.token;assert.equal(state.publicListShares[guardedToken],undefined);committed=true;await guarded.retry();assert.equal(state.publicListShares[guardedToken].name,'変更名');await guarded.disable();guarded.close();
  current=false;await assert.rejects(()=>service.enable({}));service.close();assert.equal(watchers.length,0);
  console.log('PASS: safe URL and metadata, opt-in key/parts, saved-only live sync, rename sync, token rotation, stop, auth cleanup and idempotent isolated rules.');
 })().catch(error=>{console.error(error);process.exitCode=1});
