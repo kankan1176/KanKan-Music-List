@@ -1,50 +1,59 @@
-/* Owner-only publication. Read saved records directly; never inspect pending edits. */
-(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory;else root.SLListShareService=factory;})(typeof globalThis!=='undefined'?globalThis:this,(database,owner,isCurrent,changed,core,beforePublish)=>{
+/* Owner-only publication with a separately stored, versioned background image. */
+(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory;else root.SLListShareService=factory;})(typeof globalThis!=='undefined'?globalThis:this,(database,owner,isCurrent,changed,core,beforePublish,design)=>{
  'use strict';
- const committed=beforePublish|| (async()=>true);
- let config=null,saved=null,name='',revision=0,queue=Promise.resolve(),closed=false;
- const stops=[],cache=new Map();
- const active=()=>!closed&&isCurrent();
- const notify=(state,error)=>{if(active())changed({state,config,error});};
+ const committed=beforePublish|| (async()=>true),appearance=value=>design?design.normalize(value):value||{};
+ let config=null,saved=null,name='',background=null,backgroundLoaded=false,revision=0,queue=Promise.resolve(),closed=false,lastAsset='',lastPublished=-1;
+ const stops=[],cache=new Map(),active=()=>!closed&&isCurrent();
+ const notify=(state,error)=>{if(active())changed({state,config,error,background});};
  function listen(path,receive){const ref=database.ref(path),fn=snapshot=>{if(!active())return;receive(snapshot.val());revision++;schedule();};ref.on('value',fn,error=>notify('error',error));stops.push(()=>ref.off('value',fn));}
+ async function collect(settings,valid){
+  const records=Object.entries(saved||{}).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item)),songs={};let next=0;
+  await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length){const[id,item]=records[next++];if(!valid())return;let master=cache.get(id);if(!master){master=(await database.ref('songs/'+id).once('value')).val();if(master)cache.set(id,master);}const value=core.song(master,item,settings);if(value)songs[id]=value;}}));
+  return {uid:owner.uid,name:name.slice(0,40),songs,appearance:appearance(settings.appearance),updatedAt:firebase.database.ServerValue.TIMESTAMP};
+ }
  async function publish(){
-  if(!active()||!config||saved===null||!name)return;
+  if(!active()||!config||saved===null||!name||!backgroundLoaded)return;
   if(!await committed()){notify('error');return;}
   if(!active()||!config)return;
-  const version=revision,settings={...config},records=Object.entries(saved).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item)),songs={};let next=0;
-  notify('syncing');
-  await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{
-   while(next<records.length){const [id,item]=records[next++];if(!active()||version!==revision)return;
-    let master=cache.get(id);if(!master){master=(await database.ref('songs/'+id).once('value')).val();if(master)cache.set(id,master);}
-    const value=core.song(master,item,settings);if(value)songs[id]=value;
-   }
-  }));
-  if(!active()||version!==revision||settings.token!==config?.token)return;
-  await database.ref('publicListShares/'+settings.token).set({uid:owner.uid,name:name.slice(0,40),songs,updatedAt:firebase.database.ServerValue.TIMESTAMP});
-  if(active()&&version===revision)notify('ready');
+  const version=revision,settings={...config};if(lastPublished===version){notify('ready');return;}
+  if(settings.backgroundVersion&&background?.version!==settings.backgroundVersion)return;
+  notify('syncing');const valid=()=>active()&&version===revision&&settings.token===config?.token;
+  const payload=await collect(settings,valid);if(!valid())return;
+  const updates={['publicListShares/'+settings.token]:payload};
+  if(settings.backgroundVersion){payload.backgroundVersion=settings.backgroundVersion;const asset=settings.token+':'+settings.backgroundVersion;if(lastAsset!==asset)updates['publicListBackgrounds/'+settings.token]={uid:owner.uid,version:settings.backgroundVersion,image:background.image};}
+  await database.ref().update(updates);
+  if(valid()){lastPublished=version;lastAsset=settings.backgroundVersion?settings.token+':'+settings.backgroundVersion:'';notify('ready');}
  }
  function schedule(){queue=queue.catch(()=>{}).then(async()=>{const version=revision;try{await publish();}catch(error){if(config&&version===revision)notify('error',error);}});return queue;}
  listen('userListShares/'+owner.uid,value=>{config=value&&core.tokenOK(value.token)?value:null;notify(config?'syncing':'off');});
  listen('users/'+owner.uid+'/songs',value=>{saved=value||{};});
  listen('users/'+owner.uid+'/profile/displayName',value=>{name=String(value||owner.displayName||'ユーザー').trim()||'ユーザー';});
+ listen('userListBackgrounds/'+owner.uid,value=>{background=value;backgroundLoaded=true;notify(config?'syncing':'off');});
  return {
   async enable(options,replace=false){
-   if(!active())throw Error('ログイン状態が変わりました。');
-   const old=config?.token;
-   const token=!replace&&old?old:Array.from(crypto.getRandomValues(new Uint8Array(24)),v=>v.toString(16).padStart(2,'0')).join('');
-   revision++;const next={token,showKey:!!options.showKey,showParts:!!options.showParts};
-   const updates={['userListShares/'+owner.uid]:next};if(old&&old!==token)updates['publicListShares/'+old]=null;
+   if(!active())throw Error('login');
+   const old=config?.token,random=bytes=>Array.from(crypto.getRandomValues(new Uint8Array(bytes)),v=>v.toString(16).padStart(2,'0')).join('');
+   const token=!replace&&old?old:random(24),next={token,showKey:!!options.showKey,showParts:!!options.showParts,appearance:appearance(options.appearance)};
+   let image=background;
+   if(options.backgroundImage===null)image=null;
+   else if(typeof options.backgroundImage==='string'){
+    if(options.backgroundImage.length>360000||!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(options.backgroundImage))throw Error('imageType');
+    image={version:random(16),image:options.backgroundImage};
+   }
+   if(image)next.backgroundVersion=image.version;
+   revision++;const updates={['userListShares/'+owner.uid]:next};
+   if(options.backgroundImage!==undefined)updates['userListBackgrounds/'+owner.uid]=image;
+   if(old&&old!==token){updates['publicListShares/'+old]=null;updates['publicListBackgrounds/'+old]=null;}
+   else if(old&&!image)updates['publicListBackgrounds/'+old]=null;
    await database.ref().update(updates);
-   if(!active())return;config=next;revision++;
-   await schedule();
+   if(!active())return;config=next;background=image;backgroundLoaded=true;revision++;await schedule();
   },
   async disable(){
-   if(!active())throw Error('ログイン状態が変わりました。');
-   const old=config?.token;revision++;config=null;
-   const updates={['userListShares/'+owner.uid]:null};if(old)updates['publicListShares/'+old]=null;
+   if(!active())throw Error('login');const old=config?.token;revision++;config=null;lastAsset='';
+   const updates={['userListShares/'+owner.uid]:null};if(old){updates['publicListShares/'+old]=null;updates['publicListBackgrounds/'+old]=null;}
    await database.ref().update(updates);if(active())notify('off');
   },
-  retry:schedule,
-  close(){closed=true;revision++;stops.forEach(stop=>stop());}
+  async preview(options){if(!active())throw Error('login');if(saved===null)throw Error('loading');if(!await committed())throw Error('error');const payload=await collect(options,active);payload.updatedAt=Date.now();return payload;},
+  retry:schedule,close(){closed=true;revision++;stops.forEach(stop=>stop());}
  };
 });

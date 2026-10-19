@@ -1,40 +1,45 @@
 (() => {
  'use strict';
  const trigger=document.getElementById('listUrlShareButton');if(!trigger)return;
+ const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='list-share-editor.css?v=20261019-1';document.head.append(stylesheet);
  const dialog=document.createElement('dialog');dialog.className='sl-list-share-dialog';dialog.setAttribute('aria-labelledby','listShareTitle');
- dialog.innerHTML='<form method="dialog"><button class="sl-share-close" aria-label="Close">×</button></form><h2 id="listShareTitle"></h2><p id="listShareNote"></p><label><input type="checkbox" id="listShareKey"><span></span></label><label><input type="checkbox" id="listShareParts"><span></span></label><p id="listShareStatus" role="status" aria-live="polite"></p><input id="listShareUrl" type="text" readonly aria-label="URL"><div class="sl-share-actions"><button id="listShareCopy" type="button"></button><a id="listSharePreview" target="_blank" rel="noopener noreferrer"></a><button id="listShareSave" type="button"></button><button id="listShareRetry" type="button"></button><button id="listShareRenew" type="button"></button><button id="listShareStop" type="button"></button></div>';
- document.body.append(dialog);
- const style=document.createElement('style');style.textContent='.sl-list-share-dialog{box-sizing:border-box;width:min(580px,calc(100vw - 28px));max-height:85dvh;overflow:auto;padding:28px;border:1px solid #456084;border-radius:18px;background:#101e34;color:#eef5ff;box-shadow:0 20px 80px #0008}.sl-list-share-dialog::backdrop{background:#0009}.sl-list-share-dialog h2{font-size:22px;margin:0 28px 18px 0}.sl-list-share-dialog p{line-height:1.8;overflow-wrap:anywhere}.sl-list-share-dialog label{display:flex;align-items:center;gap:10px;margin:14px 0}.sl-list-share-dialog input[type=checkbox]{width:18px;height:18px}.sl-list-share-dialog #listShareUrl{box-sizing:border-box;width:100%;padding:12px;border:1px solid #527092;border-radius:8px;background:#081323;color:#e6f4ff}.sl-share-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.sl-share-actions button,.sl-share-actions a,.sl-share-close{padding:10px 14px;background:#203952;color:#fff;border:1px solid #527092;border-radius:8px;font:inherit;cursor:pointer;text-decoration:none}.sl-share-actions button:disabled{opacity:.45;cursor:default}.sl-share-close{position:absolute;right:18px;top:16px;padding:2px 10px;font-size:24px}.sl-list-share-dialog [hidden]{display:none!important}.sl-share-actions #listShareStop{border-color:#c47883}';document.head.append(style);
- const el=id=>document.getElementById('listShare'+id);
- let service=null,config=null,state='off',busy=false,owner=null;
- const lang=()=>typeof activeLanguage!=='undefined'?activeLanguage:document.documentElement.lang;
- const t=()=>SLListShareText[lang()]||SLListShareText.ja;
+ dialog.innerHTML='<div class="sl-share-editor-heading"><h2 id="listShareTitle"></h2><form method="dialog"><button class="sl-share-close" aria-label="Close">×</button></form></div><div class="sl-share-editor-body"><section class="sl-share-editor-fields"><label><span data-share-text="pageTitle"></span><input type="text" id="listSharePageTitle" maxlength="100"></label><label><span data-share-text="preset"></span><select id="listSharePreset"><option value="dark"></option><option value="light"></option></select></label><div id="listShareColors" class="sl-share-colors"></div><label><span data-share-text="image"></span><input type="file" id="listShareImage" accept=".jpg,.jpeg,image/jpeg"><small data-share-text="imageHint"></small><button id="listShareRemoveImage" type="button"></button></label><label><span data-share-text="overlay"></span> <output id="listShareOverlayValue"></output><input type="range" id="listShareOverlay" min="0" max="85" step="1"></label><div class="sl-share-checks"><label><input type="checkbox" id="listShareKey"><span data-share-text="key"></span></label><label><input type="checkbox" id="listShareParts"><span data-share-text="parts"></span></label></div><small id="listShareImageStatus" role="status"></small></section><section class="sl-share-editor-preview"><p data-share-text="previewHelp"></p><iframe id="listShareFrame" src="mylist.html#preview" title="Preview"></iframe></section></div><div class="sl-share-editor-footer"><p id="listShareNote"></p><p id="listShareStatus" role="status" aria-live="polite"></p><input id="listShareUrl" type="text" readonly aria-label="URL"><div class="sl-share-editor-actions"><button id="listShareSave" type="button"></button><button id="listShareCopy" type="button"></button><a id="listSharePreview" target="_blank" rel="noopener noreferrer"></a><button id="listShareRetry" type="button"></button><button id="listShareRenew" type="button"></button><button id="listShareStop" type="button"></button></div></div>';
+ document.body.append(dialog);const el=id=>document.getElementById('listShare'+id),design=SLListDesign;
+ for(const key of design.keys){const label=document.createElement('label'),input=document.createElement('input'),span=document.createElement('span');input.type='color';input.id='listShareColor-'+key;input.dataset.color=key;span.dataset.shareText=key;label.append(input,span);el('Colors').append(label);}
+ let service=null,config=null,background=null,state='off',busy=false,imageBusy=false,owner=null,draftImage,previewData=null,previewVersion=0,imageVersion=0,frameRequest=0;
+ const lang=()=>typeof activeLanguage!=='undefined'?activeLanguage:document.documentElement.lang,t=()=>SLListShareText[lang()]||SLListShareText.ja;
+ function appearance(){return design.normalize({title:el('PageTitle').value,preset:el('Preset').value,overlay:Number(el('Overlay').value),...Object.fromEntries(design.keys.map(key=>[key,document.getElementById('listShareColor-'+key).value]))});}
+ function fill(){const values=design.normalize(config?.appearance);el('PageTitle').value=values.title;el('Preset').value=values.preset;el('Overlay').value=values.overlay;for(const key of design.keys)document.getElementById('listShareColor-'+key).value=values[key];el('Key').checked=!!config?.showKey;el('Parts').checked=!!config?.showParts;draftImage=undefined;el('Image').value='';el('ImageStatus').textContent='';}
+ function sendPreview(){cancelAnimationFrame(frameRequest);frameRequest=requestAnimationFrame(()=>{if(!dialog.open||!previewData)return;const payload={...previewData,appearance:appearance()};const image=draftImage===undefined?background?.image||'':draftImage||'';el('Frame').contentWindow?.postMessage({type:'sl-list-preview',payload,image,language:lang()},location.origin);el('OverlayValue').value=el('Overlay').value+'%';el('RemoveImage').disabled=busy||imageBusy||!image;});}
+ async function refreshPreview(){if(!service||!dialog.open)return;const version=++previewVersion;try{const payload=await service.preview({showKey:el('Key').checked,showParts:el('Parts').checked,appearance:appearance()});if(version!==previewVersion||!dialog.open)return;previewData=payload;sendPreview();}catch{if(version===previewVersion){previewData={name:owner?.displayName||'',songs:{},updatedAt:Date.now()};sendPreview();}}}
  function render(){
   const text=t();trigger.textContent=text.share;trigger.disabled=!owner;
-  el('Title').textContent=text.title;el('Note').textContent=text.note;
-  el('Key').nextElementSibling.textContent=text.key;el('Parts').nextElementSibling.textContent=text.parts;
-  for(const [id,key]of Object.entries({Save:'enable',Copy:'copy',Preview:'preview',Stop:'stop',Renew:'renew',Retry:'retry'}))el(id).textContent=text[key];
-  dialog.querySelector('.sl-share-close').setAttribute('aria-label',text.close);
-  if(!dialog.open){el('Key').checked=!!config?.showKey;el('Parts').checked=!!config?.showParts;}
-  el('Status').textContent=text[state]||text.error;
-  const url=config?new URL('mylist.html#'+config.token,location.href).href:'';
-  el('Url').value=url;el('Url').hidden=!url;el('Preview').href=url||'#';el('Preview').hidden=!url||state!=='ready';
-  el('Copy').disabled=busy||state!=='ready';el('Save').disabled=busy||!owner;el('Retry').hidden=state!=='error';el('Retry').disabled=busy;
-  el('Stop').disabled=busy||!config;el('Renew').disabled=busy||!config;el('Key').disabled=el('Parts').disabled=busy;
+  el('Title').textContent=text.editorTitle;el('Note').textContent=text.note;
+  dialog.querySelectorAll('[data-share-text]').forEach(node=>node.textContent=text[node.dataset.shareText]||'');
+  for(const [id,key]of Object.entries({Save:'enable',Copy:'copy',Preview:'preview',Stop:'stop',Renew:'renew',Retry:'retry',RemoveImage:'removeImage'}))el(id).textContent=text[key];
+  el('PageTitle').placeholder=text.titleHint;el('PageTitle').setAttribute('aria-label',text.pageTitle);el('Preset').setAttribute('aria-label',text.preset);el('Preset').options[0].textContent=text.dark;el('Preset').options[1].textContent=text.light;
+  for(const key of design.keys)document.getElementById('listShareColor-'+key).setAttribute('aria-label',text[key]);
+  dialog.querySelector('.sl-share-close').setAttribute('aria-label',text.close);el('Frame').title=text.designPreview;
+  el('Status').textContent=text[state]||text.error;const url=config?new URL('mylist.html#'+config.token,location.href).href:'';el('Url').value=url;el('Url').hidden=!url;el('Preview').href=url||'#';el('Preview').hidden=!url||state!=='ready';
+  el('Copy').disabled=busy||imageBusy||state!=='ready';el('Save').disabled=busy||imageBusy||!owner;el('Retry').hidden=state!=='error';el('Retry').disabled=busy;
+  el('Stop').disabled=busy||imageBusy||!config;el('Renew').disabled=busy||imageBusy||!config;
+  el('Image').disabled=busy||imageBusy;el('RemoveImage').disabled=busy||imageBusy||!(draftImage===undefined?background?.image:draftImage);
+  dialog.querySelectorAll('.sl-share-editor-fields input:not([type=file]),.sl-share-editor-fields select').forEach(node=>node.disabled=busy||imageBusy);
+  sendPreview();
  }
- async function run(action){if(busy||!service)return;busy=true;render();try{await action();}catch(error){console.warn('リストURL共有',error);state='error';}finally{busy=false;render();}}
- trigger.onclick=()=>{if(!owner)return;el('Key').checked=!!config?.showKey;el('Parts').checked=!!config?.showParts;render();dialog.showModal();};
- dialog.addEventListener('close',()=>trigger.focus());
- el('Save').onclick=()=>run(()=>service.enable({showKey:el('Key').checked,showParts:el('Parts').checked}));
- el('Retry').onclick=()=>run(()=>service.retry());
- el('Stop').onclick=()=>{if(confirm(t().stopAsk))void run(()=>service.disable());};
- el('Renew').onclick=()=>{if(confirm(t().renewAsk))void run(()=>service.enable({showKey:el('Key').checked,showParts:el('Parts').checked},true));};
- el('Url').onclick=()=>el('Url').select();
- el('Copy').onclick=async()=>{try{await navigator.clipboard.writeText(el('Url').value);el('Status').textContent=t().copied;}catch{el('Url').focus();el('Url').select();el('Status').textContent=t().copyFail;}};
- auth.onAuthStateChanged(user=>{
-  service?.close();service=null;owner=user&&!user.isAnonymous?user:null;config=null;state='off';if(dialog.open)dialog.close();
-  if(owner){const uid=owner.uid;service=SLListShareService(db,owner,()=>auth.currentUser?.uid===uid,result=>{config=result.config;state=result.state;render();},SLListShare,async()=>typeof saveInFlight!=='undefined'&&saveInFlight?await saveInFlight:true);}
-  render();
- });
- window.addEventListener('sl-language-change',render);render();
+ async function run(action){if(busy||imageBusy||!service)return;busy=true;render();try{await action();if(dialog.open)await refreshPreview();}catch(error){console.warn('リストURL共有',error);state='error';}finally{busy=false;render();}}
+ function options(){return{showKey:el('Key').checked,showParts:el('Parts').checked,appearance:appearance(),backgroundImage:draftImage};}
+ function clearPreview(){el('Frame').contentWindow?.postMessage({type:'sl-list-preview',payload:null,image:'',language:lang()},location.origin);}
+ trigger.onclick=()=>{if(!owner)return;fill();previewData=null;clearPreview();dialog.showModal();render();void refreshPreview();};
+ dialog.addEventListener('close',()=>{previewVersion++;imageVersion++;imageBusy=false;trigger.focus();});
+ el('Frame').addEventListener('load',sendPreview);
+ el('Save').onclick=()=>run(async()=>{await service.enable(options());draftImage=undefined;el('Image').value='';});
+ el('Retry').onclick=()=>run(()=>service.retry());el('Stop').onclick=()=>{if(confirm(t().stopAsk))void run(()=>service.disable());};el('Renew').onclick=()=>{if(confirm(t().renewAsk))void run(async()=>{await service.enable(options(),true);draftImage=undefined;el('Image').value='';});};
+ el('Url').onclick=()=>el('Url').select();el('Copy').onclick=async()=>{try{await navigator.clipboard.writeText(el('Url').value);el('Status').textContent=t().copied;}catch{el('Url').focus();el('Url').select();el('Status').textContent=t().copyFail;}};
+ el('Preset').onchange=()=>{for(const key of design.keys)document.getElementById('listShareColor-'+key).value=design.presets[el('Preset').value][key];sendPreview();};
+ for(const id of ['PageTitle','Overlay'])el(id).oninput=sendPreview;el('Colors').oninput=sendPreview;el('Key').onchange=el('Parts').onchange=()=>void refreshPreview();
+ el('RemoveImage').onclick=()=>{draftImage=null;el('Image').value='';el('ImageStatus').textContent='';render();};
+ el('Image').onchange=async()=>{const file=el('Image').files?.[0];if(!file)return;const version=++imageVersion;imageBusy=true;el('ImageStatus').textContent=t().imageWorking;render();try{const value=await design.jpeg(file);if(version!==imageVersion||!dialog.open)return;draftImage=value;el('ImageStatus').textContent=t().imageReady;}catch(error){if(version===imageVersion)el('ImageStatus').textContent=t()[error.message]||t().imageType;}finally{if(version===imageVersion){imageBusy=false;render();}}};
+ auth.onAuthStateChanged(user=>{service?.close();service=null;previewVersion++;imageVersion++;owner=user&&!user.isAnonymous?user:null;config=null;background=null;draftImage=undefined;previewData=null;clearPreview();state='off';if(dialog.open)dialog.close();if(owner){const uid=owner.uid;service=SLListShareService(db,owner,()=>auth.currentUser?.uid===uid,result=>{config=result.config;background=result.background;state=result.state;render();},SLListShare,async()=>typeof saveInFlight!=='undefined'&&saveInFlight?await saveInFlight:true,design);}render();});
+ window.addEventListener('sl-language-change',render);fill();render();
 })();

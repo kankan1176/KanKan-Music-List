@@ -7,6 +7,7 @@ on:
       - 'scripts/free-control-rules.cjs'
       - 'scripts/list-share-rules.cjs'
       - 'list-share-core.js'
+      - 'list-share-design.js'
       - 'list-share-service.js'
       - 'scripts/check-list-share.cjs'
       - 'scripts/admin-mylist-rules.cjs'
@@ -72,6 +73,7 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
+
 
 
 

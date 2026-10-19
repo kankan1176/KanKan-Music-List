@@ -76,6 +76,28 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertSucceeds(set(ref(member,'publicListShares/'+nextToken),share));
  await assertSucceeds(update(ref(member),{'userListShares/member':null,['publicListShares/'+nextToken]:null}));
  await assertFails(set(ref(member,'publicListShares/'+nextToken),share));
+ const bgToken='c'.repeat(48),bgVersion='d'.repeat(32),jpeg='data:image/jpeg;base64,/9j/';
+ const appearance={title:'公開タイトル',preset:'light',overlay:35,background:'#f3f6fb',panel:'#ffffff',text:'#172b43',muted:'#53677e',border:'#b9c8da',accent:'#006c75'};
+ await assertSucceeds(set(ref(member,'userListShares/member'),{...setting,token:bgToken,appearance,backgroundVersion:bgVersion}));
+ await assertSucceeds(set(ref(member,'userListBackgrounds/member'),{version:bgVersion,image:jpeg}));
+ await assertSucceeds(set(ref(member,'userListBackgrounds/member'),{version:bgVersion,image:'data:image/jpeg;base64,'+'A'.repeat(300000)}));
+ await assertFails(get(ref(anon,'userListBackgrounds/member')));
+ await assertFails(get(ref(guest,'userListBackgrounds/member')));
+ await assertFails(set(ref(context('other','google.com'),'userListBackgrounds/member'),{version:bgVersion,image:jpeg}));
+ await assertFails(set(ref(member,'userListBackgrounds/member'),{version:bgVersion,image:'data:image/png;base64,AAAA'}));
+ await assertFails(set(ref(member,'userListBackgrounds/member'),{version:bgVersion,image:'data:image/jpeg;base64,'+'A'.repeat(360001)}));
+ await assertFails(update(ref(member,'userListShares/member/appearance'),{text:'red;display:none'}));
+ await assertFails(update(ref(member,'userListShares/member/appearance'),{title:'x'.repeat(101)}));
+ await assertFails(update(ref(member,'userListShares/member/appearance'),{overlay:86}));
+ await assertSucceeds(update(ref(member),{['publicListShares/'+bgToken]:{...share,appearance,backgroundVersion:bgVersion,songs:{fresh:{title:'Song',artist:'Artist',genresKnown:true,genres:['アニメ','邦楽']}}},['publicListBackgrounds/'+bgToken]:{uid:'member',version:bgVersion,image:jpeg}}));
+ await assertSucceeds(get(ref(anon,'publicListBackgrounds/'+bgToken)));
+ await assertFails(get(ref(anon,'publicListBackgrounds')));
+ await assertFails(update(ref(context('other','google.com'),'publicListBackgrounds/'+bgToken),{image:jpeg}));
+ await assertFails(update(ref(member,'publicListBackgrounds/'+bgToken),{version:'e'.repeat(32)}));
+ await assertSucceeds(update(ref(member),{'userListShares/member':null,['publicListShares/'+bgToken]:null,['publicListBackgrounds/'+bgToken]:null}));
+ await assertFails(get(ref(anon,'publicListBackgrounds/'+bgToken)));
+ await assertFails(set(ref(member,'publicListBackgrounds/'+bgToken),{uid:'member',version:bgVersion,image:jpeg}));
+ console.log('PASS: shared appearance/genre schemas, bounded JPEG-only assets, private originals, anonymous current-token image access and stop revocation.');
  console.log('PASS: anonymous token-only viewing, owner-only publish/settings, no listing/private read, opt-in fields, token ownership, rotation and stop prevent stale republication.');
  const core=require('../../admin-mylist-core.js'),service=require('../../admin-mylist-service.js');
  const payload=core.payload(2);
@@ -105,6 +127,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  console.log('PASS: emulator confirms admin-only commands, own-only private reads and reports, anonymous/global cache access, Google/guest kind enforcement, guest-only rename, schema/timestamp constraints, and unchanged personal list isolation.');
  }finally{await env.cleanup()}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
 
 
 
