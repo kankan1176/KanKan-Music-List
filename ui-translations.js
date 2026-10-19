@@ -5164,5 +5164,75 @@ window.SL_UI_TRANSLATIONS = {
     "en": "No songs can be imported. Check the column mapping and unmatched rows.",
     "ko": "등록할 수 있는 곡이 없습니다. 열 설정과 불일치 내용을 확인하세요.",
     "zh-TW": "沒有可加入的歌曲，請確認欄位設定與未符合內容。"
+  },
+  "マイリストをURLで共有": {
+    "en": "Share My list by URL",
+    "ko": "URL로 내 목록 공유",
+    "zh-TW": "以網址分享個人清單"
+  },
+  "Googleログイン後に共有ページを作成。共有相手はログインやルーム参加なしで、楽曲一覧とChordWikiリンクを閲覧できます。": {
+    "en": "Create a shared page after signing in with Google. Recipients can view songs and ChordWiki links without signing in or joining a room.",
+    "ko": "Google 로그인 후 공유 페이지를 만들 수 있습니다. 상대방은 로그인이나 방 참여 없이 곡 목록과 ChordWiki 링크를 볼 수 있습니다.",
+    "zh-TW": "使用 Google 登入後建立分享頁面，其他人無須登入或加入房間即可瀏覽歌曲及 ChordWiki 連結。"
+  },
+  "共有ページを自由にデザイン": {
+    "en": "Customize your shared page",
+    "ko": "공유 페이지 디자인 설정",
+    "zh-TW": "自訂分享頁面設計"
+  },
+  "タイトル・背景画像・配色を変更できます。ダーク／ライトを基準に、文字・枠線・検索欄の文字色まで調整し、保存前にプレビューできます。": {
+    "en": "Change the title, background image and colors. Start with Dark or Light, adjust text, borders and search text, and preview before saving.",
+    "ko": "제목, 배경 이미지, 색상을 변경할 수 있습니다. 다크 또는 라이트를 기준으로 글자, 테두리, 검색창 글자색을 조정하고 저장 전에 미리 볼 수 있습니다.",
+    "zh-TW": "可修改標題、背景圖片與配色。以深色或淺色為基礎，調整文字、框線及搜尋欄文字色，並在儲存前預覽。"
+  },
+  "100曲ごとのページ表示": {
+    "en": "Browse 100 songs per page",
+    "ko": "페이지당 100곡 표시",
+    "zh-TW": "每頁顯示100首歌曲"
+  },
+  "ジャンル絞り込み、曲名・アーティスト検索、並べ替えに対応。画面全体を固定し、1ページ100曲の一覧部分だけをスクロールできます。": {
+    "en": "Filter by genre, search by song or artist, and change the sort order. The page stays fixed while the 100-song list scrolls.",
+    "ko": "장르 필터, 곡명·아티스트 검색, 정렬을 지원합니다. 전체 화면은 고정되고 페이지당 100곡의 목록만 스크롤됩니다.",
+    "zh-TW": "支援類型篩選、歌名或歌手搜尋及排序。整個頁面固定，僅每頁100首歌曲的清單區域可捲動。"
+  },
+  "公開・停止をスイッチで切り替え": {
+    "en": "Turn sharing on or off",
+    "ko": "스위치로 공개·중지 전환",
+    "zh-TW": "切換公開或停止"
+  },
+  "停止してもURLと設定を保持し、同じURLで公開を再開できます。背景・配色の上書き保存時には、以前の設定が削除されることを確認できます。": {
+    "en": "Pause sharing while retaining your URL and settings, then resume at the same URL. A warning appears before previous background or color settings are overwritten.",
+    "ko": "공개를 중지해도 URL과 설정이 유지되어 같은 URL로 다시 공개할 수 있습니다. 배경이나 색상을 덮어쓰기 전에 이전 설정 삭제 안내를 확인할 수 있습니다.",
+    "zh-TW": "停止公開時保留網址及設定，重新公開仍使用相同網址。覆寫背景或配色前，會提示先前設定將被刪除。"
+  },
+  "左メニューに共有用の入口を追加": {
+    "en": "New sharing actions in the sidebar",
+    "ko": "왼쪽 메뉴에 공유 기능 추가",
+    "zh-TW": "側邊選單新增分享入口"
+  },
+  "「マイリストサイト編集」で共有設定を開き、「マイリスト共有」で一覧を新規タブ表示。既存の楽曲登録・編集用マイリストも引き続き利用できます。": {
+    "en": "Open sharing settings with “Edit list website” or view the list in a new tab with “View shared list”. The original song-list editor remains available.",
+    "ko": "‘목록 사이트 편집’에서 공유 설정을 열고 ‘공유 목록 보기’에서 새 탭으로 목록을 볼 수 있습니다. 기존 곡 등록·편집 기능도 계속 이용할 수 있습니다.",
+    "zh-TW": "透過「編輯清單網站」開啟分享設定，或以「查看分享清單」在新分頁開啟清單。原有的歌曲加入及編輯功能仍可使用。"
+  },
+  "クリップボード一括登録を改善": {
+    "en": "Improved clipboard import",
+    "ko": "클립보드 일괄 등록 개선",
+    "zh-TW": "改善剪貼簿批次加入"
+  },
+  "曲名・アーティスト名の表記ゆれを考慮したマスター照合と候補選択に対応。貼り付けから解析・内容確認・登録までの流れを改善しました。": {
+    "en": "Match song and artist names despite formatting differences, and choose among multiple candidates. The paste, analysis, review and import flow has been improved.",
+    "ko": "곡명·아티스트 표기 차이를 고려한 마스터 검색과 후보 선택을 지원합니다. 붙여넣기부터 분석, 내용 확인, 등록까지의 흐름을 개선했습니다.",
+    "zh-TW": "比對歌名及歌手時可容許格式差異，並可從多個候選項目中選擇。改善貼上、解析、確認及加入的完整流程。"
+  },
+  "操作性と多言語表示を改善": {
+    "en": "Usability and language improvements",
+    "ko": "조작성 및 다국어 표시 개선",
+    "zh-TW": "改善操作及多語言顯示"
+  },
+  "ヘルプなどの翻訳を拡充し、セットリストの「戻す」「削除」の動作も修正しました。": {
+    "en": "Expanded translations, including help content, and fixed setlist back and delete actions.",
+    "ko": "도움말 등의 번역을 보완하고 세트리스트의 되돌리기·삭제 동작을 수정했습니다.",
+    "zh-TW": "補充說明等內容的翻譯，並修正演出曲目清單的返回與刪除操作。"
   }
 };
