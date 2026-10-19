@@ -1,9 +1,9 @@
 /* Appearance defaults and JPEG preparation shared by editor and viewer. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.SLListDesign=api;})(typeof globalThis!=='undefined'?globalThis:this,()=>{
  'use strict';
- const presets={dark:{background:'#091322',panel:'#112039',text:'#e9f2ff',muted:'#a8bdd5',border:'#385574',accent:'#73ded9'},light:{background:'#f3f6fb',panel:'#ffffff',text:'#172b43',muted:'#53677e',border:'#b9c8da',accent:'#006c75'}};
+ const presets={dark:{background:'#091322',panel:'#112039',text:'#e9f2ff',muted:'#a8bdd5',border:'#385574',accent:'#73ded9',searchText:'#e9f2ff'},light:{background:'#f3f6fb',panel:'#ffffff',text:'#172b43',muted:'#53677e',border:'#b9c8da',accent:'#006c75',searchText:'#172b43'}};
  const keys=Object.keys(presets.dark);
- function normalize(value={}){const preset=value?.preset==='light'?'light':'dark',out={preset,title:String(value?.title||'').trim().slice(0,100),overlay:Math.max(0,Math.min(85,Math.round(Number.isFinite(Number(value?.overlay))?Number(value.overlay):35)))};for(const key of keys)out[key]=/^#[0-9a-f]{6}$/i.test(value?.[key]||'')?value[key]:presets[preset][key];return out;}
+ function normalize(value={}){const preset=value?.preset==='light'?'light':'dark',out={preset,title:String(value?.title||'').trim().slice(0,100),overlay:Math.max(0,Math.min(85,Math.round(Number.isFinite(Number(value?.overlay))?Number(value.overlay):35)))};for(const key of keys)out[key]=/^#[0-9a-f]{6}$/i.test(value?.[key]||'')?value[key]:(key==='searchText'&&/^#[0-9a-f]{6}$/i.test(value?.text||'')?value.text:presets[preset][key]);return out;}
  function apply(element,value){const design=normalize(value);for(const key of keys)element.style.setProperty('--share-'+key,design[key]);element.style.setProperty('--share-overlay',String(design.overlay/100));return design;}
  async function jpeg(file){
   if(!file||file.size>16*1024*1024)throw Error('imageSize');
@@ -23,3 +23,4 @@
  }
  return {presets,keys,normalize,apply,jpeg};
 });
+

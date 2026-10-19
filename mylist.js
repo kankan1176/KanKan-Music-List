@@ -1,6 +1,6 @@
 (() => {
  'use strict';
- const el=id=>document.getElementById('share'+id),core=SLListShare,design=SLListDesign,preview=location.hash==='#preview'&&window.parent!==window;
+ const el=id=>document.getElementById('share'+id),core=SLListShare,design=SLListDesign,preview=location.hash==='#preview'&&window.parent!==window,mine=location.hash==='#mine';
  let data=null,rows=[],page=0,status='loading',stop=()=>{},generation=0,lastImage='',imageVersion='',imageSerial=0;
  const genreCache=new Map();
  const preferred=navigator.language.toLowerCase();let language=preferred.startsWith('ko')?'ko':preferred.startsWith('zh')?'zh-TW':preferred.startsWith('en')?'en':'ja';el('Language').value=language;
@@ -11,7 +11,7 @@
  function move(next){page=next;render();el('ListViewport').scrollTop=0;}
  function render(){
   const text=t(),appearance=design.apply(document.documentElement,data?.appearance);document.documentElement.lang=language;document.documentElement.style.colorScheme=appearance.preset;
-  el('Brand').textContent=text.brand;el('ReadOnly').textContent=preview?text.designPreview:text.readOnly;
+  el('BrandName').textContent=text.brand;el('Brand').setAttribute('aria-label',text.brandHome);el('Terms').textContent=text.terms;el('Privacy').textContent=text.privacy;el('Edit').textContent=text.editList;el('Edit').hidden=!mine;el('ReadOnly').textContent=preview?text.designPreview:mine?text.ownView:text.readOnly;
   const title=appearance.title||(data?String(data.name||'')+text.list:text.title);el('Title').textContent=title;el('Title').title=title;document.title=title+' | '+text.brand;
   el('Owner').textContent=data&&appearance.title?data.name+text.list:'';
   el('Status').textContent=status==='ready'?'':text[status]||text.loadError;
@@ -41,7 +41,7 @@
  }
  function accept(value){data=value&&typeof value.name==='string'?value:null;rows=data?Object.entries(data.songs||{}).filter(([,r])=>r&&typeof r.title==='string'&&typeof r.artist==='string').map(([id,row])=>({...row,id,genres:Array.isArray(row.genres)?row.genres:genreCache.get(id)||[]})):[];status=data?'ready':'unavailable';render();}
  el('Search').oninput=()=>move(0);el('Genre').onchange=()=>move(0);el('Sort').onchange=()=>move(0);el('Language').onchange=()=>{language=el('Language').value;render();};for(const suffix of ['', 'Top']){el('Prev'+suffix).onclick=()=>move(page-1);el('Next'+suffix).onclick=()=>move(page+1);}el('PageSelect').onchange=()=>move(Number(el('PageSelect').value));
- const config={apiKey:'AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI',databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'kankan-session-room',appId:'1:759342880820:web:9af0af755e35926a281261'};
+ const config={apiKey:'AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI',authDomain:'kankan-session-room.firebaseapp.com',databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'kankan-session-room',appId:'1:759342880820:web:9af0af755e35926a281261'};
  async function loadImage(database,token,version){
   const requested=version?token+':'+version:'';if(requested===imageVersion)return;imageVersion=requested;const serial=++imageSerial;setImage('');if(!version)return;
   try{const value=(await database.ref('publicListBackgrounds/'+token).once('value')).val();if(serial===imageSerial&&value?.version===version&&validImage(value.image))setImage(value.image);}catch{if(serial===imageSerial)imageVersion='';}
@@ -60,7 +60,30 @@
    ref.on('value',listener,error=>{if(!current)return;data=null;rows=[];setImage('');imageSerial++;status=/permission.denied/i.test(error?.code||error?.message||'')?'unavailable':'loadError';render();});stop=()=>{current=false;ref.off('value',listener);};
   }catch{status='loadError';render();}
  }
+ function loadMine(){
+  status='loading';render();
+  async function start(){
+   try{
+    const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config),database=app.database();let listeners=[];
+    app.auth().onAuthStateChanged(user=>{
+     listeners.forEach(fn=>fn());listeners=[];const version=++generation;imageSerial++;setImage('');data=null;rows=[];status='loading';render();
+     if(!user||user.isAnonymous){status='login';render();return;}
+     let settings=null,saved=null,name=user.displayName||'ユーザー',image=null,ready=0,serial=0;const cache=new Map();
+     async function refresh(){
+      if(ready<4||version!==generation)return;const update=++serial,songs={};let next=0;const records=Object.entries(saved||{}).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item));
+      await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length&&version===generation&&update===serial){const[id,item]=records[next++];try{let master=cache.get(id);if(!master){master=(await database.ref('songs/'+id).once('value')).val();if(master)cache.set(id,master);}const row=core.song(master,item,{showKey:true,showParts:true});if(row)songs[id]=row;}catch{}}}));
+      if(version!==generation||update!==serial)return;accept({name,songs,appearance:settings?.appearance,updatedAt:0});setImage(validImage(image?.image)?image.image:'');
+     }
+     for(const[path,receive]of [['userListShares/'+user.uid,v=>settings=v],['users/'+user.uid+'/songs',v=>saved=v||{}],['users/'+user.uid+'/profile/displayName',v=>name=v||user.displayName||'ユーザー'],['userListBackgrounds/'+user.uid,v=>image=v]]){
+      const ref=database.ref(path);let loaded=false;const fn=snapshot=>{if(version!==generation)return;receive(snapshot.val());if(!loaded){loaded=true;ready++;}void refresh();};ref.on('value',fn,()=>{if(version===generation){data=null;rows=[];status='loadError';setImage('');render();}});listeners.push(()=>ref.off('value',fn));
+     }
+    });
+   }catch{status='loadError';render();}
+  }
+  if(typeof firebase.auth==='function')void start();else{const script=document.createElement('script');script.src='https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js';script.onload=()=>void start();script.onerror=()=>{status='loadError';render();};document.head.append(script);}
+ }
  if(preview){
   status='loading';render();window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='sl-list-preview')return;language=SLListShareText[event.data.language]?event.data.language:language;el('Language').value=language;accept(event.data.payload);setImage(validImage(event.data.image)?event.data.image:'');});
- }else{window.addEventListener('hashchange',load);load();}
+ }else if(mine){loadMine();}else{window.addEventListener('hashchange',()=>location.reload());load();}
 })();
+

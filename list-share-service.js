@@ -4,6 +4,7 @@
  const committed=beforePublish|| (async()=>true),appearance=value=>design?design.normalize(value):value||{};
  let config=null,saved=null,name='',background=null,backgroundLoaded=false,revision=0,queue=Promise.resolve(),closed=false,lastAsset='',lastPublished=-1;
  const stops=[],cache=new Map(),active=()=>!closed&&isCurrent();
+ const reservation=()=>({uid:owner.uid,name:'[paused]',reserved:true,updatedAt:firebase.database.ServerValue.TIMESTAMP});
  const notify=(state,error)=>{if(active())changed({state,config,error,background});};
  function listen(path,receive){const ref=database.ref(path),fn=snapshot=>{if(!active())return;receive(snapshot.val());revision++;schedule();};ref.on('value',fn,error=>notify('error',error));stops.push(()=>ref.off('value',fn));}
  async function collect(settings,valid){
@@ -12,7 +13,7 @@
   return {uid:owner.uid,name:name.slice(0,40),songs,appearance:appearance(settings.appearance),updatedAt:firebase.database.ServerValue.TIMESTAMP};
  }
  async function publish(){
-  if(!active()||!config||saved===null||!name||!backgroundLoaded)return;
+  if(!active()||!config||config.enabled===false||saved===null||!name||!backgroundLoaded)return;
   if(!await committed()){notify('error');return;}
   if(!active()||!config)return;
   const version=revision,settings={...config};if(lastPublished===version){notify('ready');return;}
@@ -25,15 +26,15 @@
   if(valid()){lastPublished=version;lastAsset=settings.backgroundVersion?settings.token+':'+settings.backgroundVersion:'';notify('ready');}
  }
  function schedule(){queue=queue.catch(()=>{}).then(async()=>{const version=revision;try{await publish();}catch(error){if(config&&version===revision)notify('error',error);}});return queue;}
- listen('userListShares/'+owner.uid,value=>{config=value&&core.tokenOK(value.token)?value:null;notify(config?'syncing':'off');});
+ listen('userListShares/'+owner.uid,value=>{config=value&&core.tokenOK(value.token)?value:null;notify(config&&config.enabled!==false?'syncing':'off');});
  listen('users/'+owner.uid+'/songs',value=>{saved=value||{};});
  listen('users/'+owner.uid+'/profile/displayName',value=>{name=String(value||owner.displayName||'ユーザー').trim()||'ユーザー';});
- listen('userListBackgrounds/'+owner.uid,value=>{background=value;backgroundLoaded=true;notify(config?'syncing':'off');});
+ listen('userListBackgrounds/'+owner.uid,value=>{background=value;backgroundLoaded=true;notify(config&&config.enabled!==false?'syncing':'off');});
  return {
-  async enable(options,replace=false){
+  async enable(options,replace=false,publish=true){
    if(!active())throw Error('login');
    const old=config?.token,random=bytes=>Array.from(crypto.getRandomValues(new Uint8Array(bytes)),v=>v.toString(16).padStart(2,'0')).join('');
-   const token=!replace&&old?old:random(24),next={token,showKey:!!options.showKey,showParts:!!options.showParts,appearance:appearance(options.appearance)};
+   const token=!replace&&old?old:random(24),next={token,enabled:publish,showKey:!!options.showKey,showParts:!!options.showParts,appearance:appearance(options.appearance)};
    let image=background;
    if(options.backgroundImage===null)image=null;
    else if(typeof options.backgroundImage==='string'){
@@ -43,17 +44,19 @@
    if(image)next.backgroundVersion=image.version;
    revision++;const updates={['userListShares/'+owner.uid]:next};
    if(options.backgroundImage!==undefined)updates['userListBackgrounds/'+owner.uid]=image;
-   if(old&&old!==token){updates['publicListShares/'+old]=null;updates['publicListBackgrounds/'+old]=null;}
+   if(old&&(!publish||old!==token)){updates['publicListShares/'+old]=reservation();updates['publicListBackgrounds/'+old]=null;}
    else if(old&&!image)updates['publicListBackgrounds/'+old]=null;
    await database.ref().update(updates);
-   if(!active())return;config=next;background=image;backgroundLoaded=true;revision++;await schedule();
+   if(!active())return;config=next;background=image;backgroundLoaded=true;revision++;if(!publish){await database.ref('publicListShares/'+token).set(reservation());notify('off');}await schedule();
   },
   async disable(){
-   if(!active())throw Error('login');const old=config?.token;revision++;config=null;lastAsset='';
-   const updates={['userListShares/'+owner.uid]:null};if(old){updates['publicListShares/'+old]=null;updates['publicListBackgrounds/'+old]=null;}
+   if(!active())throw Error('login');const old=config?.token;if(!old)return;revision++;config={...config,enabled:false};lastAsset='';
+   const updates={['userListShares/'+owner.uid+'/enabled']:false};if(old){updates['publicListShares/'+old]=reservation();updates['publicListBackgrounds/'+old]=null;}
    await database.ref().update(updates);if(active())notify('off');
   },
+  async save(options){return this.enable(options,false,!!config&&config.enabled!==false);},
   async preview(options){if(!active())throw Error('login');if(saved===null)throw Error('loading');if(!await committed())throw Error('error');const payload=await collect(options,active);payload.updatedAt=Date.now();return payload;},
   retry:schedule,close(){closed=true;revision++;stops.forEach(stop=>stop());}
  };
 });
+
