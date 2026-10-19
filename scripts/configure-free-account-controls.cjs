@@ -23,7 +23,10 @@ async function main() {
   const ref = database.ref('adminClientControl/config');
   const result = await ref.transaction(current => current || {enabled:true, version:1});
   if (!result.snapshot.val() || result.snapshot.val().version !== 1) throw Error('設定のバージョンを確認してください。');
+  const count=await require('./public-list-links.cjs').backfillPublicLinks(database);
+  console.log('公開中の共有ページへの導線を確認しました。対象件数：'+count);
   console.log('無料構成のルールを適用しました。課金プラン・API・Cloud Functionsには変更を加えていません。');
   } finally { await deleteApp(app); }
 }
 if (require.main === module) main().catch(error => { console.error(error.message); process.exitCode = 1; });
+

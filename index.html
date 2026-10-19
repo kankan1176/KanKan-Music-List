@@ -568,21 +568,6 @@ body:not(.my-list-mode) {
           #myPageModal .mypage-menu > button,#myPageModal .mypage-menu > a {font-size:12px;}
         }
         #myPageAccountHint { margin:0 0 14px; font-size:12px; opacity:.85; overflow-wrap:anywhere; }
-        .shared-list-meta {font-size:12px;opacity:.85;margin:8px 0;}
-        .shared-list-tools {display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;}
-        .shared-song {border:1px solid var(--border-color);border-radius:6px;padding:9px;margin:5px 0;display:flex;gap:9px;align-items:center;justify-content:space-between;}
-        .shared-song.common {border-color:#439a69;background:rgba(55,163,104,.14);}
-        .shared-song-name {font-size:13px;font-weight:700;overflow-wrap:anywhere;}
-        .shared-song-name.friend-song-detail-link {display:block;border:0;background:none;color:var(--link-color);text-decoration:underline;white-space:normal;text-align:left;padding:2px 0;font:inherit;font-weight:700;cursor:pointer;max-width:100%;}
-        .shared-song-name.friend-song-detail-link:hover {opacity:.8;background:none;color:var(--link-color);}
-        .shared-song-name.friend-song-detail-link:focus-visible {outline:2px solid var(--primary);outline-offset:2px;}
-        #detailFriendShared {border:1px solid #439a69;border-radius:6px;padding:10px;background:rgba(55,163,104,.10);}
-        #detailFriendShared .friend-detail-line {font-size:13px;line-height:1.6;overflow-wrap:anywhere;}
-        #detailFriendChordLink {display:block;margin-top:8px;padding:9px;background:var(--btn-bg);border:1px solid var(--primary);border-radius:5px;color:var(--link-color);text-decoration:none;text-align:center;font-size:13px;font-weight:700;}
-        .shared-song-artist {font-size:11px;opacity:.78;}
-        .shared-song-attrs {flex:0 0 auto;font-size:12px;text-align:right;}
-        .shared-list-scroll {max-height:55vh;overflow:auto;}
-        .shared-common-tag {color:#2c9a60;font-weight:700;}
         @media(max-width:380px) { .mypage-menu {grid-template-columns:1fr;} .mypage-menu button, #adminPageLink { font-size:12px; } }
 
         /* フレンド管理: テーマ共通の色変数を使用 */
@@ -979,11 +964,6 @@ body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 @media(max-width:600px){#clipboardAnalysisModal .modal{width:calc(100% - 16px);height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);padding:12px;}}
 
 /* 公開マイリスト：全文検索・ジャンル絞り込み・ジャンル順 */
-.friend-public-filters{display:grid;gap:7px;margin:10px 0;}
-.friend-public-filters input{width:100%;box-sizing:border-box;}
-.friend-public-filter-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px;}
-.friend-public-filter-row select{flex:1;min-width:90px;max-width:170px;box-sizing:border-box;}
-.shared-song-genres{font-size:11px;opacity:.8;margin-top:3px;overflow-wrap:anywhere;}
 #friendFilteredCount{opacity:.85;margin-left:auto;}
 
         /* ルーム共通曲：比較するメンバー選択 */
@@ -3133,10 +3113,6 @@ body:not(.in-room) #slRoomDockHandle {display:none!important}
 @media(max-width:380px) { #slRoomDock #slRoomLeaveBtn { padding:6px 7px;font-size:11px; } }
 
 
-/* Friends shared list must stack above the full-screen friends workspace. */
-body.sl-redesign #friendSharedModal.modal-overlay {
-  z-index: 2050 !important;
-}
 /* Reserve exactly one badge column in every session history row. */
 #sessionHistoryUsersList .friend-name {
   display: inline-flex !important;
@@ -4643,33 +4619,6 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
   </div>
 </div>
 
-<div class="modal-overlay" id="friendSharedModal" onclick="closeFriendSharedList(event)">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="friendSharedTitle" onclick="event.stopPropagation()" style="max-width:650px;">
-    <span class="modal-close" onclick="closeFriendSharedList()">&times;</span>
-    <h2 id="friendSharedTitle">📁 公開マイリスト</h2>
-    <div id="friendSharedMeta" class="shared-list-meta">読み込み中…</div>
-    <div style="display:flex;gap:7px;margin:10px 0;flex-wrap:wrap;" role="group" aria-label="フレンドの共有情報を切り替える">
-      <button type="button" id="friendSongsTab" class="primary-btn" onclick="switchFriendShareTab('songs')">📁 マイリスト</button>
-      <button type="button" id="friendArtistsTab" onclick="switchFriendShareTab('artists')">⭐ お気に入りアーティスト</button>
-    </div>
-    <div id="friendSongsPanel">
-      <div class="friend-public-filters">
-        <input id="friendSongSearch" type="search" class="setting-input" placeholder="曲名・アーティスト・ジャンル・タイアップなど全情報で検索" aria-label="公開マイリスト内を検索" oninput="renderFriendSharedList()">
-        <div class="friend-public-filter-row">
-          <label for="friendGenreFilter">ジャンル</label><select id="friendGenreFilter" class="setting-input" onchange="renderFriendSharedList()"><option value="">すべて</option></select>
-          <label for="friendGenreSort">並び順</label><select id="friendGenreSort" class="setting-input" onchange="renderFriendSharedList()"><option value="original">登録順</option><option value="genre1">ジャンル順</option><option value="genre2">ジャンル②順</option></select>
-        </div>
-      </div>
-      <div class="shared-list-tools"><label><input type="checkbox" id="friendCommonOnly" onchange="renderFriendSharedList()"> 🤝 自分との共通曲のみ</label><span id="friendCommonCount"></span><span id="friendFilteredCount"></span></div>
-      <div id="friendSharedSongs" class="shared-list-scroll" aria-live="polite">読み込み中…</div>
-    </div>
-    <div id="friendArtistsPanel" hidden style="display:none;">
-      <div class="shared-list-tools"><label><input type="checkbox" id="friendCommonArtistsOnly" onchange="renderFriendFavoriteArtists()"> 🤝 共通のお気に入りアーティストのみ</label><span id="friendFavoriteArtistCount"></span></div>
-      <div id="friendFavoriteArtists" class="shared-list-scroll" aria-live="polite">読み込み中…</div>
-    </div>
-  </div>
-</div>
-
 <!-- OBS案内: ルーム参加中のみヘッダーボタンから開く。CSSはOBS「ブラウザ」ソースへ貼り付け。 -->
 <div class="modal-overlay" id="obsModal" onclick="closeModal(event, 'obsModal')">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="obsModalTitle" onclick="event.stopPropagation()" style="max-width:620px;">
@@ -5052,12 +5001,6 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル③</span><span id="detailGenre3"></span></div>
         <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
-        <div class="detail-item" id="detailFriendShared" style="display:none;">
-            <b id="detailFriendOwner">👥 フレンドの登録情報（閲覧のみ）</b>
-            <div class="friend-detail-line" id="detailFriendKey"></div>
-            <div class="friend-detail-line" id="detailFriendParts"></div>
-            <a id="detailFriendChordLink" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">🎸 フレンドのKeyでChordWikiを開く ↗</a>
-        </div>
         <div class="detail-item" id="detailKeyArea" style="display:none;">
             <label style="display:block; font-weight:bold; margin-bottom:7px;">🎹 自分用Key（原曲を0として半音単位）</label>
             <div class="key-picker" id="detailKeyPicker"></div>
@@ -5259,8 +5202,8 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
     }
     function shouldSkipI18n(el) {
         if (!el || !el.closest) return true;
+        if(el.closest('[translate="no"],.sl-dock-title,.sl-dock-artist,.friend-name,.sl-history-user-name,.clipboard-source-data'))return true;
         if (el.closest('script,style,code,textarea,#tableBody .col-title,#tableBody .col-artist,#detailTitle,#detailArtist,#detailLyricist,#detailComposer,#detailArranger,#confirmArtistName,#myListRemovalSongName,#roomMembersList,#friendsList .friend-name,#incomingFriendRequests .friend-name,#outgoingFriendRequests .friend-name,#myFriendCode,#loginStatus.logged-in,#mobileIdentity.mobile-person-name')) return true;
-        if(el.closest('[translate="no"],.sl-dock-title,.sl-dock-artist,.shared-song-name,.shared-song-artist,.friend-name,.sl-history-user-name,.clipboard-source-data'))return true;
         return false;
     }
     function translateTextNode(node) {
@@ -5657,7 +5600,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
             defaultPart = PARTS.includes(partSnapshot.val()) ? partSnapshot.val() : '';
             sharedListReadyUid = user.uid;
             // 共通曲は自分と友達の両方の「保存済み」公開リストを監視して判定する。
-            watchOwnFriendSharedSongs(user.uid);
+
             void queueFriendSharedSync(user.uid);
             document.getElementById('defaultPartSelect').value = defaultPart;
             if (allData.length) renderTable();
@@ -5898,7 +5841,6 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
                 });
                 // 保存済みの内容だけを友達用スナップショットへ同期。失敗しても個人保存は取り消さない。
                 void queueFriendSharedSync(user.uid);
-                if (friendSharedUid) renderFriendFavoriteArtists();
                 // 変更途中のスクロール位置・複数選択状態を壊さず、残りは次の保存へ。
                 slShowMySaveError(false);
                 return true;
@@ -6001,7 +5943,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
         document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
         document.getElementById('myListSwitchBtn').style.display = user && !currentRoomId ? 'inline-block' : 'none';
-        if (!user) { stopFriendsFeature(); closeFriendSharedList(); stopOwnFriendSharedSongs(); sharedListReadyUid=''; }
+        if (!user) { stopFriendsFeature(); sharedListReadyUid=''; }
         document.getElementById('addSongHeaderBtn').style.display = 'inline-block';
         // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
         const nameVersion = ++usernameLoadVersion;
@@ -7081,38 +7023,6 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
     }
     // ===== STEP 3-2: 保存済みリストの共有・閲覧 =====
     let sharedListReadyUid = '';
-    let ownFriendSharedSongsRef = null;
-    let ownFriendSharedSongsListener = null;
-    let ownFriendSharedUid = '';
-    let ownSavedFriendSongIds = new Set();
-    let ownSavedFriendSongsReady = false;
-    function stopOwnFriendSharedSongs() {
-        if (ownFriendSharedSongsRef && ownFriendSharedSongsListener) ownFriendSharedSongsRef.off('value', ownFriendSharedSongsListener);
-        ownFriendSharedSongsRef = null;
-        ownFriendSharedSongsListener = null;
-        ownFriendSharedUid = '';
-        ownSavedFriendSongIds = new Set();
-        ownSavedFriendSongsReady = false;
-    }
-    function watchOwnFriendSharedSongs(uid) {
-        if (!uid || ownFriendSharedUid === uid) return;
-        stopOwnFriendSharedSongs();
-        ownFriendSharedUid = uid;
-        const ref = db.ref(`friendSharedLists/${uid}/songs`);
-        const handle = snapshot => {
-            if (ownFriendSharedUid !== uid || auth.currentUser?.uid !== uid) return;
-            ownSavedFriendSongIds = new Set(Object.keys(snapshot.val() || {}));
-            ownSavedFriendSongsReady = true;
-            if (friendSharedUid) renderFriendSharedList();
-        };
-        ownFriendSharedSongsRef = ref;
-        ownFriendSharedSongsListener = handle;
-        ref.on('value', handle, err => {
-            console.warn('自分の共有済みマイリスト監視失敗', err);
-            ownSavedFriendSongsReady = false;
-            if (friendSharedUid) document.getElementById('friendSharedMeta').textContent = '共通曲の再計算に失敗しました。再読み込みしてください。';
-        });
-    }
     let friendSharedSyncQueue = Promise.resolve();
     // フレンド操作の通知と、非同期共有の状態を別管理する（閉じた画面に古いエラーを残さない）。
     let friendSyncState = {status:'idle',message:''};
@@ -7147,13 +7057,6 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         }
         return [...new Set(problems)];
     }
-    let friendSharedUid = '';
-    let friendSharedSongs = {};
-    let friendSharedArtists = {};
-    let friendShareTab = 'songs';
-    let friendSharedRef = null;
-    let friendSharedListener = null;
-    let friendSharedVersion = 0;
     // 保存済みの個人データからのみ生成。楽曲マスター(allData)へ依存しないため、
     // 100件取得中でも自分の公開マイリストを欠損させず同期できる。
     // 編集中の pendingSongs / pendingArtists は含めない。
@@ -7182,7 +7085,6 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
                 await db.ref(`friendSharedLists/${uid}`).set(payload);
                 if (friendUser()?.uid===uid) setFriendSyncState('success');
                 // 自分のリスト保存だけでも開いているフレンド画面へ反映する。
-                if (friendSharedUid) renderFriendSharedList();
             } catch(err) {
                 console.warn('フレンド共有同期失敗（個人マイリストは別保存）',{
                     code:err?.code||'',message:err?.message||String(err),
@@ -7196,165 +7098,11 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         });
         return friendSharedSyncQueue;
     }
-    function closeFriendSharedList(event) {
-        if (event && event.target !== event.currentTarget) return;
-        friendSharedVersion++;
-        if (friendSharedRef && friendSharedListener) friendSharedRef.off('value',friendSharedListener);
-        friendSharedRef = null; friendSharedListener = null; friendSharedUid = ''; friendSharedSongs = {}; friendSharedArtists = {};
-        closeModal(null,'friendSharedModal');
-    }
-    async function openFriendSharedList(uid) {
-        const u=friendUser(); if (!uid) return;
-        closeFriendSharedList();
-        const version = ++friendSharedVersion;
-        friendSharedUid=uid;
-        friendSharedSongs={};friendSharedArtists={};
-        document.getElementById('friendCommonOnly').checked=false;
-        document.getElementById('friendSongSearch').value='';
-        document.getElementById('friendGenreFilter').innerHTML='<option value="">すべて</option>';
-        document.getElementById('friendGenreSort').value='original';
-        document.getElementById('friendCommonArtistsOnly').checked=false;
-        switchFriendShareTab('songs');
-        document.getElementById('friendSharedTitle').textContent='📁 公開マイリスト';
-        document.getElementById('friendSharedMeta').textContent='読み込み中…';
-        document.getElementById('friendSharedSongs').textContent='読み込み中…';
-        openModal('friendSharedModal');
-        const name = await getFriendDisplayName(uid);
-        if (version!==friendSharedVersion) return;
-        document.getElementById('friendSharedTitle').textContent=`📁 ${name} のマイリスト`;
-        if(!masterLoaded){
-            try{
-                if(serverPagedMasterMode) await promoteServerPageToFullMaster('公開マイリスト');
-                else await ensureMasterLoaded();
-            }catch(err){console.warn('公開リスト用の楽曲マスター取得失敗',err);}
-        }
-        if(version!==friendSharedVersion)return;
-        friendSharedRef=db.ref(`friendSharedLists/${uid}`);
-        friendSharedListener=snap=>{
-            if (version!==friendSharedVersion) return;
-            const shared=snap.val();friendSharedSongs=shared?.songs || {};
-            friendSharedArtists=shared?.favoriteArtists || {};
-            renderFriendFavoriteArtists();
-            document.getElementById('friendSharedMeta').textContent=shared?'保存済みのマイリストを共有中（変更は自動反映されます）':'まだ共有リストがありません。相手の再ログイン後に同期されます。';
-            renderFriendSharedList();
-        };
-        friendSharedRef.on('value',friendSharedListener,err=>{
-            if(version!==friendSharedVersion)return;
-            console.warn('共有マイリスト読込失敗',err);
-            document.getElementById('friendSharedMeta').textContent='公開リストを読み込めません。ネットワークまたはデータルールを確認してください。';
-            document.getElementById('friendSharedSongs').replaceChildren();
-        });
-    }
-    function switchFriendShareTab(tab) {
-        friendShareTab=tab==='artists'?'artists':'songs';
-        document.getElementById('friendSongsPanel').style.display=friendShareTab==='songs'?'block':'none';
-        document.getElementById('friendArtistsPanel').style.display=friendShareTab==='artists'?'block':'none';
-        document.getElementById('friendSongsTab').classList.toggle('primary-btn',friendShareTab==='songs');
-        document.getElementById('friendArtistsTab').classList.toggle('primary-btn',friendShareTab==='artists');
-        if(friendShareTab==='artists')renderFriendFavoriteArtists();
-    }
-    function renderFriendFavoriteArtists() {
-        const target=document.getElementById('friendFavoriteArtists');
-        if(!target)return;
-        target.replaceChildren();
-        // Compare stable UTF-8 keys, avoiding differing display-name normalization.
-        const valid=k=>/^a_(?:[0-9a-f]{2})+$/i.test(k);
-        const names=Object.keys(friendSharedArtists).filter(k=>valid(k)&&friendSharedArtists[k]===true).sort();
-        const mine=new Set(Object.keys(favoriteArtists).filter(k=>valid(k)&&favoriteArtists[k]===true));
-        const common=names.filter(k=>mine.has(k));
-        document.getElementById('friendFavoriteArtistCount').textContent=`🤝 共通 ${common.length}組 / 全${names.length}組`;
-        const onlyCommon=document.getElementById('friendCommonArtistsOnly').checked;
-        const decoder=new TextDecoder('utf-8',{fatal:true});
-        const decode=k=>{try{return decoder.decode(Uint8Array.from(k.slice(2).match(/.{2}/g),x=>parseInt(x,16)));}catch{return '';}};
-        const entries=(onlyCommon?common:names).map(k=>({key:k,name:decode(k)})).filter(x=>x.name).sort((a,b)=>a.name.localeCompare(b.name,'ja'));
-        for(const item of entries){
-            const row=document.createElement('div');row.className='shared-song'+(mine.has(item.key)?' common':'');
-            row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;';
-            const name=document.createElement('span');name.textContent='⭐ '+item.name;name.style.overflowWrap='anywhere';
-            row.append(name);
-            if(mine.has(item.key)){const tag=document.createElement('span');tag.className='shared-common-tag';tag.textContent='🤝 共通のお気に入り';row.append(tag);}
-            target.append(row);
-        }
-        if(!entries.length)target.textContent=onlyCommon?'共通のお気に入りアーティストはいません。':'公開されているお気に入りアーティストはありません。';
-    }
-    // フレンドの共有データは閲覧専用。既存の楽曲詳細を開き、閉じたら元の一覧へ戻す。
-    let returnToFriendListFromDetail = false;
-    function openFriendSongDetails(songId) {
-        if (!friendSharedUid || !Object.prototype.hasOwnProperty.call(friendSharedSongs, songId)) return;
-        const song = allData.find(row => row._id === songId);
-        if (!song) return;
-        const entry = friendSharedSongs[songId] || {};
-        const selected = Number(entry.key);
-        const friendKey = Number.isInteger(selected) && selected >= -5 && selected <= 6 ? selected : 0;
-        const owner = document.getElementById('friendSharedTitle').textContent.replace(/^📁\s*/, '');
-        showSongDetails(songId);
-        const info = document.getElementById('detailFriendShared');
-        info.style.display = 'block';
-        document.getElementById('detailFriendOwner').textContent = `👥 ${owner}：登録情報（閲覧のみ）`;
-        document.getElementById('detailFriendKey').textContent = `登録Key：${displayKey(friendKey)}`;
-        document.getElementById('detailFriendParts').textContent = `担当パート：${Array.isArray(entry.parts) && entry.parts.length ? entry.parts.join(' ') : '未設定'}`;
-        const link = document.getElementById('detailFriendChordLink');
-        const url = chordWikiUrlForKey(song['コードwiki'], friendKey);
-        if (url) { link.href = url; link.style.display = 'block'; }
-        else { link.removeAttribute('href'); link.style.display = 'none'; }
-        returnToFriendListFromDetail = true;
-        // 二重モーダルを避け、閉じる操作ではスクロール位置を維持した元のフレンド一覧へ戻る。
-        document.getElementById('friendSharedModal').style.display = 'none';
-    }
-    function renderFriendSharedList() {
-        const container=document.getElementById('friendSharedSongs');
-        if(!container || !friendSharedUid) return;
-        container.replaceChildren();
-        const onlyCommon=document.getElementById('friendCommonOnly').checked;
-        const sharedIds=new Set(Object.keys(friendSharedSongs));
-        const rows=allData.filter(song=>sharedIds.has(song._id));
-        const genreOf=(song,which)=>String(song[which===2?(genre2Key||'ジャンル②'):(genre1Key||'ジャンル')]||'').trim();
-        const filterSelect=document.getElementById('friendGenreFilter');
-        const previousGenre=filterSelect.value;
-        const genres=[...new Set(rows.flatMap(song=>[genreOf(song,1),genreOf(song,2)]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
-        filterSelect.replaceChildren(new Option('すべて',''),...genres.map(genre=>new Option(genre,genre)));
-        filterSelect.value=genres.includes(previousGenre)?previousGenre:'';
-        const genreFilter=filterSelect.value;
-        const query=String(document.getElementById('friendSongSearch').value||'').normalize('NFKC').toLocaleLowerCase('ja').trim();
-        const terms=query.split(/\s+/).filter(Boolean);
-        const sort=document.getElementById('friendGenreSort').value;
-        const common=rows.filter(song=>ownSavedFriendSongIds.has(song._id));
-        document.getElementById('friendCommonCount').textContent=ownSavedFriendSongsReady
-            ? `🤝 共通 ${common.length}曲 / 全${rows.length}曲`
-            : `🤝 共通曲を確認中… / 全${rows.length}曲`;
-        const filtered=rows.filter(song=>{
-            if(onlyCommon&&!ownSavedFriendSongIds.has(song._id))return false;
-            if(genreFilter&&genreOf(song,1)!==genreFilter&&genreOf(song,2)!==genreFilter)return false;
-            if(terms.length){
-                // マスターの全フィールドに加え、保存Key・担当パートも検索対象。
-                const entry=friendSharedSongs[song._id]||{};
-                const haystack=[...Object.values(song).filter(v=>v!==null&&typeof v!=='object'),entry.key, ...(Array.isArray(entry.parts)?entry.parts:[])].join(' ').normalize('NFKC').toLocaleLowerCase('ja');
-                if(!terms.every(t=>haystack.includes(t)))return false;
-            }
-            return true;
-        });
-        if(sort==='genre1'||sort==='genre2'){
-            const field=sort==='genre2'?2:1;
-            filtered.sort((a,b)=>genreOf(a,field).localeCompare(genreOf(b,field),'ja')||genreOf(a,field===1?2:1).localeCompare(genreOf(b,field===1?2:1),'ja')||String(a['曲名']||'').localeCompare(String(b['曲名']||''),'ja'));
-        }
-        document.getElementById('friendFilteredCount').textContent=`表示 ${filtered.length}曲`;
-        for(const song of filtered){
-            const overlaps=ownSavedFriendSongIds.has(song._id);
-            const entry=friendSharedSongs[song._id] || {};
-            const row=document.createElement('div');row.className='shared-song'+(overlaps?' common':'');
-            const info=document.createElement('div');info.style.minWidth='0';
-            const title=document.createElement('button');title.type='button';title.className='shared-song-name friend-song-detail-link';title.textContent=song['曲名']||'曲名不明';title.title='楽曲詳細を開く';title.setAttribute('aria-label',`${song['曲名'] || '曲名不明'}の楽曲詳細を開く`);title.addEventListener('click',()=>openFriendSongDetails(song._id));
-            const artist=document.createElement('div');artist.className='shared-song-artist';artist.textContent=song['アーティスト']||'';
-            const genre=document.createElement('div');genre.className='shared-song-genres';
-            genre.textContent=`ジャンル：${genreOf(song,1)||'-'} / ジャンル②：${genreOf(song,2)||'-'}`;
-            info.append(title,artist,genre);
-            if(overlaps){const tag=document.createElement('div');tag.className='shared-common-tag';tag.textContent='🤝 共通曲';info.append(tag);}
-            const attrs=document.createElement('div');attrs.className='shared-song-attrs';
-            const key=document.createElement('div');key.textContent=`Key ${displayKey(Number(entry.key)||0)}`;
-            const parts=document.createElement('div');parts.textContent=Array.isArray(entry.parts)&&entry.parts.length?entry.parts.join(' '):'パート未設定';
-            attrs.append(key,parts);row.append(info,attrs);container.append(row);
-        }
-        if(!filtered.length)container.textContent=rows.length?'検索条件に一致する曲はありません。':'公開されている曲はまだありません。';
+    // Keep the entry point used by friends and session-history actions.
+    function openFriendSharedList(uid) {
+        if(typeof uid!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(uid))return;
+        const url=new URL('mylist.html?v=20261020-1#user='+encodeURIComponent(uid),location.href);
+        window.open(url.href,'_blank','noopener,noreferrer');
     }
     // ===== STEP 3-2ここまで =====
     // ===== フレンド機能ここまで =====
@@ -7521,11 +7269,7 @@ html, body { background: transparent !important; color: ${text} !important; }
         if (e && backdropLockedModals.has(id)) return;
         if (e && e.target.id !== id) return;
         document.getElementById(id).style.display = 'none';
-        if (id === 'songDetailsModal' && returnToFriendListFromDetail) {
-            returnToFriendListFromDetail = false;
-            document.getElementById('detailFriendShared').style.display = 'none';
-            if (friendSharedUid) document.getElementById('friendSharedModal').style.display = 'flex';
-        }
+
     }
     function escapeHtml(str) { return String(str ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
     function safeHref(url) { const trimmed = String(url ?? '').trim(); if (!/^https?:\/\//i.test(trimmed)) return ''; return escapeHtml(trimmed); }
@@ -9759,7 +9503,6 @@ html, body { background: transparent !important; color: ${text} !important; }
     }
 
     function showSongDetails(id) {
-        document.getElementById('detailFriendShared').style.display = 'none';
         const song = allData.find(r => r._id === id);
         if(!song) return;
         // ログインユーザーの登録Keyは維持。ゲストは従来通り原曲Keyに戻す。
@@ -10294,8 +10037,7 @@ html, body { background: transparent !important; color: ${text} !important; }
           if(typeof closeModal==='function') closeModal(null,'addSongModal');
           else overlay.style.display='none';
           document.body.classList.remove('sl-add-song-open');
-        }else if(overlay.id==='friendSharedModal' && typeof closeFriendSharedList==='function'){
-          closeFriendSharedList();
+
         }else if(typeof closeModal==='function'){
           closeModal(null,overlay.id);
         }else{
@@ -11256,8 +10998,9 @@ html, body { background: transparent !important; color: ${text} !important; }
 </script>
 <script src="setlist-share.js"></script>
 <script src="room-history.js"></script>
-<script src="admin-control-api.js?v=20261017-free1"></script><script src="admin-client-controls.js?v=20261017-free1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261019-2"></script><script src="list-share-i18n.js?v=20261019-2"></script><script src="list-share-owner.js?v=20261019-2"></script><script src="list-share-navigation.js?v=20261019-2"></script></body>
+<script src="admin-control-api.js?v=20261017-free1"></script><script src="admin-client-controls.js?v=20261017-free1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-1"></script><script src="list-share-owner.js?v=20261019-2"></script><script src="list-share-navigation.js?v=20261019-2"></script></body>
 </html>
+
 
 
 

@@ -2,7 +2,7 @@ window.SLListShareText={
   "ja": {
     "share": "🔗 マイリストを共有",
     "title": "マイリストのURL共有",
-    "note": "保存済みリストを公開します。URLを知っている人はログインせず閲覧でき、URLは転送される場合があります。",
+    "note": "公開中のリストは共有URLやフレンド画面などから、ログインせず閲覧できます。URLは転送される場合があります。",
     "key": "Keyを公開",
     "parts": "担当パートを公開",
     "enable": "公開・設定を保存",
@@ -85,12 +85,13 @@ window.SLListShareText={
     "ownView": "自分専用・閲覧専用",
     "overwriteNote": "背景・配色を保存すると、以前の設定は上書きされ削除されます。",
     "overwriteAsk": "現在の背景・配色設定は上書きされ、元の設定は削除されます。元には戻せません。保存しますか？",
-    "initialOff": "まだ公開していません。設定を保存し、スイッチで公開できます。"
+    "initialOff": "まだ公開していません。設定を保存し、スイッチで公開できます。",
+    "userUnavailable": "このユーザーはマイリストを公開していないか、公開を停止しています。"
   },
   "en": {
     "share": "🔗 Share my list",
     "title": "Share My list by URL",
-    "note": "Publish your saved list. Anyone with the URL can view it without signing in, and may forward the URL.",
+    "note": "Public lists can be viewed without signing in through their URL or the friends screen. The URL may be forwarded.",
     "key": "Publish keys",
     "parts": "Publish instruments",
     "enable": "Publish / save settings",
@@ -173,12 +174,13 @@ window.SLListShareText={
     "ownView": "Only you · View only",
     "overwriteNote": "Saving a new background or color scheme replaces and deletes the previous settings.",
     "overwriteAsk": "Your current background / color settings will be overwritten and deleted. This cannot be undone. Save changes?",
-    "initialOff": "Not public yet. Save your settings, then use the switch to publish."
+    "initialOff": "Not public yet. Save your settings, then use the switch to publish.",
+    "userUnavailable": "This user has not published their list, or sharing is paused."
   },
   "ko": {
     "share": "🔗 내 목록 공유",
     "title": "URL로 내 목록 공유",
-    "note": "저장된 목록을 공개합니다. URL을 아는 사람은 로그인 없이 볼 수 있으며 URL을 다른 사람에게 전달할 수 있습니다.",
+    "note": "공개 중인 목록은 공유 URL이나 친구 화면 등을 통해 로그인 없이 볼 수 있으며 URL이 전달될 수 있습니다.",
     "key": "키 공개",
     "parts": "담당 악기 공개",
     "enable": "공개 / 설정 저장",
@@ -261,12 +263,13 @@ window.SLListShareText={
     "ownView": "본인 전용 · 보기 전용",
     "overwriteNote": "배경이나 색상을 저장하면 이전 설정은 덮어쓰여 삭제됩니다.",
     "overwriteAsk": "현재 배경 및 색상 설정이 덮어쓰여 삭제됩니다. 되돌릴 수 없습니다. 저장할까요?",
-    "initialOff": "아직 공개하지 않았습니다. 설정을 저장한 후 스위치로 공개할 수 있습니다."
+    "initialOff": "아직 공개하지 않았습니다. 설정을 저장한 후 스위치로 공개할 수 있습니다.",
+    "userUnavailable": "이 사용자는 목록을 공개하지 않았거나 공개를 중지했습니다."
   },
   "zh-TW": {
     "share": "🔗 分享我的清單",
     "title": "以網址分享個人清單",
-    "note": "公開已儲存的清單。知道網址的人無須登入即可瀏覽，也可能轉傳網址。",
+    "note": "公開中的清單可透過分享網址或好友畫面等入口瀏覽，無須登入。網址可能被轉傳。",
     "key": "公開調性",
     "parts": "公開演奏樂器",
     "enable": "公開／儲存設定",
@@ -349,6 +352,7 @@ window.SLListShareText={
     "ownView": "僅本人可見・僅供瀏覽",
     "overwriteNote": "儲存背景或配色時，會覆寫並刪除先前的設定。",
     "overwriteAsk": "目前的背景及配色設定將被覆寫並刪除，無法復原。要儲存嗎？",
-    "initialOff": "尚未公開。儲存設定後，可使用開關公開。"
+    "initialOff": "尚未公開。儲存設定後，可使用開關公開。",
+    "userUnavailable": "此使用者尚未公開清單，或已停止公開。"
   }
 };

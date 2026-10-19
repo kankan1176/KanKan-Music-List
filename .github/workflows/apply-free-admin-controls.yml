@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/free-control-rules.cjs'
       - 'scripts/list-share-rules.cjs'
+      - 'scripts/public-list-links.cjs'
       - 'list-share-core.js'
       - 'list-share-design.js'
       - 'list-share-navigation.js'
@@ -74,6 +75,7 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
+
 
 
 

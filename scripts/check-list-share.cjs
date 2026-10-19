@@ -18,11 +18,12 @@ const database={ref(path=''){return{on(event,fn){watchers.push({path,fn});queueM
 const service=factory(database,{uid:'member',displayName:'Google'},()=>current,event=>events.push(event),core);
 (async()=>{
  await new Promise(resolve=>setImmediate(resolve));await service.enable({showKey:false,showParts:false});let token=state.userListShares.member.token;assert(core.tokenOK(token));assert.deepEqual(state.publicListShares[token].songs.song1,{genresKnown:true,genres:[],title:'Song',artist:'Artist',url:'https://ja.chordwiki.org/wiki/Song'});assert.equal(Object.keys(state.publicListShares[token].songs).length,1);
+ assert.deepEqual(state.publicListLinks.member,{token});
  await service.enable({showKey:true,showParts:true});assert.equal(state.publicListShares[token].songs.song1.key,2);assert.deepEqual(state.publicListShares[token].songs.song1.parts,['Guitar']);
  state.users.member.songs.song1.key=-3;emit();await service.retry();assert.equal(state.publicListShares[token].songs.song1.key,-3);
  state.users.member.profile.displayName='変更名';emit();await service.retry();assert.equal(state.publicListShares[token].name,'変更名');
  await service.enable({},true);assert.notEqual(state.userListShares.member.token,token);assert.equal(state.publicListShares[token].reserved,true);token=state.userListShares.member.token;
- await service.disable();await service.retry();assert.equal(state.publicListShares[token].reserved,true);assert.equal(state.userListShares.member.enabled,false);assert.equal(state.userListShares.member.token,token);await service.enable({});assert.equal(state.userListShares.member.token,token);await service.disable();
+ await service.disable();await service.retry();assert.equal(state.publicListShares[token].reserved,true);assert.equal(state.publicListLinks.member,undefined);assert.equal(state.userListShares.member.enabled,false);assert.equal(state.userListShares.member.token,token);await service.enable({});assert.equal(state.userListShares.member.token,token);await service.disable();
  service.close();let committed=false;const guarded=factory(database,{uid:'member'},()=>current,event=>events.push(event),core,async()=>committed,design);await new Promise(resolve=>setImmediate(resolve));await guarded.enable({});const guardedToken=state.userListShares.member.token;assert.equal(state.publicListShares[guardedToken].reserved,true);committed=true;await guarded.retry();assert.equal(state.publicListShares[guardedToken].name,'変更名');await guarded.disable();guarded.close();
  current=false;await assert.rejects(()=>service.enable({}));service.close();assert.equal(watchers.length,0);
  const image='data:image/jpeg;base64,/9j/';current=true;const custom=factory(database,{uid:'member'},()=>current,event=>events.push(event),core,async()=>true,design);await new Promise(resolve=>setImmediate(resolve));await custom.enable({appearance:{title:'公開タイトル',preset:'light',text:'#123456'},backgroundImage:image});const imageToken=state.userListShares.member.token;assert.equal(state.publicListShares[imageToken].appearance.title,'公開タイトル');assert.equal(state.publicListShares[imageToken].appearance.text,'#123456');assert.equal(state.publicListBackgrounds[imageToken].image,image);await custom.enable({appearance:{title:'変更'},backgroundImage:null});assert.equal(state.publicListBackgrounds[imageToken],undefined);assert.equal(state.userListBackgrounds.member,undefined);await custom.disable();custom.close();
@@ -31,3 +32,6 @@ const service=factory(database,{uid:'member',displayName:'Google'},()=>current,e
 })().catch(error=>{console.error(error);process.exitCode=1});
 
 
+
+
+const {selectPublicLinks}=require('./public-list-links.cjs');assert.deepEqual(selectPublicLinks({active:{token:'a'.repeat(48)},paused:{token:'b'.repeat(48),enabled:false},wrong:{token:'c'.repeat(48)},held:{token:'d'.repeat(48)}},{['a'.repeat(48)]:{uid:'active'},['b'.repeat(48)]:{uid:'paused'},['c'.repeat(48)]:{uid:'other'},['d'.repeat(48)]:{uid:'held',reserved:true}}),{'publicListLinks/active':{token:'a'.repeat(48)}});

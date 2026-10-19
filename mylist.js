@@ -51,14 +51,21 @@
   await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,core.genres(master));}catch{genreCache.set(row.id,[]);}}}));
   if(version===generation&&data){for(const row of rows)if(!row.genres.length&&genreCache.has(row.id))row.genres=genreCache.get(row.id);render();}
  }
- function load(){
-  stop();const version=++generation;data=null;rows=[];page=0;status='loading';imageVersion='';imageSerial++;setImage('');render();const token=location.hash.slice(1);
-  if(!core.tokenOK(token)){status='unavailable';render();return;}
+ async function load(){
+  stop();const version=++generation;data=null;rows=[];page=0;status='loading';imageVersion='';imageSerial++;setImage('');render();const fragment=location.hash.slice(1);
+  const userRoute=fragment.startsWith('user='),uid=userRoute?fragment.slice(5):'';
+  if(userRoute?!/^[A-Za-z0-9_-]{1,128}$/.test(uid):!core.tokenOK(fragment)){status='unavailable';render();return;}
   try{
-   const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config),database=app.database(),ref=database.ref('publicListShares/'+token);
-   let current=true;const listener=snapshot=>{if(!current)return;accept(snapshot.val());void loadImage(database,token,data?.backgroundVersion);if(data)void legacyGenres(database,version);};
-   ref.on('value',listener,error=>{if(!current)return;data=null;rows=[];setImage('');imageSerial++;status=/permission.denied/i.test(error?.code||error?.message||'')?'unavailable':'loadError';render();});stop=()=>{current=false;ref.off('value',listener);};
-  }catch{status='loadError';render();}
+   const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config),database=app.database();let token=fragment;
+   if(userRoute){
+    try{token=(await database.ref('publicListLinks/'+uid).once('value')).val()?.token;}catch(error){if(version!==generation)return;status=/permission.denied/i.test(error?.code||error?.message||'')?'userUnavailable':'loadError';render();return;}
+    if(version!==generation)return;
+    if(!core.tokenOK(token)){status='userUnavailable';render();return;}
+   }
+   const ref=database.ref('publicListShares/'+token);let current=true;
+   const listener=snapshot=>{if(!current||version!==generation)return;accept(snapshot.val());if(!data&&userRoute){status='userUnavailable';render();}void loadImage(database,token,data?.backgroundVersion);if(data)void legacyGenres(database,version);};
+   ref.on('value',listener,error=>{if(!current||version!==generation)return;data=null;rows=[];setImage('');imageSerial++;status=/permission.denied/i.test(error?.code||error?.message||'')?(userRoute?'userUnavailable':'unavailable'):'loadError';render();});stop=()=>{current=false;ref.off('value',listener);};
+  }catch{if(version===generation){status='loadError';render();}}
  }
  function loadMine(){
   status='loading';render();
@@ -86,4 +93,5 @@
   status='loading';render();window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='sl-list-preview')return;language=SLListShareText[event.data.language]?event.data.language:language;el('Language').value=language;accept(event.data.payload);setImage(validImage(event.data.image)?event.data.image:'');});
  }else if(mine){loadMine();}else{window.addEventListener('hashchange',()=>location.reload());load();}
 })();
+
 

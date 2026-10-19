@@ -20,7 +20,7 @@
   if(settings.backgroundVersion&&background?.version!==settings.backgroundVersion)return;
   notify('syncing');const valid=()=>active()&&version===revision&&settings.token===config?.token;
   const payload=await collect(settings,valid);if(!valid())return;
-  const updates={['publicListShares/'+settings.token]:payload};
+  const updates={['publicListShares/'+settings.token]:payload,['publicListLinks/'+owner.uid]:{token:settings.token}};
   if(settings.backgroundVersion){payload.backgroundVersion=settings.backgroundVersion;const asset=settings.token+':'+settings.backgroundVersion;if(lastAsset!==asset)updates['publicListBackgrounds/'+settings.token]={uid:owner.uid,version:settings.backgroundVersion,image:background.image};}
   await database.ref().update(updates);
   if(valid()){lastPublished=version;lastAsset=settings.backgroundVersion?settings.token+':'+settings.backgroundVersion:'';notify('ready');}
@@ -44,6 +44,7 @@
    if(image)next.backgroundVersion=image.version;
    revision++;const updates={['userListShares/'+owner.uid]:next};
    if(options.backgroundImage!==undefined)updates['userListBackgrounds/'+owner.uid]=image;
+   if(!publish)updates['publicListLinks/'+owner.uid]=null;
    if(old&&(!publish||old!==token)){updates['publicListShares/'+old]=reservation();updates['publicListBackgrounds/'+old]=null;}
    else if(old&&!image)updates['publicListBackgrounds/'+old]=null;
    await database.ref().update(updates);
@@ -51,7 +52,7 @@
   },
   async disable(){
    if(!active())throw Error('login');const old=config?.token;if(!old)return;revision++;config={...config,enabled:false};lastAsset='';
-   const updates={['userListShares/'+owner.uid+'/enabled']:false};if(old){updates['publicListShares/'+old]=reservation();updates['publicListBackgrounds/'+old]=null;}
+   const updates={['userListShares/'+owner.uid+'/enabled']:false,['publicListLinks/'+owner.uid]:null};if(old){updates['publicListShares/'+old]=reservation();updates['publicListBackgrounds/'+old]=null;}
    await database.ref().update(updates);if(active())notify('off');
   },
   async save(options){return this.enable(options,false,!!config&&config.enabled!==false);},
@@ -59,4 +60,5 @@
   retry:schedule,close(){closed=true;revision++;stops.forEach(stop=>stop());}
  };
 });
+
 

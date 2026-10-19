@@ -30,6 +30,11 @@ function addListShareRules(document){
    parts:{'.validate':"root.child('userListShares').child(auth.uid).child('showParts').val() === true",'$part':{'.validate':"$part.matches(/^[0-6]$/) && newData.isString() && newData.val().length <= 40"}},
    '$other':{'.validate':false}}},'$other':{'.validate':false}
  }};
+ r.publicListLinks={'$uid':{
+  '.read':"!data.exists() || (root.child('userListShares').child($uid).child('enabled').val() !== false && root.child('userListShares').child($uid).child('token').val() === data.child('token').val() && root.child('publicListShares').child(data.child('token').val()).child('uid').val() === $uid && root.child('publicListShares').child(data.child('token').val()).child('reserved').val() !== true)",
+  '.write':`(${GOOGLE}) && auth.uid === $uid`,'.validate':"newData.hasChildren(['token']) && root.child('userListShares').child($uid).child('enabled').val() !== false",
+  token:{'.validate':"newData.isString() && newData.val().matches(/^[a-f0-9]{48}$/) && root.child('userListShares').child($uid).child('token').val() === newData.val()"},'$other':{'.validate':false}
+ }};
  r.userListBackgrounds={'$uid':{'.read':`(${GOOGLE}) && auth.uid === $uid`,'.write':`(${GOOGLE}) && auth.uid === $uid`,'.validate':"newData.hasChildren(['version','image'])",version:{'.validate':version},image:{'.validate':image},'$other':{'.validate':false}}};
  r.publicListBackgrounds={'$token':{
   '.read':"data.exists() && root.child('userListShares').child(data.child('uid').val()).child('token').val() === $token && root.child('userListShares').child(data.child('uid').val()).child('enabled').val() !== false && root.child('userListShares').child(data.child('uid').val()).child('backgroundVersion').val() === data.child('version').val()",
@@ -39,5 +44,6 @@ function addListShareRules(document){
  return document;
 }
 module.exports={addListShareRules};
+
 
 

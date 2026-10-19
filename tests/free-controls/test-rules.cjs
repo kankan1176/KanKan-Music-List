@@ -64,7 +64,17 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertFails(set(ref(context('other','google.com'),'publicListShares/'+token),share));
  await assertSucceeds(set(ref(member,'publicListShares/'+token),share));
  await assertSucceeds(get(ref(anon,'publicListShares/'+token)));
+
+ await assertSucceeds(set(ref(member,'publicListLinks/member'),{token}));
+ await assertSucceeds(get(ref(anon,'publicListLinks/member')));
+ await assertSucceeds(get(ref(anon,'publicListLinks/unknown')));
+ await assertFails(get(ref(anon,'publicListLinks')));
+ await assertFails(set(ref(guest,'publicListLinks/member'),{token}));
+ await assertFails(set(ref(context('other','google.com'),'publicListLinks/member'),{token}));
+ await assertFails(set(ref(member,'publicListLinks/member'),{token:nextToken}));
+ await assertFails(set(ref(member,'publicListLinks/member'),{token,extra:true}));
  await assertSucceeds(update(ref(member,'userListShares/member'),{enabled:false}));
+ await assertFails(get(ref(anon,'publicListLinks/member')));
  await assertFails(get(ref(anon,'publicListShares/'+token)));
  await assertFails(set(ref(member,'publicListShares/'+token),share));
  await assertSucceeds(update(ref(member,'userListShares/member'),{enabled:true}));
@@ -145,6 +155,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  console.log('PASS: emulator confirms admin-only commands, own-only private reads and reports, anonymous/global cache access, Google/guest kind enforcement, guest-only rename, schema/timestamp constraints, and unchanged personal list isolation.');
  }finally{await env.cleanup()}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
 
 
 
