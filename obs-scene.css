@@ -9,3 +9,6 @@
 .host-name,.host-part{max-width:100%;flex:none}
 .scene.transparent{background:transparent}
 .scene.transparent .scene-waves{display:none}
+
+/* Contain row margins so each repeated cycle has exactly the same height. */
+.scene-song-cycle{display:flow-root}

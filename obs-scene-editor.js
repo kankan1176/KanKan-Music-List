@@ -22,7 +22,7 @@
  window.openObsModal=async()=>{
   if(typeof currentRoomId==='undefined'||!currentRoomId||!document.body.classList.contains('in-room')||!auth.currentUser)return;
   stop();stop=()=>{};const attempt=++version;uid=auth.currentUser.uid;loaded=false;busy=false;warnings=[];message='loading';draftSerial++;validatedSerial=-1;cfg=core.config({host:uid});people=[];general();memberFields();render();modal.style.display='flex';
-  const url=new URL('obs.html',location.href);url.search=new URLSearchParams({room:currentRoomId,owner:uid,v:'20261020-4'}).toString();el('Url').value=url.href;url.searchParams.set('preview','1');el('Preview').src=url.href;
+  const url=new URL('obs.html',location.href);url.search=new URLSearchParams({room:currentRoomId,owner:uid,v:'20261020-6'}).toString();el('Url').value=url.href;url.searchParams.set('preview','1');el('Preview').src=url.href;
   const ref=db.ref('obsScenes/'+currentRoomId+'/'+uid),membersRef=db.ref('rooms/'+currentRoomId+'/members');
   try{const snap=await ref.once('value');if(attempt!==version||auth.currentUser?.uid!==uid)return;cfg=core.config({...snap.val(),host:uid});loaded=true;message='ready';general();const receive=s=>{if(attempt!==version)return;raw=s.val()||{};const next=core.people(raw);if(JSON.stringify(next)===JSON.stringify(people))return;people=next;cfg.host=uid;general();memberFields();changed();};membersRef.on('value',receive,()=>{if(attempt===version){message='error';loaded=false;render();}});stop=()=>membersRef.off('value',receive);changed();}catch{if(attempt===version){message='error';render();}}
  };
