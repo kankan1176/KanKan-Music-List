@@ -10,6 +10,18 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'friendProfiles/member'),{displayName:'Member',code:'SL-TEST'});});
  const context=(uid,provider)=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider},auth_time:1700000000}).database();
  const admin=context('admin','google.com'),member=context('member','google.com'),guest=context('guest','anonymous'),fake=context('admin','anonymous'),anon=env.unauthenticatedContext().database();
+
+ const avatar={image:'data:image/jpeg;base64,/9j/',width:400,height:400,updatedAt:serverTimestamp()};
+ await assertSucceeds(set(ref(member,'userAvatars/member'),avatar));
+ await assertSucceeds(get(ref(anon,'userAvatars/member')));
+ await assertFails(get(ref(anon,'userAvatars')));
+ await assertFails(set(ref(guest,'userAvatars/guest'),avatar));
+ await assertFails(set(ref(context('other','google.com'),'userAvatars/member'),avatar));
+ await assertFails(set(ref(admin,'userAvatars/member'),avatar));
+ for(const bad of [{...avatar,width:500},{...avatar,image:'data:image/svg+xml;base64,AAAA'},{...avatar,image:'https://external.test/a.jpg'},{...avatar,image:'data:image/jpeg;base64,'+'A'.repeat(100001)},{...avatar,extra:true},{...avatar,updatedAt:1}])await assertFails(set(ref(member,'userAvatars/member'),bad));
+ await assertFails(set(ref(context('other','google.com'),'userAvatars/member'),null));
+ await assertSucceeds(set(ref(member,'userAvatars/member'),null));
+ console.log('PASS: avatar public per-user read, no listing, Google owner-only writes/deletion, bounded JPEG, dimensions, timestamps and schema.');
  const command=()=>({id:'command-1234',issuedAt:serverTimestamp()});
  await assertSucceeds(get(ref(anon,'adminClientControl/config')));
  await assertFails(set(ref(member,'adminClientControl/globalCache'),command()));

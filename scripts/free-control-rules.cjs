@@ -1,3 +1,4 @@
+const {addAvatarRules}=require('./avatar-rules.cjs');
 const {addListShareRules}=require('./list-share-rules.cjs');
 const {addAccountNameRules}=require('./account-name-rules.cjs');
 'use strict';
@@ -59,9 +60,10 @@ function mergeFreeRules(original) {
   if (Object.keys(result.rules).some(key => key.startsWith('$'))) throw Error('ルートのワイルドカードを確認する必要があります。自動適用を停止しました。');
   // Preserve existing grants and add only the administrator song-list read/insert permissions.
   result.rules.adminClientControl = freeRules();
-  return addListShareRules(addAccountNameRules(addMyListRules(result)));
+  return addAvatarRules(addListShareRules(addAccountNameRules(addMyListRules(result))));
 }
 module.exports = { freeRules, mergeFreeRules };
+
 
 
 

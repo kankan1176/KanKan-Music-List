@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - 'scripts/avatar-rules.cjs'
+      - 'profile-avatar.js'
       - 'scripts/free-control-rules.cjs'
       - 'scripts/list-share-rules.cjs'
       - 'scripts/public-list-links.cjs'
