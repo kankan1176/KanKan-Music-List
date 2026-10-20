@@ -8315,6 +8315,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
                 );
 
                 loadRowsIntoApp([rows[0], ...body]);
+                tableBodyWrapper.scrollTop = 0;
 
                 serverGenreCurrentRowKeys = rowKeys;
 
@@ -8540,6 +8541,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
             serverSearchHasNext=hasNext;
             serverSearchActiveQuery=normalized;
             loadRowsIntoApp(serverSearchMasterToRawRows(results));
+                tableBodyWrapper.scrollTop = 0;
             masterLoadNotice(`✅ 検索結果 ${page}ページ：${Object.keys(results).length}曲を表示（100曲ずつ・全曲マスター未取得）。`);
         } catch(error) {
             if (requestSeq !== serverSearchRequestSeq) return;
@@ -8627,6 +8629,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
 
                 serverPageHasOlder=hasOlder;
                 loadRowsIntoApp(rows);
+                tableBodyWrapper.scrollTop = 0;
                 masterLoadNotice(`✅ 全曲一覧：データから${Math.max(0,rows.length-1)}曲だけ取得しました（${serverPageNumber}ページ目）。`);
             }catch(error){
                 allData=previousRows;
