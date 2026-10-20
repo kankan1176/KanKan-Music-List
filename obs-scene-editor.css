@@ -45,21 +45,21 @@ body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{
 #obsModal footer button{font-size:13px!important;min-height:38px;padding:7px 10px!important}
 #obsModal .scene-transparency{flex-direction:row;align-items:center;gap:9px;margin:10px 0}
 #obsModal .scene-transparency input[type=checkbox]{width:19px;height:19px;min-width:19px;padding:0;margin:0;flex:none;accent-color:#607cf2}
-@media(max-width:760px), (pointer:coarse) and (max-width:1366px){
+@media (max-width:760px), (pointer:coarse){
  body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay{padding:7px!important}
  #obsModal .scene-editor,body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{padding:10px!important;gap:6px}
  #obsModal .scene-editor-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(65px,min(28vh,230px)) minmax(80px,1fr);grid-template-rows:minmax(65px,min(28dvh,230px)) minmax(80px,1fr);gap:9px}
  #obsModal .scene-editor-preview{grid-row:1}
  #obsModal .scene-editor-controls{grid-row:2}
 }
-@media(max-height:540px){
+@media (max-height:540px){
  #obsModal .scene-editor,body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{gap:4px;padding:8px!important}
  #obsModal header h2{font-size:18px!important}
  #obsModal header button,#obsModal footer button{min-height:32px;padding:4px 8px!important}
  #obsModal .scene-editor>label{gap:2px}
  #obsModal #obsSceneUrl{padding:5px}
 }
-@media(max-height:540px) and (min-width:700px){
+@media (max-height:540px) and (min-width:700px){
  #obsModal .scene-editor-body{grid-template-columns:minmax(220px,1fr) minmax(0,1.5fr);grid-template-rows:minmax(0,1fr);gap:10px}
  #obsModal .scene-editor-controls,#obsModal .scene-editor-preview{grid-row:1}
  #obsModal .scene-editor-controls{grid-column:1}
