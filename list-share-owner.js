@@ -1,7 +1,7 @@
 (() => {
  'use strict';
  const trigger=document.getElementById('listUrlShareButton');if(!trigger)return;
- const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='list-share-editor.css?v=20261019-2';document.head.append(stylesheet);
+ const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='list-share-editor.css?v=20261020-8';document.head.append(stylesheet);
  const dialog=document.createElement('dialog');dialog.className='sl-list-share-dialog';dialog.setAttribute('aria-labelledby','listShareTitle');
  dialog.innerHTML='<div class="sl-share-editor-heading"><h2 id="listShareTitle"></h2><form method="dialog"><button class="sl-share-close" aria-label="Close">×</button></form></div><div class="sl-share-editor-body"><section class="sl-share-editor-fields"><label><span data-share-text="pageTitle"></span><input type="text" id="listSharePageTitle" maxlength="100"></label><label><span data-share-text="preset"></span><select id="listSharePreset"><option value="dark"></option><option value="light"></option></select></label><div id="listShareColors" class="sl-share-colors"></div><label><span data-share-text="image"></span><input type="file" id="listShareImage" accept=".jpg,.jpeg,image/jpeg"><small data-share-text="imageHint"></small><button id="listShareRemoveImage" type="button"></button></label><label><span data-share-text="overlay"></span> <output id="listShareOverlayValue"></output><input type="range" id="listShareOverlay" min="0" max="85" step="1"></label><div class="sl-share-checks"><label><input type="checkbox" id="listShareKey"><span data-share-text="key"></span></label><label><input type="checkbox" id="listShareParts"><span data-share-text="parts"></span></label></div><small id="listShareImageStatus" role="status"></small></section><section class="sl-share-editor-preview"><p data-share-text="previewHelp"></p><iframe id="listShareFrame" src="mylist.html?v=20261020-3#preview" title="Preview"></iframe></section></div><div class="sl-share-editor-footer"><p id="listShareNote"></p><p id="listShareOverwriteNote"></p><p id="listShareStatus" role="status" aria-live="polite"></p><input id="listShareUrl" type="text" readonly aria-label="URL"><div class="sl-share-editor-actions"><button id="listShareSave" type="button"></button><button id="listShareCopy" type="button"></button><a id="listSharePreview" target="_blank" rel="noopener noreferrer"></a><button id="listShareRetry" type="button"></button><button id="listShareToggle" type="button" role="switch" aria-checked="false"><span class="sl-publish-track" aria-hidden="true"></span><span id="listShareToggleText"></span></button></div></div>';
  document.body.append(dialog);const el=id=>document.getElementById('listShare'+id),design=SLListDesign;
@@ -46,5 +46,6 @@
  window.slOwnListViewUrl=()=>config&&config.enabled!==false?new URL('mylist.html#'+config.token,location.href).href:new URL('mylist.html?v=20261020-3#mine',location.href).href;
  window.addEventListener('sl-language-change',render);fill();render();
 })();
+
 
 

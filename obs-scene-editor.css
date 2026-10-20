@@ -1,56 +1,67 @@
-/* The preview and actions stay put; only the settings column scrolls. */
+/* Keep the preview and actions fixed; scroll only the settings panel. */
 body.sl-obs-editor-open #slFilterbar,
-body.sl-obs-editor-open #slTopbar{visibility:hidden!important;pointer-events:none!important}
+body.sl-obs-editor-open #slTopbar,
+body.sl-obs-editor-open #slRoomDockHandle{visibility:hidden!important;pointer-events:none!important}
 body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay{
- top:0!important;bottom:0!important;padding:14px!important;align-items:stretch!important;
+ top:0!important;bottom:0!important;padding:12px!important;align-items:stretch!important;
 }
 #obsModal .scene-editor,
 body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{
  display:flex;flex-direction:column;width:100%!important;max-width:none!important;
  height:100%!important;max-height:100%!important;min-width:0;min-height:0;
- margin:0!important;padding:18px!important;overflow:hidden!important;gap:10px;box-sizing:border-box;
+ margin:0!important;padding:14px!important;overflow:hidden!important;gap:8px;box-sizing:border-box;
 }
-#obsModal .scene-editor header,#obsModal footer{display:flex;align-items:center;gap:12px;flex:none}
-#obsModal header h2{margin:0;flex:1;min-width:0}
-#obsModal p{margin:0;font-size:13px;line-height:1.6;white-space:normal;overflow-wrap:anywhere}
+#obsModal .scene-editor header,#obsModal footer{display:flex;align-items:center;gap:10px;flex:none}
+#obsModal header h2{margin:0!important;padding:0!important;flex:1;min-width:0;font-size:clamp(18px,2.6vw,26px)!important;line-height:1.3!important}
+#obsModal header button{flex:none;min-width:38px;min-height:38px;padding:4px 8px!important}
+#obsModal .scene-editor p{margin:0!important;font-size:12px!important;line-height:1.45!important;white-space:normal;overflow-wrap:anywhere}
 #obsModal .scene-editor>p,#obsModal .scene-editor>label{flex:none}
 #obsModal .scene-editor-body{
- display:grid;grid-template-columns:minmax(240px,1fr) minmax(0,2fr);gap:18px;
+ display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2fr);gap:14px;
  flex:1 1 0;min-height:0;min-width:0;overflow:hidden;
 }
 #obsModal .scene-editor-controls{
  min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;
- overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:8px;
+ overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:7px;
 }
-#obsModal .scene-editor-preview{min-width:0;min-height:0;overflow:hidden;display:flex;align-items:flex-start}
+#obsModal .scene-editor-controls>p{margin:0 0 12px!important}
+#obsModal .scene-editor-preview{position:relative;min-width:0;min-height:0;overflow:hidden}
 #obsModal fieldset{border:0;padding:0;margin:0;min-width:0}
-#obsModal label{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;min-width:0;font-size:13px}
-#obsModal input,#obsModal select,#obsModal textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;padding:9px;font-size:14px}
+#obsModal label{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;min-width:0;font-size:13px!important}
+#obsModal input,#obsModal select,#obsModal textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;padding:8px;font-size:16px!important}
 #obsModal textarea{resize:vertical;min-height:75px;white-space:normal;font-family:inherit}
 #obsModal iframe{
- width:100%;max-width:100%;height:auto;max-height:100%;aspect-ratio:16/9;min-width:0;min-height:0;
- border:1px solid var(--border-color,#506084);border-radius:10px;display:block;box-sizing:border-box;
+ position:absolute;left:50%;top:0;transform:translateX(-50%);display:block;min-width:0;min-height:0;
+ border:1px solid var(--border-color,#506084);border-radius:10px;box-sizing:border-box;
+ background-color:#d9dce4;background-image:conic-gradient(#aeb4c1 25%,transparent 0 50%,#aeb4c1 0 75%,transparent 0);background-size:20px 20px;
 }
-#obsModal .scene-member-editor{padding:12px;border:1px solid var(--border-color,#506084);border-radius:10px;margin-bottom:12px}
-#obsModal .scene-editor-controls>p{margin:12px 0}
+#obsModal .scene-member-editor{padding:10px;border:1px solid var(--border-color,#506084);border-radius:10px;margin-bottom:12px}
 #obsModal [aria-invalid=true]{outline:2px solid #ed986e}
 #obsSceneFeedback[data-error=true]{color:#ed986e}
-#obsModal #obsSceneUrl{font-family:monospace}
+#obsModal #obsSceneUrl{font-family:monospace;font-size:12px!important;padding:7px}
+#obsModal .scene-editor>label{margin-bottom:0}
 #obsModal button{white-space:normal}
 #obsModal footer{flex-wrap:wrap}
-@media(max-width:760px){
+#obsModal footer button{font-size:13px!important;min-height:38px;padding:7px 10px!important}
+#obsModal .scene-transparency{flex-direction:row;align-items:center;gap:9px;margin:10px 0}
+#obsModal .scene-transparency input[type=checkbox]{width:19px;height:19px;min-width:19px;padding:0;margin:0;flex:none;accent-color:#607cf2}
+@media(max-width:760px), (pointer:coarse) and (max-width:1366px){
  body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay{padding:7px!important}
- #obsModal .scene-editor,body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{padding:12px!important;gap:7px}
- #obsModal .scene-editor-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,30vh) minmax(0,1fr);gap:10px}
+ #obsModal .scene-editor,body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{padding:10px!important;gap:6px}
+ #obsModal .scene-editor-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(65px,min(28vh,230px)) minmax(80px,1fr);grid-template-rows:minmax(65px,min(28dvh,230px)) minmax(80px,1fr);gap:9px}
  #obsModal .scene-editor-preview{grid-row:1}
  #obsModal .scene-editor-controls{grid-row:2}
 }
 @media(max-height:540px){
- #obsModal .scene-editor>p[data-scene-text=intro]{display:none}
- #obsModal header h2{font-size:20px!important;padding:0!important}
- #obsModal .scene-editor,body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{gap:5px;padding:10px!important}
+ #obsModal .scene-editor,body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{gap:4px;padding:8px!important}
+ #obsModal header h2{font-size:18px!important}
+ #obsModal header button,#obsModal footer button{min-height:32px;padding:4px 8px!important}
+ #obsModal .scene-editor>label{gap:2px}
+ #obsModal #obsSceneUrl{padding:5px}
 }
-
-#obsModal .scene-transparency{flex-direction:row;align-items:center;gap:9px;margin:10px 0}
-#obsModal .scene-transparency input[type=checkbox]{width:19px;height:19px;min-width:19px;padding:0;margin:0;flex:none;accent-color:#607cf2}
-#obsModal #obsScenePreview{background-color:#d9dce4;background-image:conic-gradient(#aeb4c1 25%,transparent 0 50%,#aeb4c1 0 75%,transparent 0);background-size:20px 20px}
+@media(max-height:540px) and (min-width:700px){
+ #obsModal .scene-editor-body{grid-template-columns:minmax(220px,1fr) minmax(0,1.5fr);grid-template-rows:minmax(0,1fr);gap:10px}
+ #obsModal .scene-editor-controls,#obsModal .scene-editor-preview{grid-row:1}
+ #obsModal .scene-editor-controls{grid-column:1}
+ #obsModal .scene-editor-preview{grid-column:2}
+}
