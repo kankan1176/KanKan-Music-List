@@ -3664,7 +3664,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
   <nav class="sl-sidebar-nav">
     <button type="button" id="slNavHome" class="sl-nav-home" onclick="slNavigate('home')"><span>🏠</span><b>トップ</b></button>
     <button type="button" id="slNavAll" class="sl-nav-all" onclick="slNavigate('all')"><span>📚</span><b>全曲一覧</b></button>
-    <button type="button" id="slNavMy" class="sl-nav-my" onclick="slNavigate('mylist')"><span>📒</span><b>マイリスト</b></button>
+    <button type="button" id="slNavMy" class="sl-nav-my" onclick="slOpenMyListPage()"><span>📒</span><b>マイリスト</b></button>
     <button type="button" id="slNavRoom" class="sl-nav-room" onclick="slNavigate('room')"><span>🎧</span><b>ルーム</b></button>
     <button type="button" id="slNavShare" class="sl-nav-share" onclick="copyRoomLink()" title="現在のルームURLをコピー"><span>🔗</span><b>URL共有</b></button>
     <button type="button" id="slNavObs" class="sl-nav-obs" onclick="openObsModal()" aria-haspopup="dialog" aria-controls="obsModal"><span>📹</span><b>OBS配信画面設定</b></button>
@@ -4188,7 +4188,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         <article><span>🎨</span><div><strong>共有ページを自由にデザイン</strong><small>タイトル・背景画像・配色を変更できます。ダーク／ライトを基準に、文字・枠線・検索欄の文字色まで調整し、保存前にプレビューできます。</small></div></article>
         <article><span>📚</span><div><strong>100曲ごとのページ表示</strong><small>ジャンル絞り込み、曲名・アーティスト検索、並べ替えに対応。画面全体を固定し、1ページ100曲の一覧部分だけをスクロールできます。</small></div></article>
         <article><span>🔘</span><div><strong>公開・停止をスイッチで切り替え</strong><small>停止してもURLと設定を保持し、同じURLで公開を再開できます。背景・配色の上書き保存時には、以前の設定が削除されることを確認できます。</small></div></article>
-        <article><span>🧭</span><div><strong>左メニューに共有用の入口を追加</strong><small>「マイリストサイト編集」で共有設定を開き、「マイリスト共有」で一覧を新規タブ表示。既存の楽曲登録・編集用マイリストも引き続き利用できます。</small></div></article>
+        <article><span>🧭</span><div><strong>左メニューに共有用の入口を追加</strong><small>「マイリストUI編集」で共有設定を開き、「マイリスト」で一覧を新規タブ表示。既存の楽曲登録・編集用マイリストも引き続き利用できます。</small></div></article>
         <article><span>📋</span><div><strong>クリップボード一括登録を改善</strong><small>曲名・アーティスト名の表記ゆれを考慮したマスター照合と候補選択に対応。貼り付けから解析・内容確認・登録までの流れを改善しました。</small></div></article>
         <article><span>🌐</span><div><strong>操作性と多言語表示を改善</strong><small>ヘルプなどの翻訳を拡充し、セットリストの「戻す」「削除」の動作も修正しました。</small></div></article>
       </div>
@@ -4290,7 +4290,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
 
             <div class="header-buttons">
                 <button type="button" id="homeBackBtn" onclick="goHome()">🏠 トップ</button>
-                <button id="myListSwitchBtn" onclick="toggleMyList()" style="display:none;">📁 マイリスト</button>
+                <button id="myListSwitchBtn" onclick="myListMode ? void toggleMyList() : slOpenMyListPage()" style="display:none;">📁 マイリスト</button>
                 <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
                 <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 新規楽曲追加</button>
                 <button id="myPageBtn" type="button" onclick="openSiteMenu()" aria-haspopup="dialog" aria-controls="siteMenuModal">📝 メニュー</button>
@@ -4312,7 +4312,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         <nav id="mobileQuickNav" aria-label="スマホ用クイック操作">
             <div class="mobile-main-actions">
                 <button type="button" id="mobileAllBtn" onclick="mobileGoAll()">🌐 全曲一覧</button>
-                <button type="button" id="mobileMyBtn" onclick="mobileGoMyList()">📁 マイリスト</button>
+                <button type="button" id="mobileMyBtn" onclick="closeMobileMenu();slOpenMyListPage()">📁 マイリスト</button>
                 <button type="button" id="mobileMyPageBtn" onclick="openSiteMenu()">📝 メニュー</button>
                 <button type="button" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-expanded="false" aria-controls="mobileMorePanel" aria-label="その他の操作">☰</button>
             </div>
@@ -4354,7 +4354,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
         <div id="listModeIndicator" class="list-mode-indicator" role="status" aria-live="polite">📚 総登録楽曲数</div>
 
         <div id="myListClipboardHeader" aria-label="マイリストのクリップボード操作">
-            <button type="button" id="listUrlShareButton">🔗 マイリストを共有</button>
+            <button type="button" id="listUrlShareButton">🎨 マイリストUI編集</button>
             <span class="mylist-clipboard-title">📋 クリップボード</span>
             <button type="button" class="clipboard-import-header-btn" onclick="openClipboardImportModal()" title="Excel・スプレッドシートからコピーした楽曲情報をマイリストへ一括登録">📋 貼り付けからのマイリスト一括登録</button>
             <button type="button" onclick="openClipboardHelpManual()" title="クリップボード一括登録の使い方を確認">✏️ クリップボードの使い方を見る</button>
@@ -10809,7 +10809,7 @@ html:not([lang="ja"]) .sl-help-nav button{white-space:normal;overflow-wrap:anywh
 </script>
 <script src="setlist-share.js"></script>
 <script src="room-history.js"></script>
-<script src="admin-control-api.js?v=20261017-free1"></script><script src="admin-client-controls.js?v=20261017-free1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-1"></script><script src="list-share-owner.js?v=20261019-2"></script><script src="list-share-navigation.js?v=20261019-2"></script><script src="profile-avatar.js?v=20261020-1"></script><script src="obs-scene-core.js?v=20261020-1"></script><script src="obs-scene-editor.js?v=20261020-2"></script></body>
+<script src="admin-control-api.js?v=20261017-free1"></script><script src="admin-client-controls.js?v=20261017-free1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-3"></script><script src="list-share-owner.js?v=20261020-3"></script><script src="list-share-navigation.js?v=20261020-3"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261020-3"></script><script src="obs-scene-editor.js?v=20261020-3"></script></body>
 </html>
 
 

@@ -11,7 +11,7 @@
  const google=user=>!!user&&!user.isAnonymous&&user.providerData?.some(p=>p.providerId==='google.com');
  const valid=value=>value?.width===400&&value?.height===400&&typeof value.image==='string'&&value.image.length<=MAX_DATA&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(value.image);
  const fallback='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="50" fill="#627bc1"/><circle cx="50" cy="35" r="18" fill="white"/><path d="M18 94V81c0-31 64-31 64 0v13" fill="white"/></svg>');
- const host=document.querySelector('#settingsModal .modal');if(!host)return;
+ const host=document.querySelector('#accountModal .modal');if(!host)return;
  const panel=document.createElement('section');panel.id='profileAvatarSetting';panel.className='setting-group';panel.setAttribute('translate','no');
  panel.innerHTML='<h3 data-avatar-text="title"></h3><p data-avatar-text="help"></p><p data-avatar-text="public"></p><div class="avatar-editor"><img id="profileAvatarPreview" width="96" height="96"><div class="avatar-actions"><input id="profileAvatarFile" type="file" accept="image/jpeg,image/png,image/gif" hidden><button type="button" id="profileAvatarChoose" data-avatar-text="choose"></button><button type="button" id="profileAvatarSave" data-avatar-text="save"></button><button type="button" id="profileAvatarCancel" data-avatar-text="cancel"></button><button type="button" id="profileAvatarDelete" data-avatar-text="remove"></button></div></div><p id="profileAvatarStatus" role="status" aria-live="polite"></p>';
  host.querySelector('h2').after(panel);
