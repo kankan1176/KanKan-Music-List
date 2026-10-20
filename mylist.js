@@ -38,8 +38,9 @@
   if(data&&!filtered.length)el('Status').textContent=text.empty;
   for(const suffix of ['', 'Top']){el('Pagination'+suffix).hidden=!data;el('Prev'+suffix).textContent=text.previous;el('Next'+suffix).textContent=text.next;el('Prev'+suffix).disabled=page===0;el('Next'+suffix).disabled=page===pages-1;}
   el('Page').textContent=(page+1)+' / '+pages;el('PageSelect').setAttribute('aria-label',text.page);el('PageSelect').replaceChildren(...Array.from({length:pages},(_,i)=>new Option((i+1)+' / '+pages,String(i))));el('PageSelect').value=String(page);el('ListViewport').setAttribute('aria-label',text.songList);
+  window.SLListPageState={ownerUid:data?.uid||'',available:!!data&&!data.reserved,language};window.dispatchEvent(new CustomEvent('sl-list-page-state',{detail:window.SLListPageState}));
  }
- function accept(value){data=value&&typeof value.name==='string'?value:null;rows=data?Object.entries(data.songs||{}).filter(([,r])=>r&&typeof r.title==='string'&&typeof r.artist==='string').map(([id,row])=>({...row,id,genres:Array.isArray(row.genres)?row.genres:genreCache.get(id)||[]})):[];status=data?'ready':'unavailable';render();}
+ function accept(value){data=value&&typeof value.name==='string'&&!value.reserved?value:null;rows=data?Object.entries(data.songs||{}).filter(([,r])=>r&&typeof r.title==='string'&&typeof r.artist==='string').map(([id,row])=>({...row,id,genres:Array.isArray(row.genres)?row.genres:genreCache.get(id)||[]})):[];status=data?'ready':'unavailable';render();}
  el('Search').oninput=()=>move(0);el('Genre').onchange=()=>move(0);el('Sort').onchange=()=>move(0);el('Language').onchange=()=>{language=el('Language').value;render();};for(const suffix of ['', 'Top']){el('Prev'+suffix).onclick=()=>move(page-1);el('Next'+suffix).onclick=()=>move(page+1);}el('PageSelect').onchange=()=>move(Number(el('PageSelect').value));
  const config={apiKey:'AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI',authDomain:'kankan-session-room.firebaseapp.com',databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'kankan-session-room',appId:'1:759342880820:web:9af0af755e35926a281261'};
  async function loadImage(database,token,version){
@@ -79,7 +80,7 @@
      async function refresh(){
       if(ready<4||version!==generation)return;const update=++serial,songs={};let next=0;const records=Object.entries(saved||{}).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item));
       await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length&&version===generation&&update===serial){const[id,item]=records[next++];try{let master=cache.get(id);if(!master){master=(await database.ref('songs/'+id).once('value')).val();if(master)cache.set(id,master);}const row=core.song(master,item,{showKey:true,showParts:true});if(row)songs[id]=row;}catch{}}}));
-      if(version!==generation||update!==serial)return;accept({name,songs,appearance:settings?.appearance,updatedAt:0});setImage(validImage(image?.image)?image.image:'');
+      if(version!==generation||update!==serial)return;accept({uid:user.uid,name,songs,appearance:settings?.appearance,updatedAt:0});setImage(validImage(image?.image)?image.image:'');
      }
      for(const[path,receive]of [['userListShares/'+user.uid,v=>settings=v],['users/'+user.uid+'/songs',v=>saved=v||{}],['users/'+user.uid+'/profile/displayName',v=>name=v||user.displayName||'ユーザー'],['userListBackgrounds/'+user.uid,v=>image=v]]){
       const ref=database.ref(path);let loaded=false;const fn=snapshot=>{if(version!==generation)return;receive(snapshot.val());if(!loaded){loaded=true;ready++;}void refresh();};ref.on('value',fn,()=>{if(version===generation){data=null;rows=[];status='loadError';setImage('');render();}});listeners.push(()=>ref.off('value',fn));
@@ -91,7 +92,8 @@
  }
  if(preview){
   status='loading';render();window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='sl-list-preview')return;language=SLListShareText[event.data.language]?event.data.language:language;el('Language').value=language;accept(event.data.payload);setImage(validImage(event.data.image)?event.data.image:'');});
- }else if(mine){loadMine();}else{window.addEventListener('hashchange',()=>location.reload());load();}
+ }else{window.addEventListener('hashchange',()=>location.reload());if(mine)loadMine();else load();}
 })();
+
 
 

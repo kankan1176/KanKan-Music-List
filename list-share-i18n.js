@@ -86,7 +86,14 @@ window.SLListShareText={
     "overwriteNote": "背景・配色を保存すると、以前の設定は上書きされ削除されます。",
     "overwriteAsk": "現在の背景・配色設定は上書きされ、元の設定は削除されます。元には戻せません。保存しますか？",
     "initialOff": "まだ公開していません。設定を保存し、スイッチで公開できます。",
-    "userUnavailable": "このユーザーはマイリストを公開していないか、公開を停止しています。"
+    "userUnavailable": "このユーザーはマイリストを公開していないか、公開を停止しています。",
+    "favoriteAdd": "☆ お気に入り登録",
+    "favoriteRemove": "★ お気に入り解除",
+    "favoriteLogin": "Googleログインしてお気に入り登録",
+    "favoriteSaved": "お気に入りに登録しました。",
+    "favoriteRemoved": "お気に入りを解除しました。",
+    "favoriteError": "お気に入りを更新できませんでした。接続を確認して再度お試しください。",
+    "favoriteRemoveAsk": "このユーザーのお気に入り登録を解除しますか？"
   },
   "en": {
     "share": "🎨 Edit list appearance",
@@ -166,7 +173,7 @@ window.SLListShareText={
     "privacy": "Privacy policy",
     "editList": "Add or edit songs",
     "siteEdit": "Edit list appearance",
-    "siteShare": "View shared list",
+    "siteShare": "Share my list",
     "saveSettings": "Save settings",
     "publishLabel": "Publish my list",
     "published": "Public",
@@ -175,7 +182,14 @@ window.SLListShareText={
     "overwriteNote": "Saving a new background or color scheme replaces and deletes the previous settings.",
     "overwriteAsk": "Your current background / color settings will be overwritten and deleted. This cannot be undone. Save changes?",
     "initialOff": "Not public yet. Save your settings, then use the switch to publish.",
-    "userUnavailable": "This user has not published their list, or sharing is paused."
+    "userUnavailable": "This user has not published their list, or sharing is paused.",
+    "favoriteAdd": "☆ Add to favorites",
+    "favoriteRemove": "★ Remove from favorites",
+    "favoriteLogin": "Sign in with Google to add to favorites",
+    "favoriteSaved": "Added to favorites.",
+    "favoriteRemoved": "Removed from favorites.",
+    "favoriteError": "Could not update favorites. Check your connection and try again.",
+    "favoriteRemoveAsk": "Remove this user from your favorites?"
   },
   "ko": {
     "share": "🎨 마이리스트 UI 편집",
@@ -255,7 +269,7 @@ window.SLListShareText={
     "privacy": "개인정보처리방침",
     "editList": "곡 등록·편집",
     "siteEdit": "마이리스트 UI 편집",
-    "siteShare": "공유 목록 보기",
+    "siteShare": "마이리스트 공유",
     "saveSettings": "설정 저장",
     "publishLabel": "내 목록 공개",
     "published": "공개 중",
@@ -264,7 +278,14 @@ window.SLListShareText={
     "overwriteNote": "배경이나 색상을 저장하면 이전 설정은 덮어쓰여 삭제됩니다.",
     "overwriteAsk": "현재 배경 및 색상 설정이 덮어쓰여 삭제됩니다. 되돌릴 수 없습니다. 저장할까요?",
     "initialOff": "아직 공개하지 않았습니다. 설정을 저장한 후 스위치로 공개할 수 있습니다.",
-    "userUnavailable": "이 사용자는 목록을 공개하지 않았거나 공개를 중지했습니다."
+    "userUnavailable": "이 사용자는 목록을 공개하지 않았거나 공개를 중지했습니다.",
+    "favoriteAdd": "☆ 즐겨찾기 등록",
+    "favoriteRemove": "★ 즐겨찾기 해제",
+    "favoriteLogin": "Google 로그인 후 즐겨찾기 등록",
+    "favoriteSaved": "즐겨찾기에 등록했습니다.",
+    "favoriteRemoved": "즐겨찾기를 해제했습니다.",
+    "favoriteError": "즐겨찾기를 업데이트하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    "favoriteRemoveAsk": "이 사용자를 즐겨찾기에서 해제할까요?"
   },
   "zh-TW": {
     "share": "🎨 編輯個人清單介面",
@@ -344,7 +365,7 @@ window.SLListShareText={
     "privacy": "隱私權政策",
     "editList": "新增與編輯歌曲",
     "siteEdit": "編輯個人清單介面",
-    "siteShare": "查看分享清單",
+    "siteShare": "分享個人清單",
     "saveSettings": "儲存設定",
     "publishLabel": "公開個人清單",
     "published": "公開中",
@@ -353,6 +374,14 @@ window.SLListShareText={
     "overwriteNote": "儲存背景或配色時，會覆寫並刪除先前的設定。",
     "overwriteAsk": "目前的背景及配色設定將被覆寫並刪除，無法復原。要儲存嗎？",
     "initialOff": "尚未公開。儲存設定後，可使用開關公開。",
-    "userUnavailable": "此使用者尚未公開清單，或已停止公開。"
+    "userUnavailable": "此使用者尚未公開清單，或已停止公開。",
+    "favoriteAdd": "☆ 加入最愛",
+    "favoriteRemove": "★ 移除最愛",
+    "favoriteLogin": "使用 Google 登入以加入最愛",
+    "favoriteSaved": "已加入最愛。",
+    "favoriteRemoved": "已移除最愛。",
+    "favoriteError": "無法更新最愛。請確認連線後重試。",
+    "favoriteRemoveAsk": "要將此使用者從最愛移除嗎？"
   }
 };
+

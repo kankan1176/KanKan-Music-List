@@ -3,3 +3,5 @@
 
 #shareBrand{display:inline-flex;align-items:center;gap:9px}#shareBrand img{object-fit:contain;flex-shrink:0}#shareSearch{color:var(--share-searchText,var(--share-text));caret-color:var(--share-searchText,var(--share-text))}#shareSearch::placeholder{color:var(--share-searchText,var(--share-text));opacity:.72}.share-footer-meta{display:flex;flex-direction:column;gap:4px;min-width:0}.share-legal{display:flex;gap:12px;flex-wrap:wrap}.share-legal a{font-size:10px;text-decoration:none}.share-legal a:hover{text-decoration:underline}@media (max-width:650px), (pointer:coarse){#shareBrand img{width:28px;height:28px}.share-footer-meta{width:100%}.share-legal{gap:10px}.share-legal a{font-size:9px}}@media (max-height:500px){#shareBrand img{width:22px;height:22px}.share-footer-meta{width:auto;gap:2px}.share-legal a{font-size:9px}}
 
+
+.share-page-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px}.share-page-actions button{font-size:12px;padding:7px 11px}.share-page-actions #shareActionStatus{font-size:11px;color:var(--share-muted);overflow-wrap:anywhere}.share-page-actions button[aria-pressed=true]{border-color:var(--share-accent)}
