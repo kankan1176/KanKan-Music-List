@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
     paths:
+      - 'scripts/check-obs-live-access.cjs'
+      - 'tests/free-controls/test-obs-live-access.cjs'
+      - 'scripts/obs-scene-rules.cjs'
+      - 'obs-scene-core.js'
+      - 'obs-scene-editor.js'
+      - 'obs-scene.js'
+      - 'scripts/check-obs-scene.cjs'
       - 'scripts/avatar-rules.cjs'
       - 'profile-avatar.js'
       - 'scripts/free-control-rules.cjs'
@@ -54,6 +61,7 @@ jobs:
           node scripts/check-admin-mylist.cjs
           node scripts/check-account-name.cjs
           node scripts/check-list-share.cjs
+          node scripts/check-obs-scene.cjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -66,6 +74,8 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Verify OBS viewer access using current rules and synthetic data only
+        run: node scripts/check-obs-live-access.cjs
       - name: Apply only Realtime Database rules and free control configuration
         run: node scripts/configure-free-account-controls.cjs --apply
       - name: Keep the previous rules for recovery

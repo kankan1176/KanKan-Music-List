@@ -22,6 +22,20 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertFails(set(ref(context('other','google.com'),'userAvatars/member'),null));
  await assertSucceeds(set(ref(member,'userAvatars/member'),null));
  console.log('PASS: avatar public per-user read, no listing, Google owner-only writes/deletion, bounded JPEG, dimensions, timestamps and schema.');
+
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'rooms/DEMO/settings'),{createdAt:Date.now()});});
+ const scene={theme:'dark',roomName:'Room',description:'Description',host:'member',speed:25,font:'system',members:{member:{name:'',part:'Drums',color:0}},updatedAt:serverTimestamp()};
+ await assertSucceeds(set(ref(member,'obsScenes/DEMO/member'),scene));
+ await assertSucceeds(get(ref(anon,'obsScenes/DEMO/member')));
+ await assertFails(get(ref(anon,'obsScenes/DEMO')));
+ await assertFails(get(ref(member,'obsScenes')));
+ await assertSucceeds(set(ref(guest,'obsScenes/DEMO/guest'),{...scene,host:'guest'}));
+ await assertFails(set(ref(guest,'obsScenes/DEMO/member'),scene));
+ await assertFails(set(ref(admin,'obsScenes/DEMO/member'),scene));
+ await assertFails(set(ref(member,'obsScenes/MISSING/member'),scene));
+ for(const bad of [{...scene,speed:0},{...scene,theme:'bad'},{...scene,font:'url(bad)'},{...scene,description:'x'.repeat(501)},{...scene,updatedAt:1},{...scene,extra:true},{...scene,members:{member:{name:'Name',part:'Drums',color:5}}}])await assertFails(set(ref(member,'obsScenes/DEMO/member'),bad));
+ await assertSucceeds(set(ref(member,'obsScenes/DEMO/member'),null));
+ console.log('PASS: OBS settings owner isolation, anonymous display read, no enumeration, missing rooms, bounded fields and guest ownership.');
  const command=()=>({id:'command-1234',issuedAt:serverTimestamp()});
  await assertSucceeds(get(ref(anon,'adminClientControl/config')));
  await assertFails(set(ref(member,'adminClientControl/globalCache'),command()));
