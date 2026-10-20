@@ -27,6 +27,9 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  const scene={theme:'dark',roomName:'Room',description:'Description',host:'member',speed:25,font:'system',members:{member:{name:'',part:'Drums',color:0}},updatedAt:serverTimestamp()};
  await assertSucceeds(set(ref(member,'obsScenes/DEMO/member'),scene));
  await assertSucceeds(get(ref(anon,'obsScenes/DEMO/member')));
+ await assertSucceeds(set(ref(member,'obsScenes/DEMO/member'),{...scene,transparentBackground:true}));
+ await assertSucceeds(set(ref(member,'obsScenes/DEMO/member'),{...scene,transparentBackground:false}));
+ await assertFails(set(ref(member,'obsScenes/DEMO/member'),{...scene,transparentBackground:'true'}));
  await assertFails(get(ref(anon,'obsScenes/DEMO')));
  await assertFails(get(ref(member,'obsScenes')));
  await assertSucceeds(set(ref(guest,'obsScenes/DEMO/guest'),{...scene,host:'guest'}));

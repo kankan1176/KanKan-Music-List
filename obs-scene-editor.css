@@ -50,3 +50,7 @@ body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{
  #obsModal header h2{font-size:20px!important;padding:0!important}
  #obsModal .scene-editor,body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{gap:5px;padding:10px!important}
 }
+
+#obsModal .scene-transparency{flex-direction:row;align-items:center;gap:9px;margin:10px 0}
+#obsModal .scene-transparency input[type=checkbox]{width:19px;height:19px;min-width:19px;padding:0;margin:0;flex:none;accent-color:#607cf2}
+#obsModal #obsScenePreview{background-color:#d9dce4;background-image:conic-gradient(#aeb4c1 25%,transparent 0 50%,#aeb4c1 0 75%,transparent 0);background-size:20px 20px}
