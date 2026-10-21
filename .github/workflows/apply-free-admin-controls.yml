@@ -8,6 +8,7 @@ on:
       - 'scripts/check-high-priority-security.cjs'
       - 'song-change-core.js'
       - 'tests/free-controls/test-high-priority-access.cjs'
+      - 'tests/free-controls/test-account-privacy-access.cjs'
       - 'scripts/check-obs-live-access.cjs'
       - 'tests/free-controls/test-obs-live-access.cjs'
       - 'scripts/obs-scene-rules.cjs'

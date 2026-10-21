@@ -248,7 +248,7 @@ async function reviewRequest(v,status){
         if(!existing.exists())throw Error('編集対象の楽曲がありません。');
         const approved=SLSongChange.apply(existing.val(),request);song=approved.song;
         const logId=db.ref('songEditLogs').push().key;
-        updates['songEditLogs/'+logId]={songId,songTitleBefore:existing.val().title||'',songTitleAfter:song.title||'',editorUid:user.uid,editorName:user.displayName||'',editorEmail:user.email||'',editedAt:timestamp,changes:approved.changes};
+        updates['songEditLogs/'+logId]={songId,songTitleBefore:existing.val().title||'',songTitleAfter:song.title||'',editorUid:user.uid,editorName:user.displayName||'',editorEmail:'',editedAt:timestamp,changes:approved.changes};
       }else{
         if(request.type!=='artistFill')throw Error('この編集申請の形式は承認に対応していません。');
         const existing=await db.ref('songs/'+songId).once('value');
@@ -257,7 +257,7 @@ async function reviewRequest(v,status){
         if(String(song.artist||'').trim())throw Error('アーティストは既に登録されています。内容を確認し、この申請を却下してください。');
         if(!String(request.artist||'').trim())throw Error('補完するアーティストが空です。');
         const logId=db.ref('songEditLogs').push().key;
-        updates['songEditLogs/'+logId]={songId,songTitleBefore:song.title||'',songTitleAfter:song.title||'',editorUid:user.uid,editorName:user.displayName||'',editorEmail:user.email||'',editedAt:timestamp,changes:{artist:{before:'',after:request.artist}}};
+        updates['songEditLogs/'+logId]={songId,songTitleBefore:song.title||'',songTitleAfter:song.title||'',editorUid:user.uid,editorName:user.displayName||'',editorEmail:'',editedAt:timestamp,changes:{artist:{before:'',after:request.artist}}};
         song={...song,artist:String(request.artist).trim()};
       }
       song.updatedAt=timestamp;updates['songs/'+songId]=song;

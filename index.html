@@ -5895,7 +5895,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
         const nameVersion = ++usernameLoadVersion;
         if (user) {
-            const googleName = String(user.displayName || user.email?.split('@')[0] || 'ユーザー').trim();
+            const googleName = String(user.displayName || 'ユーザー').trim();
             applyUsername(googleName);
             try {
                 const nameSnapshot = await db.ref(`users/${user.uid}/profile/displayName`).once('value');
@@ -6382,7 +6382,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         // ログイン時の保存済みユーザー名は認証状態リスナーから非同期で復元する。
         const storedRoomName = String(localStorage.getItem('kankan_username') || '').trim();
         myName = !isUnsetGuestName(myName) ? myName
-            : ((auth.currentUser && !auth.currentUser.isAnonymous && (auth.currentUser.displayName || auth.currentUser.email?.split('@')[0]))
+            : ((auth.currentUser && !auth.currentUser.isAnonymous && (auth.currentUser.displayName || 'ユーザー'))
                 || (!isUnsetGuestName(storedRoomName) ? storedRoomName : ''));
         document.getElementById('usernameInput').value = isUnsetGuestName(myName) ? '' : myName;
 
@@ -9147,7 +9147,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             if (!isSafeQueueId(qId) || !data || typeof data !== 'object') return;
             const songData = queueSongDataById(data.songId);
             if(!songData) return;
-            const item = { qId: qId, ...data, songData: songData };
+            const item = { ...data, qId: qId, songData: songData };
             if(item.status === 'reserved') reservedItems.push(item);
             else if(item.status === 'confirmed') confirmedItems.push(item);
             else if(item.status === 'completed') completedItems.push(item);
@@ -10003,7 +10003,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         if(typeof isSafeQueueId==='function'&&!isSafeQueueId(qId))return;
         const song=typeof queueSongDataById==='function'?queueSongDataById(q.songId):null;
         if(!song)return;
-        groups[q.status].push({qId,...q,songData:song});
+        groups[q.status].push({...q,qId,songData:song});
       });
       Object.values(groups).forEach(arr=>arr.sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0)));
     }catch(_){}
