@@ -57,6 +57,31 @@ const dbcheckEl = document.getElementById("dbcheck");
 const detail = document.getElementById("detail");
 host.textContent = location.hostname;
 
+// Observe only the App Check exchange error; never inspect request bodies,
+// headers, successful token responses, or unrelated Firebase data.
+let exchangeError = "";
+const originalFetch = window.fetch;
+async function diagnosticFetch(...args){
+  const response = await originalFetch.apply(window, args);
+  try{
+    const input = args[0];
+    const url = new URL(typeof input === "string" ? input : input.url || String(input));
+    if (!response.ok && url.hostname === "firebaseappcheck.googleapis.com" &&
+        url.pathname.endsWith(":exchangeRecaptchaEnterpriseToken")) {
+      const body = await response.clone().json();
+      const error = body?.error || {};
+      const clean = value => String(value || "").replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[redacted]").slice(0, 500);
+      const reasons = Array.isArray(error.details) ? error.details.map(item=>item?.reason).filter(value=>typeof value === "string" && /^[A-Z_]{1,80}$/.test(value)) : [];
+      exchangeError = ["HTTP: " + response.status,
+        "Google status: " + clean(error.status),
+        "Google message: " + clean(error.message),
+        reasons.length ? "Google reason: " + reasons.join(", ") : ""
+      ].filter(Boolean).join("\n");
+    }
+  }catch{ /* The original SDK response must remain usable. */ }
+  return response;
+}
+
 function setResult(el, ok, text){
   el.textContent = text;
   el.className = ok ? "ok" : "ng";
@@ -71,6 +96,7 @@ function errText(err){
 }
 
 (async()=>{
+  window.fetch = diagnosticFetch;
   try{
     const app = firebase.initializeApp(firebaseConfig);
     const appCheck = SLAppCheck.activate(app);
@@ -103,17 +129,22 @@ function errText(err){
   }catch(err){
     if(appcheckEl.textContent === "確認中…"){
       setResult(appcheckEl, false, "失敗");
+      dbcheckEl.textContent = "未実行（認証に失敗）";
     }else if(appcheckEl.textContent === "成功"){
       setResult(dbcheckEl, false, "失敗");
     }
     detail.textContent =
       "❌ 診断に失敗しました。\n\n" +
       errText(err) + "\n\n" +
+      (exchangeError ? "Googleからの拒否理由:\n" + exchangeError + "\n\n" : "") +
       "この画面のスクリーンショットを送ってください。";
     console.error("App Check diagnostic failed:", err?.code || "unavailable");
+  }finally{
+    if (window.fetch === diagnosticFetch) window.fetch = originalFetch;
   }
 })();
 </script>
 </body>
 </html>
+
 

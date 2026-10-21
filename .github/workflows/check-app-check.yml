@@ -12,6 +12,7 @@ on:
       - 'obs.html'
       - 'obs-scene.js'
       - 'appcheck-test.html'
+      - 'scripts/check-app-check-diagnostic.cjs'
       - 'scripts/check-app-check.cjs'
       - '.github/workflows/check-app-check.yml'
   pull_request:
@@ -24,6 +25,7 @@ on:
       - 'obs.html'
       - 'obs-scene.js'
       - 'appcheck-test.html'
+      - 'scripts/check-app-check-diagnostic.cjs'
       - 'scripts/check-app-check.cjs'
       - '.github/workflows/check-app-check.yml'
 
@@ -38,4 +40,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node scripts/check-app-check.cjs
+      - run: |
+          node scripts/check-app-check.cjs
+          node scripts/check-app-check-diagnostic.cjs
