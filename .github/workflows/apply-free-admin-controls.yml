@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
     paths:
+      - 'scripts/high-priority-rules.cjs'
+      - 'scripts/check-high-priority-security.cjs'
+      - 'song-change-core.js'
+      - 'tests/free-controls/test-high-priority-access.cjs'
       - 'scripts/check-obs-live-access.cjs'
       - 'tests/free-controls/test-obs-live-access.cjs'
       - 'scripts/obs-scene-rules.cjs'
@@ -57,6 +61,7 @@ jobs:
         run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
       - name: Check free control code and rule preservation
         run: |
+          node scripts/check-high-priority-security.cjs
           node scripts/check-free-account-controls.cjs
           node scripts/check-admin-mylist.cjs
           node scripts/check-account-name.cjs
@@ -87,6 +92,7 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
+
 
 
 

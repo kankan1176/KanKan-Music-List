@@ -1,7 +1,7 @@
 /* Subscribe only after administrator authorization. A failed source never hides another source. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory;else root.SLAdminRequestFeed=factory;})(typeof globalThis!=='undefined'?globalThis:this,(database,isCurrent,onChange)=>{
  'use strict';
- const sources=[{path:'songAddRequests',label:'新規追加申請'},{path:'songEditRequests',label:'編集申請'}];
+ const sources=[{path:'songAddRequests',label:'新規追加申請'},{path:'songEditRequests',label:'アーティスト補完申請'},{path:'songChangeRequests',label:'楽曲情報の編集申請'}];
  let closed=false,timer=0;const waiters=[];
  const active=()=>!closed&&isCurrent();
  const ready=()=>sources.every(source=>source.done);

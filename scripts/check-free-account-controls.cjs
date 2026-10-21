@@ -29,5 +29,6 @@ const workflow = fs.readFileSync(path.join(root,'.github/workflows/apply-free-ad
 assert.ok(!workflow.includes('firebase deploy'));
 assert.ok(!workflow.includes('firebase-tools'));
 assert.ok(workflow.includes('configure-free-account-controls.cjs --apply'));
-console.log('PASS: existing access rules preserved; repeat application is stable; unsafe root grants rejected; browser scripts parse; no Functions deployment or token revocation.');
+console.log('PASS: unrelated access rules preserved; repeat application is stable; unsafe root grants rejected; browser scripts parse; no Functions deployment or token revocation.');
+
 

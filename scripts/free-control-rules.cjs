@@ -1,3 +1,4 @@
+const {addHighPriorityRules}=require('./high-priority-rules.cjs');
 const {addObsSceneRules}=require('./obs-scene-rules.cjs');
 const {addAvatarRules}=require('./avatar-rules.cjs');
 const {addListShareRules}=require('./list-share-rules.cjs');
@@ -61,9 +62,10 @@ function mergeFreeRules(original) {
   if (Object.keys(result.rules).some(key => key.startsWith('$'))) throw Error('ルートのワイルドカードを確認する必要があります。自動適用を停止しました。');
   // Preserve existing grants and add only the administrator song-list read/insert permissions.
   result.rules.adminClientControl = freeRules();
-  return addObsSceneRules(addAvatarRules(addListShareRules(addAccountNameRules(addMyListRules(result)))));
+  return addHighPriorityRules(addObsSceneRules(addAvatarRules(addListShareRules(addAccountNameRules(addMyListRules(result))))));
 }
 module.exports = { freeRules, mergeFreeRules };
+
 
 
 

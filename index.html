@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
+    <script src="song-change-core.js?v=20261021-1"></script>
     <script src="queue-actions.js?v=20261017-queue1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
@@ -4953,7 +4954,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
  <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
   <span class="modal-close" onclick="closeModal(null,'songEditRequestModal')">&times;</span>
   <h2>✏️ 楽曲情報を編集</h2>
-  <p style="font-size:12px;">Googleログイン中のユーザーのみ編集できます。保存した変更はすぐに反映され、変更曲・編集者・日時・変更内容を編集ログへ記録します。</p>
+  <p style="font-size:12px;">Googleログインで編集申請できます。変更は管理者の承認後に公開マスターへ反映されます。</p>
   <form id="songEditRequestForm" onsubmit="submitSongEditRequest(event)">
    <div class="setting-group"><label>曲名</label><input name="title" class="setting-input" maxlength="240" required></div>
    <div class="setting-group"><label>アーティスト</label><input name="artist" class="setting-input" maxlength="240"></div>
@@ -4963,7 +4964,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
    <div class="setting-group"><label>タイアップ / 検索用語</label><input name="tieup" class="setting-input" placeholder="タイアップ" maxlength="240"><input name="search" class="setting-input" placeholder="検索用語" maxlength="500"></div>
    <div class="setting-group"><label>作詞 / 作曲 / 編曲</label><input name="lyrics" class="setting-input" placeholder="作詞" maxlength="240"><input name="composition" class="setting-input" placeholder="作曲" maxlength="240"><input name="arrangement" class="setting-input" placeholder="編曲" maxlength="240"></div>
    <p id="songEditRequestFeedback" aria-live="polite" style="font-size:12px;"></p>
-   <button type="submit" class="primary-btn" id="songEditRequestSubmit">変更を保存</button>
+   <button type="submit" class="primary-btn" id="songEditRequestSubmit">変更を申請</button>
   </form>
  </div>
 </div>
@@ -5103,6 +5104,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             saved.language=activeLanguage;
         }
     }
+    Object.assign(UI_I18N,{"Googleログインで編集申請できます。変更は管理者の承認後に公開マスターへ反映されます。": {"en": "Sign in with Google to propose changes. Changes are published after administrator approval.", "ko": "Google 로그인 후 수정 요청을 보낼 수 있습니다. 관리자 승인 후 공개 마스터에 반영됩니다.", "zh-TW": "使用 Google 登入即可提出修改申請，管理員核准後才會更新公開主資料。"}, "変更を申請": {"en": "Submit changes for review", "ko": "수정 요청 보내기", "zh-TW": "提交修改申請"}, "編集申請を送信しています…": {"en": "Submitting changes for review…", "ko": "수정 요청을 보내는 중…", "zh-TW": "正在提交修改申請…"}, "編集申請を受け付けました。管理者の承認後に反映されます。": {"en": "Your changes were submitted for review and will be published after administrator approval.", "ko": "수정 요청을 보냈습니다. 관리자 승인 후 반영됩니다.", "zh-TW": "修改申請已提交，管理員核准後才會更新。"}, "この曲には承認待ちの編集申請があります。管理者の対応をお待ちください。": {"en": "You already have a pending request for this song. Please wait for administrator review.", "ko": "이 곡에 승인 대기 중인 수정 요청이 있습니다. 관리자 검토를 기다려 주세요.", "zh-TW": "您已有此歌曲的待審修改申請，請等待管理員處理。"}, "編集申請を送信できませんでした。通信状況を確認して再試行してください。": {"en": "Could not submit your changes. Check your connection and try again.", "ko": "수정 요청을 보내지 못했습니다. 연결을 확인하고 다시 시도하세요.", "zh-TW": "無法提交修改申請，請確認連線後重試。"}});
     const translatedAttributes = new WeakMap();
     function uiText(japanese, language=activeLanguage) {
         if (language === 'ja') return japanese;
@@ -7954,86 +7956,22 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     async function submitSongEditRequest(event){
         event.preventDefault();
         const song=allData.find(row=>row._id===currentDetailSongId),user=auth.currentUser;
-        if(!song||!user||!isGoogleSongEditor()){
-            const feedback=document.getElementById('songEditRequestFeedback');
-            if(feedback)feedback.textContent='Googleログインを確認してください。';
-            return;
-        }
-        const form=document.getElementById('songEditRequestForm'),changes={},nextValues={};
-        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
-            const before=String(song[col]??'').trim();
-            const after=String(form.elements[field].value||'').trim();
-            nextValues[field]=after;
-            if(after!==before)changes[field]={before,after};
-        }
         const msg=document.getElementById('songEditRequestFeedback'),button=document.getElementById('songEditRequestSubmit');
-        if(!Object.keys(changes).length){msg.textContent='変更箇所がありません。';return;}
-        if(!nextValues.title){msg.textContent='曲名は空にできません。';return;}
-        button.disabled=true;msg.textContent='保存中…';
+        if(!song||!user||!isGoogleSongEditor()){msg.textContent='Googleログインを確認してください。';return;}
+        if(button.disabled)return;
+        const form=document.getElementById('songEditRequestForm'),before={},after={};
+        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){before[field]=song[col]??'';after[field]=String(form.elements[field].value||'').trim();}
+        button.disabled=true;msg.textContent='編集申請を送信しています…';
         try{
-            if(auth.currentUser?.uid!==user.uid||!isGoogleSongEditor())throw Error('ログイン状態が変更されました。');
-
-            // Realtime Database の songs/ は英字フィールドで管理しているため、
-            // 現在表示中の日本語列から完全な1曲分のデータを組み直して保存する。
-            const updatedSong={id:song._id};
-            for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
-                updatedSong[field]=nextValues[field];
-            }
-            // 全曲一覧の更新履歴順に使う内部更新日時。
-            updatedSong.updatedAt=firebase.database.ServerValue.TIMESTAMP;
-
-            const logRef=db.ref('songEditLogs').push();
-            const revision=db.ref().push().key;
-            if(!logRef.key||!revision)throw Error('更新IDを作成できませんでした。');
-
-            const editLog={
-                songId:song._id,
-                songTitleBefore:String(song['曲名']||'').slice(0,240),
-                songTitleAfter:String(nextValues.title||'').slice(0,240),
-                editorUid:user.uid,
-                editorName:String(user.displayName||'').slice(0,120),
-                editorEmail:String(user.email||'').slice(0,254),
-                editedAt:firebase.database.ServerValue.TIMESTAMP,
-                changes
-            };
-
-            // 楽曲本体・編集ログ・公開マスター更新番号を1回のupdateで送る。
-            // 途中で通信が切れても、3箇所の書き込みは同一更新として扱われる。
-            const updates={};
-            updates[`songs/${song._id}`]=updatedSong;
-            updates[`songEditLogs/${logRef.key}`]=editLog;
-            updates['masterMeta/revision']=revision;
-            await db.ref().update(updates);
-
-            // 保存成功後は、再取得を待たず現在の画面へ即時反映。
-            for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){
-                song[col]=nextValues[field];
-            }
-            song._updatedAt=Date.now();
-            populateGenreButtons();
-            renderTable();
-
-            if(currentDetailSongId===song._id){
-                document.getElementById('detailTitle').textContent=song['曲名']||'';
-                document.getElementById('detailArtist').textContent=song['アーティスト']||'';
-                document.getElementById('detailLyricist').textContent=song['作詞']||'';
-                document.getElementById('detailComposer').textContent=song['作曲']||'';
-                document.getElementById('detailArranger').textContent=song['編曲']||'';
-                document.getElementById('detailBPM').textContent=song['BPM']||'';
-                document.getElementById('detailGenre1').textContent=song[genre1Key]||song['ジャンル']||'';
-                document.getElementById('detailGenre2').textContent=song['ジャンル②']||'';
-                document.getElementById('detailGenre3').textContent=song['ジャンル③']||'';
-                document.getElementById('detailTieup').textContent=song['タイアップ情報']||'';
-            }
-
-            msg.textContent='保存しました。';
-            closeModal(null,'songEditRequestModal');
-        }catch(err){
-            console.error('楽曲情報の編集保存',err);
-            msg.textContent='保存に失敗しました：'+String(err.message||err);
-        }finally{
-            button.disabled=false;
-        }
+            const changes=SLSongChange.changes(before,after);
+            if(!Object.keys(changes).length){msg.textContent='変更箇所がありません。';return;}
+            const payload={songId:song._id,requestedBy:user.uid,title:String(before.title).slice(0,240),artist:String(before.artist).slice(0,240),changes,status:'pending',createdAt:firebase.database.ServerValue.TIMESTAMP};
+            if(auth.currentUser?.uid!==user.uid)throw Error('ログイン状態が変更されました。');
+            const result=await db.ref('songChangeRequests/'+song._id+'/'+user.uid).transaction(current=>{if(auth.currentUser?.uid!==user.uid||current?.status==='pending')return;return payload;},undefined,false);
+            if(auth.currentUser?.uid!==user.uid)return;
+            msg.textContent=result.committed?'編集申請を受け付けました。管理者の承認後に反映されます。':'この曲には承認待ちの編集申請があります。管理者の対応をお待ちください。';
+        }catch(error){console.warn('楽曲編集申請の送信に失敗しました。');msg.textContent='編集申請を送信できませんでした。通信状況を確認して再試行してください。';}
+        finally{button.disabled=false;}
     }
 
     function loadRowsIntoApp(rawData) {
@@ -10846,6 +10784,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 <script src="room-history.js"></script>
 <script src="admin-control-api.js?v=20261017-free1"></script><script src="admin-client-controls.js?v=20261017-free1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261020-7"></script><script src="obs-scene-editor.js?v=20261020-9"></script></body>
 </html>
+
 
 
 

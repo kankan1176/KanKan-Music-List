@@ -1,0 +1,22 @@
+/* Synthetic data only; run against the proposed rules derived from current production rules. */
+'use strict';
+const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFails}=require('@firebase/rules-unit-testing'),{ref,set,get,update,serverTimestamp}=require('firebase/database');
+(async()=>{
+ const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:fs.readFileSync(process.env.OBS_RULE_TEST,'utf8')}});
+ try{
+ const song={id:'security-song',title:'Original',artist:'Artist',chordwiki:'https://ja.chordwiki.org/wiki/Test',bpm:'120',genre:'Test',genre2:'',genre3:'',tieup:'',search:'',lyrics:'',composition:'',arrangement:'',updatedAt:Date.now()};
+ await env.withSecurityRulesDisabled(async c=>{const db=c.database();await set(ref(db,'admins/security-admin'),true);await set(ref(db,'songs/security-song'),song);await set(ref(db,'friendSharedLists/security-owner'),{songs:{'security-song':{key:2,parts:['🎸']}},favoriteArtists:{a_74657374:true},updatedAt:Date.now()});await set(ref(db,'userListShares/security-owner'),{token:'c'.repeat(48),enabled:false,showKey:false,showParts:false});});
+ const context=(uid,provider)=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider},auth_time:Math.floor(Date.now()/1000)}).database(),owner=context('security-owner','google.com'),other=context('security-other','google.com'),admin=context('security-admin','google.com'),guest=context('security-guest','anonymous'),anon=env.unauthenticatedContext().database();
+ await assertSucceeds(get(ref(owner,'friendSharedLists/security-owner')));
+ for(const db of [other,admin,guest,anon])for(const path of ['friendSharedLists/security-owner','friendSharedLists/security-owner/songs/security-song/key'])await assertFails(get(ref(db,path)));
+ await assertSucceeds(update(ref(owner,'friendSharedLists/security-owner'),{updatedAt:serverTimestamp()}));
+ for(const db of [owner,other,guest,anon]){await assertFails(update(ref(db,'songs/security-song'),{title:'Unauthorized'}));await assertFails(set(ref(db,'songs/new-security-song'),{...song,id:'new-security-song'}));await assertFails(set(ref(db,'masterMeta/revision'),'unauthorized'));}
+ const proposal={songId:'security-song',requestedBy:'security-owner',title:'Original',artist:'Artist',changes:{title:{before:'Original',after:'Approved change'}},status:'pending',createdAt:serverTimestamp()};
+ const path='songChangeRequests/security-song/security-owner';await assertSucceeds(set(ref(owner,path),proposal));await assertSucceeds(get(ref(owner,path)));await assertSucceeds(get(ref(admin,'songChangeRequests')));await assertFails(get(ref(other,path)));await assertFails(get(ref(anon,path)));await assertFails(set(ref(owner,path),proposal));await assertFails(update(ref(owner,path),{status:'approved'}));await assertFails(set(ref(other,path),proposal));await assertFails(set(ref(guest,'songChangeRequests/security-song/security-guest'),{...proposal,requestedBy:'security-guest'}));
+ await assertFails(set(ref(other,'songChangeRequests/security-song/security-other'),{...proposal,requestedBy:'security-other',changes:{id:{before:'security-song',after:'wrong'}}}));
+ await assertSucceeds(update(ref(admin),{'songs/security-song':{...song,title:'Approved change',updatedAt:serverTimestamp()},[path+'/status']:'approved',[path+'/reviewedBy']:'security-admin',[path+'/reviewedAt']:serverTimestamp(),[path+'/approvedSongId']:'security-song','masterMeta/revision':'security-revision','songEditLogs/security-log':{songId:'security-song',songTitleBefore:'Original',songTitleAfter:'Approved change',editorUid:'security-admin',editorName:'Security Admin',editorEmail:'security@example.test',editedAt:serverTimestamp(),changes:proposal.changes}}));
+ await assertFails(set(ref(owner,'songEditLogs/forged'),{songId:'security-song',songTitleBefore:'Original',songTitleAfter:'Forged',editorUid:'security-owner',editorName:'Owner',editorEmail:'owner@example.test',editedAt:serverTimestamp(),changes:proposal.changes}));
+ await assertSucceeds(set(ref(owner,path),{...proposal,changes:{artist:{before:'Artist',after:'Proposed Artist'}}}));
+ console.log('PASS: private legacy snapshots; owner room-publishing reads; regular-user master/revision/log writes denied; owner-only pending requests; atomic administrator approval. Synthetic data only.');
+ }finally{await env.cleanup();}
+})().catch(()=>{console.error('FAIL: high-priority access verification. Production data was not read or modified.');process.exitCode=1;});

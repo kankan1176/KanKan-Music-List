@@ -10,7 +10,7 @@
 <section data-view-panel="controls" hidden><div class="section-heading"><div><span class="eyebrow">USER CONTROLS</span><h2>ユーザー操作</h2><p>対象を選び、端末へ操作を指示します。アカウント名からマイリストの参照・CSV代理登録もできます。</p></div></div>
 <section class="card" id="accountControlsPanel"><div class="control-notes"><strong>保存済みマイリストは保持します</strong><p>未接続の端末は次回アクセス時に反映されます。ログアウトはアプリ内の処理で、Google認証トークンの失効は行いません。</p></div><div class="controls-toolbar"><label>ユーザーを検索<input id="accountControlsSearch" type="search" placeholder="名前・ユーザーIDで検索"></label><label>表示対象<select id="accountControlsKind"><option value="all">すべて</option><option value="account">Googleアカウント</option><option value="guest">ゲスト</option></select></label><button id="accountControlsRefresh" type="button">受信状況を更新</button><button type="button" id="accountControlsAllCache" disabled>全体の楽曲キャッシュを削除</button></div><p class="guest-help">ゲストの参加名変更：表示対象を「ゲスト」にして、名前を入力し「参加名を変更」を押してください。対象端末が受信後、ルーム内の名前も更新されます。</p><p id="accountControlsStatus" role="status" aria-live="polite">ユーザー操作を準備しています…</p><div id="accountControlsRows" class="user-grid"></div><div class="pagination"><button id="accountControlsPrev">← 前へ</button><span id="accountControlsPage"></span><button id="accountControlsNext">次へ →</button></div></section></section>
 <section data-view-panel="master" hidden><h2>📚 楽曲マスタ管理</h2><div class="card"><p>Realtime Databaseの <code>/songs</code> をCSV形式で出力します。</p><p>登録曲数：<strong id="masterCount">—</strong></p><button id="exportMasterBtn">マスタCSV出力</button><p id="masterStatus" role="status"></p></div></section>
-<section data-view-panel="requests" hidden><h2>🎼 新規楽曲追加申請管理</h2><div class="card"><p>未承認の新規追加・アーティスト補完申請を確認し、承認または却下できます。承認すると公開マスターに反映されます。</p><button onclick="refreshRequests()">更新</button><p id="requestsStatus" role="status"></p><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="楽曲追加申請一覧" tabindex="0"><table><thead><tr><th>種別</th><th>曲名</th><th>アーティスト</th><th>状態</th><th>申請日時</th><th>操作</th></tr></thead><tbody id="requestRows"></tbody></table></div></div></section>
+<section data-view-panel="requests" hidden><h2>🎼 新規楽曲追加申請管理</h2><div class="card"><p>未承認の新規追加・楽曲編集・アーティスト補完申請を確認し、承認または却下できます。承認すると公開マスターに反映されます。</p><button onclick="refreshRequests()">更新</button><p id="requestsStatus" role="status"></p><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="楽曲追加申請一覧" tabindex="0"><table><thead><tr><th>種別</th><th>曲名</th><th>アーティスト</th><th>状態</th><th>申請日時</th><th>操作</th></tr></thead><tbody id="requestRows"></tbody></table></div></div></section>
 <section data-view-panel="users" hidden><h2>公開プロフィール</h2><div class="card"><p>公開プロフィールを表示します。現在のデータベースにはログイン履歴が存在しないため、日時は表示できません。</p><button onclick="loadUsers()">更新</button><p id="usersStatus" role="status"></p><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="公開ユーザー一覧" tabindex="0"><table><thead><tr><th>ユーザーID</th><th>名前</th><th>ログイン履歴</th></tr></thead><tbody id="userRows"></tbody></table></div></div></section>
 <section data-view-panel="rooms" hidden><h2>🌐 ルーム管理</h2><div class="stats"><div class="stat"><span>総ルーム数</span><strong id="total">—</strong></div><div class="stat"><span>接続中ルーム</span><strong id="active">—</strong></div><div class="stat"><span>空ルーム</span><strong id="empty">—</strong></div></div><div class="top"><p class="hint">接続人数は /members の登録数を使用します。切断反映には遅延があります。<br>管理者は接続中のルームも個別削除できます。接続者0人の一括削除は従来どおり空ルームのみ対象です。</p><div class="toolbar-actions"><button id="refreshBtn">一覧を更新</button><button id="bulkDeleteBtn" class="danger" disabled>接続者0人の部屋を一括削除</button></div></div><p class="table-hint">表は横にスワイプして確認できます。</p><div class="table-scroll" role="region" aria-label="ルーム一覧" tabindex="0"><table><thead><tr><th><button class="sort" type="button" data-sort="id" aria-pressed="false">ルームID <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="createdAt" aria-pressed="true">作成日時 <span class="arrow">▼</span></button></th><th><button class="sort" type="button" data-sort="members" aria-pressed="false">接続者 <span class="arrow"></span></button></th><th><button class="sort" type="button" data-sort="songs" aria-pressed="false">曲数 <span class="arrow"></span></button></th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></section>
 </div></div></section></main><dialog id="adminMyListDialog" aria-labelledby="adminMyListTitle"><header class="import-header"><div><span class="eyebrow">USER MY LIST</span><h2 id="adminMyListTitle"><span id="adminMyListUser"></span> のマイリスト</h2><div id="adminMyListUid" class="uid"></div></div><button id="adminMyListClose" type="button" aria-label="マイリストを閉じる">閉じる</button></header><p id="adminMyListStep" class="import-step"></p><p id="adminMyListStatus" role="status" aria-live="polite"></p>
@@ -19,7 +19,7 @@
 <section data-import-step="review" class="import-pane" hidden><p id="adminMyListSummary" class="import-summary"></p><div class="import-table-wrap" tabindex="0" aria-label="CSV登録内容の確認"><table><thead><tr><th>CSV行</th><th>曲名</th><th>アーティスト</th><th>Key</th><th>判定・登録先</th></tr></thead><tbody id="adminMyListPreviewRows"></tbody></table></div><div class="import-actions"><button type="button" id="adminMyListReviewBack">CSVを選び直す</button><button type="button" id="adminMyListConfirm" disabled>確定</button></div></section>
 <section data-import-step="result" class="import-pane" hidden><h3>登録結果</h3><p id="adminMyListResultSummary" class="import-summary"></p><div id="adminMyListResultRows" class="import-errors"></div><div class="import-actions"><button type="button" id="adminMyListRetry">別のCSV・失敗分を再確認</button><button type="button" id="adminMyListRefresh">マイリストを確認</button></div></section></dialog>
 <dialog id="requestDialog"><h2>申請内容</h2><pre id="requestDetail"></pre><div id="requestActions" class="toolbar-actions"></div><p id="reviewStatus" role="status"></p><form method="dialog"><button>閉じる</button></form></dialog>
-<script src="admin-request-feed.js?v=20261020-11"></script>
+<script src="song-change-core.js?v=20261021-1"></script><script src="admin-request-feed.js?v=20261021-1"></script>
 <script>'use strict';
 const config={
       apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
@@ -199,10 +199,11 @@ function textCell(tr,value){const td=document.createElement('td');td.textContent
 const songFields=['title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement'];
 let reviewBusy=false,newsVersion=0,requestsVersion=0;
 const pendingRequest=v=>v.status==='pending';
-function requestEntries(adds,edits){
+function requestEntries(adds,edits,changes){
   const entries=[];
   adds?.forEach(owner=>owner.forEach(item=>entries.push({...item.val(),kind:'add',label:'新規追加',owner:owner.key,id:item.key,path:'songAddRequests/'+owner.key+'/'+item.key})));
   edits?.forEach(song=>song.forEach(item=>entries.push({...item.val(),kind:'edit',label:'編集申請',owner:item.key,id:song.key,path:'songEditRequests/'+song.key+'/'+item.key})));
+  changes?.forEach(song=>song.forEach(item=>entries.push({...item.val(),kind:'change',label:'楽曲情報の編集',owner:item.key,id:song.key,path:'songChangeRequests/'+song.key+'/'+item.key})));
   return entries.sort((x,y)=>(Number(y.createdAt)||0)-(Number(x.createdAt)||0));
 }
 async function fetchRequests(){
@@ -242,6 +243,12 @@ async function reviewRequest(v,status){
         if(existing.exists())throw Error('同じIDの楽曲が既に存在します。申請とマスターを確認してください。');
         song={id:songId};for(const field of songFields)song[field]=String(request[field]||'').trim();
         song.createdAt=timestamp;
+      }else if(v.kind==='change'){
+        const existing=await db.ref('songs/'+songId).once('value');
+        if(!existing.exists())throw Error('編集対象の楽曲がありません。');
+        const approved=SLSongChange.apply(existing.val(),request);song=approved.song;
+        const logId=db.ref('songEditLogs').push().key;
+        updates['songEditLogs/'+logId]={songId,songTitleBefore:existing.val().title||'',songTitleAfter:song.title||'',editorUid:user.uid,editorName:user.displayName||'',editorEmail:user.email||'',editedAt:timestamp,changes:approved.changes};
       }else{
         if(request.type!=='artistFill')throw Error('この編集申請の形式は承認に対応していません。');
         const existing=await db.ref('songs/'+songId).once('value');
@@ -312,6 +319,7 @@ async function loadUsers(){
 }
 showView('home');
 </script><script src="admin-control-api.js?v=20261017-name1"></script><script src="admin-mylist-core.js?v=20261017-proxy1"></script><script src="admin-mylist-service.js?v=20261017-proxy1"></script><script src="admin-mylist-ui.js?v=20261017-proxy1"></script><script src="admin-account-controls.js?v=20261017-name1"></script></body></html>
+
 
 
 
