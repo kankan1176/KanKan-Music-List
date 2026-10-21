@@ -10,13 +10,14 @@
  const ackFor=uid=>{if(!applied.has(uid)){let saved;try{saved=JSON.parse(storage.get('shareliscore_control_ack_'+uid)||'null');}catch{}applied.set(uid,{cacheIds:Array.isArray(saved?.cacheIds)?saved.cacheIds:[],guestNameId:saved?.guestNameId||null,logoutId:saved?.logoutId||null});}return applied.get(uid);};
  const notice=document.createElement('p');notice.id='slAccountControlNotice';notice.setAttribute('role','status');notice.style.cssText='display:none;position:fixed;bottom:12px;left:12px;right:12px;z-index:20000;margin:0;padding:14px;border:1px solid #8cb6ff;border-radius:10px;background:#10213d;color:white;font-size:14px;line-height:1.5';document.body.append(notice);
  function show(message){notice.textContent=typeof uiText==='function'?uiText(message):message;notice.style.display='block';}
- async function clearMaster(){
-  await new Promise((resolve,reject)=>{
+ async function clearMaster(commandId){
+  for(const cacheDatabase of [dbName,'share-list-score-mylist-master-v1'])await new Promise((resolve,reject)=>{
    if(!window.indexedDB){resolve();return;}
-   const request=indexedDB.deleteDatabase(dbName);
+   const request=indexedDB.deleteDatabase(cacheDatabase);
    request.onsuccess=()=>resolve();request.onerror=()=>reject(request.error||Error('キャッシュを削除できませんでした。'));
    request.onblocked=()=>reject(Error('ほかのタブがキャッシュを使用中です。ほかのタブを閉じてください。'));
   });
+  storage.set('sharelistscore_mylist_cache_epoch',commandId||String(Date.now()));
   // Drop only public-song response caches owned by this site. Never clear Firebase/Auth caches.
   if('caches' in window)for(const key of await caches.keys()){
    if(!/^shareliscore-public-(?:master|songs)(?:-|$)/.test(key))continue;
@@ -50,7 +51,7 @@
    }
    for(const command of result.cacheCommands||[]){
     if(!command?.id||ack.cacheIds.includes(command.id))continue;
-    await clearMaster();if(requestVersion!==version)return;
+    await clearMaster(command.id);if(requestVersion!==version)return;
     ack.cacheIds=[...ack.cacheIds,command.id].slice(-2);
     show('管理者の指示で楽曲キャッシュを削除しました。ページを再読み込みすると最新データを取得します。');rerun=true;
    }
@@ -69,11 +70,17 @@
    // Unapplied rules / offline state must not interrupt the existing application.
   }finally{busy=false;if(rerun){rerun=false;setTimeout(poll,250);}}
  }
- let unwatch=()=>{};
- auth.onAuthStateChanged(user=>{version++;revoking=false;unwatch();unwatch=typeof window.slWatchAccountControls==='function'?window.slWatchAccountControls(user,()=>void poll()):()=>{};void poll();});
+ let unwatch=()=>{},cacheAccount=null;
+ function dropMyListCache(){
+  try{if(!window.indexedDB)return;const request=indexedDB.deleteDatabase('share-list-score-mylist-master-v1');
+   request.onsuccess=()=>storage.set('sharelistscore_mylist_cache_epoch','auth-'+crypto.randomUUID());
+  }catch{}
+ }
+ auth.onAuthStateChanged(user=>{const next=user&&!user.isAnonymous?user.uid:null;if(!next||cacheAccount&&cacheAccount!==next)dropMyListCache();cacheAccount=next;version++;revoking=false;unwatch();unwatch=typeof window.slWatchAccountControls==='function'?window.slWatchAccountControls(user,()=>void poll()):()=>{};void poll();});
  window.addEventListener('online',()=>void poll());document.addEventListener('visibilitychange',()=>{if(!document.hidden)void poll();});
  let timer;const startTimer=()=>{clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)void poll();},300000);};startTimer();
  window.addEventListener('pagehide',()=>{stopped=true;version++;clearInterval(timer);unwatch();});
  window.addEventListener('pageshow',event=>{if(event.persisted){stopped=false;version++;unwatch();unwatch=typeof window.slWatchAccountControls==='function'?window.slWatchAccountControls(auth.currentUser,()=>void poll()):()=>{};startTimer();void poll();}});
  window.slPollAccountControls=poll;
 })();
+

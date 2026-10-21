@@ -39,8 +39,9 @@
  };
  if(mine){
   window.SLListOwnerContext={auth,database};
-  function script(path){return new Promise((resolve,reject)=>{const node=document.createElement('script');node.src=path+'?v=20261020-10';node.onload=resolve;node.onerror=reject;document.head.append(node);});}
+  function script(path){return new Promise((resolve,reject)=>{const node=document.createElement('script');node.src=path+'?v=20261021-1';node.onload=resolve;node.onerror=reject;document.head.append(node);});}
   void script('list-share-service.js').then(()=>script('list-share-owner.js')).catch(()=>{notice.textContent=text().loadError;});
  }
  synchronize();
 })();
+

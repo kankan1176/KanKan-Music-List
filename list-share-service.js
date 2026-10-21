@@ -3,13 +3,14 @@
  'use strict';
  const committed=beforePublish|| (async()=>true),appearance=value=>design?design.normalize(value):value||{};
  let config=null,saved=null,name='',background=null,backgroundLoaded=false,revision=0,queue=Promise.resolve(),closed=false,lastAsset='',lastPublished=-1;
- const stops=[],cache=new Map(),active=()=>!closed&&isCurrent();
+ const repository=globalThis.SLListMasterCache?.forOwner(database,owner.uid);
+ const stops=[],cache=new Map(),pending=new Map(),active=()=>!closed&&isCurrent();
  const reservation=()=>({uid:owner.uid,name:'[paused]',reserved:true,updatedAt:firebase.database.ServerValue.TIMESTAMP});
  const notify=(state,error)=>{if(active())changed({state,config,error,background});};
  function listen(path,receive){const ref=database.ref(path),fn=snapshot=>{if(!active())return;receive(snapshot.val());revision++;schedule();};ref.on('value',fn,error=>notify('error',error));stops.push(()=>ref.off('value',fn));}
  async function collect(settings,valid){
   const records=Object.entries(saved||{}).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item)),songs={};let next=0;
-  await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length){const[id,item]=records[next++];if(!valid())return;let master=cache.get(id);if(!master){master=(await database.ref('songs/'+id).once('value')).val();if(master)cache.set(id,master);}const value=core.song(master,item,settings);if(value)songs[id]=value;}}));
+  await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length){const[id,item]=records[next++];if(!valid())return;let master;if(repository)master=await repository.get(id);else{master=cache.get(id);if(!master){if(!pending.has(id))pending.set(id,database.ref('songs/'+id).once('value').then(snapshot=>{const value=snapshot.val();if(value)cache.set(id,value);return value;}).finally(()=>pending.delete(id)));master=await pending.get(id);}}const value=core.song(master,item,settings);if(value)songs[id]=value;}}));
   return {uid:owner.uid,name:name.slice(0,40),songs,appearance:appearance(settings.appearance),updatedAt:firebase.database.ServerValue.TIMESTAMP};
  }
  async function publish(){
@@ -26,6 +27,7 @@
   if(valid()){lastPublished=version;lastAsset=settings.backgroundVersion?settings.token+':'+settings.backgroundVersion:'';notify('ready');}
  }
  function schedule(){queue=queue.catch(()=>{}).then(async()=>{const version=revision;try{await publish();}catch(error){if(config&&version===revision)notify('error',error);}});return queue;}
+ if(repository)stops.push(repository.subscribe(()=>{revision++;schedule();}));
  listen('userListShares/'+owner.uid,value=>{config=value&&core.tokenOK(value.token)?value:null;notify(config&&config.enabled!==false?'syncing':'off');});
  listen('users/'+owner.uid+'/songs',value=>{saved=value||{};});
  listen('users/'+owner.uid+'/profile/displayName',value=>{name=String(value||owner.displayName||'ユーザー').trim()||'ユーザー';});
@@ -60,5 +62,6 @@
   retry:schedule,close(){closed=true;revision++;stops.forEach(stop=>stop());}
  };
 });
+
 
 

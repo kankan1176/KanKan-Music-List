@@ -72,18 +72,29 @@
   status='loading';render();
   async function start(){
    try{
-    const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();let listeners=[];
+    const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();let listeners=[],repository=null,repositoryUid='';
     app.auth().onAuthStateChanged(user=>{
-     listeners.forEach(fn=>fn());listeners=[];const version=++generation;imageSerial++;setImage('');data=null;rows=[];status='loading';render();
+     listeners.forEach(fn=>fn());listeners=[];const oldRepository=repository;repository=null;const version=++generation;imageSerial++;setImage('');data=null;rows=[];status='loading';render();
+     if(oldRepository&&repositoryUid!==(!user?.isAnonymous?user?.uid:''))void oldRepository.forget();
+     repositoryUid=!user?.isAnonymous?user?.uid||'':'';
      if(!user||user.isAnonymous){status='login';render();return;}
-     let settings=null,saved=null,name=user.displayName||'ユーザー',image=null,ready=0,serial=0;const cache=new Map();
+     repository=window.SLListMasterCache.forOwner(database,user.uid);
+     let settings=null,saved=null,name=user.displayName||'ユーザー',image=null,ready=0,serial=0,validSession=true;const cache=repository;
      async function refresh(){
-      if(ready<4||version!==generation)return;const update=++serial,songs={};let next=0;const records=Object.entries(saved||{}).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item));
-      await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length&&version===generation&&update===serial){const[id,item]=records[next++];try{let master=cache.get(id);if(!master){master=(await database.ref('songs/'+id).once('value')).val();if(master)cache.set(id,master);}const row=core.song(master,item,{showKey:true,showParts:true});if(row)songs[id]=row;}catch{}}}));
-      if(version!==generation||update!==serial)return;accept({uid:user.uid,name,songs,appearance:settings?.appearance,updatedAt:0});setImage(validImage(image?.image)?image.image:'');
+      if(ready<3||version!==generation||!validSession)return;const update=++serial,songs={};let next=0,failed=false;const records=Object.entries(saved||{}).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item));
+      const current=()=>version===generation&&update===serial&&validSession;
+      await cache.warm;if(!current())return;
+      if(records.length&&records.every(([id])=>cache.peek(id))){
+       const cached=Object.fromEntries(records.map(([id,item])=>[id,core.song(cache.peek(id),item,{showKey:true,showParts:true})]).filter(([,row])=>row));
+       accept({uid:user.uid,name,songs:cached,appearance:settings?.appearance,updatedAt:0});status='updating';render();setImage(validImage(image?.image)?image.image:'');
+      }
+      await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length&&current()){const[id,item]=records[next++];try{const master=await cache.get(id);const row=core.song(master,item,{showKey:true,showParts:true});if(row)songs[id]=row;}catch{failed=true;}}}));
+      if(!current())return;if(failed){status='refreshError';render();return;}
+      accept({uid:user.uid,name,songs,appearance:settings?.appearance,updatedAt:0});setImage(validImage(image?.image)?image.image:'');
      }
+     listeners.push(cache.subscribe(()=>void refresh()));
      for(const[path,receive]of [['userListShares/'+user.uid,v=>settings=v],['users/'+user.uid+'/songs',v=>saved=v||{}],['users/'+user.uid+'/profile/displayName',v=>name=v||user.displayName||'ユーザー'],['userListBackgrounds/'+user.uid,v=>image=v]]){
-      const ref=database.ref(path);let loaded=false;const fn=snapshot=>{if(version!==generation)return;receive(snapshot.val());if(!loaded){loaded=true;ready++;}void refresh();};ref.on('value',fn,()=>{if(version===generation){data=null;rows=[];status='loadError';setImage('');render();}});listeners.push(()=>ref.off('value',fn));
+      const ref=database.ref(path);let loaded=false;const fn=snapshot=>{if(version!==generation)return;receive(snapshot.val());if(path==='userListBackgrounds/'+user.uid){setImage(validImage(image?.image)?image.image:'');return;}if(!loaded){loaded=true;ready++;}void refresh();};ref.on('value',fn,()=>{if(version===generation){if(path==='userListBackgrounds/'+user.uid){setImage('');return;}validSession=false;serial++;data=null;rows=[];status='loadError';setImage('');render();}});listeners.push(()=>ref.off('value',fn));
      }
     });
    }catch{status='loadError';render();}
@@ -94,6 +105,7 @@
   status='loading';render();window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='sl-list-preview')return;language=SLListShareText[event.data.language]?event.data.language:language;el('Language').value=language;accept(event.data.payload);setImage(validImage(event.data.image)?event.data.image:'');});
  }else{window.addEventListener('hashchange',()=>location.reload());if(mine)loadMine();else load();}
 })();
+
 
 
 

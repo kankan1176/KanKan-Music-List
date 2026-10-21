@@ -1,0 +1,36 @@
+name: Check My List loading
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'list-master-cache.js'
+      - 'mylist.js'
+      - 'mylist.html'
+      - 'mylist-actions.js'
+      - 'list-share-service.js'
+      - 'list-share-i18n.js'
+      - 'admin-client-controls.js'
+      - 'scripts/check-list-master-cache.cjs'
+      - '.github/workflows/check-list-performance.yml'
+  pull_request:
+    paths:
+      - 'list-master-cache.js'
+      - 'mylist.js'
+      - 'mylist.html'
+      - 'mylist-actions.js'
+      - 'list-share-service.js'
+      - 'list-share-i18n.js'
+      - 'admin-client-controls.js'
+      - 'scripts/check-list-master-cache.cjs'
+      - '.github/workflows/check-list-performance.yml'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-list-master-cache.cjs

@@ -385,3 +385,6 @@ window.SLListShareText={
   }
 };
 
+
+
+for(const [language,values]of Object.entries({ja:{updating:"最新の楽曲情報を確認しています…",refreshError:"最新情報を取得できませんでした。通信状態を確認して再読み込みしてください。"},en:{updating:"Checking for updated song information…",refreshError:"Could not load the latest information. Check your connection and reload."},ko:{updating:"최신 곡 정보를 확인하고 있습니다…",refreshError:"최신 정보를 가져오지 못했습니다. 연결을 확인하고 새로고침하세요."},"zh-TW":{updating:"正在確認最新歌曲資訊…",refreshError:"無法取得最新資訊，請確認連線後重新載入。"}}))Object.assign(window.SLListShareText[language],values);
