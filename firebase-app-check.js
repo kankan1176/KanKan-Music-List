@@ -1,7 +1,7 @@
 /* Public site key; no secret or debug tokens belong in this file. */
 (() => {
   'use strict';
-  const siteKey = '6LdkxeEtAAAAANn2flDW-mKL_UkAvDL1cnrI8icW';
+  const siteKey = '6LdkxeEtAAAAAJDWSvXbmsKHezi4oMuW88CWSvcQ';
   const active = new WeakMap();
 
   function activate(app) {

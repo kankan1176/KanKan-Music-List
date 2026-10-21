@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'firebase-app-check.js'), 'utf8');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const expectedKey = '6LdkxeEtAAAAANn2flDW-mKL_UkAvDL1cnrI8icW';
+const expectedKey = '6LdkxeEtAAAAAJDWSvXbmsKHezi4oMuW88CWSvcQ';
 let activations = [], failures = [], instance;
 const firebase = {appCheck: Object.assign(app => {
   assert.ok(app);
