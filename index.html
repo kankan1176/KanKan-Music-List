@@ -17,6 +17,8 @@
     
     <!-- Firebase SDK (互換バージョン) -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-check-compat.js"></script>
+<script src="firebase-app-check.js?v=20261021-1"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 
@@ -4141,6 +4143,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
       <section>
         <h3>6. 外部サービス</h3>
         <p>本サービスでは、Google認証、データ、GitHub Pages等の外部サービスを利用しています。これらのサービス提供者における情報の取り扱いについては、各提供者のプライバシーポリシー等が適用されます。</p>
+        <p>不正アクセス・自動収集の抑制と安全性の確保のため、Firebase App CheckとGoogleのFraud Defense（旧reCAPTCHA Enterprise）を使用します。判定のためにブラウザ等の情報をGoogleに送信し、Cookie等を使用する場合があります。</p>
         <p>また、ChordWiki等の外部サイトへ移動した場合は、移動先サイトのプライバシーポリシー・利用条件が適用されます。</p>
       </section>
 
@@ -5017,7 +5020,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
       messagingSenderId: "759342880820",
       appId: "1:759342880820:web:9af0af755e35926a281261"
     };
-    firebase.initializeApp(firebaseConfig);
+    const firebaseApp = firebase.initializeApp(firebaseConfig);
+    SLAppCheck.activate(firebaseApp);
     const db = firebase.database();
 
     // Googleログイン：ゲスト閲覧も可能。UIDは個人データ実装時の識別子として利用します。
@@ -5056,6 +5060,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
       "📋 一括登録結果": {ko:"📋 일괄 등록 결과",en:"📋 Import results","zh-TW":"📋 批次加入結果"}
     });
     // Match full UI messages. Substituted names/IDs remain untouched.
+    UI_I18N["不正アクセス・自動収集の抑制と安全性の確保のため、Firebase App CheckとGoogleのFraud Defense（旧reCAPTCHA Enterprise）を使用します。判定のためにブラウザ等の情報をGoogleに送信し、Cookie等を使用する場合があります。"] = {"en": "To protect the service and reduce unauthorized access and automated collection, we use Firebase App Check and Google Fraud Defense (formerly reCAPTCHA Enterprise). Browser and related information is sent to Google for assessment, and cookies or similar technologies may be used.", "ko": "무단 접근과 자동 수집을 줄이고 서비스를 안전하게 유지하기 위해 Firebase App Check와 Google Fraud Defense(구 reCAPTCHA Enterprise)를 사용합니다. 판정을 위해 브라우저 등의 정보를 Google에 전송하며, 쿠키 등을 사용할 수 있습니다.", "zh-TW": "為了維護服務安全並抑制未授權存取及自動蒐集，我們使用 Firebase App Check 與 Google Fraud Defense（原 reCAPTCHA Enterprise）。系統會將瀏覽器等資訊傳送至 Google 進行判定，並可能使用 Cookie 等技術。"};
     Object.assign(UI_I18N, window.SL_UI_TRANSLATIONS || {});
     Object.assign(UI_I18N, {'曲の左で☑選択':{en:'Select songs on the left',ko:'곡 왼쪽에서 선택', 'zh-TW':'勾選歌曲左側方框'}});
     const uiNormalize = value => String(value).replace(/\s+/g,' ').trim();

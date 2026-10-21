@@ -1,0 +1,41 @@
+name: Check App Check integration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'firebase-app-check.js'
+      - 'index.html'
+      - 'admin.html'
+      - 'mylist.html'
+      - 'mylist.js'
+      - 'obs.html'
+      - 'obs-scene.js'
+      - 'appcheck-test.html'
+      - 'scripts/check-app-check.cjs'
+      - '.github/workflows/check-app-check.yml'
+  pull_request:
+    paths:
+      - 'firebase-app-check.js'
+      - 'index.html'
+      - 'admin.html'
+      - 'mylist.html'
+      - 'mylist.js'
+      - 'obs.html'
+      - 'obs-scene.js'
+      - 'appcheck-test.html'
+      - 'scripts/check-app-check.cjs'
+      - '.github/workflows/check-app-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-app-check.cjs

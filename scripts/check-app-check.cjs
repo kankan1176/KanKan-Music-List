@@ -1,0 +1,48 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const root = path.resolve(__dirname, '..');
+const source = fs.readFileSync(path.join(root, 'firebase-app-check.js'), 'utf8');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const expectedKey = '6LdkxeEtAAAAANn2flDW-mKL_UkAvDL1cnrI8icW';
+let activations = [], failures = [], instance;
+const firebase = {appCheck: Object.assign(app => {
+  assert.ok(app);
+  if (app.fail) throw {code:'synthetic-init-error'};
+  return instance = {activate(provider, auto) {activations.push({app, provider, auto});}};
+}, {ReCaptchaEnterpriseProvider: class {constructor(key) {this.siteKey = key;}}})};
+const window = {};
+vm.runInNewContext(source, {firebase, window, WeakMap, Object, console:{error:(...args)=>failures.push(args)}});
+const app = {};
+const first = window.SLAppCheck.activate(app);
+assert.equal(window.SLAppCheck.activate(app), first);
+assert.equal(activations.length, 1);
+assert.equal(activations[0].provider.siteKey, expectedKey);
+assert.equal(activations[0].auto, true);
+assert.equal(window.SLAppCheck.activate({fail:true}), null);
+assert.deepEqual(failures, [['App Check initialization failed:', 'synthetic-init-error']]);
+assert.ok(Object.isFrozen(window.SLAppCheck));
+for (const file of ['index.html', 'admin.html', 'mylist.html', 'obs.html', 'appcheck-test.html']) {
+  const html = read(file);
+  const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+  const sdk = scripts.findIndex(m=>m[1].includes('/firebase-app-check-compat.js'));
+  const helper = scripts.findIndex(m=>m[1].includes('src="firebase-app-check.js?'));
+  assert.ok(sdk >= 0 && helper > sdk, file+' loads SDK before helper');
+  assert.equal(scripts.filter(m=>m[1].includes('/firebase-app-check-compat.js')).length, 1);
+  const init = scripts.findIndex(m=>m[2].includes('firebase.initializeApp('));
+  if (init >= 0) assert.ok(init > helper, file+' initializes after helper');
+  if (file==='mylist.html') assert.ok(/defer/.test(scripts[sdk][1]) && /defer/.test(scripts[helper][1]));
+  for (const script of scripts) if (!/\bsrc=/.test(script[1]) && script[2].trim()) new vm.Script(script[2]);
+}
+for (const file of ['mylist.js','obs-scene.js','firebase-app-check.js']) new vm.Script(read(file));
+assert.match(read('index.html'), /SLAppCheck\.activate\(firebaseApp\);\s*const db/);
+assert.match(read('admin.html'), /SLAppCheck\.activate\(firebaseApp\);const auth/);
+assert.equal((read('mylist.js').match(/SLAppCheck\.activate\(app\);const database=app\.database\(\)/g)||[]).length, 2);
+assert.match(read('obs-scene.js'), /SLAppCheck\.activate\(app\);const db=app\.database\(\),auth=app\.auth\(\)/);
+assert.ok(!/FIREBASE_APPCHECK_DEBUG_TOKEN/.test(source));
+assert.ok(!/setInterval|getToken\(true\)/.test(source));
+assert.match(read('appcheck-test.html'), /SLAppCheck\.activate\(app\)/);
+assert.match(read('appcheck-test.html'), /getToken\(false\)/);
+assert.ok(!read('appcheck-test.html').includes('6LdkxeEtAAAAAJDWSvXbmsKHezi4oMuW88CWsvcQ'));
+console.log('PASS: App Check loads before Firebase services in all entry pages; one Enterprise key, auto-refresh, idempotence, initialization failure handling, no debug token or forced refresh loop; JavaScript syntax valid');

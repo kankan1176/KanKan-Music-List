@@ -7,6 +7,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-check-compat.js"></script>
+<script src="firebase-app-check.js?v=20261021-1"></script>
 <style>
 body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:760px;margin:40px auto;padding:0 18px;background:#111827;color:#f9fafb}
 .card{background:#1f2937;border:1px solid #374151;border-radius:12px;padding:18px;margin:14px 0}
@@ -48,7 +49,7 @@ const firebaseConfig = {
   appId: "1:759342880820:web:9af0af755e35926a281261"
 };
 
-const APP_CHECK_SITE_KEY = "6LdkxeEtAAAAAJDWSvXbmsKHezi4oMuW88CWsvcQ";
+
 
 const host = document.getElementById("host");
 const appcheckEl = document.getElementById("appcheck");
@@ -71,17 +72,13 @@ function errText(err){
 
 (async()=>{
   try{
-    firebase.initializeApp(firebaseConfig);
+    const app = firebase.initializeApp(firebaseConfig);
+    const appCheck = SLAppCheck.activate(app);
+    if (!appCheck) throw new Error("App Checkを初期化できませんでした。");
 
-    const appCheck = firebase.appCheck();
-    appCheck.activate(
-      new firebase.appCheck.ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
-      true
-    );
+    detail.textContent = "App Checkトークンを確認しています…";
 
-    detail.textContent = "App Checkトークンを強制取得しています…";
-
-    const tokenResult = await appCheck.getToken(true);
+    const tokenResult = await appCheck.getToken(false);
     if(!tokenResult || !tokenResult.token){
       throw new Error("App Checkトークンを取得できませんでした。");
     }
@@ -113,9 +110,10 @@ function errText(err){
       "❌ 診断に失敗しました。\n\n" +
       errText(err) + "\n\n" +
       "この画面のスクリーンショットを送ってください。";
-    console.error(err);
+    console.error("App Check diagnostic failed:", err?.code || "unavailable");
   }
 })();
 </script>
 </body>
 </html>
+

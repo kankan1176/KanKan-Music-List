@@ -57,7 +57,7 @@
   const userRoute=fragment.startsWith('user='),uid=userRoute?fragment.slice(5):'';
   if(userRoute?!/^[A-Za-z0-9_-]{1,128}$/.test(uid):!core.tokenOK(fragment)){status='unavailable';render();return;}
   try{
-   const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config),database=app.database();let token=fragment;
+   const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();let token=fragment;
    if(userRoute){
     try{token=(await database.ref('publicListLinks/'+uid).once('value')).val()?.token;}catch(error){if(version!==generation)return;status=/permission.denied/i.test(error?.code||error?.message||'')?'userUnavailable':'loadError';render();return;}
     if(version!==generation)return;
@@ -72,7 +72,7 @@
   status='loading';render();
   async function start(){
    try{
-    const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config),database=app.database();let listeners=[];
+    const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();let listeners=[];
     app.auth().onAuthStateChanged(user=>{
      listeners.forEach(fn=>fn());listeners=[];const version=++generation;imageSerial++;setImage('');data=null;rows=[];status='loading';render();
      if(!user||user.isAnonymous){status='login';render();return;}
@@ -94,6 +94,7 @@
   status='loading';render();window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='sl-list-preview')return;language=SLListShareText[event.data.language]?event.data.language:language;el('Language').value=language;accept(event.data.payload);setImage(validImage(event.data.image)?event.data.image:'');});
  }else{window.addEventListener('hashchange',()=>location.reload());if(mine)loadMine();else load();}
 })();
+
 
 
 
