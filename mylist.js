@@ -6,10 +6,17 @@
  const preferred=navigator.language.toLowerCase();let language=preferred.startsWith('ko')?'ko':preferred.startsWith('zh')?'zh-TW':preferred.startsWith('en')?'en':'ja';el('Language').value=language;
  const t=()=>SLListShareText[language]||SLListShareText.ja;
  function cell(tag,value,className){const node=document.createElement(tag);node.textContent=value;if(className)node.className=className;return node;}
- function setImage(image){if(image===lastImage)return;lastImage=image||'';document.querySelector('.share-backdrop').style.backgroundImage=lastImage?'url("'+lastImage+'")':'';}
+ function setImage(image){
+  if(image===lastImage)return Promise.resolve();lastImage=image||'';const requested=lastImage,done=window.SLListLoading?.hold()||(()=>{});
+  document.querySelector('.share-backdrop').style.backgroundImage=requested?'url("'+requested+'")':'';
+  if(!requested){done();return Promise.resolve();}
+  const picture=new Image();picture.src=requested;
+  return picture.decode().catch(()=>{if(lastImage===requested){lastImage='';document.querySelector('.share-backdrop').style.backgroundImage='';}window.SLListLoading?.error();}).finally(done);
+ }
  function validImage(image){return typeof image==='string'&&image.length<=360000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image);}
  function move(next){page=next;render();el('ListViewport').scrollTop=0;}
  function render(){
+  window.SLListLoading?.state(status);
   const text=t(),appearance=design.apply(document.documentElement,data?.appearance);document.documentElement.lang=language;document.documentElement.style.colorScheme=appearance.preset;
   el('BrandName').textContent=text.brand;el('Brand').setAttribute('aria-label',text.brandHome);el('Terms').textContent=text.terms;el('Privacy').textContent=text.privacy;el('Edit').textContent=text.editList;el('Edit').hidden=!mine;el('ReadOnly').textContent=preview?text.designPreview:mine?text.ownView:text.readOnly;
   const title=appearance.title||(data?String(data.name||'')+text.list:text.title);el('Title').textContent=title;el('Title').title=title;document.title=title+' | '+text.brand;
@@ -45,11 +52,11 @@
  const config={apiKey:'AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI',authDomain:'kankan-session-room.firebaseapp.com',databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'kankan-session-room',appId:'1:759342880820:web:9af0af755e35926a281261'};
  async function loadImage(database,token,version){
   const requested=version?token+':'+version:'';if(requested===imageVersion)return;imageVersion=requested;const serial=++imageSerial;setImage('');if(!version)return;
-  try{const value=(await database.ref('publicListBackgrounds/'+token).once('value')).val();if(serial===imageSerial&&value?.version===version&&validImage(value.image))setImage(value.image);}catch{if(serial===imageSerial)imageVersion='';}
+  try{const value=(await database.ref('publicListBackgrounds/'+token).once('value')).val();if(serial===imageSerial){if(value?.version!==version||!validImage(value.image))throw new Error('background unavailable');await setImage(value.image);}}catch{if(serial===imageSerial){imageVersion='';window.SLListLoading?.error();}}
  }
  async function legacyGenres(database,version){
   const missing=rows.filter(row=>!row.genresKnown&&!Array.isArray(data.songs?.[row.id]?.genres)&&!genreCache.has(row.id));let next=0;
-  await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,core.genres(master));}catch{genreCache.set(row.id,[]);}}}));
+  await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,core.genres(master));}catch{window.SLListLoading?.error();}}}));
   if(version===generation&&data){for(const row of rows)if(!row.genres.length&&genreCache.has(row.id))row.genres=genreCache.get(row.id);render();}
  }
  async function load(){
@@ -64,7 +71,7 @@
     if(!core.tokenOK(token)){status='userUnavailable';render();return;}
    }
    const ref=database.ref('publicListShares/'+token);let current=true;
-   const listener=snapshot=>{if(!current||version!==generation)return;accept(snapshot.val());if(!data&&userRoute){status='userUnavailable';render();}void loadImage(database,token,data?.backgroundVersion);if(data)void legacyGenres(database,version);};
+   const listener=async snapshot=>{if(!current||version!==generation)return;const done=window.SLListLoading?.hold()||(()=>{});try{accept(snapshot.val());if(!data&&userRoute){status='userUnavailable';render();}await Promise.all([loadImage(database,token,data?.backgroundVersion),data?legacyGenres(database,version):Promise.resolve()]);}finally{done();}};
    ref.on('value',listener,error=>{if(!current||version!==generation)return;data=null;rows=[];setImage('');imageSerial++;status=/permission.denied/i.test(error?.code||error?.message||'')?(userRoute?'userUnavailable':'unavailable'):'loadError';render();});stop=()=>{current=false;ref.off('value',listener);};
   }catch{if(version===generation){status='loadError';render();}}
  }
@@ -74,11 +81,12 @@
    try{
     const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();let listeners=[],repository=null,repositoryUid='';
     app.auth().onAuthStateChanged(user=>{
-     listeners.forEach(fn=>fn());listeners=[];const oldRepository=repository;repository=null;const version=++generation;imageSerial++;setImage('');data=null;rows=[];status='loading';render();
+     listeners.forEach(fn=>fn());listeners=[];const oldRepository=repository;repository=null;const version=++generation;window.SLListLoading?.reset();imageSerial++;setImage('');data=null;rows=[];status='loading';render();
      if(oldRepository&&repositoryUid!==(!user?.isAnonymous?user?.uid:''))void oldRepository.forget();
      repositoryUid=!user?.isAnonymous?user?.uid||'':'';
      if(!user||user.isAnonymous){status='login';render();return;}
      repository=window.SLListMasterCache.forOwner(database,user.uid);
+     const backgroundDone=window.SLListLoading?.hold()||(()=>{});listeners.push(backgroundDone);
      let settings=null,saved=null,name=user.displayName||'ユーザー',image=null,ready=0,serial=0,validSession=true;const cache=repository;
      async function refresh(){
       if(ready<3||version!==generation||!validSession)return;const update=++serial,songs={};let next=0,failed=false;const records=Object.entries(saved||{}).filter(([id,item])=>/^[A-Za-z0-9_-]{1,80}$/.test(id)&&core.registered(item));
@@ -94,7 +102,7 @@
      }
      listeners.push(cache.subscribe(()=>void refresh()));
      for(const[path,receive]of [['userListShares/'+user.uid,v=>settings=v],['users/'+user.uid+'/songs',v=>saved=v||{}],['users/'+user.uid+'/profile/displayName',v=>name=v||user.displayName||'ユーザー'],['userListBackgrounds/'+user.uid,v=>image=v]]){
-      const ref=database.ref(path);let loaded=false;const fn=snapshot=>{if(version!==generation)return;receive(snapshot.val());if(path==='userListBackgrounds/'+user.uid){setImage(validImage(image?.image)?image.image:'');return;}if(!loaded){loaded=true;ready++;}void refresh();};ref.on('value',fn,()=>{if(version===generation){if(path==='userListBackgrounds/'+user.uid){setImage('');return;}validSession=false;serial++;data=null;rows=[];status='loadError';setImage('');render();}});listeners.push(()=>ref.off('value',fn));
+      const ref=database.ref(path);let loaded=false;const fn=snapshot=>{if(version!==generation)return;receive(snapshot.val());if(path==='userListBackgrounds/'+user.uid){void setImage(validImage(image?.image)?image.image:'').finally(backgroundDone);return;}if(!loaded){loaded=true;ready++;}void refresh();};ref.on('value',fn,()=>{if(version===generation){if(path==='userListBackgrounds/'+user.uid){setImage('');window.SLListLoading?.error();backgroundDone();return;}validSession=false;serial++;data=null;rows=[];status='loadError';setImage('');render();}});listeners.push(()=>ref.off('value',fn));
      }
     });
    }catch{status='loadError';render();}
@@ -105,6 +113,7 @@
   status='loading';render();window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='sl-list-preview')return;language=SLListShareText[event.data.language]?event.data.language:language;el('Language').value=language;accept(event.data.payload);setImage(validImage(event.data.image)?event.data.image:'');});
  }else{window.addEventListener('hashchange',()=>location.reload());if(mine)loadMine();else load();}
 })();
+
 
 
 

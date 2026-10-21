@@ -12,7 +12,7 @@
   button.textContent=!account()?text().favoriteLogin:saved?text().favoriteRemove:text().favoriteAdd;
   button.disabled=!authReady||busy||!!account()&&!loaded;button.setAttribute('aria-pressed',String(saved));
  }
- if(!window.firebase?.apps?.length||typeof firebase.auth!=='function'){render();return;}
+ if(!window.firebase?.apps?.length||typeof firebase.auth!=='function'){render();window.SLListLoading?.actions();return;}
  const app=firebase.app(),auth=app.auth(),database=app.database();
  function synchronize(){
   const key=!mine&&state.available&&validUid(state.ownerUid)&&account()&&user.uid!==state.ownerUid?user.uid+'/'+state.ownerUid:'';
@@ -40,8 +40,10 @@
  if(mine){
   window.SLListOwnerContext={auth,database};
   function script(path){return new Promise((resolve,reject)=>{const node=document.createElement('script');node.src=path+'?v=20261021-1';node.onload=resolve;node.onerror=reject;document.head.append(node);});}
-  void script('list-share-service.js').then(()=>script('list-share-owner.js')).catch(()=>{notice.textContent=text().loadError;});
+  void script('list-share-service.js').then(()=>script('list-share-owner.js')).then(()=>window.SLListLoading?.actions()).catch(()=>{notice.textContent=text().loadError;window.SLListLoading?.error();});
  }
+ if(!mine)window.SLListLoading?.actions();
  synchronize();
 })();
+
 

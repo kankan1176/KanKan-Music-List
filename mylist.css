@@ -5,3 +5,22 @@
 
 
 .share-page-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px}.share-page-actions button{font-size:12px;padding:7px 11px}.share-page-actions #shareActionStatus{font-size:11px;color:var(--share-muted);overflow-wrap:anywhere}.share-page-actions button[aria-pressed=true]{border-color:var(--share-accent)}
+
+
+/* Independent colors keep the loading screen readable with every list theme. */
+.list-is-loading main,.list-is-loading .share-backdrop,.list-is-loading .share-veil{visibility:hidden}
+#listLoading{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:clamp(18px,5vw,64px);border:clamp(8px,1.4vw,18px) solid #b97abe;background:#fcfbfc radial-gradient(#d9d5dc .9px,transparent .9px) 0 0/15px 15px;color:#131015;color-scheme:light;font-family:system-ui,-apple-system,sans-serif}
+#listLoading[hidden]{display:none}
+.list-loading-card{position:relative;width:min(760px,100%);padding:clamp(40px,8vw,100px) 20px;text-align:center;background:#eceaedb8;border:1px solid #fff;box-shadow:0 16px 60px #402b4510}
+.list-loading-card:after{content:"";position:absolute;right:0;bottom:0;width:34px;height:34px;background:#131015;clip-path:polygon(100% 0,100% 100%,0 100%)}
+.list-loading-word{font-size:clamp(32px,9vw,96px);font-weight:950;letter-spacing:.035em;line-height:1.2;white-space:nowrap}
+.list-loading-word>span:first-child{display:inline-block;color:#b97abe;animation:list-letter 1.4s ease-in-out infinite}
+.list-loading-dots{color:#b97abe;animation:list-dots 1.4s ease-in-out infinite}
+#listLoadingTitle{font-size:clamp(17px,2.5vw,23px);margin:28px auto 10px;max-width:540px;line-height:1.6;overflow-wrap:anywhere}
+#listLoadingHint{color:#68606b;font-size:14px;margin:0}
+#listLoadingRetry{margin-top:20px;padding:12px 24px;border:2px solid #131015;border-radius:0;background:#131015;color:white;font-weight:700}
+#listLoadingRetry:focus-visible{outline:3px solid #b97abe;outline-offset:4px}
+#listLoading.is-error .list-loading-word span{animation:none}
+@keyframes list-letter{0%,100%{transform:translateY(0)}50%{transform:translateY(-.14em)}}
+@keyframes list-dots{0%,100%{opacity:.3}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){#listLoading .list-loading-word span{animation:none}}

@@ -5,6 +5,9 @@ on:
     paths:
       - 'list-master-cache.js'
       - 'mylist.js'
+      - 'mylist-loading.js'
+      - 'mylist.css'
+      - 'scripts/check-mylist-loading.cjs'
       - 'mylist.html'
       - 'mylist-actions.js'
       - 'list-share-service.js'
@@ -16,6 +19,9 @@ on:
     paths:
       - 'list-master-cache.js'
       - 'mylist.js'
+      - 'mylist-loading.js'
+      - 'mylist.css'
+      - 'scripts/check-mylist-loading.cjs'
       - 'mylist.html'
       - 'mylist-actions.js'
       - 'list-share-service.js'
@@ -34,3 +40,4 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/check-list-master-cache.cjs
+      - run: node scripts/check-mylist-loading.cjs
