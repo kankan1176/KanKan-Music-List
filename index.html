@@ -5075,6 +5075,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     Object.assign(UI_I18N, window.SL_UI_TRANSLATIONS || {});
     Object.assign(UI_I18N, {"コードWiki": {"en": "ChordWiki", "ko": "코드Wiki", "zh-TW": "ChordWiki"}, "演奏完了": {"en": "Played", "ko": "연주 완료", "zh-TW": "演奏完成"}, "演奏完了へ": {"en": "Mark as played", "ko": "연주 완료로 이동", "zh-TW": "標記為演奏完成"}, "予約 → 演奏確定 → 演奏完了": {"en": "Queue → Confirm → Played", "ko": "예약 → 연주 확정 → 연주 완료", "zh-TW": "預約 → 演奏確認 → 演奏完成"}, "演奏完了した曲はありません": {"en": "No played songs yet", "ko": "아직 연주 완료한 곡이 없습니다", "zh-TW": "尚無演奏完成的歌曲"}});
     Object.assign(UI_I18N, {'曲の左で☑選択':{en:'Select songs on the left',ko:'곡 왼쪽에서 선택', 'zh-TW':'勾選歌曲左側方框'}});
+    Object.assign(UI_I18N, {"Shift＋クリックで範囲選択。Ctrl／⌘＋クリックで個別に選択・解除。": {"en": "Shift-click to select a range. Ctrl/Command-click to select or deselect individual songs.", "ko": "Shift+클릭으로 범위를 선택합니다. Ctrl/⌘+클릭으로 개별 곡을 선택하거나 해제합니다.", "zh-TW": "Shift＋點擊可選取範圍；Ctrl／⌘＋點擊可個別選取或取消。"}});
     const uiNormalize = value => String(value).replace(/\s+/g,' ').trim();
     const normalizedUi = new Map(Object.entries(UI_I18N).map(([key,value])=>[uiNormalize(key),value]));
     const uiPatterns = Object.entries(window.SL_UI_TRANSLATIONS || {}).filter(([key])=>/\{\w+\}/.test(key)).map(([key,values])=>{
@@ -10035,6 +10036,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
   let slDockTouchGesture=null,slDockDeferredRender=false;
   const slDockPendingIds=new Set();
   const slDockSelection={reserved:new Set(),confirmed:new Set(),completed:new Set()};
+  const slDockSelectionAnchor={reserved:null,confirmed:null,completed:null};
   let slDockBulkBusy=false;
   function slRenderDockSelection(status){
     const header=document.querySelector('.sl-dock-section[data-status="'+status+'"] header');
@@ -10335,6 +10337,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     if(!list)return;
     const present=new Set(items.map(item=>item.qId));
     for(const id of slDockSelection[status])if(!present.has(id))slDockSelection[status].delete(id);
+    if(!present.has(slDockSelectionAnchor[status]))slDockSelectionAnchor[status]=null;
     slRenderDockSelection(status);
     list.replaceChildren();
 
@@ -10365,6 +10368,25 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
       const select=document.createElement('input');select.type='checkbox';select.className='sl-dock-select';
       select.checked=slDockSelection[status].has(item.qId);select.disabled=slDockBulkBusy||slDockPendingIds.has(item.qId);
       select.setAttribute('aria-label',title.textContent+'を選択');
+      select.title='Shift＋クリックで範囲選択。Ctrl／⌘＋クリックで個別に選択・解除。';
+      select.addEventListener('click',event=>{
+        if(select.disabled||slDockBulkBusy)return;
+        const anchor=slDockSelectionAnchor[status];
+        const from=items.findIndex(entry=>entry.qId===anchor);
+        if(event.shiftKey&&from>=0){
+          const checked=select.checked;
+          const rows=list.querySelectorAll(':scope > .sl-dock-song');
+          for(let i=Math.min(from,index);i<=Math.max(from,index);i++){
+            const id=items[i].qId,checkbox=rows[i]?.querySelector('.sl-dock-select');
+            if(!checkbox||checkbox.disabled||slDockPendingIds.has(id)||roomQueue[id]?.status!==status)continue;
+            if(checked)slDockSelection[status].add(id);else slDockSelection[status].delete(id);
+            checkbox.checked=checked;rows[i].classList.toggle('sl-dock-selected',checked);
+          }
+        }else{
+          // Ordinary/Ctrl/Command clicks toggle one checkbox and set the range anchor.
+          slDockSelectionAnchor[status]=item.qId;
+        }
+      });
       select.addEventListener('change',()=>{if(select.checked)slDockSelection[status].add(item.qId);else slDockSelection[status].delete(item.qId);slRenderDockSelection(status);});
       row.classList.toggle('sl-dock-selected',select.checked);
       select.addEventListener('change',()=>row.classList.toggle('sl-dock-selected',select.checked));
@@ -10807,6 +10829,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 <script src="room-history.js"></script>
 <script src="admin-control-api.js?v=20261017-free1"></script><script src="admin-client-controls.js?v=20261017-free1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261020-7"></script><script src="obs-scene-editor.js?v=20261020-9"></script></body>
 </html>
+
 
 
 
