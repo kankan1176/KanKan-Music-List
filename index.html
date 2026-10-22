@@ -50,17 +50,11 @@
         /* ★最下行とブラウザ下端（タスクバー側）の間に12pxの余白を確保 */
         .container { flex-grow: 1; display: flex; flex-direction: column; width: 100%; max-width: 1300px; margin: 0 auto; padding: 10px 15px 12px 15px; box-sizing: border-box; gap: 8px; overflow: hidden; }
         .top-area { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
-
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}
-        .header-buttons { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         /* Googleアイコンと文字を常に中央揃えにする（ログイン状態切替後も維持） */
         #googleLoginBtn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; vertical-align: middle; }
         #googleLoginBtn svg { width: 16px; height: 16px; flex: 0 0 16px; display: block; }
         #loginStatus { align-self: center; }
         #loginStatus.logged-in { background-color: #ffffff; color: #212529; border: 1px solid #dedede; border-radius: 6px; padding: 7px 10px; font-weight: 600; box-sizing: border-box; }
-        /* 全曲一覧・マイリスト切替ボタン共通：淡い赤 */
-        #myListSwitchBtn { background-color: #f4a6af; color: #431b23; border: 1px solid #e78f9c; font-weight: bold; }
-        #myListSwitchBtn:hover { background-color: #ed919e; color: #431b23; }
         
         button { padding: 6px 12px; background-color: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; white-space: nowrap; }
         button:hover { background-color: var(--btn-hover); color: var(--text-color); }
@@ -72,32 +66,24 @@
         .room-status-wrapper.active { display: flex; }
         .room-status-bar { display: flex; align-items: center; justify-content: space-between; font-size: 13px; flex-wrap: wrap; gap: 8px;}
         .room-members-area { font-size: 11px; background: rgba(0,0,0,0.15); padding: 4px 8px; border-radius: 4px; line-height: 1.3; word-break: break-all;}
-        
-        .room-actions { display: flex; gap: 6px; }
-        .room-actions button { background-color: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 4px 10px; font-size: 11px; }
+
+
         .room-actions button.btn-danger { background-color: #dc3545; color: white; border: none; }
 
         .loading-area { padding: 30px; text-align: center; background-color: var(--panel-bg); border-radius: 6px; border: 1px solid var(--border-color); font-size: 16px; font-weight: bold; color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;}
         .spinner { border: 3px solid var(--border-color); border-top: 3px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-bottom: 10px;}
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .controls { display: none; background-color: var(--panel-bg); padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        
-        .search-row { display: flex; flex-direction: column; align-items: stretch; gap: 8px;}
+
         .search-box { width: 100%; padding: 7px 10px; font-size: 14px; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
-        .status-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
-        .status-buttons button { flex: 1; min-width: 80px; padding: 7px; border-radius: 6px; font-size: 13px; }
         .song-count { font-weight: bold; font-size: 13px; color: var(--primary); margin-top: 2px; }
 
         /* ルーム未参加時は予約・確定・完了ボタンおよびテーブルのステータス列を非表示 */
-        body:not(.in-room) .status-buttons,
         body:not(.in-room) .col-action {
             display: none !important;
             width: 0 !important;
         }
 
-        .filter-section { margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .filter-label { font-size: 11px; font-weight: bold; opacity: 0.8; width: 85px; flex-shrink: 0; white-space: nowrap; }
+
         .genre-filters { display: flex; gap: 5px; flex-wrap: wrap; flex-grow: 1; }
         .genre-btn { padding: 4px 10px; border-radius: 14px; font-size: 12px; }
         .genre-btn.active { background-color: var(--primary); color: var(--primary-text); border-color: var(--primary); }
@@ -263,16 +249,10 @@
         ========================================= */
         @media (max-width: 600px), (pointer:coarse){
             .container { padding: 8px 8px 0 8px; gap: 6px; }
-            .logo-img { max-height: 30px !important; }
+
             h1 { font-size: 15px !important; }
 
-            .header-buttons button { padding: 6px 10px; font-size: 12px; }
 
-            .controls { padding: 8px; }
-            .status-buttons button { padding: 6px; font-size: 12px; }
-
-            .filter-section { gap: 4px; }
-            .filter-label { width: 100%; }
             .genre-filters { gap: 4px; }
             .genre-btn { padding: 3px 8px; font-size: 11px; }
 
@@ -556,9 +536,6 @@ body:not(.my-list-mode) {
 
 
         /* マイページ: ヘッダーの入口を一つに統合。テーマ色とスマホ幅に追従。 */
-        #myPageBtn { font-weight:700; background:#ffc107; border:1px solid #dda600; color:#26200a; }
-        #myPageBtn:hover { background:#ffdc55; border-color:#d9a300; color:#26200a; }
-        #myPageBtn:focus-visible { outline:2px solid #fff0a0; outline-offset:2px; }
         .mypage-menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
         .mypage-menu button { width:100%; min-width:0; padding:13px 7px; text-align:left; font-size:12px; line-height:1.4; white-space:nowrap; background:var(--btn-bg); }
         .mypage-menu button:hover { border-color:var(--primary); background:var(--btn-hover); }
@@ -629,10 +606,6 @@ body.in-room #roomListPanel {display:flex}
             body.in-room #tableBody .col-genre { order:5; }
         }
 
-        /* OBSメニューはルーム作成・参加中だけ表示する */
-        #obsCustomCssBtn { display:none; background:#6f42c1; border-color:#6f42c1; color:#fff; font-weight:700; }
-        body.in-room #obsCustomCssBtn { display:inline-flex; align-items:center; justify-content:center; }
-        #obsCustomCssBtn:hover { background:#8053d0; border-color:#8053d0; color:#fff; }
         /* フォント設定：ブラウザにインストール済みの書体を優先。 */
         body { --app-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; font-family:var(--app-font); }
         body, button, input, select, textarea { font-family:var(--app-font); }
@@ -642,57 +615,27 @@ body.in-room #roomListPanel {display:flex}
         /* =======================================================
            スマホ専用UI 600px以下。PC版のスタイル・機能は変更しない。
            ======================================================= */
-        #mobileQuickNav { display:none; }
-        #mobileMorePanel[hidden] { display:none !important; }
         @media screen and (max-width:600px), screen and (pointer:coarse){
           html,body {width:100%;max-width:100%;overflow:hidden;}
           .container {min-height:0;gap:6px;padding:7px 8px max(8px,env(safe-area-inset-bottom));}
           body.in-room .container {padding-bottom:calc(66px + env(safe-area-inset-bottom));}
           .top-area {min-height:0;gap:6px;}
-          .header {flex-wrap:nowrap;gap:0;min-height:31px;}
-          .header > div:first-child {min-width:0;width:100%;}
-          .header h1 {font-size:15px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-          .header-buttons {display:none!important;}
-          #mobileQuickNav {display:block;position:relative;flex-shrink:0;z-index:40;}
-          .mobile-main-actions {display:grid;grid-template-columns:1fr 1fr 1fr 43px;gap:5px;}
-          .mobile-main-actions button {min-width:0;min-height:40px;padding:5px 2px;font-size:12px;font-weight:700;white-space:nowrap;border-radius:7px;}
-          #mobileAllBtn {background:#268bea;color:white;border-color:#268bea;}
-          #mobileMyBtn {background:#e35e70;color:white;border-color:#e35e70;}
-          #mobileMyPageBtn {background:#ffc83e;color:#332608;border-color:#d8ad35;}
-          #mobileMenuBtn {font-size:21px;background:var(--btn-bg);color:var(--text-color);}
-          .mobile-main-actions button[aria-pressed="true"] {outline:2px solid var(--text-color);outline-offset:-4px;}
-          #mobileMorePanel {position:absolute;right:0;top:calc(100% + 4px);width:min(295px,calc(100vw - 16px));padding:9px;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:8px;box-shadow:0 7px 24px #0008;display:grid;grid-template-columns:1fr 1fr;gap:7px;box-sizing:border-box;}
-          #mobileMorePanel button {min-width:0;min-height:40px;padding:7px 4px;font-size:12px;white-space:normal;}
-          #mobileIdentity {grid-column:1/-1;font-size:12px;opacity:.8;overflow-wrap:anywhere;}
-          #mobileLoginItem,#mobileLogoutItem {grid-column:1/-1;}
-          #mobileLeaveItem {color:#fff;background:#a82936;border-color:#df5862;}
-          #mobileObsItem {color:white;background:#7041bb;border-color:#7041bb;}
-          #mobileQuickNav:not(.mobile-authenticated) #mobileLogoutItem,
-          #mobileQuickNav.mobile-authenticated #mobileLoginItem {display:none;}
-          body:not(.in-room) #mobileObsItem,
-          body:not(.in-room) #mobileRoomLinkItem,
-          body:not(.in-room) #mobileLeaveItem,
-          body.in-room #mobileCreateRoomItem {display:none;}
           .room-status-wrapper {padding:6px 8px;gap:4px;}
           .room-status-bar {font-size:12px;gap:4px;}
-          .room-actions {display:none;}
+
           .room-members-area {font-size:10px;padding:3px 6px;}
           #roomListPanel {padding:5px 6px;gap:3px;}
           #roomListTabs {flex-wrap:nowrap;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 2px 5px;scrollbar-width:thin;}
           #roomListTabs button {flex:0 0 auto;max-width:135px;min-height:34px;}
           #roomShareNotice {font-size:10px;line-height:1.35;}
           #listModeIndicator {min-height:27px;padding:3px 7px;font-size:12px;}
-          .controls {padding:6px 7px;}
-          .search-row {gap:4px;}
+
           #searchInput {height:41px;font-size:16px;padding:8px 10px;}
           .song-count {font-size:11px;margin:0;}
-          .filter-section {margin-top:2px;gap:3px;flex-wrap:nowrap;min-width:0;}
-          .filter-label {width:auto;flex-shrink:0;font-size:11px;}
+
+
           .genre-filters {flex-wrap:nowrap;min-width:0;overflow-x:auto;padding-bottom:3px;scrollbar-width:thin;}
           .genre-btn {flex:0 0 auto;min-height:30px;white-space:nowrap;font-size:11px;padding:5px 8px;}
-          .status-buttons {display:none;}
-          body.in-room .status-buttons {display:grid!important;position:fixed;bottom:0;left:0;right:0;z-index:90;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:7px 9px calc(7px + env(safe-area-inset-bottom));background:var(--panel-bg);border-top:2px solid var(--border-color);box-shadow:0 -3px 12px #0005;}
-          body.in-room .status-buttons button {width:100%;min-width:0;min-height:45px;padding:7px 3px;font-size:13px;font-weight:750;}
           #myListBulkBar {flex-wrap:nowrap;overflow-x:auto;max-height:64px;min-height:42px;scrollbar-width:thin;}
           #myListBulkBar > * {flex:0 0 auto;}
           #myListBulkBar span[title] {display:none;}
@@ -865,8 +808,6 @@ html.entry-home .container {display:none!important;}
 #homeLoginBtn {background:#fff;color:#333;border-color:#bbb;font-weight:700;}
 #homeLogoutBtn {font-size:12px;}
 #homeLoadingStatus {text-align:center;min-height:19px;font-size:12px;opacity:.8;}
-#homeBackBtn {font-weight:700;}
-body.in-room #homeBackBtn,body.in-room #mobileHomeItem {display:none!important;}
 @media (max-width:600px), (pointer:coarse){
   #homeLanding {padding:20px 12px max(18px,env(safe-area-inset-bottom));}
   .home-inner {gap:19px;}
@@ -994,19 +935,14 @@ body.sl-redesign select,
 body.sl-redesign input,
 body.sl-redesign textarea{font-family:inherit}
 
-/* hide legacy navigation/header; existing functionality remains */
-body.sl-redesign .header,
-body.sl-redesign #mobileQuickNav,
-body.sl-redesign #controls,
-body.sl-redesign .status-buttons,
-body.sl-redesign .room-status-bar .room-actions,
+/* 件数は一覧の下部へ統一 */
 body.sl-redesign #listModeIndicator{display:none!important}
 
 /* OBS設定はルーム入室中だけ左メニューのルーム直下に表示 */
 #slNavObs{display:none!important;}
 body.in-room #slNavObs{display:flex!important;}
 /* Guests can open the sign-in guidance; editing remains Google-account only. */
-body:not(.sl-obs-account) :is(#slNavObs,#mobileObsItem,#obsCustomCssBtn){opacity:.5!important;cursor:pointer;}
+body:not(.sl-obs-account) :is(#slNavObs){opacity:.5!important;cursor:pointer;}
 body:not(.sl-account-features) :is(#slNavRoom,#slNavFriends,#slNavMy,#slNavAdd){opacity:.5!important;cursor:pointer;}
 
 
@@ -3647,7 +3583,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 #clipboardAnalysisModal .clipboard-analysis-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}#clipboardAnalysisModal .clipboard-analysis-body #clipboardAnalysisRows{overflow:visible;min-height:0;max-height:none}#clipboardAnalysisModal .modal>h2{flex:0 0 auto}#clipboardAnalysisActionStatus{width:100%;margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}#clipboardNextCandidate[hidden]{display:none!important}.clipboard-analysis-mapping-controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.clipboard-analysis-mapping-controls p{width:100%;margin:0;font-size:13px;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls button{white-space:normal;padding:8px 12px;max-width:100%;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls [hidden]{display:none!important}.clipboard-candidate-label{display:grid;gap:6px;margin-top:10px;min-width:0}.clipboard-candidate-select{width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:9px;font:inherit;background:var(--panel-bg);color:var(--text-color);border:1px solid var(--border-color);border-radius:7px}.clipboard-matched-target{margin-top:6px;font-size:12px;overflow-wrap:anywhere}
 </style>
 </head>
-<body>
+<body class="sl-redesign">
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
 
 
@@ -3659,7 +3595,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     <div><strong>シェアリスコア</strong><small>ShareLiScore</small></div>
   </div>
 
-  <button type="button" id="slSidebarAccount" onclick="openModal('accountModal')" aria-label="アカウント設定を開く" title="ユーザー名・基本担当パートを設定"><span class="sl-account-icon">👤</span><span id="slSidebarAccountName">ゲスト利用中</span><span class="sl-account-gear">⚙</span></button>
+  <button type="button" id="slSidebarAccount" onclick="openModal('accountModal')" aria-label="アカウント設定を開く" title="ユーザー名・基本担当パートを設定"><span class="sl-account-icon">👤</span><span id="loginStatus" aria-live="polite">ゲスト利用中</span><span class="sl-account-gear">⚙</span></button>
   <nav class="sl-sidebar-nav">
     <button type="button" id="slNavHome" class="sl-nav-home" onclick="slNavigate('home')"><span>🏠</span><b>トップ</b></button>
     <button type="button" id="slNavAll" class="sl-nav-all" onclick="slNavigate('all')"><span>📚</span><b>全曲一覧</b></button>
@@ -3683,7 +3619,15 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
   <button type="button" onclick="slNavigate('privacy')">プライバシーポリシー</button>
   <div class="sl-sidebar-copyright">Copyright © 2026 シェアリスコア.<br>All Rights Reserved.</div>
 </div>
-<div class="sl-sidebar-footer" id="slSidebarFooter"></div>
+<div class="sl-sidebar-footer" id="slSidebarFooter"><button id="googleLoginBtn" onclick="loginWithGoogle()" style="background:#fff;color:#333;border:1px solid #bbb;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path fill="#4285F4" d="M21.35 12.24c0-.71-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.26z"/>
+                        <path fill="#34A853" d="M12 21.75c2.64 0 4.85-.88 6.46-2.39l-3.14-2.45c-.87.58-1.98.93-3.32.93-2.55 0-4.71-1.72-5.49-4.04H3.28v2.55A9.75 9.75 0 0 0 12 21.75z"/>
+                        <path fill="#FBBC05" d="M6.51 13.8a5.86 5.86 0 0 1 0-3.6V7.65H3.28a9.75 9.75 0 0 0 0 8.7l3.23-2.55z"/>
+                        <path fill="#EA4335" d="M12 6.16c1.44 0 2.73.49 3.75 1.48l2.81-2.81A9.37 9.37 0 0 0 12 2.25a9.75 9.75 0 0 0-8.72 5.4l3.23 2.55C7.29 7.88 9.45 6.16 12 6.16z"/>
+                    </svg>
+                    <span>Googleでログイン</span>
+                </button><button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button></div>
 
 </aside>
 
@@ -3693,13 +3637,16 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     <h1 id="slPageTitle">全曲一覧</h1>
     <p id="slPageSubtitle">登録されている楽曲を検索・閲覧できます</p>
   </div>
-  <div id="slSearchHost"><button type="button" id="slFavArtistsShortcut" onclick="openFavoriteArtistsModal()" title="お気に入りアーティスト一覧" aria-label="お気に入りアーティスト一覧を開く">⭐ お気に入りアーティスト</button></div>
+  <div id="slSearchHost"><input type="text" id="searchInput" class="search-box" placeholder="曲名、アーティスト、アニメ名などで検索..."><button type="button" id="slFavArtistsShortcut" onclick="openFavoriteArtistsModal()" title="お気に入りアーティスト一覧" aria-label="お気に入りアーティスト一覧を開く">⭐ お気に入りアーティスト</button></div>
   <div id="slUserHost"></div>
 </header>
 
 <div id="slFilterbar">
-  <div id="slGenreHost"></div>
-  <div id="slListMeta"></div>
+  <div id="slGenreHost"><div class="genre-filters" id="genreFilters"></div></div>
+  <div id="slListMeta"><div id="artistFilterIndicator" class="artist-filter-indicator" hidden>
+                    <span>🎤 アーティスト：<strong id="artistFilterName"></strong></span>
+                    <button type="button" onclick="setArtistFilter('')" aria-label="アーティストの絞り込みを解除">✕ 絞り込み解除</button>
+                </div></div>
 </div>
 
 <aside id="slRoomDock" aria-label="セッション進行">
@@ -4267,66 +4214,13 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 
 <div class="container">
     <div class="top-area">
-        <div class="header">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <img src="site-logo.png?v=20261003-3" alt="" class="logo-img" style="max-height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
-                <h1 style="margin: 0; font-size: 20px;">シェアリスコア-Share List Score-</h1>
-            </div>
-
-            <div class="header-buttons">
-                <button type="button" id="homeBackBtn" onclick="goHome()">🏠 トップ</button>
-                <button id="myListSwitchBtn" onclick="myListMode ? void toggleMyList() : slOpenMyListPage()" style="display:none;">📁 マイリスト</button>
-                <button id="createRoomBtn" onclick="createRoom()" style="background-color:#007bff;color:#fff;border:1px solid #007bff;">🌐 ルームを作る</button>
-                <button id="addSongHeaderBtn" onclick="openAddSongModal()" style="display:inline-block;background-color:#28a745;color:#fff;border:1px solid #28a745;">➕ 新規楽曲追加</button>
-                <button id="myPageBtn" type="button" onclick="openSiteMenu()" aria-haspopup="dialog" aria-controls="siteMenuModal">📝 メニュー</button>
-                <span id="loginStatus" aria-live="polite" style="font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ゲスト利用中</span>
-                <button id="googleLoginBtn" onclick="loginWithGoogle()" style="background:#fff;color:#333;border:1px solid #bbb;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path fill="#4285F4" d="M21.35 12.24c0-.71-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.26z"/>
-                        <path fill="#34A853" d="M12 21.75c2.64 0 4.85-.88 6.46-2.39l-3.14-2.45c-.87.58-1.98.93-3.32.93-2.55 0-4.71-1.72-5.49-4.04H3.28v2.55A9.75 9.75 0 0 0 12 21.75z"/>
-                        <path fill="#FBBC05" d="M6.51 13.8a5.86 5.86 0 0 1 0-3.6V7.65H3.28a9.75 9.75 0 0 0 0 8.7l3.23-2.55z"/>
-                        <path fill="#EA4335" d="M12 6.16c1.44 0 2.73.49 3.75 1.48l2.81-2.81A9.37 9.37 0 0 0 12 2.25a9.75 9.75 0 0 0-8.72 5.4l3.23 2.55C7.29 7.88 9.45 6.16 12 6.16z"/>
-                    </svg>
-                    <span>Googleでログイン</span>
-                </button>
-                <button id="googleLogoutBtn" onclick="logoutGoogle()" style="display:none;">ログアウト</button>
-            </div>
-        </div>
-
-        <!-- スマホ専用ナビゲーション。PC版では非表示。 -->
-        <nav id="mobileQuickNav" aria-label="スマホ用クイック操作">
-            <div class="mobile-main-actions">
-                <button type="button" id="mobileAllBtn" onclick="mobileGoAll()">🌐 全曲一覧</button>
-                <button type="button" id="mobileMyBtn" onclick="closeMobileMenu();slOpenMyListPage()">📁 マイリスト</button>
-                <button type="button" id="mobileMyPageBtn" onclick="openSiteMenu()">📝 メニュー</button>
-                <button type="button" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-expanded="false" aria-controls="mobileMorePanel" aria-label="その他の操作">☰</button>
-            </div>
-            <div id="mobileMorePanel" hidden>
-                <div id="mobileIdentity" aria-live="polite">ゲスト利用中</div>
-                <button type="button" id="mobileHomeItem" onclick="closeMobileMenu();goHome()">🏠 トップ</button>
-                <button type="button" onclick="closeMobileMenu();openFriendsModal()">👥 フレンド</button>
-                <button type="button" onclick="closeMobileMenu();openManualModal()">📖 使い方ガイド</button>
-                <button type="button" onclick="closeMobileMenu();openModal('settingsModal')">⚙ 設定</button>
-                <button type="button" id="mobileLoginItem" onclick="closeMobileMenu();loginWithGoogle()">Googleでログイン</button>
-                <button type="button" id="mobileLogoutItem" onclick="closeMobileMenu();logoutGoogle()">ログアウト</button>
-                <button type="button" id="mobileCreateRoomItem" onclick="closeMobileMenu();createRoom()">🌐 ルームを作る</button>
-                <button type="button" onclick="closeMobileMenu();openAddSongModal()">➕ 新規楽曲追加</button>
-                <button type="button" id="mobileObsItem" onclick="closeMobileMenu();openObsModal()">📺 OBS配信画面設定</button>
-                <button type="button" id="mobileLeaveItem" onclick="closeMobileMenu();leaveRoom()">🚪 ルーム退出</button>
-            </div>
-        </nav>
-        
         <div class="room-status-wrapper" id="roomStatusWrapper">
             <div class="room-status-bar">
                 <div class="sl-room-connection">
                     <div id="roomStatusText"></div>
                     <button type="button" id="slRoomShareBtn" onclick="copyRoomLink()" title="ルームURLをコピー" aria-label="ルームURLをコピー">🔗 <span>URL共有</span></button>
                 </div>
-                <div class="room-actions">
-                <button id="obsCustomCssBtn" type="button" onclick="openObsModal()" aria-haspopup="dialog" aria-controls="obsModal">📺 OBS配信画面設定</button>
-                    <button onclick="copyRoomLink()">🔗 URLをコピー</button>
-                    <button class="btn-danger" onclick="leaveRoom()">🚪 退出</button>
-                </div>
+
             </div>
             <div class="room-members-area" id="roomMembersArea">
                 👥 参加中: <span id="roomMembersList">読み込み中...</span>
@@ -4347,26 +4241,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             <button type="button" onclick="openClipboardHelpManual()" title="クリップボード一括登録の使い方を確認">✏️ クリップボードの使い方を見る</button>
         </div>
 
-        <div class="controls" id="controls">
-            <div class="search-row">
-                <input type="text" id="searchInput" class="search-box" placeholder="曲名、アーティスト、アニメ名などで検索...">
-                <div class="status-buttons">
-                    <button class="primary-btn" onclick="openModal('reservedModal')">📝 予約 (<span id="reservedCount">0</span>)</button>
-                    <button class="primary-btn" style="background-color: #28a745; border-color: #28a745;" onclick="openModal('confirmedModal')">🎸 確定 (<span id="confirmedCount">0</span>)</button>
-                    <button class="primary-btn" style="background-color: #17a2b8; border-color: #17a2b8;" onclick="openModal('completedModal')">✅ 完了 (<span id="completedCount">0</span>)</button>
-                </div>
-                <div class="song-count" id="songCountDisplay">表示中: 0 曲</div>
-                <div id="artistFilterIndicator" class="artist-filter-indicator" hidden>
-                    <span>🎤 アーティスト：<strong id="artistFilterName"></strong></span>
-                    <button type="button" onclick="setArtistFilter('')" aria-label="アーティストの絞り込みを解除">✕ 絞り込み解除</button>
-                </div>
-            </div>
-            
-            <div class="filter-section">
-                <div class="filter-label">🏷️ ジャンル</div>
-                <div class="genre-filters" id="genreFilters"></div>
-            </div>
-        </div>
+        
         <div id="masterActionsBar" aria-label="全曲一覧の操作">
             <label id="excludeRegisteredFilter" hidden title="自分のマイリストに登録済みの曲を全曲一覧から一時的に除外します">
                 <input id="excludeRegisteredCheckbox" type="checkbox">
@@ -4438,7 +4313,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
                 <span id="songPageStatus" role="status" aria-live="polite">0 / 0曲</span>
                 <button id="songNextPageBtn" type="button" onclick="changeSongPage(1)" disabled>次へ ▶</button>
             </div>
-            <div id="slBottomMetaHost" aria-label="楽曲件数"></div>
+            <div id="slBottomMetaHost" aria-label="楽曲件数"><div class="song-count" id="songCountDisplay">表示中: 0 曲</div></div>
         </nav>
     </div>
 </div>
@@ -4471,17 +4346,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 </div>
 
 <!-- ヘッダーのメニュー：機能は既存の各画面へ接続 -->
-<div class="modal-overlay" id="siteMenuModal" onclick="closeModal(event,'siteMenuModal')">
-  <div class="modal" role="dialog" aria-modal="true" aria-label="メニュー" onclick="event.stopPropagation()" style="max-width:500px;width:calc(100% - 28px);">
-    <span class="modal-close" role="button" tabindex="0" onclick="closeModal(null,'siteMenuModal')">&times;</span>
-    <h2>📝 メニュー</h2>
-    <div class="mypage-menu">
-      <button type="button" onclick="closeModal(null,'siteMenuModal');openFriendsModal()">👥 フレンド</button>
-      <button type="button" onclick="closeModal(null,'siteMenuModal');openManualModal()">📖 使い方ガイド</button>
-      <button type="button" onclick="closeModal(null,'siteMenuModal');openModal('settingsModal')">⚙ 設定</button>
-    </div>
-  </div>
-</div>
+
 <!-- マイページ: 各機能の入口をまとめ、既存の個別モーダルと保存処理は維持する -->
 <div class="modal-overlay" id="myPageModal" onclick="closeModal(event,'myPageModal')">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="myPageTitle" onclick="event.stopPropagation()" style="width:min(600px, calc(100vw - 28px));max-width:600px;box-sizing:border-box;">
@@ -5006,7 +4871,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     const UI_I18N = {"URL共有": {"en": "Share URL", "ko": "URL 공유", "zh-TW": "分享網址"}, "入室後、ルーム接続表示の右側の「ルームURLをコピー」からルームURLをコピーし、仲間へ送ります。": {"en": "After joining, use “Copy room URL” next to the room connection status and send the link to your friends.", "ko": "입장 후 룸 접속 표시 오른쪽의 「룸 URL 복사」로 링크를 복사해 친구에게 보내세요.", "zh-TW": "進入房間後，使用房間連線狀態右側的「複製房間網址」，再將連結傳給朋友。"}, "今後新たに登録する曲へ自動適用します。ルーム参加中はOBSの表示パートにも使用します。OBS側で入力したパート名を優先します。": {"en": "Applies to songs you add from now on and your OBS instrument while you are in a room. An instrument entered in OBS settings takes priority.", "ko": "앞으로 새로 등록하는 곡과 룸 참가 중 OBS 표시 파트에 사용합니다. OBS 설정에 직접 입력한 파트를 우선합니다.", "zh-TW": "套用至之後新增的歌曲，以及參加房間時的OBS演奏樂器；優先使用在OBS設定中輸入的樂器名稱。"},"↺ Key一括リセット":{"ko":"↺ 키 일괄 초기화","en":"↺ Reset all keys","zh-TW":"↺ 批次重設調性"},"登録済み・未登録を含む全曲のKeyを0（原曲）に戻しました。":{"ko":"등록 여부와 관계없이 모든 곡의 키를 원곡(0)으로 초기화했습니다.","en":"All keys, including saved and unsaved songs, were reset to the original key (0).","zh-TW":"所有歌曲（含已加入與未加入清單）的調性均已重設為原調（0）。"},"📁 マイリスト登録済みを除外":{"ko":"📁 마이리스트 등록곡 제외","en":"📁 Hide songs in My list","zh-TW":"📁 排除已加入個人清單的歌曲"},"Googleでログイン":{"ko":"Google로 로그인","en":"Sign in with Google","zh-TW":"使用 Google 登入"},"ゲスト利用中":{"ko":"게스트로 이용 중","en":"Using as guest","zh-TW":"訪客模式"},"ログイン中":{"ko":"로그인 중","en":"Signed in","zh-TW":"已登入"},"Googleログイン中":{"ko":"Google 로그인 중","en":"Google signed in","zh-TW":"已透過 Google 登入"},"ログアウト":{"ko":"로그아웃","en":"Sign out","zh-TW":"登出"},"ログアウトしますか？":{"ko":"로그아웃할까요?","en":"Do you want to sign out?","zh-TW":"確定要登出嗎？"},"ログアウトできませんでした。":{"ko":"로그아웃하지 못했습니다.","en":"Could not sign out.","zh-TW":"無法登出。"},"全曲一覧":{"ko":"全部 곡","en":"All songs","zh-TW":"所有歌曲"},"総登録楽曲数":{"ko":"총 등록 곡 수","en":"Total registered songs","zh-TW":"歌曲總登錄數"},"自分のマイリスト":{"ko":"내 곡 목록","en":"My song list","zh-TW":"我的歌曲清單"},"マイリスト":{"ko":"마이리스트","en":"My list","zh-TW":"我的清單"},"ルームを作る":{"ko":"방 만들기","en":"Create room","zh-TW":"建立房間"},"楽曲追加":{"ko":"곡 추가","en":"Add song","zh-TW":"新增歌曲"},"OBS配信画面設定":{"ko":"OBS 사용자 CSS","en":"OBS custom CSS","zh-TW":"OBS 自訂 CSS"},"マイページ":{"ko":"마이페이지","en":"My page","zh-TW":"個人頁面"},"マイアカウント":{"ko":"내 계정","en":"My account","zh-TW":"我的帳戶"},"フレンド":{"ko":"친구","en":"Friends","zh-TW":"好友"},"使い方ガイド":{"ko":"사용 가이드","en":"User guide","zh-TW":"使用指南"},"設定":{"ko":"설정","en":"Settings","zh-TW":"設定"},"言語 / Language":{"ko":"언어 / Language","en":"Language","zh-TW":"語言 / Language"},"日本語":{"ko":"일본어","en":"Japanese","zh-TW":"日文"},"韓国語（ハングル）":{"ko":"한국어","en":"Korean (Hangul)","zh-TW":"韓文"},"英語":{"ko":"영어","en":"English","zh-TW":"英文"},"台湾華語（繁体字）":{"ko":"繁體中文（台灣）","en":"Traditional Chinese (Taiwan)","zh-TW":"繁體中文（台灣）"},"ルーム退出":{"ko":"방 나가기","en":"Leave room","zh-TW":"離開房間"},"退出":{"ko":"나가기","en":"Leave","zh-TW":"離開"},"ルームURLをコピー":{"ko":"방 URL 복사","en":"Copy room URL","zh-TW":"複製房間網址"},"URLをコピー":{"ko":"URL 복사","en":"Copy URL","zh-TW":"複製網址"},"参加中:":{"ko":"참가 중:","en":"Participants:","zh-TW":"參與者："},"読み込み中...":{"ko":"불러오는 중...","en":"Loading...","zh-TW":"載入中..."},"読み込み中…":{"ko":"불러오는 중…","en":"Loading…","zh-TW":"載入中…"},"ルームの共有マイリストを読み込み中…":{"ko":"방 공유 목록을 불러오는 중…","en":"Loading shared room lists…","zh-TW":"正在載入房間共享清單…"},"検索":{"ko":"검색","en":"Search","zh-TW":"搜尋"},"曲名、アーティスト、アニメ名などで検索...":{"ko":"곡명, 아티스트, 애니메이션 등으로 검색...","en":"Search titles, artists, anime, etc...","zh-TW":"搜尋歌名、歌手、動畫名稱等…"},"予約":{"ko":"예약","en":"Queue","zh-TW":"預約"},"確定":{"ko":"확정","en":"Confirm","zh-TW":"確認"},"完了":{"ko":"완료","en":"Completed","zh-TW":"完成"},"表示中: 0 曲":{"ko":"표시 중: 0곡","en":"Showing: 0 songs","zh-TW":"顯示中：0 首"},"表示中:":{"ko":"표시 중:","en":"Showing:","zh-TW":"顯示中："},"アーティスト：":{"ko":"아티스트:","en":"Artist:","zh-TW":"藝人："},"絞り込み解除":{"ko":"필터 해제","en":"Clear filter","zh-TW":"清除篩選"},"ジャンル":{"ko":"장르","en":"Genre","zh-TW":"曲風"},"選択：0曲":{"ko":"선택: 0곡","en":"Selected: 0 songs","zh-TW":"已選：0 首"},"選択：":{"ko":"선택:","en":"Selected:","zh-TW":"已選："},"表示中を選択":{"ko":"표시 중인 곡 선택","en":"Select visible","zh-TW":"選取目前顯示"},"選択解除":{"ko":"선택 해제","en":"Clear selection","zh-TW":"取消選取"},"担当パートを指定":{"ko":"연주 파트 선택","en":"Select instrument","zh-TW":"選擇演奏樂器"},"パートON":{"ko":"파트 켜기","en":"Part ON","zh-TW":"啟用樂器"},"パートOFF":{"ko":"파트 끄기","en":"Part OFF","zh-TW":"停用樂器"},"Keyを指定":{"ko":"키 선택","en":"Select key","zh-TW":"選擇調性"},"選択曲に適用":{"ko":"선택한 곡에 적용","en":"Apply to selected","zh-TW":"套用至所選歌曲"},"選択曲を削除":{"ko":"선택한 곡 삭제","en":"Remove selected songs","zh-TW":"移除所選歌曲"},"データ所得中":{"ko":"스프레드시트에서 데이터를 불러오는 중...","en":"Loading spreadsheet data...","zh-TW":"正在載入試算表資料…"},"曲名":{"ko":"곡명","en":"Song title","zh-TW":"歌名"},"アーティスト名":{"ko":"아티스트 이름","en":"Artist name","zh-TW":"藝人名稱"},"アーティスト":{"ko":"아티스트","en":"Artist","zh-TW":"藝人"},"作詞者":{"ko":"작사가","en":"Lyricist","zh-TW":"作詞者"},"作曲者":{"ko":"작곡가","en":"Composer","zh-TW":"作曲者"},"編曲者":{"ko":"편곡자","en":"Arranger","zh-TW":"編曲者"},"ジャンル①":{"ko":"장르 ①","en":"Genre 1","zh-TW":"曲風①"},"ジャンル②":{"ko":"장르 ②","en":"Genre 2","zh-TW":"曲風②"},"タイアップ":{"ko":"타이업 / 작품명","en":"Related work","zh-TW":"搭配作品"},"マイリストから解除しますか？":{"ko":"마이리스트에서 삭제할까요?","en":"Remove from your list?","zh-TW":"確定從清單移除嗎？"},"いいえ":{"ko":"아니요","en":"No","zh-TW":"否"},"はい":{"ko":"예","en":"Yes","zh-TW":"是"},"閉じる":{"ko":"닫기","en":"Close","zh-TW":"關閉"},"フレンド管理":{"ko":"친구 관리","en":"Manage friends","zh-TW":"好友管理"},"フレンド一覧":{"ko":"친구 목록","en":"Friend list","zh-TW":"好友清單"},"一覧を更新":{"ko":"목록 새로고침","en":"Refresh list","zh-TW":"重新整理清單"},"フレンド検索・新規追加":{"ko":"친구 검색 및 추가","en":"Find / add friends","zh-TW":"搜尋／新增好友"},"相手のフレンドIDを入力して申請します。表示名検索ではなくID検索です。":{"ko":"상대방의 친구 ID를 입력해 신청하세요. 이름이 아닌 ID로 검색합니다.","en":"Enter a friend's ID to send a request. Search uses IDs, not display names.","zh-TW":"輸入對方的好友 ID 送出邀請；此功能依 ID 搜尋，而非暱稱。"},"自分のフレンドID":{"ko":"내 친구 ID","en":"My friend ID","zh-TW":"我的好友 ID"},"友達のフレンドID":{"ko":"상대방의 친구 ID","en":"Friend's ID","zh-TW":"好友的 ID"},"コピー":{"ko":"복사","en":"Copy","zh-TW":"複製"},"申請":{"ko":"신청","en":"Send request","zh-TW":"送出邀請"},"届いた申請":{"ko":"받은 신청","en":"Incoming requests","zh-TW":"收到的邀請"},"送った申請":{"ko":"보낸 신청","en":"Sent requests","zh-TW":"已送出的邀請"},"フレンドのマイリスト":{"ko":"친구의 마이리스트","en":"Friend's list","zh-TW":"好友的清單"},"自分との共通曲のみ":{"ko":"나와 겹치는 곡만","en":"Common songs only","zh-TW":"僅顯示共同歌曲"},"マイリストを見る":{"ko":"마이리스트 보기","en":"View list","zh-TW":"查看清單"},"解除":{"ko":"해제","en":"Remove","zh-TW":"移除"},"申請中":{"ko":"신청 중","en":"Pending","zh-TW":"申請中"},"承認":{"ko":"수락","en":"Accept","zh-TW":"接受"},"拒否":{"ko":"거절","en":"Decline","zh-TW":"拒絕"},"フレンドとマイリストを共有！ 共通の登録曲を自動抽出し、お互いのKey・担当パートも確認できます。":{"ko":"친구와 마이리스트를 공유하고 공통곡, 키와 연주 파트를 확인할 수 있어요!","en":"Share lists with friends, detect common songs and see each other's key and instruments.","zh-TW":"與好友分享歌單，自動找出共同歌曲，並查看彼此的調性與演奏樂器！"},"現在のルーム用URL":{"ko":"현재 방 URL","en":"Current room URL","zh-TW":"目前房間網址"},"表示を確認":{"ko":"미리보기","en":"Preview","zh-TW":"預覽畫面"},"OBSに映るセットリストのデザイン":{"ko":"OBS에 표시할 세트리스트 디자인","en":"OBS setlist design","zh-TW":"OBS 歌單外觀"},"枠色":{"ko":"테두리 색","en":"Border color","zh-TW":"邊框顏色"},"文字色":{"ko":"글자 색","en":"Text color","zh-TW":"文字顏色"},"背景色":{"ko":"배경 색","en":"Background color","zh-TW":"背景顏色"},"背景透明度（0%：不透明 / 100%：透明）":{"ko":"배경 투명도 (0% 불투명 / 100% 투명)","en":"Background transparency (0% opaque / 100% clear)","zh-TW":"背景透明度（0% 不透明／100% 全透明）"},"① 確定":{"ko":"① 적용","en":"① Apply","zh-TW":"① 確認"},"② CSS生成":{"ko":"② CSS 생성","en":"② Generate CSS","zh-TW":"② 產生 CSS"},"③ 📋 CSSをコピー":{"ko":"③ 📋 CSS 복사","en":"③ 📋 Copy CSS","zh-TW":"③ 📋 複製 CSS"},"CSS生成":{"ko":"CSS 생성","en":"Generate CSS","zh-TW":"產生 CSS"},"CSSをコピー":{"ko":"CSS 복사","en":"Copy CSS","zh-TW":"複製 CSS"},"生成されたOBS配信画面設定":{"ko":"생성된 OBS 사용자 CSS","en":"Generated OBS custom CSS","zh-TW":"已產生的 OBS 自訂 CSS"},"色と透明度を選択して「確定」を押してください。":{"ko":"색과 투명도를 선택하고 '적용'을 누르세요.","en":"Choose colors and transparency, then press Apply.","zh-TW":"選擇顏色及透明度後，按下「確認」。"},"①確定後に「表示を確認」で選んだ配色をプレビューできます。OBS本番へ適用する際は、②CSS生成 → ③CSSをコピーしてブラウザソースに貼り付けてください。":{"ko":"① 적용 후 미리보기로 확인하세요. OBS에 적용하려면 ② CSS 생성 → ③ 복사 후 브라우저 소스에 붙여넣으세요.","en":"After applying, use Preview to check the colors. For OBS, generate and copy CSS, then paste into the browser source.","zh-TW":"按下①確認後可預覽配色；如要套用至 OBS，請依序產生 CSS、複製，並貼至瀏覽器來源。"},"前へ":{"ko":"이전","en":"Previous","zh-TW":"上一頁"},"次へ":{"ko":"다음","en":"Next","zh-TW":"下一頁"},"楽曲を追加":{"ko":"곡 추가","en":"Add a song","zh-TW":"新增歌曲"},"登録申請を管理者へ送信します。承認されるまで公開マスターは変更されません。":{"ko":"입력한 내용은 공개 곡 목록에 등록됩니다. 공개 가능한 정보만 입력하세요.","en":"Submitted information will be added to the shared song catalog. Enter public information only.","zh-TW":"資料將加入公開歌曲清單，請僅填寫可公開的資訊。"},"曲名 *":{"ko":"곡명 *","en":"Song title *","zh-TW":"歌名 *"},"アーティスト名 *":{"ko":"아티스트 이름 *","en":"Artist name *","zh-TW":"藝人名稱 *"},"ChordWiki 原曲URL *":{"ko":"ChordWiki 원곡 URL *","en":"Original ChordWiki URL *","zh-TW":"ChordWiki 原曲網址 *"},"BPM（任意）":{"ko":"BPM (선택)","en":"BPM (optional)","zh-TW":"BPM（選填）"},"ジャンル *":{"ko":"장르 *","en":"Genre *","zh-TW":"曲風 *"},"ジャンル②（任意）":{"ko":"장르 ② (선택)","en":"Genre 2 (optional)","zh-TW":"曲風②（選填）"},"キャンセル":{"ko":"취소","en":"Cancel","zh-TW":"取消"},"スプレッドシートに登録":{"ko":"스프레드시트에 등록","en":"Submit to spreadsheet","zh-TW":"新增至試算表"},"ユーザー名と基本担当パートを設定します。Googleログイン中はアカウントに保存されます。":{"ko":"사용자 이름과 기본 연주 파트를 설정합니다. Google 로그인 시 계정에 저장됩니다.","en":"Set your username and default instrument. Saved to your account when signed in with Google.","zh-TW":"設定使用者名稱及預設演奏樂器；使用 Google 登入時會儲存至帳戶。"},"ユーザー名 (セッション用)":{"ko":"사용자 이름 (세션용)","en":"Session username","zh-TW":"使用者名稱（連線用）"},"変更":{"ko":"변경","en":"Change","zh-TW":"變更"},"アカウントの基本担当パート":{"ko":"기본 연주 파트","en":"Default instrument","zh-TW":"預設演奏樂器"},"未設定":{"ko":"미설정","en":"Not set","zh-TW":"未設定"},"ボーカル":{"ko":"보컬","en":"Vocals","zh-TW":"主唱"},"ギター・ベース":{"ko":"기타 · 베이스","en":"Guitar / bass","zh-TW":"吉他／貝斯"},"打楽器":{"ko":"타악기","en":"Percussion","zh-TW":"打擊樂"},"鍵盤":{"ko":"건반","en":"Keyboard","zh-TW":"鍵盤"},"管楽器":{"ko":"관악기","en":"Wind instruments","zh-TW":"管樂"},"弦楽器":{"ko":"현악기","en":"String instruments","zh-TW":"弦樂"},"笛":{"ko":"피리","en":"Flute","zh-TW":"笛類"},"ドラム・パーカッション":{"ko":"드럼 · 퍼커션","en":"Drums / percussion","zh-TW":"鼓／打擊樂"},"キーボード・シンセ":{"ko":"키보드 · 신스","en":"Keyboard / synth","zh-TW":"鍵盤／合成器"},"木管・金管":{"ko":"목관 · 금관","en":"Woodwind / brass","zh-TW":"木管／銅管"},"バイオリン・チェロなど":{"ko":"바이올린 · 첼로 등","en":"Violin / cello, etc.","zh-TW":"小提琴／大提琴等"},"リコーダー・尺八など":{"ko":"리코더 · 샤쿠하치 등","en":"Recorder / shakuhachi, etc.","zh-TW":"直笛／尺八等"},"保存":{"ko":"저장","en":"Save","zh-TW":"儲存"},"今後新たに登録する曲へ自動適用します。ルーム参加中はOBSの表示パートにも使用します。OBS側で入力したパート名を優先します。":{"ko":"앞으로 등록하는 곡에 자동 적용됩니다. 기존 곡은 변경되지 않습니다.","en":"Applies automatically to newly saved songs. Existing songs stay unchanged.","zh-TW":"自動套用至往後新增的歌曲，不會變更既有歌曲。"},"UIカラーテーマ":{"ko":"UI 색상 테마","en":"UI color theme","zh-TW":"UI 色彩主題"},"ダーク (ダーク)":{"ko":"다크","en":"Dark","zh-TW":"深色"},"ホワイト":{"ko":"화이트","en":"White","zh-TW":"白色"},"初号機":{"ko":"초호기","en":"EVA Unit-01","zh-TW":"初號機"},"弐号機":{"ko":"2호기","en":"EVA Unit-02","zh-TW":"貳號機"},"零号機":{"ko":"0호기","en":"EVA Unit-00","zh-TW":"零號機"},"八号機":{"ko":"8호기","en":"EVA Unit-08","zh-TW":"八號機"},"フォント変更":{"ko":"글꼴 변경","en":"Change font","zh-TW":"更換字型"},"標準（システム）":{"ko":"기본 (시스템)","en":"Default (system)","zh-TW":"預設（系統）"},"ゴシック":{"ko":"고딕","en":"Gothic / sans serif","zh-TW":"黑體"},"丸ゴシック":{"ko":"둥근 고딕","en":"Rounded Gothic","zh-TW":"圓體"},"明朝":{"ko":"명조","en":"Mincho / serif","zh-TW":"明體"},"端末に入っているフォントを使用します。環境によって見た目が異なります。":{"ko":"기기에 설치된 글꼴을 사용합니다. 환경에 따라 다르게 표시될 수 있어요.","en":"Uses installed device fonts. Appearance varies by device.","zh-TW":"使用裝置已安裝的字型，外觀可能因裝置而異。"},"最新情報を再読み込み":{"ko":"최신 정보 새로고침","en":"Reload latest data","zh-TW":"重新載入最新資料"},"表示が古いときに使います。マイリスト・フレンド・ログイン情報は削除しません。":{"ko":"화면이 오래되었을 때 사용하세요. 마이리스트, 친구, 로그인 정보는 삭제되지 않습니다.","en":"Use if displayed data is stale. Your lists, friends, and sign-in are not deleted.","zh-TW":"顯示資料過舊時可使用，不會刪除歌單、好友或登入資訊。"},"自分用Key（原曲を0として半音単位）":{"ko":"내 키 (원곡 0, 반음 단위)","en":"My key (original = 0; semitones)","zh-TW":"個人調性（原調 0，以半音為單位）"},"選択したKeyでChordWikiを開く ↗":{"ko":"선택한 키로 ChordWiki 열기 ↗","en":"Open ChordWiki in selected key ↗","zh-TW":"以所選調性開啟 ChordWiki ↗"},"自分用Keyの変更です。マスターのChordWiki原曲URLは変更しません。":{"ko":"내 키만 바뀌며 스프레드시트 원본 URL은 변경되지 않습니다.","en":"Changes only your key; the original spreadsheet URL stays unchanged.","zh-TW":"僅修改個人調性，不會變更試算表原始網址。"},"ルーム内でこの曲を登録しているメンバー":{"ko":"방에서 이 곡을 등록한 멤버","en":"Members who saved this song","zh-TW":"房間內收藏此歌曲的成員"},"マイリスト登録（本人のみ）":{"ko":"마이리스트 등록 (본인만)","en":"My list registration (owner only)","zh-TW":"加入個人清單（僅限本人）"},"変更は自動保存されます。":{"ko":"변경 사항은 자동 저장됩니다.","en":"Changes are saved automatically.","zh-TW":"變更將自動儲存。"},"予約一覧":{"ko":"예약 목록","en":"Queued songs","zh-TW":"預約清單"},"演奏リスト":{"ko":"연주 목록","en":"Performance list","zh-TW":"演奏清單"},"今から演奏する確定済みの曲です。":{"ko":"곧 연주할 확정된 곡입니다.","en":"Confirmed songs ready to play.","zh-TW":"即將演奏的已確認歌曲。"},"本日のセットリスト":{"ko":"오늘의 세트리스트","en":"Today's setlist","zh-TW":"今日演出歌單"},"画像として保存する":{"ko":"이미지로 저장","en":"Save as image","zh-TW":"儲存為圖片"},"セッションの流れ":{"ko":"세션 진행 순서","en":"Session flow","zh-TW":"Session 流程"},"Key変更のコツ":{"ko":"키 변경 팁","en":"Key change tip","zh-TW":"變調小提示"},"検索のヒント":{"ko":"검색 팁","en":"Search tips","zh-TW":"搜尋小提示"},"フレンド機能":{"ko":"친구 기능","en":"Friends feature","zh-TW":"好友功能"},"OBS配信":{"ko":"OBS 방송","en":"OBS streaming","zh-TW":"OBS 直播"},"複数パート対応":{"ko":"복수 파트 지원","en":"Multiple instruments","zh-TW":"支援多種樂器"},"ルームの共通曲":{"ko":"방의 공통곡","en":"Room common songs","zh-TW":"房間共同歌曲"},"追加":{"ko":"추가","en":"Add","zh-TW":"加入"},"登録":{"ko":"등록","en":"Save","zh-TW":"加入清單"},"曲":{"ko":"곡","en":"songs","zh-TW":"首"},"自分":{"ko":"나","en":"Mine","zh-TW":"自己"},"共通曲":{"ko":"공통곡","en":"Common songs","zh-TW":"共同歌曲"},"全曲":{"ko":"전체 곡","en":"All songs","zh-TW":"所有歌曲"},"すべて":{"ko":"전체","en":"All","zh-TW":"全部"},"パート未設定":{"ko":"파트 미설정","en":"No instrument set","zh-TW":"未設定樂器"},"Googleログイン後に利用できます。":{"ko":"Google 로그인 후 이용할 수 있습니다.","en":"Available after Google sign-in.","zh-TW":"請先使用 Google 登入。"},"マイリストはGoogleログイン後に利用できます。":{"ko":"마이리스트는 Google 로그인 후 이용할 수 있습니다.","en":"Sign in with Google to use My list.","zh-TW":"請先使用 Google 登入以使用個人清單。"},"演奏候補を「予約」→曲を決めて「確定」→演奏したら「完了」。ルーム全員にリアルタイム反映！":{"ko":"연주 후보를 예약 → 확정 → 완료 순으로 진행하세요. 모든 멤버에게 실시간 반영됩니다!","en":"Queue → Confirm → Complete. Everyone in the room sees changes live!","zh-TW":"候選歌曲依序「預約 → 確認 → 完成」，全房成員即時同步！"},"Keyを選んでから予約すると、予約時のKeyを保持。ChordWikiリンクにも選んだKeyを反映します。マイリスト登録も同様です。":{"ko":"키를 선택한 후 예약하면 해당 키가 저장되고 ChordWiki 링크에도 적용됩니다. 마이리스트 등록도 마찬가지예요.","en":"Choose a key before queuing. The key is saved and applied to the ChordWiki link, also when adding to My list.","zh-TW":"選好調性再預約，系統會保留調性並套用至 ChordWiki 連結；加入個人清單亦同。"},"曲名・略称（検索登録語）・アーティスト・タイアップ・作詞・作曲・編曲など、いろいろな言葉で検索できます。":{"ko":"곡명, 약칭, 아티스트, 관련 작품명, 작사·작곡·편곡 등 다양한 단어로 검색할 수 있어요.","en":"Search by title, abbreviation, artist, related work, lyricist, composer, arranger and more.","zh-TW":"可依歌名、簡稱、歌手、作品名稱、作詞、作曲、編曲等搜尋。"},"ルーム内の「OBS配信画面設定」でテーマ・参加者・担当パートを編集し、専用URLで配信画面を表示できます。":{"ko":"방의 OBS 사용자 CSS에서 색상과 투명도를 설정하고 완료된 곡을 방송에 표시할 수 있어요.","en":"Set colors and transparency through OBS custom CSS and show completed songs on stream.","zh-TW":"從房間的 OBS 自訂 CSS 設定顏色及透明度，將已完成歌曲顯示於直播畫面。"},"マイリストで担当楽器を複数選択OK。マルチプレイヤーの登録曲もまとめて管理できます。":{"ko":"한 곡에 여러 연주 파트를 지정할 수 있어요. 멀티 연주자의 곡도 편하게 관리하세요.","en":"Assign multiple instruments per song and manage multi-instrument performance lists.","zh-TW":"每首歌都能設定多種演奏樂器，方便管理多樂器演出曲目。"},"「共通曲」から比較したいメンバーを2人以上選ぶと、選択した全員が登録している曲だけを表示できます。メンバー別の一覧にも切り替えられます。":{"ko":"Google 로그인 멤버 2명 이상에게 겹치는 곡이 있으면 색상으로 표시됩니다. 멤버별 목록도 전환할 수 있어요.","en":"Songs saved by two or more signed-in members are highlighted; switch freely between member lists.","zh-TW":"兩位以上 Google 登入成員收藏同一首歌時會標色，也可切換檢視各成員清單。"},"Googleログインしたユーザー同士で友達申請できます。承認済みの友達のマイリストを閲覧できます。":{"ko":"Google 로그인 사용자끼리 친구 신청하고 승인된 친구의 마이리스트를 볼 수 있어요.","en":"Google users can send friend requests and view accepted friends' lists.","zh-TW":"Google 登入使用者可互加好友，並查看已接受邀請好友的清單。"}};
     const LANGUAGE_STORAGE = 'sharelistscore_language';
     const LANGUAGE_IDS = ['ja','ko','en','zh-TW'];
-    let activeLanguage = 'ja', languageLoadVersion = 0, languageObserver = null, languageFontReady = false, languageManualReady = false, languageAppReady = false;
+    let activeLanguage = 'ja', languageLoadVersion = 0, languageObserver = null, languageFontReady = false, languageManualReady = false;
     const translatedNodes = new WeakMap();
     Object.assign(UI_I18N, {
       "楽曲一覧":{ko:"전체 곡",en:"Song catalog","zh-TW":"歌曲列表"},
@@ -5162,7 +5027,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         const select=document.getElementById('languageSelect');if(select)select.value=activeLanguage;
         translateUiTree();
         // Refresh visible live text without disturbing data stored in Japanese.
-        if(languageAppReady && typeof syncMobileNav==='function')syncMobileNav();
         if(languageManualReady && document.getElementById('manualModal')?.style.display==='flex')renderManualPage();
         translateUiTree();
         window.dispatchEvent(new CustomEvent('sl-language-change',{detail:activeLanguage}));
@@ -5504,7 +5368,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         selectedMySongIds.clear();lastMySelectionAnchorId=null;updateSelectedMySongCount();
         document.getElementById('defaultPartSelect').value='';
         document.body.classList.remove('my-list-mode');
-        document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
         updateMyListBar();
         document.getElementById('defaultPartSetting').style.display=user?'block':'none';
         if (!user) { if (typeof renderTable === 'function' && allData.length) renderTable(); return; }
@@ -5562,7 +5425,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             myListMode = true;
             rememberListView('mylist');
             document.body.classList.add('my-list-mode');
-            document.getElementById('myListSwitchBtn').textContent = '📚 全曲一覧';
 
             // 全マスターを既に持っている場合は従来通りローカル絞り込み。
             if (masterLoaded) {
@@ -5581,7 +5443,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
                 myListPartialMode = false;
                 rememberListView('all');
                 document.body.classList.remove('my-list-mode');
-                document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
                 try { await loadServerMasterPage('first'); } catch (_) {}
             }
             return;
@@ -5593,7 +5454,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         myListPartialMode = false;
         rememberListView('all');
         document.body.classList.remove('my-list-mode');
-        document.getElementById('myListSwitchBtn').textContent = '📁 マイリスト';
 
         if (masterLoaded) {
             serverPagedMasterMode = false;
@@ -5863,7 +5723,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         // Googleログイン／ログアウトによる表示名・本人判定の変更も参加者表示へ反映する。
         if (typeof roomActiveMembers !== 'undefined') renderRoomParticipants();
         loadLanguageForUser(user);
-        syncMobileNav();
         if (resolveInitialAuth) { resolveInitialAuth(); resolveInitialAuth = null; }
         // 入室中にGoogleログインへ切り替えた場合も、参加UIDを現在の認証に合わせる。
         if (firebaseUser && typeof currentRoomId !== 'undefined' && currentRoomId &&
@@ -5892,9 +5751,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         document.getElementById('loginStatus').classList.toggle('logged-in', !!user);
         document.getElementById('googleLoginBtn').style.display = user ? 'none' : 'inline-flex';
         document.getElementById('googleLogoutBtn').style.display = user ? 'inline-block' : 'none';
-        document.getElementById('myListSwitchBtn').style.display = user && !currentRoomId ? 'inline-block' : 'none';
         if (!user) { stopFriendsFeature(); sharedListReadyUid=''; }
-        document.getElementById('addSongHeaderBtn').style.display = 'inline-block';
         // 保存済みのニックネームを優先し、初回だけGoogleの表示名を初期値にする。
         const nameVersion = ++usernameLoadVersion;
         if (user) {
@@ -6380,7 +6237,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
     async function initRoomUI() {
         const roomWrapper = document.getElementById('roomStatusWrapper');
-        const createBtn = document.getElementById('createRoomBtn');
         
         // ログイン時の保存済みユーザー名は認証状態リスナーから非同期で復元する。
         const storedRoomName = String(localStorage.getItem('kankan_username') || '').trim();
@@ -6422,7 +6278,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             // ルーム中は共有候補曲の表示に統一し、個人用の編集UIを出さない。
             myListMode = false;
             document.body.classList.remove('my-list-mode');
-            document.getElementById('myListSwitchBtn').style.display = 'none';
             db.ref(`rooms/${currentRoomId}/settings`).on('value', snap => {
                 const settings = snap.val();
                 if (!checkRoomExpiry(settings)) return;
@@ -6438,7 +6293,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
                 alert('ルームの選曲元を読み込めません。ルーム設定へのアクセス権限を確認してください。');
             });
             document.getElementById('roomStatusText').innerHTML = `🌐 <b>ルーム「${escapeHtml(currentRoomId)}」</b> に接続中 (👤 ${escapeHtml(myName)})`;
-            createBtn.style.display = 'none';
 
             mySessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
             const myMemberRef = db.ref(`rooms/${currentRoomId}/members/${mySessionId}`);
@@ -6468,7 +6322,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             document.body.classList.remove('in-room');
             myName = isUnsetGuestName(myName) ? (auth.currentUser?.uid || '') : myName;
             roomWrapper.classList.remove('active');
-            createBtn.style.display = 'inline-block';
         }
         return true;
     }
@@ -6801,7 +6654,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     let genre3Key = 'ジャンル③'; 
 
     const tableBody = document.getElementById('tableBody');
-    const controls = document.getElementById('controls');
     const tableWrapper = document.getElementById('tableWrapper');
     const tableBodyWrapper = document.querySelector('.table-body-wrapper');
     const tableHeaderWrapper = document.querySelector('.table-header-wrapper');
@@ -7065,7 +6917,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     // ===== STEP 3-2ここまで =====
     // ===== フレンド機能ここまで =====
     // マイページはナビゲーション専用。個人マイリスト・フレンド・設定の保存形式は変更しない。
-    function openSiteMenu() {openModal('siteMenuModal');}
     function openMyPage() {
         const hint = document.getElementById('myPageAccountHint');
         if (!signedInUser) hint.textContent = 'ゲスト利用中：フレンドはGoogleログイン後に利用できます。';
@@ -8056,7 +7907,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         if (!serverPagedMasterMode && signedInUser && sharedListReadyUid === signedInUser.uid) void queueFriendSharedSync(signedInUser.uid);
         if (currentRoomId) renderRoomListTabs();
         loadingArea.style.display = 'none';
-        controls.style.display = 'block';
         tableWrapper.style.display = 'flex';
         
         if (currentRoomId && !window._firebaseListenerInitialized) {
@@ -8088,7 +7938,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 
     function showCsvLoadError(message) {
         loadingArea.style.display = 'flex';
-        controls.style.display = 'none';
         tableWrapper.style.display = 'none';
         loadingArea.innerHTML = `<span style='color:red;'>${escapeHtml(message)}</span><br><button id='retryBtn' style='margin-top:15px;'>🔄 再読み込み</button>`;
         document.getElementById('retryBtn').onclick = () => location.reload();
@@ -8876,7 +8725,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         if (typeof window.slHandleHistoryPop === 'function' && window.slHandleHistoryPop(event)) return;
         if (currentRoomId) return;
         const view=event.state?.[APP_HISTORY_KEY];
-        closeMobileMenu();
         if (view === 'all' || view === 'mylist') {
             rememberListView(view);
             document.documentElement.classList.remove('entry-home');
@@ -8912,7 +8760,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
     function goHome() {
         // ルーム接続を維持したままトップ画面を表示する。
-        closeMobileMenu();
         forgetListView();
         document.documentElement.classList.add('entry-home');
         setAppHistory('home');
@@ -8959,7 +8806,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     window.addEventListener('DOMContentLoaded', async () => {
         searchInput.disabled = false;
         searchInput.readOnly = false;
-        syncMobileNav();
         // room=... はホームを飛ばして従来どおり入室し、マスターを読む。
         if (currentRoomId) {
             document.documentElement.classList.remove('entry-home');
@@ -9171,9 +9017,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         confirmedItems.sort((a,b) => a.order - b.order);
         completedItems.sort((a,b) => a.order - b.order);
 
-        document.getElementById('reservedCount').textContent = reservedItems.length;
-        document.getElementById('confirmedCount').textContent = confirmedItems.length;
-        document.getElementById('completedCount').textContent = completedItems.length;
         document.getElementById('modalReservedCount').textContent = reservedItems.length;
         document.getElementById('modalConfirmedCount').textContent = confirmedItems.length;
 
@@ -9392,7 +9235,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
 
     function renderTable() {
-        syncMobileNav();
         ensureListLayout();
 
         // 全曲一覧・マイリストのどちらでも、現在選択中のジャンルを必ず強調表示する。
@@ -9560,48 +9402,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
 
 
-    // スマホ専用ナビ: PC用の既存ハンドラーを再利用する（Firebase処理は共通）。
-    function closeMobileMenu() {
-        const panel=document.getElementById('mobileMorePanel');
-        const btn=document.getElementById('mobileMenuBtn');
-        if(panel) panel.hidden=true;
-        if(btn) btn.setAttribute('aria-expanded','false');
-    }
-    function toggleMobileMenu() {
-        const panel=document.getElementById('mobileMorePanel');
-        if(!panel)return;
-        panel.hidden=!panel.hidden;
-        document.getElementById('mobileMenuBtn').setAttribute('aria-expanded',String(!panel.hidden));
-    }
-    async function mobileGoAll() {
-        closeMobileMenu();
-        if(currentRoomId) {roomListView='all';renderRoomListTabs();renderTable();tableBodyWrapper.scrollTop=0;return;}
-        if(myListMode) await toggleMyList();
-        if(!masterLoaded) await ensureServerPagedAllSongsLoaded();
-        syncMobileNav();
-    }
-    async function mobileGoMyList() {
-        closeMobileMenu();
-        if(currentRoomId) {openRoomCommonMemberPicker();return;}
-        if(!signedInUser) {alert('マイリストはGoogleログイン後に利用できます。');return;}
-        if(!myListMode) await toggleMyList();
-        syncMobileNav();
-    }
-    function syncMobileNav() {
-        const nav=document.getElementById('mobileQuickNav');
-        if(!nav)return;
-        nav.classList.toggle('mobile-authenticated',!!signedInUser);
-        const mine=document.getElementById('mobileMyBtn');
-        const all=document.getElementById('mobileAllBtn');
-        if(mine) {
-          mine.textContent=currentRoomId?'🤝 共通曲':'📁 マイリスト';
-          mine.setAttribute('aria-pressed',String(currentRoomId?roomListView==='common':!!myListMode));
-        }
-        if(all) all.setAttribute('aria-pressed',String(currentRoomId?roomListView==='all':!myListMode));
-        const identity=document.getElementById('mobileIdentity');
-        if(identity)identity.textContent=signedInUser?(myName||signedInUser.displayName||'Googleログイン中'):'ゲスト利用中';
-    }
-    languageAppReady = true;
 </script>
 
 
@@ -9611,11 +9411,6 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 
   function slById(id){return document.getElementById(id);}
   function slUseMobileLayout(){return window.innerWidth<=820 || matchMedia('(pointer:coarse)').matches;}
-  function slMove(id,hostId){
-    const node=slById(id),host=slById(hostId);
-    if(node&&host&&node.parentElement!==host)host.appendChild(node);
-  }
-
   window.slToggleSidebar=function(force){
     const next=typeof force==='boolean'?force:!document.body.classList.contains('sl-sidebar-open');
     document.body.classList.toggle('sl-sidebar-open',next);
@@ -10559,28 +10354,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
   }
 
   function slInitShell(){
-    document.body.classList.add('sl-redesign');
-    slMove('searchInput','slSearchHost');
-    slMove('genreFilters','slGenreHost');
-    slMove('songCountDisplay','slBottomMetaHost');
-    slMove('artistFilterIndicator','slListMeta');
     slEnableGenreDrag();
-    slMove('loginStatus','slSidebarAccount');
-    const accountLabel=slById('loginStatus');
-    if(accountLabel){
-      accountLabel.removeAttribute('style');
-      accountLabel.setAttribute('title','クリックでアカウント設定');
-    }
-    const accountHost=slById('slSidebarAccount');
-    if(accountHost && accountLabel){
-      // 見出しの初期ダミーテキストを削除し、従来のログイン表示をそのまま利用する。
-      const oldLabel=slById('slSidebarAccountName');
-      if(oldLabel)oldLabel.remove();
-      accountHost.querySelector('.sl-account-icon')?.after(accountLabel);
-    }
-    slMove('googleLoginBtn','slSidebarFooter');
-    slMove('googleLogoutBtn','slSidebarFooter');
-
     slSelectDockStatus('reserved');
     slSyncUi();
     setTimeout(slSyncUi,350);
@@ -10803,7 +10577,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 </script>
 <script src="setlist-share.js?v=20261020-9"></script>
 <script src="room-history.js"></script>
-<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-order1"></script></body>
+<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script></body>
 </html>
 
 
