@@ -5,3 +5,5 @@ assert.equal(core.config({}).transparentBackground,false);assert.equal(core.conf
 
 assert.equal(core.people({one:{uid:'member',defaultPart:'🥁'}})[0].defaultPart,'ドラム・パーカッション');
 assert.equal(core.people({one:{uid:'guest',guest:true,defaultPart:'🥁'}})[0].defaultPart,'');
+
+const writeRule=addObsSceneRules(original).rules.obsScenes.$room.$uid['.write'];assert.ok(writeRule.includes("auth.token.firebase.sign_in_provider === 'google.com'"));assert.ok(!writeRule.includes('anonymous'));

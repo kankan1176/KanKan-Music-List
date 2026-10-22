@@ -1,7 +1,7 @@
 'use strict';
 function addObsSceneRules(original){const out=structuredClone(original);out.rules.obsScenes={'$room':{'$uid':{
  '.read':"root.child('rooms').child($room).exists()",
- '.write':"auth != null && auth.uid === $uid && (auth.token.firebase.sign_in_provider === 'google.com' || auth.token.firebase.sign_in_provider === 'anonymous') && root.child('rooms').child($room).exists() && $room.matches(/^[A-Za-z0-9]{4,32}$/)",
+ '.write':"auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'google.com' && root.child('rooms').child($room).exists() && $room.matches(/^[A-Za-z0-9]{4,32}$/)",
  '.validate':"newData.hasChildren(['theme','roomName','host','speed','font','updatedAt'])",
  transparentBackground:{'.validate':'newData.isBoolean()'},
  theme:{'.validate':"newData.val() === 'light' || newData.val() === 'dark'"},
