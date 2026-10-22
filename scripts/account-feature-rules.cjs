@@ -10,7 +10,7 @@ function addAccountFeatureRules(document){
  // Validation also runs for descendant writes, without widening existing permissions.
  room['.validate']=and(room['.validate'],EXISTING_OR_GOOGLE);
  const settings=room.settings ||= {};settings['.validate']=and(settings['.validate'],EXISTING_OR_GOOGLE);
- for(const name of ['userFavorites','userFavoriteMigrations','friendCodes','friendRequests','friendships','follows'])privatePermissions(r[name]);
+ for(const name of ['userFavorites','userFavoriteMigrations','friendCodes','friendRequests','friendships','follows','songAddRequests'])privatePermissions(r[name]);
  return out;
 }
 module.exports={addAccountFeatureRules};

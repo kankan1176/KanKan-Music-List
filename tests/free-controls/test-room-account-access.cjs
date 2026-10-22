@@ -21,5 +21,24 @@ const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFail
  await assertFails(get(ref(guest,'userFavorites/feature-guest')));await assertFails(set(ref(guest,'userFavorites/feature-guest/feature-other'),true));
  await assertSucceeds(set(ref(google,'userFavorites/feature-google/feature-other'),true));await assertSucceeds(get(ref(google,'userFavorites/feature-google')));
  await assertSucceeds(set(ref(guest,'rooms/ACCTTEST/members/guest-session'),null));
+ // My List and song submissions are account-only, including direct API requests.
+ const song={registered:true,key:0,part:'',liked:false};
+ await assertSucceeds(set(ref(google,'users/feature-google/songs/account-song'),song));
+ await assertSucceeds(get(ref(google,'users/feature-google/songs')));
+ await assertFails(set(ref(guest,'users/feature-guest/songs/guest-song'),song));
+ const wrongProvider=env.authenticatedContext('feature-google',{firebase:{sign_in_provider:'anonymous'}}).database();
+ await assertFails(get(ref(wrongProvider,'users/feature-google/songs')));
+ await assertFails(set(ref(wrongProvider,'users/feature-google/songs/account-song'),null));
+ const request=uid=>({type:'newSong',requestedBy:uid,title:'Synthetic new song',artist:'Synthetic artist',status:'pending',createdAt:serverTimestamp()});
+ await assertSucceeds(set(ref(google,'songAddRequests/feature-google/account-request'),request('feature-google')));
+ await assertSucceeds(get(ref(google,'songAddRequests/feature-google')));
+ await assertFails(set(ref(guest,'songAddRequests/feature-guest/guest-request'),request('feature-guest')));
+ await assertFails(get(ref(wrongProvider,'songAddRequests/feature-google')));
+ await assertFails(set(ref(wrongProvider,'songAddRequests/feature-google/account-request'),null));
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'admins/feature-admin'),true);});
+ const admin=env.authenticatedContext('feature-admin',{firebase:{sign_in_provider:'google.com'}}).database();
+ await assertSucceeds(get(ref(admin,'songAddRequests')));
+ await assertSucceeds(update(ref(admin,'songAddRequests/feature-google/account-request'),{status:'approved',reviewedBy:'feature-admin',reviewedAt:serverTimestamp()}));
+ console.log('PASS: Google My List read/write and song submission retained; anonymous My List/submission denied; admin request review retained. Synthetic data only.');
  console.log('PASS: production-derived rules allow Google room creation and favorites; deny guest room creation/favorites; preserve guest shared-room membership, rename, queue progression/deletion and leave. Synthetic data only.');
 }finally{await env.cleanup();}})().catch(()=>{console.error('FAIL: room/account access assertion. No production room data was read or changed.');process.exitCode=1;});

@@ -1035,7 +1035,7 @@ body.sl-redesign #listModeIndicator{display:none!important}
 body.in-room #slNavObs{display:flex!important;}
 /* Guests can open the sign-in guidance; editing remains Google-account only. */
 body:not(.sl-obs-account) :is(#slNavObs,#mobileObsItem,#obsCustomCssBtn){opacity:.5!important;cursor:pointer;}
-body:not(.sl-account-features) :is(#slNavRoom,#slNavFriends){opacity:.5!important;cursor:pointer;}
+body:not(.sl-account-features) :is(#slNavRoom,#slNavFriends,#slNavMy,#slNavAdd){opacity:.5!important;cursor:pointer;}
 
 
 /* 左メニューの旧・共通曲ボタンは入室状態に関係なく非表示。ルーム内タブには影響しない。 */
@@ -5246,6 +5246,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     (()=>{let stored='ja';try{stored=localStorage.getItem(LANGUAGE_STORAGE)||'ja';}catch(_){}applyLanguage(stored);startI18nObserver();})();
 
     Object.assign(UI_I18N,{
+      'マイリストはGoogleログイン後に利用できます。':{en:'Sign in with Google to use My List.',ko:'마이리스트는 Google 로그인 후 이용할 수 있습니다.','zh-TW':'請先使用 Google 登入以使用我的清單。'},
+      '新規楽曲追加はGoogleログイン後に利用できます。':{en:'Sign in with Google to submit a new song.',ko:'새 곡 추가는 Google 로그인 후 이용할 수 있습니다.','zh-TW':'請先使用 Google 登入以新增歌曲。'},
       'フレンド機能はGoogleログイン後に利用できます。':{en:'Sign in with Google to use Friends.',ko:'친구 기능은 Google 로그인 후 이용할 수 있습니다.','zh-TW':'請先使用 Google 登入以使用好友功能。'},
       'ルームの作成・IDからの入室はGoogleログイン後に利用できます。ゲストは共有URLから参加してください。':{en:'Sign in with Google to create rooms or join by room ID. Guests can join using a shared URL.',ko:'룸 생성 및 ID로 입장하려면 Google 로그인이 필요합니다. 게스트는 공유 URL로 참가해 주세요.','zh-TW':'建立房間或以ID加入需先使用 Google 登入；訪客請透過分享網址加入。'}
     });
@@ -5254,7 +5256,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     let roomAuthInFlight = null;
     function slRequireAccountFeature(feature) {
         if (auth.currentUser && !auth.currentUser.isAnonymous) return auth.currentUser;
-        alert(feature === 'friends' ? 'フレンド機能はGoogleログイン後に利用できます。' : 'ルームの作成・IDからの入室はGoogleログイン後に利用できます。ゲストは共有URLから参加してください。');
+        const messages={friends:'フレンド機能はGoogleログイン後に利用できます。',mylist:'マイリストはGoogleログイン後に利用できます。',add:'新規楽曲追加はGoogleログイン後に利用できます。',room:'ルームの作成・IDからの入室はGoogleログイン後に利用できます。ゲストは共有URLから参加してください。'};
+        alert(messages[feature] || messages.room);
         return null;
     }
 
@@ -5886,7 +5889,10 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         if(!user){
             const entry=document.getElementById('roomCreateModal');
             if(entry)entry.style.display='none';
-            document.body.classList.remove('sl-room-create-open');
+            document.body.classList.remove('sl-room-create-open','sl-add-song-open');
+            const addEntry=document.getElementById('addSongModal');
+            if(addEntry)addEntry.style.display='none';
+            if(typeof slAddSongOpenVersion!=='undefined')++slAddSongOpenVersion;
         }
         // friendCodesはGoogle認証本人UIDで書き込み後は変更不可。公開管理画面もサーバールールで再検証。
         const adminLink=document.getElementById('adminPageLink');
@@ -7135,7 +7141,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
     function changeClipboardHelpPage(delta) { showClipboardHelpPage(clipboardHelpPage + delta); }
     function openClipboardHelpManual() { showClipboardHelpPage(0); openModal('songEntryNoticeModal'); }
-    function openModal(id) { if(['friendsModal','roomCreateModal'].includes(id)&&!slRequireAccountFeature(id==='friendsModal'?'friends':'room'))return false;document.getElementById(id).style.display = 'flex'; }
+    function openModal(id) { if(['friendsModal','roomCreateModal','addSongModal'].includes(id)&&!slRequireAccountFeature(({friendsModal:'friends',roomCreateModal:'room',addSongModal:'add'})[id]))return false;document.getElementById(id).style.display = 'flex'; }
     // 入力中のモーダルは、背景（画面外）の誤クリックでは閉じない。
     // ×ボタン・キャンセルなど明示的な操作（e === null）のときだけ閉じる。
     const backdropLockedModals = new Set([
@@ -7374,12 +7380,13 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     let slAddSongOpenVersion = 0;
     let newSongSubmitting = false;
     async function openAddSongModal() {
+        const entryUser=slRequireAccountFeature('add');if(!entryUser)return;
         const requestVersion = ++slAddSongOpenVersion;
         const modal = document.getElementById('addSongModal');
         const feedback = document.getElementById('addSongFeedback');
         const button = document.getElementById('addSongSubmit');
         const first = document.getElementById('newGenre1');
-        const isCurrent = () => requestVersion === slAddSongOpenVersion && modal.style.display !== 'none';
+        const isCurrent = () => requestVersion === slAddSongOpenVersion && auth.currentUser?.uid === entryUser.uid && !auth.currentUser.isAnonymous && modal.style.display !== 'none';
         // 読み込み前にフォームを表示し、画面同期が遷移を取り消さないようにする。
         button.disabled = !masterLoaded || newSongSubmitting;
         first.disabled = !masterLoaded;
@@ -7433,6 +7440,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 
     async function submitNewSong(event) {
         event.preventDefault();
+        const user=slRequireAccountFeature('add');if(!user)return;
+        const isCurrent=()=>auth.currentUser?.uid===user.uid&&!auth.currentUser.isAnonymous;
         const form = document.getElementById('addSongForm');
         const feedback = document.getElementById('addSongFeedback');
         const button = document.getElementById('addSongSubmit');
@@ -7450,9 +7459,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         newSongSubmitting = true;
         button.disabled = true; feedback.textContent = '管理者への登録申請を送信しています…';
         try {
-            let user = auth.currentUser;
-            if (!user) { const result = await auth.signInAnonymously(); user = result.user; }
-            if (!user) throw Error('認証を開始できませんでした');
+            if(!isCurrent())return;
             const payload = {
                 type:'newSong', requestedBy:user.uid, title, artist,
                 chordwiki:String(data.codeUrl||'').trim().slice(0,2048), bpm:String(data.bpm||''),
@@ -7461,6 +7468,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
                 status:'pending', createdAt:firebase.database.ServerValue.TIMESTAMP
             };
             await db.ref(`songAddRequests/${user.uid}`).push(payload);
+            if(!isCurrent())return;
             form.reset(); newCodeUrlInput.setCustomValidity('');
             document.getElementById('newCodeUrlCheck').textContent = '';
             feedback.textContent = '申請を受け付けました。管理者の承認後に全曲一覧へ反映されます。';
@@ -7470,8 +7478,9 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             document.getElementById('addSongModal').style.zIndex = '';
         } catch (error) {
             console.error('楽曲追加申請の失敗',error);
+            if(!isCurrent())return;
             feedback.textContent = '申請を送信できませんでした: '+String(error.message||error);
-        } finally {newSongSubmitting = false;button.disabled = false;}
+        } finally {newSongSubmitting = false;button.disabled = !auth.currentUser || auth.currentUser.isAnonymous;}
     }
 
     // Shared text-import parsing helpers (clipboard input may contain CSV-style comma-separated text).
@@ -9784,7 +9793,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     const execute=async()=>{
       // Only the most recently requested destination should begin.
       if(serial!==slNavSerial)return;
-      if(['room','friends'].includes(destination)&&!slRequireAccountFeature(destination))return;
+      if(['room','friends','mylist','add'].includes(destination)&&!slRequireAccountFeature(destination))return;
     // Always close the previous UI before transitioning.
     if(!slCloseVisibleModals('')) return;
     document.body.classList.remove('sl-add-song-open','sl-room-create-open','sl-overlay-page-open');
@@ -9884,6 +9893,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
   window.slOpenExclusiveAction=function(action){slCloseVisibleModals('');if(typeof action==='function')action();}
 
   window.slOpenAddSongPage=function(){
+    if(!slRequireAccountFeature('add'))return;
     if(!slCloseVisibleModals('addSongModal'))return;
     document.body.classList.add('sl-add-song-open');
     if(typeof openAddSongModal==='function') openAddSongModal();
