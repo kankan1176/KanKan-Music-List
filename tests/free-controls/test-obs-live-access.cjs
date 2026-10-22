@@ -3,6 +3,11 @@
  const scene={theme:'dark',roomName:'Google broadcast',description:'',host:'member',speed:25,font:'system',updatedAt:serverTimestamp()};
  await assertSucceeds(set(ref(member,'obsScenes/OBSDEMO/member'),scene));
  await assertSucceeds(get(ref(env.unauthenticatedContext().database(),'obsScenes/OBSDEMO/member')));
+ await assertSucceeds(update(ref(member,'obsScenes/OBSDEMO/member'),{members:{u1:{name:'One',part:'',color:1,order:1},u2:{name:'Two',part:'Drums',color:2,order:0}},updatedAt:serverTimestamp()}));
+ await assertSucceeds(get(ref(guest,'obsScenes/OBSDEMO/member')));
+ for(const order of [-1,100,1.5,'first'])await assertFails(update(ref(member,'obsScenes/OBSDEMO/member'),{'members/u1/order':order,updatedAt:serverTimestamp()}));
+ console.log('PASS: Google broadcaster member order persists and is public to OBS viewers; invalid order values rejected. Synthetic data only.');
+
  await assertFails(set(ref(guest,'obsScenes/OBSDEMO/obs-viewer'),{...scene,host:'obs-viewer'}));
  const anonymousOwner=env.authenticatedContext('member',{firebase:{sign_in_provider:'anonymous'}}).database();
  await assertFails(update(ref(anonymousOwner,'obsScenes/OBSDEMO/member'),{description:'Blocked',updatedAt:serverTimestamp()}));

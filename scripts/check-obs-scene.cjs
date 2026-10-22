@@ -7,3 +7,8 @@ assert.equal(core.people({one:{uid:'member',defaultPart:'🥁'}})[0].defaultPart
 assert.equal(core.people({one:{uid:'guest',guest:true,defaultPart:'🥁'}})[0].defaultPart,'');
 
 const writeRule=addObsSceneRules(original).rules.obsScenes.$room.$uid['.write'];assert.ok(writeRule.includes("auth.token.firebase.sign_in_provider === 'google.com'"));assert.ok(!writeRule.includes('anonymous'));
+
+const ordered=core.config({members:{b:{name:'B',order:0},a:{name:'A',order:1},bad:{order:-1},fraction:{order:1.5}}});
+assert.equal(ordered.members.b.order,0);assert.equal(ordered.members.bad.order,undefined);assert.equal(ordered.members.fraction.order,undefined);
+const list=[{uid:'a'},{uid:'new'},{uid:'b'}];assert.deepEqual(core.orderedPeople(list,ordered).map(p=>p.uid),['b','a','new']);assert.deepEqual(list.map(p=>p.uid),['a','new','b']);assert.deepEqual(core.orderedPeople(list,core.config()).map(p=>p.uid),['a','new','b']);assert.deepEqual(core.config(ordered),ordered);
+console.log('PASS: optional member order survives normalization; old scenes keep their order, new members follow ordered members; invalid orders removed.');

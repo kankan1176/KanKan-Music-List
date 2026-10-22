@@ -65,3 +65,10 @@ body.sl-redesign.sl-obs-editor-open #obsModal.modal-overlay .modal.scene-editor{
  #obsModal .scene-editor-controls{grid-column:1}
  #obsModal .scene-editor-preview{grid-column:2}
 }
+
+#obsModal .scene-member-editor-heading{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+#obsModal .scene-member-editor-heading strong{flex:1;min-width:0;overflow-wrap:anywhere}
+#obsModal .scene-member-editor-heading small{width:100%;opacity:.75}
+#obsModal .scene-member-order{display:flex;gap:6px}
+#obsModal .scene-member-order button{min-height:36px;padding:6px 9px;font-size:13px!important;white-space:nowrap}
+#obsModal .scene-member-order button:disabled{opacity:.4;cursor:default}
