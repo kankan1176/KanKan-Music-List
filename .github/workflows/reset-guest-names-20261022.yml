@@ -1,0 +1,30 @@
+name: Reset all guest room names (2026-10-22)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/reset-guest-names-20261022.cjs'
+      - '.github/workflows/reset-guest-names-20261022.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: firebase-admin-functions-production
+  cancel-in-progress: false
+jobs:
+  reset:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-guest-name-reset.cjs
+      - run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Reset guest names once without changing account data or billing
+        run: node scripts/reset-guest-names-20261022.cjs --apply

@@ -1,8 +1,10 @@
 /* Applies only administrator-issued RTDB controls; personal lists and preferences are preserved. */
 (()=>{'use strict';
  if(typeof UI_I18N!=='undefined')Object.assign(UI_I18N,{"管理者によりログアウトされました。もう一度ログインしてください。": {"en": "An administrator has signed you out. Please sign in again.", "ko": "관리자에 의해 로그아웃되었습니다. 다시 로그인해 주세요.", "zh-TW": "管理員已將您登出，請重新登入。"}, "ログアウトに失敗しました。通信状況を確認してください。": {"en": "Could not sign out. Check your connection.", "ko": "로그아웃하지 못했습니다. 인터넷 연결을 확인해 주세요.", "zh-TW": "登出失敗，請檢查網路連線。"}, "管理者の指示で楽曲キャッシュを削除しました。ページを再読み込みすると最新データを取得します。": {"en": "The song cache was cleared at an administrator’s request. Reload this page to get the latest data.", "ko": "관리자 요청으로 곡 캐시를 삭제했습니다. 페이지를 새로고침하면 최신 데이터를 가져옵니다.", "zh-TW": "已依管理員指示清除歌曲快取。重新載入頁面即可取得最新資料。"}, "管理者によりゲスト名が変更されました。": {"en": "An administrator has changed your guest name.", "ko": "관리자가 게스트 이름을 변경했습니다.", "zh-TW": "管理員已變更您的訪客名稱。"}, "名前を端末に保存できませんでした。": {"en": "Could not save the name on this device.", "ko": "이 기기에 이름을 저장하지 못했습니다.", "zh-TW": "無法將名稱儲存至此裝置。"}, "キャッシュを削除できませんでした。": {"en": "Could not clear the cache.", "ko": "캐시를 삭제하지 못했습니다.", "zh-TW": "無法清除快取。"}, "ほかのタブがキャッシュを使用中です。ほかのタブを閉じてください。": {"en": "Another tab is using the cache. Close the other tabs.", "ko": "다른 탭에서 캐시를 사용 중입니다. 다른 탭을 닫아 주세요.", "zh-TW": "其他分頁正在使用快取，請關閉其他分頁。"}});
+ if(typeof UI_I18N!=='undefined')Object.assign(UI_I18N,{'管理者によりゲストの参加名がリセットされました。名前はアカウント設定から変更できます。':{en:'An administrator reset your guest room name. You can choose a new name in account settings.',ko:'관리자가 게스트 참가 이름을 초기화했습니다. 계정 설정에서 새 이름을 지정할 수 있습니다.','zh-TW':'管理員已重設訪客參加名稱，可於帳戶設定中重新設定。'}});
  const dbName='share-list-score-public-master-v2';
- const storage={get(key){try{return localStorage.getItem(key);}catch{return null;}},set(key,value){try{localStorage.setItem(key,value);return true;}catch{return false;}}};
+ const storage={get(key){try{return localStorage.getItem(key);}catch{return null;}},set(key,value){try{localStorage.setItem(key,value);return true;}catch{return false;}},remove(key){try{localStorage.removeItem(key);return true;}catch{return false;}}};
+ const guestReset=window.SLGuestNameReset?.create(storage)||{apply:()=>null,obsolete:()=>false};
  const deviceKey='shareliscore_control_device';let device=storage.get(deviceKey);
  if(!device){device=crypto.randomUUID();storage.set(deviceKey,device);}
  let busy=false,rerun=false,stopped=false,version=0,revoking=false;
@@ -57,10 +59,11 @@
    }
    const nameCommand=result.guestName;
    if(user?.isAnonymous&&nameCommand?.id&&nameCommand.id!==ack.guestNameId){
+    if(guestReset.obsolete(nameCommand)){ack.guestNameId=nameCommand.id;}else{
     if(typeof nameCommand.name!=='string'||!nameCommand.name.trim()||nameCommand.name.length>40)throw Error('名前の変更指示が不正です。');
     if(!storage.set('kankan_username',nameCommand.name))throw Error('名前を端末に保存できませんでした。');
     if(typeof applyUsername==='function')applyUsername(nameCommand.name);
-    ack.guestNameId=nameCommand.id;show('管理者によりゲスト名が変更されました。');rerun=true;
+    ack.guestNameId=nameCommand.id;show('管理者によりゲスト名が変更されました。');rerun=true;}
    }
    storage.set('shareliscore_control_ack_'+uid,JSON.stringify(ack));
   }catch(error){
@@ -76,7 +79,7 @@
    request.onsuccess=()=>storage.set('sharelistscore_mylist_cache_epoch','auth-'+crypto.randomUUID());
   }catch{}
  }
- auth.onAuthStateChanged(user=>{const next=user&&!user.isAnonymous?user.uid:null;if(!next||cacheAccount&&cacheAccount!==next)dropMyListCache();cacheAccount=next;version++;revoking=false;unwatch();unwatch=typeof window.slWatchAccountControls==='function'?window.slWatchAccountControls(user,()=>void poll()):()=>{};void poll();});
+ auth.onAuthStateChanged(user=>{try{const reset=guestReset.apply(user);if(reset){if(typeof applyUsername==='function')applyUsername(reset.name);if(reset.unnamed){const input=document.getElementById('usernameInput');if(input)input.value='';}show('管理者によりゲストの参加名がリセットされました。名前はアカウント設定から変更できます。');}}catch(error){show(error.message);}const next=user&&!user.isAnonymous?user.uid:null;if(!next||cacheAccount&&cacheAccount!==next)dropMyListCache();cacheAccount=next;version++;revoking=false;unwatch();unwatch=typeof window.slWatchAccountControls==='function'?window.slWatchAccountControls(user,()=>void poll()):()=>{};void poll();});
  window.addEventListener('online',()=>void poll());document.addEventListener('visibilitychange',()=>{if(!document.hidden)void poll();});
  let timer;const startTimer=()=>{clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)void poll();},300000);};startTimer();
  window.addEventListener('pagehide',()=>{stopped=true;version++;clearInterval(timer);unwatch();});
