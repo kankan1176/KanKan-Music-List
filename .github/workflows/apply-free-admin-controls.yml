@@ -18,6 +18,9 @@ on:
       - 'scripts/check-obs-scene.cjs'
       - 'scripts/avatar-rules.cjs'
       - 'profile-avatar.js'
+      - 'scripts/account-feature-rules.cjs'
+      - 'scripts/check-account-features.cjs'
+      - 'tests/free-controls/test-room-account-access.cjs'
       - 'scripts/free-control-rules.cjs'
       - 'scripts/list-share-rules.cjs'
       - 'scripts/public-list-links.cjs'
@@ -64,6 +67,7 @@ jobs:
         run: |
           node scripts/check-high-priority-security.cjs
           node scripts/check-free-account-controls.cjs
+          node scripts/check-account-features.cjs
           node scripts/check-admin-mylist.cjs
           node scripts/check-account-name.cjs
           node scripts/check-list-share.cjs

@@ -1,0 +1,25 @@
+'use strict';
+const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFails}=require('@firebase/rules-unit-testing'),{ref,set,get,update,serverTimestamp}=require('firebase/database');
+(async()=>{const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:fs.readFileSync(process.env.OBS_RULE_TEST,'utf8')}});try{
+ const google=env.authenticatedContext('feature-google',{firebase:{sign_in_provider:'google.com'}}).database(),guest=env.authenticatedContext('feature-guest',{firebase:{sign_in_provider:'anonymous'}}).database(),none=env.unauthenticatedContext().database();
+ const settings=uid=>({source:'master',songIds:[],createdAt:serverTimestamp(),createdByUid:uid});
+ await assertSucceeds(set(ref(google,'rooms/ACCTTEST/settings'),settings('feature-google')));
+ await assertFails(set(ref(guest,'rooms/GUESTNO1/settings'),settings('feature-guest')));
+ await assertFails(set(ref(none,'rooms/GUESTNO2/settings'),settings('feature-guest')));
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'rooms/PARTIAL1/members/old'),{name:'old'});});
+ await assertFails(set(ref(guest,'rooms/PARTIAL1/settings'),settings('feature-guest')));
+ await assertSucceeds(get(ref(guest,'rooms/ACCTTEST/settings')));
+ await assertSucceeds(set(ref(guest,'rooms/ACCTTEST/members/guest-session'),{uid:'feature-guest',name:'Guest',guest:true,lastSeen:serverTimestamp(),defaultPart:''}));
+ await assertSucceeds(update(ref(guest,'rooms/ACCTTEST/members/guest-session'),{name:'Renamed guest',lastSeen:serverTimestamp()}));
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'songs/audit-song'),{title:'Audit Song',artist:'Artist'});});
+ await assertSucceeds(set(ref(guest,'rooms/ACCTTEST/queue/guest-song'),{songId:'audit-song',status:'reserved',addedBy:'Guest',order:1,keyOffset:0}));
+ await assertSucceeds(update(ref(guest,'rooms/ACCTTEST/queue/guest-song'),{status:'confirmed'}));
+ await assertSucceeds(update(ref(guest,'rooms/ACCTTEST/queue/guest-song'),{status:'completed'}));
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'songs/audit-song'),{title:'Audit Song',artist:'Artist'});});
+ await assertSucceeds(set(ref(guest,'rooms/ACCTTEST/queue/guest-song'),null));
+ await env.withSecurityRulesDisabled(async c=>{await set(ref(c.database(),'publicProfiles/feature-google'),{displayName:'Google',code:'SL-JKLMNPQRST'});await set(ref(c.database(),'publicProfiles/feature-other'),{displayName:'Other',code:'SL-ABCDEFGHJK'});await set(ref(c.database(),'userFavorites/feature-guest'),{'feature-other':true});});
+ await assertFails(get(ref(guest,'userFavorites/feature-guest')));await assertFails(set(ref(guest,'userFavorites/feature-guest/feature-other'),true));
+ await assertSucceeds(set(ref(google,'userFavorites/feature-google/feature-other'),true));await assertSucceeds(get(ref(google,'userFavorites/feature-google')));
+ await assertSucceeds(set(ref(guest,'rooms/ACCTTEST/members/guest-session'),null));
+ console.log('PASS: production-derived rules allow Google room creation and favorites; deny guest room creation/favorites; preserve guest shared-room membership, rename, queue progression/deletion and leave. Synthetic data only.');
+}finally{await env.cleanup();}})().catch(()=>{console.error('FAIL: room/account access assertion. No production room data was read or changed.');process.exitCode=1;});

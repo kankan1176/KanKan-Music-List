@@ -11,7 +11,8 @@ assert.equal(merged.rules.users.$uid['.write'],original.rules.users.$uid['.write
 assert.equal(merged.rules.users.$uid['.validate'],original.rules.users.$uid['.validate']);
 assert.ok(merged.rules.users.$uid.songs.$songId['.write'].includes('!data.exists()'));
 assert.equal(merged.rules.users.$uid.songs['.write'],undefined);
-assert.deepEqual(merged.rules.rooms, original.rules.rooms);
+assert.equal(merged.rules.rooms['.read'], original.rules.rooms['.read']);
+assert.ok(merged.rules.rooms.$roomId['.validate'].includes('google.com')); 
 assert.deepEqual(merged.rules.admins, original.rules.admins);
 assert.equal(original.rules.adminClientControl, undefined);
 assert.deepEqual(mergeFreeRules(merged), merged);

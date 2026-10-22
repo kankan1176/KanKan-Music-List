@@ -1035,6 +1035,7 @@ body.sl-redesign #listModeIndicator{display:none!important}
 body.in-room #slNavObs{display:flex!important;}
 /* Guests can open the sign-in guidance; editing remains Google-account only. */
 body:not(.sl-obs-account) :is(#slNavObs,#mobileObsItem,#obsCustomCssBtn){opacity:.5!important;cursor:pointer;}
+body:not(.sl-account-features) :is(#slNavRoom,#slNavFriends){opacity:.5!important;cursor:pointer;}
 
 
 /* 左メニューの旧・共通曲ボタンは入室状態に関係なく非表示。ルーム内タブには影響しない。 */
@@ -3849,7 +3850,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         <figcaption>トップ画面。ログインの入口は左メニューの下部です。 画像を選ぶと別タブで拡大できます。</figcaption></figure></section>
         <section class="sl-help-section" data-help="account" aria-labelledby="slHelpChapter-account">
         <h3 id="slHelpChapter-account">ログインして、自分の名前を設定する</h3>
-        <p data-i18n-sentence><strong>準備：</strong>個人のマイリストやフレンド機能にはGoogleログインを使います。ゲストでもルームに参加できますが、個人リストの保存・共有にはログインが必要です。</p>
+        <p data-i18n-sentence><strong>準備：</strong>個人のマイリストやフレンド機能にはGoogleログインを使います。ゲストは共有URLからルームに参加できますが、個人リストの保存・共有にはログインが必要です。</p>
         <ol>
         <li data-i18n-sentence>左メニュー下部の<strong>「Googleでログイン」</strong>を選び、Googleの画面でアカウントを選択します。スマートフォンは先に「☰」でメニューを開きます。</li>
         <li data-i18n-sentence>ログイン後、左上のアカウント表示を選んで<strong>「アカウント設定」</strong>を開きます。</li>
@@ -4277,7 +4278,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
           </div>
           <div>
             <span class="sl-room-info-icon">👤</span>
-            <div><strong>ゲスト参加にも対応</strong><small>参加者はGoogleログインまたはゲストとしてルームへ参加できます。</small></div>
+            <div><strong>ゲスト参加にも対応</strong><small>ゲストは共有されたルームURLから参加できます。ルーム作成・IDからの入室にはGoogleログインが必要です。</small></div>
           </div>
         </div>
 
@@ -5244,12 +5245,24 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     for(const method of ['alert','confirm','prompt']){const native=window[method].bind(window);window[method]=(message,...args)=>native(uiText(String(message)),...args);}
     (()=>{let stored='ja';try{stored=localStorage.getItem(LANGUAGE_STORAGE)||'ja';}catch(_){}applyLanguage(stored);startI18nObserver();})();
 
+    Object.assign(UI_I18N,{
+      'フレンド機能はGoogleログイン後に利用できます。':{en:'Sign in with Google to use Friends.',ko:'친구 기능은 Google 로그인 후 이용할 수 있습니다.','zh-TW':'請先使用 Google 登入以使用好友功能。'},
+      'ルームの作成・IDからの入室はGoogleログイン後に利用できます。ゲストは共有URLから参加してください。':{en:'Sign in with Google to create rooms or join by room ID. Guests can join using a shared URL.',ko:'룸 생성 및 ID로 입장하려면 Google 로그인이 필요합니다. 게스트는 공유 URL로 참가해 주세요.','zh-TW':'建立房間或以ID加入需先使用 Google 登入；訪客請透過分享網址加入。'}
+    });
     let resolveInitialAuth;
     const initialAuthReady = new Promise(resolve => { resolveInitialAuth = resolve; });
     let roomAuthInFlight = null;
+    function slRequireAccountFeature(feature) {
+        if (auth.currentUser && !auth.currentUser.isAnonymous) return auth.currentUser;
+        alert(feature === 'friends' ? 'フレンド機能はGoogleログイン後に利用できます。' : 'ルームの作成・IDからの入室はGoogleログイン後に利用できます。ゲストは共有URLから参加してください。');
+        return null;
+    }
+
     async function ensureRoomAuth() {
         // Firebaseの保存済みGoogleログイン復元より先に匿名ログインで上書きしない。
         await initialAuthReady;
+        if (auth.currentUser && !auth.currentUser.isAnonymous) return auth.currentUser;
+        if (!currentRoomId) throw new Error('ゲストは共有URLからルームに参加してください。');
         if (auth.currentUser) return auth.currentUser;
         if (!roomAuthInFlight) {
             roomAuthInFlight = auth.signInAnonymously()
@@ -5869,6 +5882,12 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         // ゲストの匿名認証はルームにのみ使う。個人機能はGoogle認証のまま。
         const user = firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null;
         signedInUser = user;
+        document.body.classList.toggle('sl-account-features',!!user);
+        if(!user){
+            const entry=document.getElementById('roomCreateModal');
+            if(entry)entry.style.display='none';
+            document.body.classList.remove('sl-room-create-open');
+        }
         // friendCodesはGoogle認証本人UIDで書き込み後は変更不可。公開管理画面もサーバールールで再検証。
         const adminLink=document.getElementById('adminPageLink');
         if(adminLink)adminLink.style.display='none';
@@ -6517,6 +6536,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 
     // ルーム作成は先に専用画面を表示する。確認まではルームを発行しない。
     function slSetRoomEntryPanel(panel) {
+        if(!slRequireAccountFeature('room'))return;
         const choice=document.getElementById('slRoomChoice');
         const creation=document.getElementById('slRoomCreatePanel');
         const joining=document.getElementById('slRoomJoinPanel');
@@ -6532,6 +6552,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     let slRoomJoinBusy=false;
     async function slJoinRoomById(event){
         event.preventDefault();
+        const entryUser=slRequireAccountFeature('room');if(!entryUser)return;
         if(currentRoomId || slRoomJoinBusy)return;
         const input=document.getElementById('slRoomJoinId');
         const message=document.getElementById('slRoomJoinFeedback');
@@ -6549,6 +6570,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
           if(!snapshot.exists()){
             message.textContent='ルームが見つかりません。IDを確認してください。';return;
           }
+          if(auth.currentUser?.uid!==entryUser.uid||auth.currentUser.isAnonymous)return;
           message.textContent='ルームに入室します…';
           const target=new URL(window.location.href);
           target.searchParams.set('room',id);
@@ -6563,6 +6585,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         }
     }
     function createRoom() {
+        if(!slRequireAccountFeature('room'))return false;
         if (currentRoomId) return;
         slSetRoomEntryPanel('choice');
         document.getElementById('roomCreateMessage').textContent = '';
@@ -6581,6 +6604,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         if(typeof slRefreshNavigation==='function')slRefreshNavigation();
     }
     async function confirmCreateRoom() {
+        const entryUser=slRequireAccountFeature('room');if(!entryUser)return;
         if (roomCreationBusy || currentRoomId) return;
         roomCreationBusy = true;
         const button = document.getElementById('confirmRoomCreation');
@@ -6600,12 +6624,13 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
                 for (let i = 0; i < 8; i++) candidate += chars.charAt(rnd[i] % chars.length);
                 const settingsRef = db.ref(`rooms/${candidate}/settings`);
                 const result = await settingsRef.transaction(existing => {
-                    if (existing !== null) return;
+                    if (existing !== null || auth.currentUser?.uid!==entryUser.uid || auth.currentUser.isAnonymous) return;
                     return {source:'master',songIds:[],createdAt:firebase.database.ServerValue.TIMESTAMP,createdByUid:roomUser.uid};
                 }, undefined, false);
                 if (result.committed) { newRoomId = candidate; break; }
             }
             if (!newRoomId) throw new Error('ルームIDを発行できませんでした。');
+            if(auth.currentUser?.uid!==entryUser.uid||auth.currentUser.isAnonymous)return;
             status.textContent = '作成完了。ルームへ移動します…';
             window.location.replace(window.location.pathname + '?room=' + encodeURIComponent(newRoomId));
         } catch (error) {
@@ -6879,7 +6904,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     function stopFriendsFeature(){friendListeners.forEach(([r,fn])=>r.off('value',fn));friendListeners=[];friendFeatureUid='';friendCodeForUser='';friendRefreshSeq++;const e=document.getElementById('myFriendCode');if(e)e.value='';updateFriendCount(null);closeModal(null,'friendsModal');}
     function attachFriendListener(path,uid){const r=db.ref(path),fn=()=>{if(friendUser()?.uid===uid)void refreshFriendsPanel();};r.on('value',fn,err=>console.warn('お気に入りユーザー同期',err));friendListeners.push([r,fn]);}
     async function startFriendsFeature(user){
-      if(!user||friendFeatureUid===user.uid)return;
+      if(!user||user.isAnonymous||auth.currentUser?.uid!==user.uid||friendFeatureUid===user.uid)return;
       stopFriendsFeature();friendFeatureUid=user.uid;
       try{
         // The SL friend code is public-facing; Firebase UID stays an internal identifier.
@@ -6917,7 +6942,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
       }catch(err){console.error('ユーザーお気に入り初期化失敗',err);friendNotice('ユーザー情報の準備に失敗しました。データルールを確認してください。',true);}
     }
     function updateFriendCount(count){const n=count===null?'−':String(count);const h=document.getElementById('homeFriendCount');if(h)h.textContent=`(${n}人)`;const t=document.getElementById('friendsListHeading');if(t)t.textContent=`👥 フレンド（${n}人）`;}
-    function openFriendsModal(){friendNotice('');renderFriendSyncStatus();openModal('friendsModal');const u=friendUser();document.getElementById('myFriendCode').value=u?(friendCodeForUser||'取得中…'):'Googleログイン後に表示';void refreshFriendsPanel();}
+    function openFriendsModal(){if(!slRequireAccountFeature('friends'))return;friendNotice('');renderFriendSyncStatus();openModal('friendsModal');const u=friendUser();document.getElementById('myFriendCode').value=u?(friendCodeForUser||'取得中…'):'Googleログイン後に表示';void refreshFriendsPanel();}
     function copyMyFriendCode(){if(!friendUser())return friendNotice('Googleログインが必要です。',true);if(!friendCodeForUser)return friendNotice('フレンドコード取得中です。',true);navigator.clipboard.writeText(friendCodeForUser).then(()=>friendNotice('フレンドコードをコピーしました。')).catch(()=>friendNotice('コピーできませんでした。',true));}
     async function getFriendDisplayName(uid){if(friendNameCache[uid])return friendNameCache[uid];try{const v=await db.ref(`publicProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(v.val()||'ユーザー').slice(0,40);}catch{return 'ユーザー';}}
     function friendItem(name,buttons){const row=document.createElement('div');row.className='friend-item';const label=document.createElement('span');label.className='friend-name';label.textContent=name;row.append(label);const actions=document.createElement('div');actions.className='friend-commands';for(const [title,handler,danger] of buttons){const btn=document.createElement('button');btn.type='button';btn.textContent=title;if(danger)btn.className='friend-danger';btn.onclick=handler;actions.append(btn);}row.append(actions);return row;}
@@ -6947,6 +6972,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
     let cachedFavoriteProfiles={},cachedUserFavorites={};
     async function refreshFriendsPanel(){
+      if(!friendUser())return;
       const u=friendUser(),seq=++friendRefreshSeq,isLatest=()=>seq===friendRefreshSeq;
       const list=document.getElementById('friendsList'),results=document.getElementById('publicProfilesList'),hist=document.getElementById('sessionHistoryUsersList');
       try{
@@ -6962,6 +6988,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
       }catch(err){if(isLatest()){console.warn('お気に入りユーザー取得失敗',err);friendNotice('ユーザー情報を取得できませんでした。データルールを確認してください。',true);}}
     }
     async function sendFriendRequest(){
+      if(!slRequireAccountFeature('friends'))return;
       const raw=String(document.getElementById('friendCodeInput').value||'').trim();const panel=document.getElementById('publicProfilesList');panel.textContent='検索中…';
       if(!/^SL-[A-HJ-NP-Z2-9]{10}$/i.test(raw)){panel.textContent='フレンドコードを入力してください（例：SL-XXXXXXXXXX）。';return;}
       try{const snap=await db.ref(`friendCodes/${raw.toUpperCase()}`).once('value');const id=String(snap.val()||'');
@@ -7108,7 +7135,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
     function changeClipboardHelpPage(delta) { showClipboardHelpPage(clipboardHelpPage + delta); }
     function openClipboardHelpManual() { showClipboardHelpPage(0); openModal('songEntryNoticeModal'); }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function openModal(id) { if(['friendsModal','roomCreateModal'].includes(id)&&!slRequireAccountFeature(id==='friendsModal'?'friends':'room'))return false;document.getElementById(id).style.display = 'flex'; }
     // 入力中のモーダルは、背景（画面外）の誤クリックでは閉じない。
     // ×ボタン・キャンセルなど明示的な操作（e === null）のときだけ閉じる。
     const backdropLockedModals = new Set([
@@ -9757,6 +9784,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     const execute=async()=>{
       // Only the most recently requested destination should begin.
       if(serial!==slNavSerial)return;
+      if(['room','friends'].includes(destination)&&!slRequireAccountFeature(destination))return;
     // Always close the previous UI before transitioning.
     if(!slCloseVisibleModals('')) return;
     document.body.classList.remove('sl-add-song-open','sl-room-create-open','sl-overlay-page-open');
@@ -9946,6 +9974,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
   };
 
   window.slGoRoom=function(){
+    if(!slRequireAccountFeature('room'))return;
     if(slHasRoom()){
       /* 入室済みの場合はルーム全曲一覧へ戻す。
          左メニューの選択状態は内容に合わせて「全曲一覧」とする。 */
@@ -10680,6 +10709,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     const originalCreateRoom=createRoom;
     createRoom=function(){
       const r=originalCreateRoom.apply(this,arguments);
+      if(r===false)return r;
       if(!document.body.classList.contains('in-room')){
         document.body.classList.add('sl-room-create-open');
         slRenderRoomDock();
