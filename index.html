@@ -6,7 +6,7 @@
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
     <script src="song-change-core.js?v=20261021-1"></script>
-    <script src="queue-actions.js?v=20261017-queue1"></script>
+    <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
     <!-- ブックマーク用アイコンの設定（PNG用） -->
@@ -8987,15 +8987,9 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
 
     function swapOrder(qId1, qId2) {
-        const order1 = roomQueue[qId1].order;
-        const order2 = roomQueue[qId2].order;
-        if(currentRoomId) {
-            db.ref(`rooms/${currentRoomId}/queue/${qId1}`).update({order: order2});
-            db.ref(`rooms/${currentRoomId}/queue/${qId2}`).update({order: order1});
-        } else {
-            roomQueue[qId1].order = order2; roomQueue[qId2].order = order1;
-            updateQueueUI();
-        }
+        if(currentRoomId)return window.slSwapQueueOrder(qId1,qId2);
+        const a=roomQueue[qId1],b=roomQueue[qId2];if(!a||!b)return;
+        [a.order,b.order]=[b.order,a.order];updateQueueUI();
     }
 
     function updateQueueUI() {
@@ -9961,21 +9955,17 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     slReorderBusy=true;
     try{
       const roomId=currentRoomId;
-      // 同時編集でも他の参加者の最新順序を上書きしないよう、キュー全体を条件付きで交換する。
+      // 最新の2曲を確認し、orderだけをまとめて更新する。キュー全体の書き込み権限は不要。
       const originalA=Number(a.order)||0, originalB=Number(b.order)||0;
       if(originalA===originalB){
         slDockFeedback('曲順が重複しています。最新の一覧を確認して再操作してください。',true);
         return;
       }
-      const result=await db.ref('rooms/'+roomId+'/queue').transaction(current=>{
-        if(!current || !current[qIdA] || !current[qIdB])return;
-        const liveA=current[qIdA],liveB=current[qIdB];
-        if(liveA.status!==a.status || liveB.status!==b.status ||
-          (Number(liveA.order)||0)!==originalA || (Number(liveB.order)||0)!==originalB)return;
-        return {...current,
-          [qIdA]:{...liveA,order:originalB},
-          [qIdB]:{...liveB,order:originalA}};
-      },undefined,false);
+      const result=await SLQueueActions.swapOrders(db.ref('rooms/'+roomId+'/queue'),qIdA,qIdB,{
+        status:a.status,orderA:originalA,orderB:originalB,
+        isCurrent:()=>currentRoomId===roomId
+      });
+      if(currentRoomId!==roomId)return;
       if(!result.committed){
         slDockFeedback('別の参加者が曲順を変更しました。最新の並びで再操作してください。',true);
         return;
@@ -9986,6 +9976,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
       slDockFeedback('並べ替えに失敗しました。',true);
     }finally{slReorderBusy=false;}
   }
+
+  window.slSwapQueueOrder=slDockSwap;
 
   function slDockReorderDrag(row,item,status){
     row.draggable=true;

@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
-const {transact}=require('../queue-actions.js');
+const {transact,swapOrders}=require('../queue-actions.js');
 function fixture(value,{error=false,delayed=false,race=null}={}){
  let warm=false,live=structuredClone(value),off=0,fn;
  const ref={on(event,callback,reject){fn=callback;if(error){queueMicrotask(()=>reject(Object.assign(Error('denied'),{code:'PERMISSION_DENIED'})));return;}if(!delayed)queueMicrotask(()=>{warm=true;callback({val:()=>live})});},off(){off++},async transaction(update){let next=update(warm?structuredClone(live):null);if(race){live=race;next=update(structuredClone(live));}if(next===undefined)return{committed:false};live=next;return{committed:true};}};
@@ -14,5 +14,14 @@ function fixture(value,{error=false,delayed=false,race=null}={}){
  const differentRoom=fixture({status:'reserved'});assert.equal((await transact(differentRoom.ref,()=>null,{isCurrent:()=>false})).committed,false);assert.equal(differentRoom.value.status,'reserved');
  const denied=fixture({}, {error:true});await assert.rejects(transact(denied.ref,()=>null),e=>e.code==='PERMISSION_DENIED');assert.equal(denied.detached,1);
  const timeout=fixture({}, {delayed:true});await assert.rejects(transact(timeout.ref,()=>null,{timeoutMs:10}),e=>e.code==='QUEUE_READ_TIMEOUT');assert.equal(timeout.detached,1);
+ const queue={a:{status:'reserved',songId:'one',order:10,keyOffset:2},b:{status:'reserved',songId:'two',order:20},c:{status:'confirmed',songId:'three',order:30}};
+ function swapFixture(value,{deny=false}={}){const f=fixture(value);let writes=0;f.ref.update=async patch=>{if(deny)throw Object.assign(Error('denied'),{code:'PERMISSION_DENIED'});writes++;assert.deepEqual(patch,{'a/order':20,'b/order':10});for(const[path,value]of Object.entries(patch)){const[id,key]=path.split('/');f.value[id][key]=value;}};return{...f,ref:f.ref,get value(){return f.value},get detached(){return f.detached},get writes(){return writes}};}
+ const options={status:'reserved',orderA:10,orderB:20};
+ const swapped=swapFixture(queue);assert.equal((await swapOrders(swapped.ref,'a','b',options)).committed,true);assert.equal(swapped.writes,1);assert.equal(swapped.value.a.order,20);assert.equal(swapped.value.b.order,10);assert.equal(swapped.value.a.keyOffset,2);assert.deepEqual(swapped.value.c,queue.c);assert.equal(swapped.detached,1);
+ for(const value of [{...queue,b:{...queue.b,status:'completed'}},{...queue,b:{...queue.b,order:21}},{a:queue.a}]){const f=swapFixture(value);assert.equal((await swapOrders(f.ref,'a','b',options)).committed,false);assert.equal(f.writes,0);assert.equal(f.detached,1);}
+ const switched=swapFixture(queue);assert.equal((await swapOrders(switched.ref,'a','b',{...options,isCurrent:()=>false})).committed,false);assert.equal(switched.writes,0);
+ const blocked=swapFixture(queue,{deny:true});await assert.rejects(swapOrders(blocked.ref,'a','b',options),e=>e.code==='PERMISSION_DENIED');assert.deepEqual(blocked.value,queue);assert.equal(blocked.detached,1);
+ const waiting=fixture(queue,{delayed:true});await assert.rejects(swapOrders(waiting.ref,'a','b',{...options,timeoutMs:10}),e=>e.code==='QUEUE_READ_TIMEOUT');assert.equal(waiting.detached,1);
+ console.log('PASS: reorder updates exactly two order fields atomically; stale/deleted/status-changed records and switched rooms abort; errors and timeouts clean up listeners.');
  console.log('PASS: cold-cache failure reproduced; read-before-write fixes back/delete; concurrent changes preserved; room switches, permission errors and timeouts detach listeners safely.');
 })().catch(error=>{console.error(error);process.exitCode=1});

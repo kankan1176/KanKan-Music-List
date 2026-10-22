@@ -7,6 +7,8 @@ on:
       - 'scripts/high-priority-rules.cjs'
       - 'scripts/check-high-priority-security.cjs'
       - 'song-change-core.js'
+      - 'queue-actions.js'
+      - 'scripts/check-queue-actions.cjs'
       - 'tests/free-controls/test-high-priority-access.cjs'
       - 'tests/free-controls/test-account-privacy-access.cjs'
       - 'scripts/check-obs-live-access.cjs'
@@ -68,6 +70,7 @@ jobs:
           node scripts/check-high-priority-security.cjs
           node scripts/check-free-account-controls.cjs
           node scripts/check-account-features.cjs
+          node scripts/check-queue-actions.cjs
           node scripts/check-admin-mylist.cjs
           node scripts/check-account-name.cjs
           node scripts/check-list-share.cjs

@@ -1,5 +1,5 @@
 'use strict';
-const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFails}=require('@firebase/rules-unit-testing'),{ref,set,get,update,serverTimestamp}=require('firebase/database');
+const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFails}=require('@firebase/rules-unit-testing'),{ref,set,get,update,serverTimestamp,onValue}=require('firebase/database');
 (async()=>{const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:fs.readFileSync(process.env.OBS_RULE_TEST,'utf8')}});try{
  const google=env.authenticatedContext('feature-google',{firebase:{sign_in_provider:'google.com'}}).database(),guest=env.authenticatedContext('feature-guest',{firebase:{sign_in_provider:'anonymous'}}).database(),none=env.unauthenticatedContext().database();
  const settings=uid=>({source:'master',songIds:[],createdAt:serverTimestamp(),createdByUid:uid});
@@ -40,5 +40,21 @@ const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFail
  await assertSucceeds(get(ref(admin,'songAddRequests')));
  await assertSucceeds(update(ref(admin,'songAddRequests/feature-google/account-request'),{status:'approved',reviewedBy:'feature-admin',reviewedAt:serverTimestamp()}));
  console.log('PASS: Google My List read/write and song submission retained; anonymous My List/submission denied; admin request review retained. Synthetic data only.');
+ // Reproduce the forbidden queue-root write, then exercise the real reorder helper.
+ const {swapOrders}=require('../../queue-actions.js');
+ for(const db of [google,guest]){
+  const queue=ref(db,'rooms/ACCTTEST/queue');
+  const item=order=>({songId:'audit-song',status:'reserved',addedBy:'Guest',order,keyOffset:2});
+  await assertSucceeds(set(ref(db,'rooms/ACCTTEST/queue/reorder-a'),item(10)));
+  await assertSucceeds(set(ref(db,'rooms/ACCTTEST/queue/reorder-b'),item(20)));
+  const before=(await get(queue)).val();
+  await assertFails(set(queue,before));
+  let unsubscribe;const compat={on:(_event,receive,error)=>{unsubscribe=onValue(queue,receive,error)},off:()=>unsubscribe?.(),update:patch=>update(queue,patch)};
+  const result=await swapOrders(compat,'reorder-a','reorder-b',{status:'reserved',orderA:10,orderB:20});
+  if(!result.committed)throw Error('Expected reorder commit');
+  const after=(await assertSucceeds(get(queue))).val();
+  if(after['reorder-a'].order!==20||after['reorder-b'].order!==10||after['reorder-a'].keyOffset!==2)throw Error('Unexpected reorder data');
+ }
+ console.log('PASS: reproduced forbidden queue-root writes; real helper atomically reorders using existing child permissions for Google and guests without widening rules. Synthetic data only.');
  console.log('PASS: production-derived rules allow Google room creation and favorites; deny guest room creation/favorites; preserve guest shared-room membership, rename, queue progression/deletion and leave. Synthetic data only.');
 }finally{await env.cleanup();}})().catch(()=>{console.error('FAIL: room/account access assertion. No production room data was read or changed.');process.exitCode=1;});

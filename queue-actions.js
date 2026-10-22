@@ -24,5 +24,24 @@
       if (listener) ref.off('value', listener);
     }
   }
-  return {transact};
+  // Child-path updates are atomic and do not require a write grant on the queue root.
+  async function swapOrders(ref, idA, idB, {status, orderA, orderB, timeoutMs=15000, isCurrent=()=>true}={}) {
+    if(!/^[A-Za-z0-9_-]{1,40}$/.test(idA)||!/^[A-Za-z0-9_-]{1,40}$/.test(idB)||idA===idB||!Number.isFinite(orderA)||!Number.isFinite(orderB)||orderA===orderB)return {committed:false};
+    let listener,timer;
+    try {
+      const snapshot=await new Promise((resolve,reject)=>{
+        timer=setTimeout(()=>{const error=Error('セットリストの最新データを取得できませんでした。');error.code='QUEUE_READ_TIMEOUT';reject(error);},timeoutMs);
+        listener=resolve;ref.on('value',listener,reject);
+      });
+      clearTimeout(timer);
+      if(!isCurrent())return {committed:false};
+      const current=snapshot.val(),a=current?.[idA],b=current?.[idB];
+      if(!a||!b||a.status!==status||b.status!==status||Number(a.order)!==orderA||Number(b.order)!==orderB)return {committed:false};
+      await ref.update({[idA+'/order']:orderB,[idB+'/order']:orderA});
+      return {committed:true};
+    } finally {
+      clearTimeout(timer);if(listener)ref.off('value',listener);
+    }
+  }
+  return {transact,swapOrders};
 });
