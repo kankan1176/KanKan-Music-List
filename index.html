@@ -1033,8 +1033,8 @@ body.sl-redesign #listModeIndicator{display:none!important}
 /* OBS設定はルーム入室中だけ左メニューのルーム直下に表示 */
 #slNavObs{display:none!important;}
 body.in-room #slNavObs{display:flex!important;}
-/* OBS editing is available only to signed-in Google accounts. */
-body:not(.sl-obs-account) :is(#slNavObs,#mobileObsItem,#obsCustomCssBtn){display:none!important;}
+/* Guests can open the sign-in guidance; editing remains Google-account only. */
+body:not(.sl-obs-account) :is(#slNavObs,#mobileObsItem,#obsCustomCssBtn){opacity:.5!important;cursor:pointer;}
 
 
 /* 左メニューの旧・共通曲ボタンは入室状態に関係なく非表示。ルーム内タブには影響しない。 */
