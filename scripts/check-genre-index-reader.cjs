@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),core=require('../genre-index-reader.js');
 function fixture(){
  const indexKey='demo',maps={},reads=[];
- for(let i=0;i<705;i++){const id='s'+String(i).padStart(4,'0'),key=String(i).padStart(8,'0')+'_'+id;for(const [field,label]of [['genre1',i%2?'洋楽':'J-POP'],['genre2',i%3?'ゲーム':'TV（CM・バラエティ）主題歌'],['genre3',i%7?'ロック':'合唱'],['genre4',i===600?'ジャンプ':''],['genre5',i===600?'ジャンプ':''],['genre6',i%2?'ジャズ':'ロック'],['vocal_synths',i%2?'GUMI':'初音ミク'],['anime_year',i%2?'2011':'2010']])if(label)(maps[core.encode(field+'::'+label)]??={})[key]=id;}
+ for(let i=0;i<705;i++){const id='s'+String(i).padStart(4,'0'),key=String(i).padStart(8,'0')+'_'+id;for(const [field,label]of [['genre1',i%2?'洋楽':'J-POP'],['genre2',i%3?'ゲーム':'TV（CM・バラエティ）主題歌'],['genre3',i%7?'ロック':'合唱'],['genre4',i===600?'ジャンプ':''],['genre5',i===600?'ジャンプ':''],['genre6',i%2?'ジャズ':'ロック'],['vocal_synths',i%2?'GUMI':'初音ミク'],['release_year',i%2?'2011':'2010'],['anime_year',i%2?'2011':'2010']])if(label)(maps[core.encode(field+'::'+label)]??={})[key]=id;}
  function ref(path,options={}){return{orderByKey:()=>ref(path,{...options,ordered:true}),startAt:key=>ref(path,{...options,start:key,inclusive:true}),startAfter:key=>ref(path,{...options,start:key,inclusive:false}),limitToFirst:n=>ref(path,{...options,limit:n}),async once(){reads.push({path,...options});if(!options.ordered||!options.limit||options.limit>100)throw Error('PERMISSION_DENIED');const entries=Object.entries(maps[path.split('/').at(-1)]||{}).sort(([a],[b])=>a<b?-1:a>b?1:0).filter(([key])=>!options.start|| (options.inclusive?key>=options.start:key>options.start)).slice(0,options.limit);return{forEach(fn){for(const [key,id]of entries)fn({key,val:()=>id});}};}};}
  return{db:{ref},indexKey,reads,maps};
 }
@@ -15,7 +15,7 @@ function fixture(){
  let after='',ids=[];for(;;){const result=await core.page(f.db,f.indexKey,{genre1:'J-POP',genre2:'TV（CM・バラエティ）主題歌'},{after});ids.push(...result.rows.map(r=>r.id));after=result.cursor;if(!result.hasNext)break;}
  const expected=Array.from({length:705},(_,i)=>i).filter(i=>i%6===0).map(i=>'s'+String(i).padStart(4,'0'));assert.deepEqual(ids,expected);assert.equal(new Set(ids).size,ids.length);
  const all=await core.page(f.db,f.indexKey,{genre1:'J-POP',genre2:'TV（CM・バラエティ）主題歌',genre3:'ロック',genre4:'ジャンプ',genre5:'ジャンプ'});assert.deepEqual(all.rows.map(r=>r.id),['s0600']);assert(!all.hasNext);
- const metadata=await core.page(f.db,f.indexKey,{genre6:'ロック',vocal_synths:'初音ミク',anime_year:'2010'});assert.equal(metadata.rows.length,100);assert(metadata.hasNext);
+ const metadata=await core.page(f.db,f.indexKey,{genre6:'ロック',vocal_synths:'初音ミク',release_year:'2010',anime_year:'2010'});assert.equal(metadata.rows.length,100);assert(metadata.hasNext);
  const gumis=Object.entries(f.maps[core.encode('vocal_synths::GUMI')]);
  f.maps[core.encode('vocal_synths::GUMI')]=Object.fromEntries(gumis.slice(0,200));f.maps[core.encode('vocal_synths::Megpoid')]=Object.fromEntries(gumis.slice(170));
  let aliasAfter='',aliasIds=[];for(;;){const result=await core.page(f.db,f.indexKey,{genre6:'ジャズ',vocal_synths:'GUMI（Megpoid）'},{after:aliasAfter});aliasIds.push(...result.rows.map(r=>r.id));aliasAfter=result.cursor;if(!result.hasNext)break;}

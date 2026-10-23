@@ -7739,6 +7739,10 @@ body.sl-redesign{--sl-filter:134px!important}
                 if(!meta.groups)serverGenreCatalog.groups=SLSongGenres.defaults;
                 if(initial){initial=false;resolve(serverGenreCatalog);}
                 renderGenreButtonsFromNames([]);
+                if(previousKey&&previousKey!==serverGenreIndexKey){
+                    serverSearchIndexKey='';
+                    if(serverSearchMode&&!masterLoaded&&searchInput.value.trim())void searchServerIndex(searchInput.value);
+                }
                 // Retired indexes are removed after publication. Refresh active filters before using the new key.
                 if(previousKey&&previousKey!==serverGenreIndexKey&&!masterLoaded&&!myListPartialMode&&!currentRoomId&&!myListMode&&Object.keys(selectedGenres).length){
                     ++genreFilterVersion;
