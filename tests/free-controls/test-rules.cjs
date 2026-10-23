@@ -88,7 +88,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  const token='a'.repeat(48),nextToken='b'.repeat(48);
  const setting={token,showKey:false,showParts:false};
  const held={uid:'member',name:'[paused]',reserved:true,updatedAt:serverTimestamp()};
- const share={uid:'member',name:'Member',updatedAt:serverTimestamp(),songs:{fresh:{title:'Song',artist:'Artist',url:'https://ja.chordwiki.org/wiki/Song'}}};
+ const share={uid:'member',name:'Member',updatedAt:serverTimestamp(),songs:{fresh:{title:'Song',artist:'Artist',url:'https://ja.chordwiki.org/wiki/Song',genre1:'J-POP',genre2:'アニソン、ゲーム',genre3:'ロック',genre4:'ジャンプ',genre5:'',genres:['J-POP','アニソン','ゲーム','ロック','ジャンプ'],genresKnown:true}}};
  await assertSucceeds(set(ref(member,'userListShares/member'),setting));
  await assertFails(get(ref(anon,'userListShares/member')));
  await assertFails(get(ref(guest,'userListShares/member')));
@@ -99,6 +99,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertFails(set(ref(context('other','google.com'),'publicListShares/'+token),share));
  await assertSucceeds(set(ref(member,'publicListShares/'+token),share));
  await assertSucceeds(get(ref(anon,'publicListShares/'+token)));
+ await assertFails(update(ref(member,'publicListShares/'+token+'/songs/fresh'),{genre4:'x'.repeat(101)}));
 
  await assertSucceeds(set(ref(member,'publicListLinks/member'),{token}));
  await assertSucceeds(get(ref(anon,'publicListLinks/member')));

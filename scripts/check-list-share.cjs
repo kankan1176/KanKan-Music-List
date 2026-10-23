@@ -5,8 +5,8 @@ assert.equal(design.normalize({text:'url(javascript:bad)'}).text,design.presets.
 const {addListShareRules}=require('./list-share-rules.cjs');
 assert.equal(core.wiki('javascript:alert(1)'), '');assert.equal(core.wiki('https://ja.chordwiki.org.evil.test/wiki/Song'),'');assert.equal(core.wiki('https://ja.chordwiki.org/wiki/Song'),'https://ja.chordwiki.org/wiki/Song');
 assert.equal(core.registered({registered:true,excluded:true}),false);assert.equal(core.registered({registered:true}),true);
-assert.deepEqual(core.song({title:'Song',artist:'Artist',chordwiki:'https://ja.chordwiki.org/wiki/Song'},{key:2,parts:['Guitar']},{}),{genresKnown:true,genres:[],title:'Song',artist:'Artist',url:'https://ja.chordwiki.org/wiki/Song'});
-assert.deepEqual(core.song({title:'Song'},{key:99,parts:['Guitar','Guitar']},{showKey:true,showParts:true}),{genresKnown:true,genres:[],title:'Song',artist:'',key:0,parts:['Guitar']});
+assert.deepEqual(core.song({title:'Song',artist:'Artist',chordwiki:'https://ja.chordwiki.org/wiki/Song'},{key:2,parts:['Guitar']},{}),{genresKnown:true,genres:[],genre1:'',genre2:'',genre3:'',genre4:'',genre5:'',title:'Song',artist:'Artist',url:'https://ja.chordwiki.org/wiki/Song'});
+assert.deepEqual(core.song({title:'Song'},{key:99,parts:['Guitar','Guitar']},{showKey:true,showParts:true}),{genresKnown:true,genres:[],genre1:'',genre2:'',genre3:'',genre4:'',genre5:'',title:'Song',artist:'',key:0,parts:['Guitar']});
 assert.equal(core.link('https://ja.chordwiki.org/wiki/Song',2),'https://ja.chordwiki.org/wiki.cgi?c=view&t=Song&key=2&symbol=');
 assert.equal(core.tokenOK('a'.repeat(48)),true);assert.equal(core.tokenOK('../wrong'),false);const before={rules:{users:{keep:true}}};assert.deepEqual(addListShareRules(addListShareRules(structuredClone(before))),addListShareRules(structuredClone(before)));assert.deepEqual(before,{rules:{users:{keep:true}}});
 global.firebase={database:{ServerValue:{TIMESTAMP:1}}};
@@ -17,7 +17,7 @@ function emit(){for(const w of watchers)w.fn(snap(at(w.path)));}
 const database={ref(path=''){return{on(event,fn){watchers.push({path,fn});queueMicrotask(()=>fn(snap(at(path))))},off(event,fn){watchers=watchers.filter(w=>w.path!==path||w.fn!==fn)},async once(){return snap(at(path))},async set(value){write(path,value)},async update(changes){for(const [key,value]of Object.entries(changes))write((path?path+'/':'')+key,value);for(const w of watchers)if(Object.keys(changes).some(key=>key===w.path))w.fn(snap(at(w.path)));}}}};
 const service=factory(database,{uid:'member',displayName:'Google'},()=>current,event=>events.push(event),core);
 (async()=>{
- await new Promise(resolve=>setImmediate(resolve));await service.enable({showKey:false,showParts:false});let token=state.userListShares.member.token;assert(core.tokenOK(token));assert.deepEqual(state.publicListShares[token].songs.song1,{genresKnown:true,genres:[],title:'Song',artist:'Artist',url:'https://ja.chordwiki.org/wiki/Song'});assert.equal(Object.keys(state.publicListShares[token].songs).length,1);
+ await new Promise(resolve=>setImmediate(resolve));await service.enable({showKey:false,showParts:false});let token=state.userListShares.member.token;assert(core.tokenOK(token));assert.deepEqual(state.publicListShares[token].songs.song1,{genresKnown:true,genres:[],genre1:'',genre2:'',genre3:'',genre4:'',genre5:'',title:'Song',artist:'Artist',url:'https://ja.chordwiki.org/wiki/Song'});assert.equal(Object.keys(state.publicListShares[token].songs).length,1);
  assert.deepEqual(state.publicListLinks.member,{token});
  await service.enable({showKey:true,showParts:true});assert.equal(state.publicListShares[token].songs.song1.key,2);assert.deepEqual(state.publicListShares[token].songs.song1.parts,['Guitar']);
  state.users.member.songs.song1.key=-3;emit();await service.retry();assert.equal(state.publicListShares[token].songs.song1.key,-3);

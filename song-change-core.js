@@ -9,6 +9,8 @@
   const keys=Object.keys(request.changes);if(!keys.length||keys.length>fields.length)throw Error('変更項目がありません。');
   const next={...song},log={};
   for(const key of keys){const value=request.changes[key];if(!fields.includes(key)||!value||typeof value.before!=='string'||typeof value.after!=='string'||value.after.length>limits[key]||value.before.length>10000||key==='title'&&!value.after.trim())throw Error('編集申請の形式が不正です。');if(clean(key==='genre1'&&!Object.hasOwn(song,key)?song.genre:song[key])!==value.before)throw Error('申請後に楽曲が変更されています。最新の内容を確認し、申請し直してください。');next[key]=value.after;log[key]={before:value.before,after:value.after};}
+  if(Object.hasOwn(log,'genre')&&!Object.hasOwn(log,'genre1'))next.genre1=next.genre;
+  if(Object.hasOwn(log,'genre1'))next.genre=next.genre1;
   return{song:next,changes:log};
  }
  return{fields,limits,changes,apply};

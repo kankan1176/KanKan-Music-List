@@ -2,7 +2,7 @@
  'use strict';
  const el=id=>document.getElementById('share'+id),core=SLListShare,design=SLListDesign,preview=location.hash==='#preview'&&window.parent!==window,mine=location.hash==='#mine';
  let data=null,rows=[],page=0,status='loading',stop=()=>{},generation=0,lastImage='',imageVersion='',imageSerial=0;
- const genreCache=new Map();
+ const genreCache=new Map(),genreSelection={};
  const preferred=navigator.language.toLowerCase();let language=preferred.startsWith('ko')?'ko':preferred.startsWith('zh')?'zh-TW':preferred.startsWith('en')?'en':'ja';el('Language').value=language;
  const t=()=>SLListShareText[language]||SLListShareText.ja;
  function cell(tag,value,className){const node=document.createElement(tag);node.textContent=value;if(className)node.className=className;return node;}
@@ -22,13 +22,13 @@
   const title=appearance.title||(data?String(data.name||'')+text.list:text.title);el('Title').textContent=title;el('Title').title=title;document.title=title+' | '+text.brand;
   el('Owner').textContent=data&&appearance.title?data.name+text.list:'';
   el('Status').textContent=status==='ready'?'':text[status]||text.loadError;
-  for(const key of ['Search','Genre','Sort'])el(key).hidden=!data;
-  el('Search').placeholder=text.search;el('Search').setAttribute('aria-label',text.search);el('Genre').setAttribute('aria-label',text.genre);el('Sort').setAttribute('aria-label',text.sort);
-  const genre=el('Genre').value,sort=el('Sort').value||'title',tags=[...new Set(rows.flatMap(row=>row.genres||[]))].sort((a,b)=>a.localeCompare(b,language));
-  el('Genre').replaceChildren(new Option(text.allGenres,''),...tags.map(value=>new Option(value,value)),new Option(text.uncategorized,'__none__'));el('Genre').value=genre&&([...tags,'__none__'].includes(genre))?genre:'';
+  for(const key of ['Search','Sort'])el(key).hidden=!data;
+  el('Search').placeholder=text.search;el('Search').setAttribute('aria-label',text.search);el('Sort').setAttribute('aria-label',text.sort);
+  const sort=el('Sort').value||'title',catalog=SLSongGenres.catalog(rows),area=el('GenreGroups');area.hidden=!data;area.replaceChildren();
+  for(const field of SLSongGenres.fields){const row=cell('div','','share-genre-row');row.append(cell('strong',field));const choices=cell('div','','share-genre-options');choices.setAttribute('role','group');choices.setAttribute('aria-label',field);for(const value of ['',...catalog[field]]){const button=cell('button',value||text.allGenres);button.type='button';button.classList.toggle('active',(genreSelection[field]||'')===value);button.dataset.genreField=field;button.dataset.genreValue=value;button.onclick=()=>{if(value)genreSelection[field]=value;else delete genreSelection[field];move(0);};choices.append(button);}row.append(choices);area.append(row);}
   el('Sort').replaceChildren(new Option(text.titleOrder,'title'),new Option(text.artistOrder,'artist'));el('Sort').value=sort;
-  const search=el('Search').value.normalize('NFKC').toLocaleLowerCase().trim(),chosen=el('Genre').value;
-  const filtered=rows.filter(row=>(!chosen||(chosen==='__none__'?!row.genres.length:row.genres.includes(chosen)))&&(row.title+' '+row.artist).normalize('NFKC').toLocaleLowerCase().includes(search));
+  const search=el('Search').value.normalize('NFKC').toLocaleLowerCase().trim();
+  const filtered=rows.filter(row=>SLSongGenres.matches(row,genreSelection)&&(row.title+' '+row.artist).normalize('NFKC').toLocaleLowerCase().includes(search));
   filtered.sort((a,b)=>(sort==='artist'?a.artist.localeCompare(b.artist,language):a.title.localeCompare(b.title,language))||a.title.localeCompare(b.title,language));
   const pages=Math.max(1,Math.ceil(filtered.length/100));page=Math.max(0,Math.min(page,pages-1));
   el('Count').textContent=data?rows.length+' '+text.count:'';el('ResultCount').textContent=data?filtered.length+' / '+rows.length+' '+text.count:'';
@@ -37,7 +37,7 @@
   const header=document.createElement('tr');for(const label of ['No.',text.songTitle,text.artist,text.genre,...(showKey?['Key']:[]),...(showParts?[text.partsLabel]:[]),'ChordWiki'])header.append(cell('th',label));el('TableHead').replaceChildren(header);el('Songs').replaceChildren();
   for(const[i,row]of filtered.slice(page*100,(page+1)*100).entries()){
    const tr=document.createElement('tr'),genres=cell('td','','genre-cell');tr.append(cell('td',String(page*100+i+1).padStart(2,'0'),'number'),cell('td',row.title,'song-title'),cell('td',row.artist,'song-artist'));
-   for(const value of row.genres)genres.append(cell('span',value,'genre-tag'));tr.append(genres);
+   for(const value of SLSongGenres.all(row).length?SLSongGenres.all(row):row.genres)genres.append(cell('span',value,'genre-tag'));tr.append(genres);
    if(showKey)tr.append(cell('td',Number.isInteger(row.key)?(row.key>0?'+':'')+row.key:'—','optional'));
    if(showParts)tr.append(cell('td',Array.isArray(row.parts)?row.parts.join(' / '):'—','optional'));
    const action=cell('td',''),url=core.link(row.url,row.key);if(url){const link=cell('a','↗ '+text.wiki,'song-link');link.href=url;link.target='_blank';link.rel='noopener noreferrer';action.append(link);}tr.append(action);el('Songs').append(tr);
@@ -47,20 +47,20 @@
   el('Page').textContent=(page+1)+' / '+pages;el('PageSelect').setAttribute('aria-label',text.page);el('PageSelect').replaceChildren(...Array.from({length:pages},(_,i)=>new Option((i+1)+' / '+pages,String(i))));el('PageSelect').value=String(page);el('ListViewport').setAttribute('aria-label',text.songList);
   window.SLListPageState={ownerUid:data?.uid||'',available:!!data&&!data.reserved,language};window.dispatchEvent(new CustomEvent('sl-list-page-state',{detail:window.SLListPageState}));
  }
- function accept(value){data=value&&typeof value.name==='string'&&!value.reserved?value:null;rows=data?Object.entries(data.songs||{}).filter(([,r])=>r&&typeof r.title==='string'&&typeof r.artist==='string').map(([id,row])=>({...row,id,genres:Array.isArray(row.genres)?row.genres:genreCache.get(id)||[]})):[];status=data?'ready':'unavailable';render();}
- el('Search').oninput=()=>move(0);el('Genre').onchange=()=>move(0);el('Sort').onchange=()=>move(0);el('Language').onchange=()=>{language=el('Language').value;render();};for(const suffix of ['', 'Top']){el('Prev'+suffix).onclick=()=>move(page-1);el('Next'+suffix).onclick=()=>move(page+1);}el('PageSelect').onchange=()=>move(Number(el('PageSelect').value));
+ function accept(value){data=value&&typeof value.name==='string'&&!value.reserved?value:null;rows=data?Object.entries(data.songs||{}).filter(([,r])=>r&&typeof r.title==='string'&&typeof r.artist==='string').map(([id,row])=>({...row,id,...genreCache.get(id),genres:Array.isArray(row.genres)?row.genres:[]})):[];status=data?'ready':'unavailable';render();}
+ el('Search').oninput=()=>move(0);el('Sort').onchange=()=>move(0);el('Language').onchange=()=>{language=el('Language').value;render();};for(const suffix of ['', 'Top']){el('Prev'+suffix).onclick=()=>move(page-1);el('Next'+suffix).onclick=()=>move(page+1);}el('PageSelect').onchange=()=>move(Number(el('PageSelect').value));
  const config={apiKey:'AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI',authDomain:'kankan-session-room.firebaseapp.com',databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'kankan-session-room',appId:'1:759342880820:web:9af0af755e35926a281261'};
  async function loadImage(database,token,version){
   const requested=version?token+':'+version:'';if(requested===imageVersion)return;imageVersion=requested;const serial=++imageSerial;setImage('');if(!version)return;
   try{const value=(await database.ref('publicListBackgrounds/'+token).once('value')).val();if(serial===imageSerial){if(value?.version!==version||!validImage(value.image))throw new Error('background unavailable');await setImage(value.image);}}catch{if(serial===imageSerial){imageVersion='';window.SLListLoading?.error();}}
  }
  async function legacyGenres(database,version){
-  const missing=rows.filter(row=>!row.genresKnown&&!Array.isArray(data.songs?.[row.id]?.genres)&&!genreCache.has(row.id));let next=0;
-  await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,core.genres(master));}catch{window.SLListLoading?.error();}}}));
-  if(version===generation&&data){for(const row of rows)if(!row.genres.length&&genreCache.has(row.id))row.genres=genreCache.get(row.id);render();}
+  const missing=rows.filter(row=>!Object.hasOwn(row,'genre1')&&!genreCache.has(row.id));let next=0;
+  await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,Object.fromEntries(SLSongGenres.fields.map(field=>[field,SLSongGenres.value(master,field)])));}catch{window.SLListLoading?.error();}}}));
+  if(version===generation&&data){for(const row of rows)if(genreCache.has(row.id)){Object.assign(row,genreCache.get(row.id));row.genres=core.genres(row);};render();}
  }
  async function load(){
-  stop();const version=++generation;data=null;rows=[];page=0;status='loading';imageVersion='';imageSerial++;setImage('');render();const fragment=location.hash.slice(1);
+  stop();Object.keys(genreSelection).forEach(key=>delete genreSelection[key]);const version=++generation;data=null;rows=[];page=0;status='loading';imageVersion='';imageSerial++;setImage('');render();const fragment=location.hash.slice(1);
   const userRoute=fragment.startsWith('user='),uid=userRoute?fragment.slice(5):'';
   if(userRoute?!/^[A-Za-z0-9_-]{1,128}$/.test(uid):!core.tokenOK(fragment)){status='unavailable';render();return;}
   try{

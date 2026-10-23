@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
-    <script src="song-change-core.js?v=20261021-1"></script>
+    <script src="song-genres.js?v=20261023-1"></script>
+    <script src="song-change-core.js?v=20261023-genres5"></script>
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
@@ -3582,6 +3583,18 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 <style id="clipboard-candidate-layout">
 #clipboardAnalysisModal .clipboard-analysis-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}#clipboardAnalysisModal .clipboard-analysis-body #clipboardAnalysisRows{overflow:visible;min-height:0;max-height:none}#clipboardAnalysisModal .modal>h2{flex:0 0 auto}#clipboardAnalysisActionStatus{width:100%;margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}#clipboardNextCandidate[hidden]{display:none!important}.clipboard-analysis-mapping-controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.clipboard-analysis-mapping-controls p{width:100%;margin:0;font-size:13px;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls button{white-space:normal;padding:8px 12px;max-width:100%;overflow-wrap:anywhere}.clipboard-analysis-mapping-controls [hidden]{display:none!important}.clipboard-candidate-label{display:grid;gap:6px;margin-top:10px;min-width:0}.clipboard-candidate-select{width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:9px;font:inherit;background:var(--panel-bg);color:var(--text-color);border:1px solid var(--border-color);border-radius:7px}.clipboard-matched-target{margin-top:6px;font-size:12px;overflow-wrap:anywhere}
 </style>
+<style>
+/* Five independent genre rows share the fixed filter area. */
+body.sl-redesign{--sl-filter:226px!important}
+#slFilterbar{align-items:stretch!important;padding-top:6px!important;padding-bottom:6px!important}
+#slGenreHost{overflow-x:hidden!important;overflow-y:auto!important;cursor:default!important}
+#slGenreHost #genreFilters{display:flex!important;flex-direction:column!important;align-items:stretch!important;width:100%!important;min-width:0!important;gap:5px!important}
+.sl-genre-row{display:flex;gap:8px;min-width:0;align-items:center}
+.sl-genre-row>strong{flex:0 0 52px;font-size:12px}.sl-genre-options{display:flex;gap:6px;overflow-x:auto;min-width:0;scrollbar-width:thin;padding-bottom:2px}
+#slGenreHost .genre-btn{min-height:32px!important;font-size:12px!important;padding:4px 10px!important}
+.sl-genre-checks{display:flex;flex-wrap:wrap;gap:10px}.sl-genre-checks label{display:flex!important;align-items:center;gap:5px!important}.sl-genre-checks input{width:18px!important;min-height:18px!important;margin:0!important}
+@media(max-height:600px){body.sl-redesign{--sl-filter:166px!important}#slGenreHost .genre-btn{min-height:24px!important}}
+</style>
 </head>
 <body class="sl-redesign">
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
@@ -4483,11 +4496,11 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
               <input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK">
             </div>
 
-            <div class="setting-group sl-add-field">
-              <label for="newGenre1">ジャンル <span class="sl-optional">任意</span></label>
-              <select id="newGenre1" name="genre1"></select>
-            </div>
-
+            <div class="setting-group sl-add-field sl-add-field-wide"><label for="newGenre1">genre1（単一選択・任意）</label><select id="newGenre1" name="genre1"><option value="">選択しない</option></select></div>
+            <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre2（複数選択・任意）</legend><div id="newGenre2" class="sl-genre-checks"></div></fieldset>
+            <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre3（複数選択・任意）</legend><div id="newGenre3" class="sl-genre-checks"></div></fieldset>
+            <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre4（複数選択・任意）</legend><div id="newGenre4" class="sl-genre-checks"></div></fieldset>
+            <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre5（複数選択・任意）</legend><div id="newGenre5" class="sl-genre-checks"></div></fieldset>
             <div class="setting-group sl-add-field sl-add-field-wide">
               <label for="newTieup">タイアップ <span class="sl-optional">任意</span></label>
               <input class="setting-input" id="newTieup" name="tieup" maxlength="240" placeholder="アニメ・ゲーム・ドラマ・番組・作品名など">
@@ -4771,7 +4784,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         <div class="detail-item"><span class="detail-label">BPM</span><span id="detailBPM"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル①</span><span id="detailGenre1"></span></div>
         <div class="detail-item"><span class="detail-label">ジャンル②</span><span id="detailGenre2"></span></div>
-        <div class="detail-item"><span class="detail-label">ジャンル③</span><span id="detailGenre3"></span></div>
+        <div class="detail-item"><span class="detail-label">ジャンル③</span><span id="detailGenre3"></span></div><div class="detail-item"><span class="detail-label">genre4</span><span id="detailGenre4"></span></div><div class="detail-item"><span class="detail-label">genre5</span><span id="detailGenre5"></span></div>
         <div class="detail-item"><span class="detail-label">タイアップ</span><span id="detailTieup"></span></div>
         <div class="detail-item" id="detailKeyArea" style="display:none;">
             <label style="display:block; font-weight:bold; margin-bottom:7px;">🎹 自分用Key（原曲を0として半音単位）</label>
@@ -4800,7 +4813,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
    <div class="setting-group"><label>アーティスト</label><input name="artist" class="setting-input" maxlength="240"></div>
    <div class="setting-group"><label>ChordWiki原曲URL</label><input name="chordwiki" class="setting-input" maxlength="2048"></div>
    <div class="setting-group"><label>BPM</label><input name="bpm" class="setting-input" maxlength="30"></div>
-   <div class="setting-group"><label>ジャンル① / ジャンル② / ジャンル③</label><input name="genre" class="setting-input" placeholder="ジャンル①" maxlength="100"><input name="genre2" class="setting-input" placeholder="ジャンル②" maxlength="100"><input name="genre3" class="setting-input" placeholder="ジャンル③" maxlength="100"></div>
+   <div class="setting-group"><label>ジャンル① / ジャンル② / ジャンル③</label><input name="genre1" class="setting-input" placeholder="ジャンル①" maxlength="100"><input name="genre2" class="setting-input" placeholder="ジャンル②" maxlength="100"><input name="genre3" class="setting-input" placeholder="genre3" maxlength="100"><input name="genre4" class="setting-input" placeholder="genre4" maxlength="100"><input name="genre5" class="setting-input" placeholder="genre5" maxlength="100"></div>
    <div class="setting-group"><label>タイアップ / 検索用語</label><input name="tieup" class="setting-input" placeholder="タイアップ" maxlength="240"><input name="search" class="setting-input" placeholder="検索用語" maxlength="500"></div>
    <div class="setting-group"><label>作詞 / 作曲 / 編曲</label><input name="lyrics" class="setting-input" placeholder="作詞" maxlength="240"><input name="composition" class="setting-input" placeholder="作曲" maxlength="240"><input name="arrangement" class="setting-input" placeholder="編曲" maxlength="240"></div>
    <p id="songEditRequestFeedback" aria-live="polite" style="font-size:12px;"></p>
@@ -5465,7 +5478,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         if (wasPartial) {
             currentSortKey = '';
             currentSortOrder = 1;
-            currentGenre = 'すべて';
+            currentGenre = 'すべて';Object.keys(selectedGenres).forEach(key=>delete selectedGenres[key]);++genreFilterVersion;
             selectedArtist = '';
             artistFilterName.textContent = '';
             artistFilterIndicator.hidden = true;
@@ -6649,6 +6662,9 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     let currentSortKey = '';
     let currentSortOrder = 1; 
     let currentGenre = "すべて";
+    const selectedGenres={};
+    let genreFilterVersion=0;
+    const genreIntersectionCache=new Map();
     let genre1Key = 'ジャンル'; 
     let genre2Key = 'ジャンル②';
     let genre3Key = 'ジャンル③'; 
@@ -7217,22 +7233,10 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             }
         }
         if (!isCurrent()) return;
-        const genres = new Set();
-        allData.forEach(row => {
-            [genre1Key, genre2Key].forEach(key => {
-                const value = String(row[key] || '').trim();
-                if (value) genres.add(value);
-            });
-        });
-        const options = Array.from(genres).sort((a, b) => a.localeCompare(b, 'ja'));
-        const selectedGenre = first.value;
-        first.replaceChildren(new Option('選択しない', ''));
-        options.forEach(value => first.add(new Option(value, value)));
-        newCodeUrlInput.setCustomValidity('');
-        newCodeUrlInput.dispatchEvent(new Event('input'));
-        if (!newSongSubmitting) feedback.textContent = options.length ? '' : 'ジャンル選択肢を取得できませんが、ジャンル未選択のまま申請できます。';
-        first.value = options.includes(selectedGenre) ? selectedGenre : '';
-        first.disabled = false;
+        const catalog=SLSongGenres.defaults;
+        const selected=first.value;first.replaceChildren(new Option('選択しない',''),...catalog.genre1.map(value=>new Option(value,value)));first.value=selected;first.disabled=false;
+        for(let n=2;n<=5;n++){const area=document.getElementById('newGenre'+n),chosen=new Set([...area.querySelectorAll('input:checked')].map(input=>input.value));area.replaceChildren();for(const value of catalog['genre'+n]){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.name='genre'+n;input.value=value;input.checked=chosen.has(value);label.append(input,document.createTextNode(value));area.append(label);}}
+        newCodeUrlInput.setCustomValidity('');newCodeUrlInput.dispatchEvent(new Event('input'));if(!newSongSubmitting)feedback.textContent='';
         button.disabled = newSongSubmitting;
     }
 
@@ -7259,7 +7263,9 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         newCodeUrlInput.setCustomValidity(urlError);
         document.getElementById('newCodeUrlCheck').textContent = urlError;
         if (!form.reportValidity()) return;
-        const data = Object.fromEntries(new FormData(form).entries());
+        const formData=new FormData(form),data=Object.fromEntries(formData.entries());
+        for(let n=2;n<=5;n++)data['genre'+n]=formData.getAll('genre'+n).join('、');
+        for(const field of SLSongGenres.fields)if(SLSongGenres.split(data[field]).some(value=>!SLSongGenres.defaults[field].includes(value))){feedback.textContent='ジャンルを一覧から選択してください。';return;}
         const title = String(data.title || '').trim();
         const artist = String(data.artist || '').trim();
         if (allData.some(row => String(row['曲名']||'').trim() === title && String(row['アーティスト']||'').trim() === artist)) {
@@ -7272,7 +7278,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             const payload = {
                 type:'newSong', requestedBy:user.uid, title, artist,
                 chordwiki:String(data.codeUrl||'').trim().slice(0,2048), bpm:String(data.bpm||''),
-                genre:String(data.genre1||''), genre2:'', genre3:'',
+                genre:String(data.genre1||''),...Object.fromEntries(SLSongGenres.fields.map(field=>[field,String(data[field]||'')])) ,
                 tieup:String(data.tieup||'').trim().slice(0,240), search:'', lyrics:'', composition:'', arrangement:'',
                 status:'pending', createdAt:firebase.database.ServerValue.TIMESTAMP
             };
@@ -7700,48 +7706,26 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     function bulkCsvAlreadyPersonal(id){const p=effectivePersonalSong(id);return !p.excluded&&!!(p.registered||p.part||getSelectedParts(p).length||p.liked);}
 
     // ジャンルボタン生成
+    function syncGenreButtons(){
+        genreFilters.querySelectorAll('[data-genre-field]').forEach(btn=>btn.classList.toggle('active',(selectedGenres[btn.dataset.genreField]||'')===btn.dataset.genreValue));
+    }
     function renderGenreButtonsFromNames(names) {
+        const grouped=masterLoaded||myListPartialMode||currentRoomId||myListMode ? SLSongGenres.catalog(allData) : serverGenreCatalog?.groups || SLSongGenres.defaults;
         genreFilters.replaceChildren();
-        const genres = ['すべて', ...Array.from(new Set(names.filter(Boolean))).sort((a,b)=>a.localeCompare(b,'ja'))];
-
-        for (const genre of genres) {
-            const btn = document.createElement('button');
-            btn.className = `genre-btn ${genre === currentGenre ? 'active' : ''}`;
-            btn.textContent = genre;
-
-            btn.onclick = async () => {
-                if (genre === currentGenre && genre !== 'すべて') return;
-
-                currentGenre = genre;
-                genreFilters.querySelectorAll('.genre-btn').forEach(button => {
-                    button.classList.toggle('active', button.textContent.trim() === currentGenre);
-                });
-                selectedArtist = '';
-                artistFilterName.textContent = '';
-                artistFilterIndicator.hidden = true;
-                currentSortKey = '';
-                currentSortOrder = 1;
-                updateSortIcons();
-                tableBodyWrapper.scrollTop = 0;
-
-                if (masterLoaded || myListPartialMode || currentRoomId || myListMode) {
-                    genreServerMode = false;
-                    renderTable();
-                    return;
-                }
-
-                if (genre === 'すべて') {
-                    genreServerMode = false;
-                    serverGenreHistory = [];
-                    serverGenreCurrentRowKeys = [];
-                    await loadServerMasterPage('first');
-                } else {
-                    await loadServerGenrePage(genre, 'first');
-                }
-            };
-
-            genreFilters.appendChild(btn);
-        }
+        for(const field of SLSongGenres.fields){
+            const row=document.createElement('div');row.className='sl-genre-row';const title=document.createElement('strong');title.textContent=field;row.append(title);
+            const options=document.createElement('div');options.className='sl-genre-options';options.setAttribute('role','group');options.setAttribute('aria-label',field);
+            for(const value of ['',...(grouped[field]||[])]){
+                const button=document.createElement('button');button.type='button';button.className='genre-btn';button.textContent=value||'すべて';button.dataset.genreField=field;button.dataset.genreValue=value;
+                button.onclick=async()=>{
+                    if(value)selectedGenres[field]=value;else delete selectedGenres[field];
+                    currentGenre=Object.entries(selectedGenres).map(([f,v])=>f+'::'+v).join(' + ')||'すべて';
+                    ++genreFilterVersion;syncGenreButtons();selectedArtist='';artistFilterIndicator.hidden=true;currentSortKey='';currentSortOrder=1;updateSortIcons();tableBodyWrapper.scrollTop=0;
+                    if(masterLoaded||myListPartialMode||currentRoomId||myListMode){genreServerMode=false;renderTable();return;}
+                    try{if(currentGenre==='すべて'){genreServerMode=false;await loadServerMasterPage('first');}else await loadServerGenrePage(currentGenre,'first');}catch(error){console.warn('ジャンル取得失敗',error);masterLoadNotice('ジャンルを取得できませんでした。再度選択してください。');}
+                };options.append(button);
+            }row.append(options);genreFilters.append(row);
+        }syncGenreButtons();
     }
 
     async function loadServerGenreCatalog() {
@@ -7753,10 +7737,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             serverGenreIndexKey = typeof meta.currentIndexKey === 'string' ? meta.currentIndexKey : '';
 
             const genreMap = meta.genres && typeof meta.genres === 'object' ? meta.genres : {};
-            serverGenreCatalog = Object.values(genreMap)
-                .map(item => typeof item === 'string' ? item : String(item?.name || ''))
-                .filter(Boolean);
-
+            serverGenreCatalog={groups:Object.fromEntries(SLSongGenres.fields.map(field=>[field,Object.values(meta.groups?.[field]||{}).map(item=>item.name).filter(Boolean)])),indexVersion:Number(meta.indexVersion)||0};
+            if(!meta.groups)serverGenreCatalog.groups=SLSongGenres.defaults;
             return serverGenreCatalog;
         } catch (error) {
             console.warn('ジャンル一覧を読み込めません:', error);
@@ -7764,46 +7746,12 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         }
     }
 
-    function populateGenreButtons() {
-        if (masterLoaded || myListPartialMode || currentRoomId || myListMode) {
-            const gSet = new Set();
-            allData.forEach(row => {
-                [genre1Key, genre2Key, genre3Key].forEach(key => {
-                    const value = String(row[key] || '').trim();
-                    if (value) gSet.add(value);
-                });
-            });
-            renderGenreButtonsFromNames([...gSet]);
-            return;
-        }
-
-        if (serverGenreCatalog) {
-            renderGenreButtonsFromNames(serverGenreCatalog);
-            return;
-        }
-
-        genreFilters.replaceChildren();
-
-        const allBtn = document.createElement('button');
-        allBtn.className = `genre-btn ${currentGenre === 'すべて' ? 'active' : ''}`;
-        allBtn.textContent = 'すべて';
-        genreFilters.appendChild(allBtn);
-
-        const loadingBtn = document.createElement('button');
-        loadingBtn.className = 'genre-btn';
-        loadingBtn.disabled = true;
-        loadingBtn.textContent = 'ジャンル読込中…';
-        genreFilters.appendChild(loadingBtn);
-
-        void loadServerGenreCatalog().then(names => {
-            if (!masterLoaded && !myListPartialMode && !currentRoomId && !myListMode) {
-                renderGenreButtonsFromNames(names);
-            }
-        });
+    function populateGenreButtons(){
+        renderGenreButtonsFromNames([]);
+        if(!masterLoaded&&!myListPartialMode&&!currentRoomId&&!myListMode&&!serverGenreCatalog)void loadServerGenreCatalog().then(()=>renderGenreButtonsFromNames([]));
     }
 
-
-    const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
+    const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre1:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',genre4:'ジャンル④',genre5:'ジャンル⑤',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
     function isGoogleSongEditor(){
         const user=auth.currentUser;
         return !!(user && !user.isAnonymous && signedInUser?.uid===user.uid &&
@@ -7898,7 +7846,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             obj._updatedAt = Number(obj.__updatedAt) || 0;
             delete obj.__updatedAt;
             // 検索対象文字列はマスター読込時に一度だけ生成（検索ごとの27,000曲再結合を防ぐ）。
-            obj._searchText = ['曲名','アーティスト',genre1Key,genre2Key,'ジャンル③','タイアップ情報','作詞','作曲','編曲','検索']
+            obj._searchText = ['曲名','アーティスト',genre1Key,genre2Key,'ジャンル③','ジャンル④','ジャンル⑤','タイアップ情報','作詞','作曲','編曲','検索']
                 .map(k => String(obj[k] || '')).join(' ').toLowerCase();
             return obj;
         });
@@ -7944,15 +7892,15 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
 
     function serverSnapshotToRawRows(snapshot) {
-        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
-        const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement','updatedAt'];
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','tieup','search','lyrics','composition','arrangement','updatedAt'];
         const rows=[headers];
         snapshot.forEach(child=>{
             const id=String(child.key||'');
             const song=child.val();
             if(!/^[A-Za-z0-9_-]{1,80}$/.test(id)||!song||typeof song!=='object'||Array.isArray(song)||
                (song.id&&song.id!==id)||typeof song.title!=='string'||!song.title.trim()) return;
-            rows.push(fields.map(field=>field==='id'?id:String(song[field]??'')));
+            rows.push(fields.map(field=>field==='id'?id:field==='genre1'?SLSongGenres.value(song,'genre1'):String(song[field]??'')));
         });
         return rows;
     }
@@ -7995,7 +7943,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 
     function serverSearchSongText(song) {
         return normalizeServerSearchText([
-            song?.title, song?.artist, song?.genre, song?.genre2, song?.genre3,
+            song?.title, song?.artist, SLSongGenres.value(song,'genre1'), song?.genre2, song?.genre3, song?.genre4, song?.genre5,
             song?.tieup, song?.search, song?.lyrics, song?.composition, song?.arrangement
         ].join(' '));
     }
@@ -8009,7 +7957,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     }
 
     function serverGenreKeyForName(name) {
-        const normalized = String(name || '').normalize('NFKC').trim();
+        // Match the exact field labels written by build-search-index (including full-width parentheses).
+        const normalized = String(name || '').trim();
         return Array.from(new TextEncoder().encode(normalized))
             .map(byte => byte.toString(16).padStart(2,'0'))
             .join('');
@@ -8038,140 +7987,43 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         return master;
     }
 
-    async function loadServerGenrePage(genre, direction='first') {
-        if (!genre || genre === 'すべて') {
-            genreServerMode = false;
-            currentGenre = 'すべて';
-            return loadServerMasterPage('first');
-        }
-
-        if (masterLoaded) {
-            genreServerMode = false;
-            renderTable();
-            return;
-        }
-
-        if (serverPageBusy) return serverPageLoadPromise;
-
-        serverPageBusy = true;
-        serverPagedMasterMode = true;
-        serverSearchMode = false;
-        genreServerMode = true;
-        currentGenre = genre;
-
-        searchInput.value = '';
-        searchInput.disabled = false;
-        searchInput.readOnly = false;
-
-        loadingArea.style.display = 'flex';
-        loadingArea.innerHTML = `<div class="spinner"></div><div>「${escapeHtml(genre)}」を100曲ずつ取得中...</div>`;
-
-        const previousRows = allData.slice();
-        const previousPage = serverPageNumber;
-        const previousHasOlder = serverPageHasOlder;
-        const previousHistory = serverGenreHistory.slice();
-        const previousKeys = serverGenreCurrentRowKeys.slice();
-
-        serverPageLoadPromise = (async () => {
-            try {
-                const indexKey = await currentServerGenreIndexKey();
-                if (!indexKey) throw Error('ジャンルインデックスがまだ作成されていません');
-
-                const genreKey = serverGenreKeyForName(genre);
-                let query = db.ref(`songGenreRows/${indexKey}/${genreKey}`).orderByKey();
-
-                if (direction === 'first') {
-                    serverGenreHistory = [];
-                    serverPageNumber = 1;
-                } else if (direction === 'older') {
-                    const lastKey = serverGenreCurrentRowKeys[serverGenreCurrentRowKeys.length - 1];
-                    if (!lastKey) return;
-                    query = query.startAfter(lastKey);
-                } else if (direction === 'newer') {
-                    if (serverGenreHistory.length <= 1) return;
-                    serverGenreHistory.pop();
-                    const previousStart = serverGenreHistory[serverGenreHistory.length - 1] || '';
-                    query = db.ref(`songGenreRows/${indexKey}/${genreKey}`).orderByKey();
-                    if (previousStart) query = query.startAt(previousStart);
-                    serverPageNumber = Math.max(1, serverPageNumber - 1);
-                }
-
-                // 101件目を余分に取得し、次ページの有無を正確に判定する。
-                const snapshot = await query.limitToFirst(SERVER_MASTER_PAGE_SIZE + 1).once('value');
-
-                const rowKeys = [];
-                const ids = [];
-                snapshot.forEach(child => {
-                    rowKeys.push(child.key);
-                    const id = String(child.val() || '');
-                    if (/^[A-Za-z0-9_-]{1,80}$/.test(id)) ids.push(id);
-                });
-                const hasNextGenrePage = rowKeys.length > SERVER_MASTER_PAGE_SIZE;
-                rowKeys.length = Math.min(rowKeys.length, SERVER_MASTER_PAGE_SIZE);
-                ids.length = Math.min(ids.length, SERVER_MASTER_PAGE_SIZE);
-
-                if (!ids.length) {
-                    masterLoadNotice(`ジャンル「${genre}」にこれ以上の曲はありません。`);
-                    return;
-                }
-
-                const master = await fetchSongsByIds(ids);
-                const rows = serverSearchMasterToRawRows(master);
-
-                const order = new Map(ids.map((id, i) => [id, i]));
-                const body = rows.slice(1).sort((a,b) =>
-                    (order.get(String(a[0])) ?? 999999) - (order.get(String(b[0])) ?? 999999)
-                );
-
-                loadRowsIntoApp([rows[0], ...body]);
-                tableBodyWrapper.scrollTop = 0;
-
-                serverGenreCurrentRowKeys = rowKeys;
-
-                if (direction === 'first') {
-                    serverGenreHistory = [rowKeys[0] || ''];
-                } else if (direction === 'older') {
-                    serverGenreHistory.push(rowKeys[0] || '');
-                    serverPageNumber++;
-                }
-
-                serverPageHasOlder = hasNextGenrePage;
-
-                masterLoadNotice(
-                    `✅ ジャンル「${genre}」：${ids.length}曲だけ取得しました（${serverPageNumber}ページ目）。`
-                );
-            } catch (error) {
-                allData = previousRows;
-                serverPageNumber = previousPage;
-                serverPageHasOlder = previousHasOlder;
-                serverGenreHistory = previousHistory;
-                serverGenreCurrentRowKeys = previousKeys;
-                genreServerMode = false;
-                console.error('ジャンル100件取得に失敗:', error);
-                throw error;
-            } finally {
-                serverPageBusy = false;
-                serverPageLoadPromise = null;
-                searchInput.disabled = false;
-                searchInput.readOnly = false;
-
-                if (serverPagedMasterMode && !masterLoaded && allData.length) {
-                    renderTable();
-                }
+    async function loadServerGenrePage(genre,direction='first'){
+        if(!Object.keys(selectedGenres).length){genreServerMode=false;return loadServerMasterPage('first');}
+        if(masterLoaded){genreServerMode=false;renderTable();return;}
+        if(serverPageBusy){await serverPageLoadPromise;return loadServerGenrePage(currentGenre,'first');}
+        const version=genreFilterVersion,chosen={...selectedGenres};serverPageBusy=true;serverPagedMasterMode=true;serverSearchMode=false;genreServerMode=true;
+        loadingArea.style.display='flex';loadingArea.innerHTML='<div class="spinner"></div><div>ジャンルを読み込み中…</div>';
+        serverPageLoadPromise=(async()=>{try{
+            const indexKey=await currentServerGenreIndexKey();await loadServerGenreCatalog();
+            if(serverGenreCatalog.indexVersion<4)throw Error('新しいジャンル検索インデックスの準備中です');
+            const selected=Object.entries(chosen),cacheKey=indexKey+JSON.stringify(selected),nextPage=direction==='first'?1:Math.max(1,serverPageNumber+(direction==='older'?1:-1));
+            let ids,hasNext;
+            if(selected.length===1){
+                const[field,value]=selected[0],key=serverGenreKeyForName(field+'::'+value);let query=db.ref(`songGenreRows/${indexKey}/${key}`).orderByKey();
+                if(direction==='older'&&serverGenreCurrentRowKeys.length)query=query.startAfter(serverGenreCurrentRowKeys.at(-1));
+                if(direction==='newer'&&serverGenreHistory[nextPage-1])query=query.startAt(serverGenreHistory[nextPage-1]);
+                const snapshot=await query.limitToFirst(101).once('value'),entries=[];snapshot.forEach(child=>entries.push([child.key,child.val()]));
+                hasNext=entries.length>100;ids=entries.slice(0,100).map(([,id])=>id);if(version!==genreFilterVersion)return;
+                serverGenreCurrentRowKeys=entries.slice(0,100).map(([key])=>key);if(direction==='first')serverGenreHistory=[];serverGenreHistory[nextPage-1]=serverGenreCurrentRowKeys[0]||'';
+            }else{
+                let entries=genreIntersectionCache.get(cacheKey);
+                if(!entries){const indexes=await Promise.all(selected.map(async([field,value])=>{const snapshot=await db.ref(`songGenreRows/${indexKey}/${serverGenreKeyForName(field+'::'+value)}`).once('value');return snapshot.val()||{};}));const smallest=indexes.reduce((a,b)=>Object.keys(a).length<Object.keys(b).length?a:b);entries=Object.entries(smallest).filter(([key])=>indexes.every(map=>Object.hasOwn(map,key))).sort(([a],[b])=>a.localeCompare(b));genreIntersectionCache.clear();genreIntersectionCache.set(cacheKey,entries);}
+                ids=entries.slice((nextPage-1)*100,nextPage*100).map(([,id])=>id);hasNext=entries.length>nextPage*100;
             }
-        })();
-
+            const master=await fetchSongsByIds(ids);if(version!==genreFilterVersion)return;
+            serverPageNumber=nextPage;serverPageHasOlder=hasNext;loadRowsIntoApp(serverSearchMasterToRawRows(master));tableBodyWrapper.scrollTop=0;
+        }finally{serverPageBusy=false;serverPageLoadPromise=null;loadingArea.style.display='none';if(version===genreFilterVersion&&genreServerMode&&!masterLoaded)renderTable();}})();
         return serverPageLoadPromise;
     }
 
     function serverSearchMasterToRawRows(master) {
-        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
-        const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement','updatedAt'];
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','tieup','search','lyrics','composition','arrangement','updatedAt'];
         const rows=[headers];
         for(const [id,song] of Object.entries(master || {})){
             if(!/^[A-Za-z0-9_-]{1,80}$/.test(id)||!song||typeof song!=='object'||Array.isArray(song)||
                (song.id&&song.id!==id)||typeof song.title!=='string'||!song.title.trim()) continue;
-            rows.push(fields.map(field=>field==='id'?id:String(song[field]??'')));
+            rows.push(fields.map(field=>field==='id'?id:field==='genre1'?SLSongGenres.value(song,'genre1'):String(song[field]??'')));
         }
         return rows;
     }
@@ -8284,7 +8136,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         serverPagedMasterMode = true;
         serverSearchMode = true;
         genreServerMode = false;
-        currentGenre = 'すべて';
+        currentGenre = 'すべて';Object.keys(selectedGenres).forEach(key=>delete selectedGenres[key]);++genreFilterVersion;
         loadingArea.style.display='flex';
         loadingArea.innerHTML='<div class="spinner"></div><div>検索結果を100曲ずつ取得中...</div>';
         renderCurrentSongPage();
@@ -8375,7 +8227,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         if (direction === 'first') {
             serverSearchMode = false;
             genreServerMode = false;
-            currentGenre = 'すべて';
+            currentGenre = 'すべて';Object.keys(selectedGenres).forEach(key=>delete selectedGenres[key]);++genreFilterVersion;
         }
         if (masterLoaded) {
             serverPagedMasterMode=false;
@@ -8564,8 +8416,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         if (!master||typeof master!=='object'||Array.isArray(master)||!Object.keys(master).length)
             throw Error('songs に公開楽曲がありません。移管用JSONとRealtime Databaseルールを確認してください。');
         // updatedAt は画面に列表示しない内部項目。全曲一覧のデフォルト更新履歴順にだけ使用する。
-        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
-        const fields=['id','title','artist','chordwiki','bpm','genre','genre2','genre3','tieup','search','lyrics','composition','arrangement','updatedAt'];
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','tieup','search','lyrics','composition','arrangement','updatedAt'];
         const rows=[headers];
         let skipped=0;
         for(const [id,song] of Object.entries(master)){
@@ -8576,7 +8428,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
                 if(skipped<=20)console.warn('公開マスターの不正な楽曲を除外しました:',id);
                 continue;
             }
-            rows.push(fields.map(field=>field==='id'?id:String(song[field]??'')));
+            rows.push(fields.map(field=>field==='id'?id:field==='genre1'?SLSongGenres.value(song,'genre1'):String(song[field]??'')));
         }
         if(skipped)console.warn(`公開マスターの不正な楽曲を ${skipped} 件除外しました。管理者はデータのsongsを確認してください。`);
         if(rows.length<=1)throw Error('有効な楽曲が公開マスターにありません。Realtime Databaseルールとデータを確認してください。');
@@ -8870,10 +8722,12 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             'アーティスト': String(song.artist || ''),
             'コードwiki': String(song.chordwiki || ''),
             'BPM': String(song.bpm || ''),
-            'ジャンル': String(song.genre || ''),
-            'ジャンル①': String(song.genre || ''),
+            'ジャンル': SLSongGenres.value(song,'genre1'),
+            'ジャンル①': SLSongGenres.value(song,'genre1'),
             'ジャンル②': String(song.genre2 || ''),
             'ジャンル③': String(song.genre3 || ''),
+            'ジャンル④': String(song.genre4 || ''),
+            'ジャンル⑤': String(song.genre5 || ''),
             'タイアップ情報': String(song.tieup || ''),
             '検索': String(song.search || ''),
             '作詞': String(song.lyrics || ''),
@@ -9146,6 +9000,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         document.getElementById('detailGenre1').textContent = song[genre1Key] || '-';
         document.getElementById('detailGenre2').textContent = song[genre2Key] || '-';
         document.getElementById('detailGenre3').textContent = song[genre3Key] || '-';
+        document.getElementById('detailGenre4').textContent = SLSongGenres.value(song,'genre4') || '-';
+        document.getElementById('detailGenre5').textContent = SLSongGenres.value(song,'genre5') || '-';
         document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
         document.getElementById('detailKeyArea').style.display = chordWikiTitle(song['コードwiki']) ? 'block' : 'none';
         if (chordWikiTitle(song['コードwiki'])) renderPersonalKeyPicker(song);
@@ -9234,9 +9090,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
         // 全曲一覧・マイリストのどちらでも、現在選択中のジャンルを必ず強調表示する。
         // マイリスト部分取得ではボタン生成と描画のタイミングが前後するため、
         // 描画のたびに active 状態を同期して取りこぼしを防ぐ。
-        genreFilters.querySelectorAll('.genre-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.textContent.trim() === currentGenre);
-        });
+        syncGenreButtons();
         if(serverPagedMasterMode && !masterLoaded && serverPagedNeedsFullMaster()){
             void promoteServerPageToFullMaster('検索・絞り込み').then(()=>renderTable());
             return;
@@ -9259,12 +9113,8 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             if (currentRoomId && (roomListView === 'common' ? !roomSongMatchesSelectedCommonMembers(row._id) : roomListView !== 'all' && !roomSharedLists[roomListView]?.songs?.[row._id])) return false;
             if (!currentRoomId && myListMode && !isInMyList(row)) return false;
             if (canExcludeRegistered && excludeRegisteredCheckbox.checked && isInMyList(row)) return false;
-            const g1 = (row[genre1Key] || '').trim();
-            const g2 = (row[genre2Key] || '').trim();
-            const g3 = (row[genre3Key] || '').trim();
-            
-            const matchGenre = currentGenre === 'すべて' || g1 === currentGenre || g2 === currentGenre || g3 === currentGenre;
-            
+            const matchGenre=SLSongGenres.matches(row,selectedGenres);
+
             const matchArtist = !selectedArtist || String(row['アーティスト'] || '').trim() === selectedArtist;
             return matchGenre && matchArtist && (!keywords.length || keywords.every(kw => row._searchText.includes(kw)));
         });
@@ -9314,10 +9164,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
             const memberTag=memberEntry?`<div class="room-member-attrs">担当：${escapeHtml((memberEntry.parts||[]).join(' ')||'未設定')}</div>`:'';
 
             
-            let displayGenre = escapeHtml(row[genre1Key] || '-');
-            if (row[genre2Key] && row[genre2Key].trim() !== '') {
-                displayGenre += ` / ${escapeHtml(row[genre2Key])}`;
-            }
+            const displayGenre=SLSongGenres.all(row).map(escapeHtml).join(' / ')||'-';
             if (row['タイアップ情報']) {
                 displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
             }
@@ -10256,97 +10103,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
     slApplyActiveMenu();
   };
 
-  function slEnableGenreDrag(){
-    const host=slById('slGenreHost');
-    if(!host || host.dataset.slDragReady==='1') return;
-    host.dataset.slDragReady='1';
-
-    let active=false;
-    let pointerId=null;
-    let startX=0;
-    let startScrollLeft=0;
-    let moved=false;
-    let suppressClick=false;
-
-    const finishDrag=(event)=>{
-      if(!active) return;
-      if(event && pointerId!==null && event.pointerId!==pointerId) return;
-
-      active=false;
-      host.classList.remove('sl-dragging');
-
-      if(moved) suppressClick=true;
-
-      try{
-        if(pointerId!==null && host.hasPointerCapture?.(pointerId)){
-          host.releasePointerCapture(pointerId);
-        }
-      }catch(_){}
-
-      pointerId=null;
-    };
-
-    host.addEventListener('pointerdown',event=>{
-      if(event.pointerType==='mouse' && event.button!==0) return;
-
-      // Buttons must receive normal pointerup/click events; do not capture them.
-      if(event.target.closest('button,.genre-btn')) return;
-      active=true;
-      moved=false;
-      suppressClick=false;
-      pointerId=event.pointerId;
-      startX=event.clientX;
-      startScrollLeft=host.scrollLeft;
-      host.classList.add('sl-dragging');
-
-      try{ host.setPointerCapture(event.pointerId); }catch(_){}
-    });
-
-    host.addEventListener('pointermove',event=>{
-      if(!active || event.pointerId!==pointerId) return;
-
-      const delta=event.clientX-startX;
-      if(Math.abs(delta)>=5) moved=true;
-
-      if(moved){
-        host.scrollLeft=startScrollLeft-delta;
-        event.preventDefault();
-      }
-    },{passive:false});
-
-    host.addEventListener('pointerup',finishDrag);
-    host.addEventListener('pointercancel',finishDrag);
-    host.addEventListener('lostpointercapture',()=>{
-      if(active){
-        active=false;
-        host.classList.remove('sl-dragging');
-        if(moved) suppressClick=true;
-        pointerId=null;
-      }
-    });
-
-    /* ドラッグ直後のジャンルボタン誤クリックを防止。
-       ほぼ動かさずクリックした場合は通常通りジャンルを選択できます。 */
-    host.addEventListener('click',event=>{
-      if(!suppressClick) return;
-      suppressClick=false;
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-    },true);
-
-    /* マウスホイールの横方向入力もそのまま利用可能 */
-    host.addEventListener('wheel',event=>{
-      if(Math.abs(event.deltaX)>Math.abs(event.deltaY)) return;
-      if(event.shiftKey){
-        host.scrollLeft+=event.deltaY;
-        event.preventDefault();
-      }
-    },{passive:false});
-  }
-
   function slInitShell(){
-    slEnableGenreDrag();
     slSelectDockStatus('reserved');
     slSyncUi();
     setTimeout(slSyncUi,350);
@@ -10569,7 +10326,7 @@ body.sl-redesign.sl-overlay-page-open #slFilterbar *{visibility:hidden!important
 </script>
 <script src="setlist-share.js?v=20261020-9"></script>
 <script src="room-history.js"></script>
-<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261019-1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script></body>
+<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261023-genres5"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script></body>
 </html>
 
 

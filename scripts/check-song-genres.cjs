@@ -9,6 +9,7 @@ assert(!g.matches(song,{genre1:'洋楽',genre2:'アニソン'}));
 assert(!g.matches(song,{genre5:'ジャンプ'}));assert(g.matches(song,{genre4:'ジャンプ'}));
 assert.deepEqual(g.catalog([song]).genre2,['アニソン','ゲーム']);
 assert.throws(()=>plan({one:song},{}),/IDs differ/);
+const changes=require('../song-change-core.js');assert.equal(changes.apply({genre:'J-POP',genre1:'J-POP'},{changes:{genre:{before:'J-POP',after:'洋楽'}}}).song.genre1,'洋楽');assert.equal(changes.apply({genre:'J-POP',genre1:'J-POP'},{changes:{genre1:{before:'J-POP',after:'洋楽'}}}).song.genre,'洋楽');
 const source={},live={};for(let i=0;i<27346;i++){source['s'+i]={...song,id:'s'+i};live['s'+i]={title:'Preserved',artist:'Preserved',genre:'old',updatedAt:1};}
 live.keep={title:'New live-only song'};const p=plan(source,live);
 assert.equal(p.counts.matched,27346);assert.equal(p.counts.liveOnly,1);assert.equal(p.counts.changed,27346);
