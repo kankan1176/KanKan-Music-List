@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'scripts/check-song-row-rendering.cjs'
       - 'firebase-app-check.js'
       - 'index.html'
       - 'admin.html'
@@ -17,6 +18,7 @@ on:
       - '.github/workflows/check-app-check.yml'
   pull_request:
     paths:
+      - 'scripts/check-song-row-rendering.cjs'
       - 'firebase-app-check.js'
       - 'index.html'
       - 'admin.html'
@@ -41,5 +43,7 @@ jobs:
         with:
           node-version: '22'
       - run: |
+          node scripts/check-song-row-rendering.cjs
           node scripts/check-app-check.cjs
           node scripts/check-app-check-diagnostic.cjs
+

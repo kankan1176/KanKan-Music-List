@@ -9164,7 +9164,7 @@ body.sl-redesign{--sl-filter:226px!important}
             const memberTag=memberEntry?`<div class="room-member-attrs">担当：${escapeHtml((memberEntry.parts||[]).join(' ')||'未設定')}</div>`:'';
 
             
-            const displayGenre=SLSongGenres.all(row).map(escapeHtml).join(' / ')||'-';
+            let displayGenre=SLSongGenres.all(row).map(escapeHtml).join(' / ')||'-';
             if (row['タイアップ情報']) {
                 displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
             }
