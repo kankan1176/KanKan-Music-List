@@ -6,7 +6,7 @@
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
     <script src="song-genres.js?v=20261023-category1"></script>
-    <script src="category-filters.js?v=20261023-category1"></script>
+    <script src="category-filters.js?v=20261023-category2"></script>
     <link rel="stylesheet" href="category-filters.css?v=20261023-category1">
     <script src="genre-index-reader.js?v=20261023-category1"></script>
     <script src="song-change-core.js?v=20261023-category1"></script>
@@ -6648,6 +6648,7 @@ body.sl-redesign{--sl-filter:134px!important}
     let genreServerMode = false;
     let serverGenreIndexKey = '';
     let serverGenreCatalog = null;
+    let serverGenreCatalogPromise = null;
     let serverGenreHistory = [];
     let serverGenreCurrentRowKeys = [];
 
@@ -7723,21 +7724,25 @@ body.sl-redesign{--sl-filter:134px!important}
     }
 
     async function loadServerGenreCatalog() {
-        if (serverGenreCatalog) return serverGenreCatalog;
-
-        try {
-            const snap = await db.ref('songGenreMeta').once('value');
-            const meta = snap.val() || {};
-            serverGenreIndexKey = typeof meta.currentIndexKey === 'string' ? meta.currentIndexKey : '';
-
-            const genreMap = meta.genres && typeof meta.genres === 'object' ? meta.genres : {};
-            serverGenreCatalog={groups:Object.fromEntries(SLSongGenres.metadataFields.map(field=>[field,Object.values(meta.groups?.[field]||{}).map(item=>item.name).filter(Boolean)])),indexVersion:Number(meta.indexVersion)||0,facets:meta.facets||{}};
-            if(!meta.groups)serverGenreCatalog.groups=SLSongGenres.defaults;
-            return serverGenreCatalog;
-        } catch (error) {
-            console.warn('ジャンル一覧を読み込めません:', error);
-            return [];
-        }
+        if(serverGenreCatalog)return serverGenreCatalog;
+        if(serverGenreCatalogPromise)return serverGenreCatalogPromise;
+        serverGenreCatalogPromise=new Promise((resolve,reject)=>{
+            let initial=true;
+            db.ref('songGenreMeta').on('value',snapshot=>{
+                const meta=snapshot.val()||{},previousKey=serverGenreIndexKey;
+                serverGenreIndexKey=typeof meta.currentIndexKey==='string'?meta.currentIndexKey:'';
+                serverGenreCatalog={groups:Object.fromEntries(SLSongGenres.metadataFields.map(field=>[field,Object.values(meta.groups?.[field]||{}).map(item=>item.name).filter(Boolean)])),indexVersion:Number(meta.indexVersion)||0,facets:meta.facets||{}};
+                if(!meta.groups)serverGenreCatalog.groups=SLSongGenres.defaults;
+                if(initial){initial=false;resolve(serverGenreCatalog);}
+                renderGenreButtonsFromNames([]);
+                // Retired indexes are removed after publication. Refresh active filters before using the new key.
+                if(previousKey&&previousKey!==serverGenreIndexKey&&!masterLoaded&&!myListPartialMode&&!currentRoomId&&!myListMode&&Object.keys(selectedGenres).length){
+                    ++genreFilterVersion;
+                    void loadServerGenrePage(currentGenre,'first').catch(error=>{if(error?.code!=='genre/cancelled')masterLoadNotice('ジャンル情報が更新されました。条件を選び直してください。');});
+                }
+            },error=>{serverGenreCatalogPromise=null;if(initial)reject(error);});
+        });
+        try{return await serverGenreCatalogPromise;}catch(error){console.warn('ジャンル一覧を読み込めません:',error);return [];}
     }
 
     function populateGenreButtons(){
