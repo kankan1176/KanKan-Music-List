@@ -7,5 +7,12 @@ const catalog={groups:g.catalog([a,b,c]),facets:g.facets([a,b,c])};assert.deepEq
 const voices=['穂歌ソラ','SOLARIA','可不','初音ミク','足立レイ','星界','GUMI','花隈千冬','未分類歌唱者','重音テト','初音ミク'];
 assert.deepEqual(ui.options({groups:{vocal_synths:voices}},'ボカロ','vocal_synths'),['GUMI','初音ミク','可不','星界','SOLARIA','花隈千冬','重音テト','足立レイ','穂歌ソラ','未分類歌唱者']);
 assert.deepEqual(ui.options({groups:{anime_year:['2010','2020']}},'アニソン','anime_year'),['2020','2010']);
+const html=require('node:fs').readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
+const start=html.indexOf('    function serverSearchSongText(song) {'),end=html.indexOf('\n    }',start)+6;
+assert(start>=0&&end>start);
+const searchText=new Function('SLSongGenres','normalizeServerSearchText',html.slice(start,end)+';return serverSearchSongText;')(g,v=>String(v).normalize('NFKC').toLowerCase());
+const searchable={title:'title',artist:'artist',tieup:'tieup',search:'search',lyrics:'lyrics',composition:'composition',arrangement:'arrangement',genre1:'J-POP',genre2:'ボカロ',genre3:'ゲーム',genre4:'アイドル',genre5:'ジャンプ',genre6:'ジャズ',vocal_synths:'初音ミク',anime_year:'2010'};
+for(const[field,value]of Object.entries(searchable))assert(searchText({[field]:value}).includes(value.normalize('NFKC').toLowerCase()),'missing search field '+field);
+assert.equal(ui.controls('ボカロ')[1].label,'ボカロ別');
 const source={},live={};for(let i=0;i<27346;i++){source['s'+i]={id:'s'+i,...Object.fromEntries(g.metadataFields.map(f=>[f,a[f]||'']))};live['s'+i]={title:'Preserved',genre:'Old',updatedAt:1};}live.liveOnly={title:'Keep'};const result=plan(source,live);assert.equal(result.counts.matched,27346);assert.equal(result.counts.liveOnly,1);assert(Object.keys(result.updates).every(path=>/^songs\/s\d+\/(?:genre[1-6]?|vocal_synths|anime_year)$/.test(path)));assert.equal(live.s0.title,'Preserved');assert.throws(()=>plan(source,{}),/IDs differ/);live.s0.updatedAt=Date.parse('2026-10-24T00:00:00Z');assert.equal(plan(source,live).counts.recentSkipped,1);
 console.log('PASS five category navigation, category-dependent choices, synth/year/publisher AND, J-POP inclusion retained, classification-only ID-safe migration.');

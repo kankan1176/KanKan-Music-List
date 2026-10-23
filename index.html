@@ -6,7 +6,7 @@
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
     <script src="song-genres.js?v=20261023-category1"></script>
-    <script src="category-filters.js?v=20261023-singer-order1"></script>
+    <script src="category-filters.js?v=20261023-sort-master1"></script>
     <link rel="stylesheet" href="category-filters.css?v=20261023-category1">
     <script src="genre-index-reader.js?v=20261023-category1"></script>
     <script src="song-change-core.js?v=20261023-category1"></script>
@@ -7942,7 +7942,7 @@ body.sl-redesign{--sl-filter:134px!important}
 
     function serverSearchSongText(song) {
         return normalizeServerSearchText([
-            song?.title, song?.artist, SLSongGenres.value(song,'genre1'), song?.genre2, song?.genre3, song?.genre4, song?.genre5,
+            song?.title, song?.artist, ...SLSongGenres.metadataFields.map(field=>SLSongGenres.value(song,field)),
             song?.tieup, song?.search, song?.lyrics, song?.composition, song?.arrangement
         ].join(' '));
     }
@@ -8679,6 +8679,16 @@ body.sl-redesign{--sl-filter:134px!important}
     searchInput.addEventListener('input', () => {
         clearTimeout(searchDebounceTimer);
         const typed = searchInput.value;
+        // The main search always starts from the full master, including in a room.
+        // The standalone My List search retains its own list scope.
+        if (typed.trim() && !myListMode) {
+            Object.keys(selectedGenres).forEach(key=>delete selectedGenres[key]);
+            currentGenre='すべて';genreServerMode=false;++genreFilterVersion;
+            selectedArtist='';artistFilterIndicator.hidden=true;
+            excludeRegisteredCheckbox.checked=false;
+            if(currentRoomId && roomListView!=='all'){roomListView='all';renderRoomListTabs();}
+            syncGenreButtons();
+        }
 
         searchDebounceTimer = setTimeout(() => {
             if (myListPartialMode && myListMode && !masterLoaded) {

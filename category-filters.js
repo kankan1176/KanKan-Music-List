@@ -9,7 +9,7 @@
   ['重音テト','足立レイ','波音リツ','穂歌ソラ']
  ].flatMap((names,rank)=>names.map(name=>[name,rank])));
  function compareOptions(field,a,b){if(field==='anime_year')return Number(b)-Number(a);if(field==='vocal_synths'){const order=(singerOrder.get(a)??4)-(singerOrder.get(b)??4);if(order)return order;}return a.localeCompare(b,'ja');}
- function controls(category){return [{field:'genre6',label:'音楽ジャンル'},...(category==='ボカロ'?[{field:'vocal_synths',label:'歌唱者'}]:[]),...(category==='アニソン'?[{field:'anime_year',label:'放送・公開年'},{field:'genre5',label:'掲載媒体・関連作品'}]:[])];}
+ function controls(category){return [{field:'genre6',label:'音楽ジャンル'},...(category==='ボカロ'?[{field:'vocal_synths',label:'ボカロ別'}]:[]),...(category==='アニソン'?[{field:'anime_year',label:'放送・公開年'},{field:'genre5',label:'掲載媒体・関連作品'}]:[])];}
  function options(catalog,category,field){return [...new Set((catalog.facets?.[category]?(catalog.facets[category][field]||[]):(catalog.groups?.[field]||[])).filter(Boolean))].sort((a,b)=>compareOptions(field,a,b));}
  function render(host,selected,catalog,onChange){
   const category=genres.categoryOf(selected),fragment=document.createDocumentFragment(),tabs=document.createElement('div');tabs.className='sl-category-tabs';tabs.setAttribute('role','group');tabs.setAttribute('aria-label','楽曲カテゴリ');
