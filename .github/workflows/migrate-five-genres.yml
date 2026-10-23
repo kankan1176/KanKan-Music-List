@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false firebase-admin@13
-      - run: node scripts/check-song-genres.cjs
+      - run: node scripts/check-song-genres.cjs && node scripts/check-search-index-cleanup.cjs
       - name: Verify source, back up old genres, apply genre fields only
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
@@ -28,7 +28,12 @@ jobs:
       - name: Rebuild five-column search and genre indexes
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          RETIRED_INDEX_KEY: '847e6576052ff3fb958b2c20'
         run: node scripts/build-search-index.mjs
+      - name: Verify live genre groups and matching index results
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/verify-five-genres.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

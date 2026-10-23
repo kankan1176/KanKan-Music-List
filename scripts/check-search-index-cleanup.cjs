@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync(require('node:path').join(__dirname,'build-search-index.mjs'),'utf8');
+const start=source.indexOf('async function removeIndex('),end=source.indexOf('function approxEntryBytes',start);
+assert(start>0&&end>start);
+const retired='a'.repeat(24),active='b'.repeat(24),state={songIndexCleanup:{[retired]:true,[active]:true},songSearchMeta:{currentIndexKey:active},songGenreMeta:{currentIndexKey:active},songSearchRows:{[retired]:Object.fromEntries(Array.from({length:2501},(_,i)=>['key'+i,'id'+i])),[active]:{keep:'safe'}},songGenreRows:{[retired]:{tag:{one:'id'}},[active]:{keep:'safe'}}};
+const get=p=>p.split('/').reduce((o,k)=>o?.[k],state),writes=[];
+function ref(path,limit){return{orderByKey:()=>ref(path,limit),limitToFirst:n=>ref(path,n),async get(){const v=get(path),value=limit&&v?Object.fromEntries(Object.entries(v).slice(0,limit)):v;return{exists:()=>!!value&&Object.keys(value).length>0,val:()=>value??null,forEach:fn=>Object.entries(value||{}).forEach(([key,v])=>fn({key,val:()=>v}))};},async update(patch){assert(Object.keys(patch).length<=750);assert(!path.endsWith(active));writes.push(patch);for(const k of Object.keys(patch)){assert.equal(patch[k],null);delete get(path)[k];}},async remove(){const parts=path.split('/'),key=parts.pop();delete get(parts.join('/'))[key];}};}
+const scope={db:{ref},console:{log(){}}};vm.createContext(scope);vm.runInContext(source.slice(start,end)+';this.clean=cleanRetiredIndexes;',scope);
+(async()=>{await scope.clean();assert.deepEqual(state.songSearchRows[retired],{});assert.deepEqual(state.songGenreRows[retired],{});assert.equal(writes.length,5);assert.deepEqual(state.songSearchRows[active],{keep:'safe'});assert.deepEqual(state.songGenreRows[active],{keep:'safe'});assert.deepEqual(state.songIndexCleanup,{[active]:true});await scope.clean();assert.equal(writes.length,5);console.log('PASS: large retired index deleted in bounded batches, active indexes preserved, completed cleanup idempotent.');})().catch(e=>{console.error(e);process.exitCode=1;});

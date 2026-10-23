@@ -111,6 +111,28 @@ async function flush(pathName, batch) {
   await db.ref(pathName).update(batch);
 }
 
+// Removing a large index at once also counts toward RTDB's write size limit.
+async function removeIndex(pathName) {
+  const ref=db.ref(pathName);
+  for (;;) {
+    const snapshot=await ref.orderByKey().limitToFirst(750).get();
+    if (!snapshot.exists()) return;
+    const batch={};snapshot.forEach(child=>{batch[child.key]=null;});
+    await ref.update(batch);
+  }
+}
+
+async function cleanRetiredIndexes() {
+  const [queue,search,genre]=await Promise.all(['songIndexCleanup','songSearchMeta/currentIndexKey','songGenreMeta/currentIndexKey'].map(path=>db.ref(path).get()));
+  for(const key of Object.keys(queue.val()||{})){
+    if(!/^[a-f0-9]{24}$/.test(key)||key===search.val()||key===genre.val())continue;
+    await removeIndex('songSearchRows/'+key);
+    await removeIndex('songGenreRows/'+key);
+    await db.ref('songIndexCleanup/'+key).remove();
+    console.log('Retired index removed in bounded batches: '+key);
+  }
+}
+
 function approxEntryBytes(key, value) {
   // Conservative UTF-8 estimate including JSON punctuation / path overhead.
   return Buffer.byteLength(String(key), 'utf8')
@@ -131,8 +153,8 @@ async function buildOnce(sourceRevision, songs) {
   const indexKey = sha256(`shareliscore-index-v${INDEX_VERSION}\0${sourceRevision}`, 24);
 
   await Promise.all([
-    db.ref(`songSearchRows/${indexKey}`).remove(),
-    db.ref(`songGenreRows/${indexKey}`).remove(),
+    removeIndex(`songSearchRows/${indexKey}`),
+    removeIndex(`songGenreRows/${indexKey}`),
   ]);
 
   let searchBatch = {};
@@ -215,6 +237,10 @@ async function buildOnce(sourceRevision, songs) {
 }
 
 async function main() {
+  // Recovery for the old index whose single-request deletion hit WRITE_TOO_BIG.
+  const retired=process.env.RETIRED_INDEX_KEY;
+  if(retired){if(!/^[a-f0-9]{24}$/.test(retired))throw Error('Invalid retired index key');await db.ref('songIndexCleanup/'+retired).set(true);}
+  await cleanRetiredIndexes();
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const before = (await db.ref('masterMeta/revision').get()).val();
     if (typeof before !== 'string' || !before) {
@@ -246,8 +272,8 @@ async function main() {
     if (after !== before) {
       console.warn('Master changed while building; discarding this version.');
       await Promise.all([
-        db.ref(`songSearchRows/${built.indexKey}`).remove(),
-        db.ref(`songGenreRows/${built.indexKey}`).remove(),
+        removeIndex(`songSearchRows/${built.indexKey}`),
+        removeIndex(`songGenreRows/${built.indexKey}`),
       ]);
       continue;
     }
@@ -259,7 +285,10 @@ async function main() {
 
     const now = Date.now();
 
+    const retiredIndexes={};
+    for(const key of [oldSearchKey,oldGenreKey])if(key&&key!==built.indexKey)retiredIndexes['songIndexCleanup/'+key]=true;
     await db.ref().update({
+      ...retiredIndexes,
       songSearchMeta: {
         currentIndexKey: built.indexKey,
         sourceRevision: before,
@@ -280,21 +309,10 @@ async function main() {
       },
     });
 
-    const removals = [];
-
-    if (oldSearchKey && oldSearchKey !== built.indexKey) {
-      removals.push(db.ref(`songSearchRows/${oldSearchKey}`).remove());
-    }
-
-    if (oldGenreKey && oldGenreKey !== built.indexKey) {
-      removals.push(db.ref(`songGenreRows/${oldGenreKey}`).remove());
-    }
-
-    await Promise.all(removals);
-
     console.log(
       `Published ${built.indexKey}: songs=${built.songCount}, searchRows=${built.searchRowCount}, genreRows=${built.genreRowCount}, genres=${Object.keys(built.genres).length}`
     );
+    await cleanRetiredIndexes();
     return;
   }
 
