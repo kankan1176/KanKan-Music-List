@@ -1,0 +1,39 @@
+name: Apply five genre master
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/migrate-five-genres.yml', 'scripts/migrate-five-genres.cjs', 'maintenance/master-genres-20261023.enc.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  migrate:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - run: node scripts/check-song-genres.cjs
+      - name: Verify source, back up old genres, apply genre fields only
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/migrate-five-genres.cjs
+      - name: Rebuild five-column search and genre indexes
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/build-search-index.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: genre-migration-backup-${{ github.run_id }}
+          path: .genre-migration/*.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7

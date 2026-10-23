@@ -1,0 +1,19 @@
+'use strict';
+const assert=require('node:assert/strict'),g=require('../song-genres.js'),{plan}=require('./migrate-five-genres.cjs');
+assert.equal(g.value({genre:'old',genre1:''},'genre1'),'');
+assert.equal(g.value({genre:'J-POP'},'genre1'),'J-POP');
+assert.deepEqual(g.split('Vtuber, ボカロ、歌い手、Vtuber'),['Vtuber','ボカロ','歌い手']);
+const song={genre1:'J-POP',genre2:'アニソン、ゲーム',genre3:'ロック',genre4:'ジャンプ',genre5:''};
+assert(g.matches(song,{genre1:'J-POP',genre2:'アニソン'}));
+assert(!g.matches(song,{genre1:'洋楽',genre2:'アニソン'}));
+assert(!g.matches(song,{genre5:'ジャンプ'}));assert(g.matches(song,{genre4:'ジャンプ'}));
+assert.deepEqual(g.catalog([song]).genre2,['アニソン','ゲーム']);
+assert.throws(()=>plan({one:song},{}),/IDs differ/);
+const source={},live={};for(let i=0;i<27346;i++){source['s'+i]={...song,id:'s'+i};live['s'+i]={title:'Preserved',artist:'Preserved',genre:'old',updatedAt:1};}
+live.keep={title:'New live-only song'};const p=plan(source,live);
+assert.equal(p.counts.matched,27346);assert.equal(p.counts.liveOnly,1);assert.equal(p.counts.changed,27346);
+assert(Object.keys(p.updates).every(path=>/^songs\/s\d+\/genre[1-5]?$/.test(path)));
+assert.equal(p.updates['songs/s0/genre1'],'J-POP');assert.equal(p.backup['songs/s0/genre1'],null);
+assert.equal(live.s0.title,'Preserved');assert.equal(live.s0.genre,'old');
+live.s0.updatedAt=Date.parse('2026-10-24T00:00:00Z');assert.equal(plan(source,live).counts.recentSkipped,1);
+console.log('PASS: five genre columns, legacy blank precedence, AND filters, field identity, tokenization, ID guard, bounded genre-only migration and concurrent edit preservation.');

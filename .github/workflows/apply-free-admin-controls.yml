@@ -7,6 +7,9 @@ on:
       - 'scripts/high-priority-rules.cjs'
       - 'scripts/check-high-priority-security.cjs'
       - 'song-change-core.js'
+      - 'song-genres.js'
+      - 'scripts/genre-rules.cjs'
+      - 'scripts/check-song-genres.cjs'
       - 'queue-actions.js'
       - 'scripts/check-queue-actions.cjs'
       - 'tests/free-controls/test-high-priority-access.cjs'
@@ -67,6 +70,7 @@ jobs:
         run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
       - name: Check free control code and rule preservation
         run: |
+          node scripts/check-song-genres.cjs
           node scripts/check-high-priority-security.cjs
           node scripts/check-free-account-controls.cjs
           node scripts/check-account-features.cjs

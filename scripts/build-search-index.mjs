@@ -3,6 +3,7 @@
  */
 
 import crypto from 'node:crypto';
+import genreCore from '../song-genres.js';
 import { initializeApp, cert, deleteApp } from 'firebase-admin/app';
 import { getDatabase } from 'firebase-admin/database';
 
@@ -28,7 +29,7 @@ const db = getDatabase(app);
 
 const SEARCH_FIELDS = [
   'title','artist','tieup','search','lyrics','composition','arrangement',
-  'genre','genre2','genre3',
+  'genre1','genre2','genre3','genre4','genre5',
 ];
 const GENRE_FIELDS = ['genre','genre2','genre3'];
 
@@ -39,7 +40,7 @@ const WRITE_BATCH_SIZE = 750;
 const WRITE_BATCH_MAX_BYTES = 2 * 1024 * 1024; // ~2 MiB safety margin
 const MAX_ATTEMPTS = 3;
 const MAX_TERM_UTF8_BYTES = 300;
-const INDEX_VERSION = 3;
+const INDEX_VERSION = 4;
 
 function sha256(value, length = 40) {
   return crypto.createHash('sha256').update(value).digest('hex').slice(0, length);
@@ -58,7 +59,7 @@ function normalizeGenre(value) {
 }
 
 function searchableWords(song) {
-  const text = normalize(SEARCH_FIELDS.map(field => song?.[field] ?? '').join(' '));
+  const text = normalize(SEARCH_FIELDS.map(field => genreCore.fields.includes(field)?genreCore.value(song,field):song?.[field] ?? '').join(' '));
   return text ? text.split(/\s+/u).filter(Boolean) : [];
 }
 
@@ -84,14 +85,7 @@ function encodeUtf8(value) {
   return Buffer.from(value, 'utf8').toString('hex');
 }
 
-function genresForSong(song) {
-  const set = new Set();
-  for (const field of GENRE_FIELDS) {
-    const value = normalizeGenre(song?.[field]);
-    if (value) set.add(value);
-  }
-  return [...set];
-}
+function genresForSong(song){const tags=new Set();for(const[field,values]of Object.entries(genreCore.groups(song)))for(const value of values){tags.add(value);tags.add(field+'::'+value);}return [...tags];}
 
 function validateSongs(songs) {
   if (!songs || typeof songs !== 'object' || Array.isArray(songs)) {
@@ -205,9 +199,10 @@ async function buildOnce(sourceRevision, songs) {
   await flush(`songSearchRows/${indexKey}`, searchBatch);
   await flush(`songGenreRows/${indexKey}`, genreBatch);
 
-  const genres = {};
+  const genres = {},groups=Object.fromEntries(genreCore.fields.map(field=>[field,{}]));
   for (const [name, count] of [...genreCounts.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ja'))) {
-    genres[encodeUtf8(name)] = {name, count};
+    const field=genreCore.fields.find(field=>name.startsWith(field+'::'));
+    if(field)groups[field][encodeUtf8(name.slice(field.length+2))]={name:name.slice(field.length+2),count};else genres[encodeUtf8(name)] = {name,count};
   }
 
   return {
@@ -215,7 +210,7 @@ async function buildOnce(sourceRevision, songs) {
     searchRowCount,
     genreRowCount,
     songCount: entries.length,
-    genres,
+    genres,groups,
   };
 }
 
@@ -281,6 +276,7 @@ async function main() {
         songCount: built.songCount,
         updatedAt: now,
         genres: built.genres,
+        groups: built.groups,
       },
     });
 

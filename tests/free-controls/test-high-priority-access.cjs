@@ -4,7 +4,7 @@ const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFail
 (async()=>{
  const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:fs.readFileSync(process.env.OBS_RULE_TEST,'utf8')}});
  try{
- const song={id:'security-song',title:'Original',artist:'Artist',chordwiki:'https://ja.chordwiki.org/wiki/Test',bpm:'120',genre:'Test',genre2:'',genre3:'',tieup:'',search:'',lyrics:'',composition:'',arrangement:'',updatedAt:Date.now()};
+ const song={id:'security-song',title:'Original',artist:'Artist',chordwiki:'https://ja.chordwiki.org/wiki/Test',bpm:'120',genre:'J-POP',genre1:'J-POP',genre2:'アニソン、ゲーム',genre3:'ロック',genre4:'ジャンプ',genre5:'',tieup:'',search:'',lyrics:'',composition:'',arrangement:'',updatedAt:Date.now()};
  await env.withSecurityRulesDisabled(async c=>{const db=c.database();await set(ref(db,'admins/security-admin'),true);await set(ref(db,'songs/security-song'),song);await set(ref(db,'friendSharedLists/security-owner'),{songs:{'security-song':{key:2,parts:['🎸']}},favoriteArtists:{a_74657374:true},updatedAt:Date.now()});await set(ref(db,'userListShares/security-owner'),{token:'c'.repeat(48),enabled:false,showKey:false,showParts:false});});
  const context=(uid,provider)=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider},auth_time:Math.floor(Date.now()/1000)}).database(),owner=context('security-owner','google.com'),other=context('security-other','google.com'),admin=context('security-admin','google.com'),guest=context('security-guest','anonymous'),anon=env.unauthenticatedContext().database();
  await assertSucceeds(get(ref(owner,'friendSharedLists/security-owner')));
