@@ -27,6 +27,8 @@ on:
       - 'scripts/check-account-features.cjs'
       - 'tests/free-controls/test-room-account-access.cjs'
       - 'scripts/free-control-rules.cjs'
+      - 'chordwiki-version.js'
+      - 'chordwiki-preference.js'
       - 'scripts/chordwiki-preference-rules.cjs'
       - 'scripts/check-chordwiki-version.cjs'
       - 'scripts/list-share-rules.cjs'
