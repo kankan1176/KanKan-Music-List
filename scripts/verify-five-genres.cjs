@@ -5,7 +5,7 @@ const genres=require('../song-genres.js'),{initializeApp,cert,deleteApp}=require
  try{
   const db=getDatabase(app),[gs,ss,revision,operation]=await Promise.all(['songGenreMeta','songSearchMeta','masterMeta/revision','maintenanceOperations/master-genres-20261023-v1'].map(p=>db.ref(p).get()));
   const meta=gs.val(),search=ss.val(),marker=operation.val();
-  if(meta?.indexVersion!==4||search?.indexVersion!==4||meta.sourceRevision!==revision.val()||search.sourceRevision!==revision.val()||meta.currentIndexKey!==search.currentIndexKey||marker?.counts?.matched!==27346)throw Error('Production genre index metadata mismatch');
+  if(meta?.indexVersion<4||search?.indexVersion<4||meta.sourceRevision!==revision.val()||search.sourceRevision!==revision.val()||meta.currentIndexKey!==search.currentIndexKey||marker?.counts?.matched!==27346)throw Error('Production genre index metadata mismatch');
   for(const field of genres.fields){
    const choices=Object.values(meta.groups?.[field]||{});if(!choices.length)throw Error('Missing production genre group '+field);
    const choice=field==='genre2'?choices.find(v=>v.name==='TV（CM・バラエティ）主題歌')||choices[0]:choices[0];

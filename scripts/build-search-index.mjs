@@ -29,7 +29,7 @@ const db = getDatabase(app);
 
 const SEARCH_FIELDS = [
   'title','artist','tieup','search','lyrics','composition','arrangement',
-  'genre1','genre2','genre3','genre4','genre5',
+  'genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year',
 ];
 const GENRE_FIELDS = ['genre','genre2','genre3'];
 
@@ -40,7 +40,7 @@ const WRITE_BATCH_SIZE = 750;
 const WRITE_BATCH_MAX_BYTES = 2 * 1024 * 1024; // ~2 MiB safety margin
 const MAX_ATTEMPTS = 3;
 const MAX_TERM_UTF8_BYTES = 300;
-const INDEX_VERSION = 4;
+const INDEX_VERSION = 5;
 
 function sha256(value, length = 40) {
   return crypto.createHash('sha256').update(value).digest('hex').slice(0, length);
@@ -85,7 +85,7 @@ function encodeUtf8(value) {
   return Buffer.from(value, 'utf8').toString('hex');
 }
 
-function genresForSong(song){const tags=new Set();for(const[field,values]of Object.entries(genreCore.groups(song)))for(const value of values){tags.add(value);tags.add(field+'::'+value);}return [...tags];}
+function genresForSong(song){const tags=new Set();for(const[field,values]of Object.entries(genreCore.filterGroups(song)))for(const value of values){tags.add(value);tags.add(field+'::'+value);}return [...tags];}
 
 function validateSongs(songs) {
   if (!songs || typeof songs !== 'object' || Array.isArray(songs)) {
@@ -221,9 +221,9 @@ async function buildOnce(sourceRevision, songs) {
   await flush(`songSearchRows/${indexKey}`, searchBatch);
   await flush(`songGenreRows/${indexKey}`, genreBatch);
 
-  const genres = {},groups=Object.fromEntries(genreCore.fields.map(field=>[field,{}]));
+  const genres = {},groups=Object.fromEntries(genreCore.metadataFields.map(field=>[field,{}]));
   for (const [name, count] of [...genreCounts.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ja'))) {
-    const field=genreCore.fields.find(field=>name.startsWith(field+'::'));
+    const field=genreCore.metadataFields.find(field=>name.startsWith(field+'::'));
     if(field)groups[field][encodeUtf8(name.slice(field.length+2))]={name:name.slice(field.length+2),count};else genres[encodeUtf8(name)] = {name,count};
   }
 
@@ -232,7 +232,7 @@ async function buildOnce(sourceRevision, songs) {
     searchRowCount,
     genreRowCount,
     songCount: entries.length,
-    genres,groups,
+    genres,groups,facets:genreCore.facets(Object.values(songs)),
   };
 }
 
@@ -306,6 +306,7 @@ async function main() {
         updatedAt: now,
         genres: built.genres,
         groups: built.groups,
+      facets: built.facets,
       },
     });
 

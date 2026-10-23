@@ -1,7 +1,7 @@
 'use strict';
 // One-time genre-only migration. No user, membership, queue or song deletion.
 const fs=require('node:fs'),crypto=require('node:crypto'),zlib=require('node:zlib');
-const genres=require('../song-genres.js');
+const core=require('../song-genres.js'),genres={...core,fields:['genre1','genre2','genre3','genre4','genre5']};
 const EXPECTED='f7d434e7d579ad10fcf81e1eb144b39baaef56845adaa4c129f77b2fed2004a2';
 const OP='master-genres-20261023-v1';
 function decode(envelope,privateKey){

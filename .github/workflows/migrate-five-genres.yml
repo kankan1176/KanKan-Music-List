@@ -2,7 +2,7 @@ name: Apply five genre master
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/migrate-five-genres.yml', 'scripts/migrate-five-genres.cjs', 'maintenance/master-genres-20261023.enc.json']
+    paths: ['maintenance/master-genres-20261023.enc.json']
   workflow_dispatch:
 permissions:
   contents: read

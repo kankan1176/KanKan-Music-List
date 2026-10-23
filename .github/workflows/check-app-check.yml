@@ -43,6 +43,7 @@ jobs:
         with:
           node-version: '22'
       - run: |
+          node scripts/check-category-filters.cjs
           node scripts/check-song-row-rendering.cjs
           node scripts/check-app-check.cjs
           node scripts/check-app-check-diagnostic.cjs

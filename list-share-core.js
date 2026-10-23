@@ -9,7 +9,7 @@
  function song(master,item,options){
   const title=String(master?.title||master?.['曲名']||'').trim().slice(0,500);
   if(!title)return null;
-  const value={genresKnown:true,genres:genres(master),...Object.fromEntries(genreCore.fields.map(field=>[field,genreCore.value(master,field)])),title,artist:String(master?.artist||master?.['アーティスト']||'').slice(0,300)};
+  const value={genresKnown:true,genres:genres(master),...Object.fromEntries(genreCore.metadataFields.map(field=>[field,genreCore.value(master,field)])),title,artist:String(master?.artist||master?.['アーティスト']||'').slice(0,300)};
   const url=wiki(master?.chordwiki||master?.['コードwiki']);if(url)value.url=url.slice(0,2048);
   if(options.showKey)value.key=Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0;
   if(options.showParts){const parts=Array.isArray(item.parts)?item.parts:item.part?[item.part]:[];value.parts=[...new Set(parts.filter(p=>typeof p==='string'&&p.length<=40))].slice(0,7);if(!value.parts.length)delete value.parts;}

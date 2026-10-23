@@ -5,7 +5,7 @@
  const encode=value=>Array.from(new TextEncoder().encode(value)).map(n=>n.toString(16).padStart(2,'0')).join('');
  async function page(database,indexKey,selected,{after='',pageSize=100,current=()=>true}={}){
   if(!indexKey||!Number.isInteger(pageSize)||pageSize<1||pageSize>LIMIT)throw Error('Invalid genre page');
-  const choices=Object.entries(selected).filter(([field,value])=>/^genre[1-5]$/.test(field)&&typeof value==='string'&&value);
+  const choices=Object.entries(selected).filter(([field,value])=>['genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year'].includes(field)&&typeof value==='string'&&value);
   if(!choices.length)throw Error('No genre selection');
   function check(){if(!current()){const error=Error('Genre selection changed');error.code='genre/cancelled';throw error;}}
   const streams=choices.map(([field,value])=>({ref:database.ref('songGenreRows/'+indexKey+'/'+encode(field+'::'+value)),rows:[],position:0,last:after,exhausted:false}));

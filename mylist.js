@@ -25,7 +25,7 @@
   for(const key of ['Search','Sort'])el(key).hidden=!data;
   el('Search').placeholder=text.search;el('Search').setAttribute('aria-label',text.search);el('Sort').setAttribute('aria-label',text.sort);
   const sort=el('Sort').value||'title',catalog=SLSongGenres.catalog(rows),area=el('GenreGroups');area.hidden=!data;area.replaceChildren();
-  for(const field of SLSongGenres.fields){const row=cell('div','','share-genre-row');row.append(cell('strong',field));const choices=cell('div','','share-genre-options');choices.setAttribute('role','group');choices.setAttribute('aria-label',field);for(const value of ['',...catalog[field]]){const button=cell('button',value||text.allGenres);button.type='button';button.classList.toggle('active',(genreSelection[field]||'')===value);button.dataset.genreField=field;button.dataset.genreValue=value;button.onclick=()=>{if(value)genreSelection[field]=value;else delete genreSelection[field];move(0);};choices.append(button);}row.append(choices);area.append(row);}
+  SLCategoryFilters.render(area,genreSelection,{groups:catalog,facets:SLSongGenres.facets(rows)},next=>{Object.keys(genreSelection).forEach(key=>delete genreSelection[key]);Object.assign(genreSelection,next);move(0);});
   el('Sort').replaceChildren(new Option(text.titleOrder,'title'),new Option(text.artistOrder,'artist'));el('Sort').value=sort;
   const search=el('Search').value.normalize('NFKC').toLocaleLowerCase().trim();
   const filtered=rows.filter(row=>SLSongGenres.matches(row,genreSelection)&&(row.title+' '+row.artist).normalize('NFKC').toLocaleLowerCase().includes(search));
@@ -55,8 +55,8 @@
   try{const value=(await database.ref('publicListBackgrounds/'+token).once('value')).val();if(serial===imageSerial){if(value?.version!==version||!validImage(value.image))throw new Error('background unavailable');await setImage(value.image);}}catch{if(serial===imageSerial){imageVersion='';window.SLListLoading?.error();}}
  }
  async function legacyGenres(database,version){
-  const missing=rows.filter(row=>!Object.hasOwn(row,'genre1')&&!genreCache.has(row.id));let next=0;
-  await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,Object.fromEntries(SLSongGenres.fields.map(field=>[field,SLSongGenres.value(master,field)])));}catch{window.SLListLoading?.error();}}}));
+  const missing=rows.filter(row=>(!Object.hasOwn(row,'genre6')||!Object.hasOwn(row,'vocal_synths'))&&!genreCache.has(row.id));let next=0;
+  await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,Object.fromEntries(SLSongGenres.metadataFields.map(field=>[field,SLSongGenres.value(master,field)])));}catch{window.SLListLoading?.error();}}}));
   if(version===generation&&data){for(const row of rows)if(genreCache.has(row.id)){Object.assign(row,genreCache.get(row.id));row.genres=core.genres(row);};render();}
  }
  async function load(){
