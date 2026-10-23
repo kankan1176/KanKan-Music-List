@@ -14,9 +14,10 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  const wikiPref='users/member/preferences/chordwikiVersion';
  await assertSucceeds(set(ref(member,wikiPref),'beta'));
  await assertSucceeds(get(ref(member,wikiPref)));
- for(const invalid of ['enterprise','',true,{},'beta'.repeat(30)])await assertFails(set(ref(member,wikiPref),invalid));
+ for(const invalid of ['enterprise','',true,{version:'beta'},'beta'.repeat(30)])await assertFails(set(ref(member,wikiPref),invalid));
  for(const db of [guest,fake,anon,admin,context('other','google.com')]){await assertFails(get(ref(db,wikiPref)));await assertFails(set(ref(db,wikiPref),'normal'));}
  await assertFails(set(ref(context('member','anonymous'),wikiPref),'normal'));
+ await assertSucceeds(set(ref(member,wikiPref),null));
  await assertSucceeds(set(ref(member,wikiPref),'normal'));
  console.log('PASS: ChordWiki preference is a bounded normal/beta value; owner-only writes and private reads.');
 
