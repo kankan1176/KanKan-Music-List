@@ -6,6 +6,7 @@
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
     <script src="song-genres.js?v=20261023-1"></script>
+    <script src="genre-index-reader.js?v=20261023-fetch1"></script>
     <script src="song-change-core.js?v=20261023-genres5"></script>
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
@@ -6664,7 +6665,6 @@ body.sl-redesign{--sl-filter:226px!important}
     let currentGenre = "すべて";
     const selectedGenres={};
     let genreFilterVersion=0;
-    const genreIntersectionCache=new Map();
     let genre1Key = 'ジャンル'; 
     let genre2Key = 'ジャンル②';
     let genre3Key = 'ジャンル③'; 
@@ -7722,7 +7722,7 @@ body.sl-redesign{--sl-filter:226px!important}
                     currentGenre=Object.entries(selectedGenres).map(([f,v])=>f+'::'+v).join(' + ')||'すべて';
                     ++genreFilterVersion;syncGenreButtons();selectedArtist='';artistFilterIndicator.hidden=true;currentSortKey='';currentSortOrder=1;updateSortIcons();tableBodyWrapper.scrollTop=0;
                     if(masterLoaded||myListPartialMode||currentRoomId||myListMode){genreServerMode=false;renderTable();return;}
-                    try{if(currentGenre==='すべて'){genreServerMode=false;await loadServerMasterPage('first');}else await loadServerGenrePage(currentGenre,'first');}catch(error){console.warn('ジャンル取得失敗',error);masterLoadNotice('ジャンルを取得できませんでした。再度選択してください。');}
+                    try{if(currentGenre==='すべて'){genreServerMode=false;await loadServerMasterPage('first');}else await loadServerGenrePage(currentGenre,'first');}catch(error){if(error?.code==='genre/cancelled')return;console.warn('ジャンル取得失敗',error);masterLoadNotice('ジャンルを取得できませんでした。再度選択してください。');}
                 };options.append(button);
             }row.append(options);genreFilters.append(row);
         }syncGenreButtons();
@@ -7990,26 +7990,20 @@ body.sl-redesign{--sl-filter:226px!important}
     async function loadServerGenrePage(genre,direction='first'){
         if(!Object.keys(selectedGenres).length){genreServerMode=false;return loadServerMasterPage('first');}
         if(masterLoaded){genreServerMode=false;renderTable();return;}
-        if(serverPageBusy){await serverPageLoadPromise;return loadServerGenrePage(currentGenre,'first');}
+        if(serverPageBusy){const waitingVersion=genreFilterVersion;try{await serverPageLoadPromise;}catch(error){if(error?.code!=='genre/cancelled')throw error;}if(waitingVersion!==genreFilterVersion)return;return loadServerGenrePage(currentGenre,'first');}
         const version=genreFilterVersion,chosen={...selectedGenres};serverPageBusy=true;serverPagedMasterMode=true;serverSearchMode=false;genreServerMode=true;
         loadingArea.style.display='flex';loadingArea.innerHTML='<div class="spinner"></div><div>ジャンルを読み込み中…</div>';
         serverPageLoadPromise=(async()=>{try{
             const indexKey=await currentServerGenreIndexKey();await loadServerGenreCatalog();
             if(serverGenreCatalog.indexVersion<4)throw Error('新しいジャンル検索インデックスの準備中です');
-            const selected=Object.entries(chosen),cacheKey=indexKey+JSON.stringify(selected),nextPage=direction==='first'?1:Math.max(1,serverPageNumber+(direction==='older'?1:-1));
-            let ids,hasNext;
-            if(selected.length===1){
-                const[field,value]=selected[0],key=serverGenreKeyForName(field+'::'+value);let query=db.ref(`songGenreRows/${indexKey}/${key}`).orderByKey();
-                if(direction==='older'&&serverGenreCurrentRowKeys.length)query=query.startAfter(serverGenreCurrentRowKeys.at(-1));
-                if(direction==='newer'&&serverGenreHistory[nextPage-1])query=query.startAt(serverGenreHistory[nextPage-1]);
-                const snapshot=await query.limitToFirst(101).once('value'),entries=[];snapshot.forEach(child=>entries.push([child.key,child.val()]));
-                hasNext=entries.length>100;ids=entries.slice(0,100).map(([,id])=>id);if(version!==genreFilterVersion)return;
-                serverGenreCurrentRowKeys=entries.slice(0,100).map(([key])=>key);if(direction==='first')serverGenreHistory=[];serverGenreHistory[nextPage-1]=serverGenreCurrentRowKeys[0]||'';
-            }else{
-                let entries=genreIntersectionCache.get(cacheKey);
-                if(!entries){const indexes=await Promise.all(selected.map(async([field,value])=>{const snapshot=await db.ref(`songGenreRows/${indexKey}/${serverGenreKeyForName(field+'::'+value)}`).once('value');return snapshot.val()||{};}));const smallest=indexes.reduce((a,b)=>Object.keys(a).length<Object.keys(b).length?a:b);entries=Object.entries(smallest).filter(([key])=>indexes.every(map=>Object.hasOwn(map,key))).sort(([a],[b])=>a.localeCompare(b));genreIntersectionCache.clear();genreIntersectionCache.set(cacheKey,entries);}
-                ids=entries.slice((nextPage-1)*100,nextPage*100).map(([,id])=>id);hasNext=entries.length>nextPage*100;
-            }
+            const nextPage=direction==='first'?1:Math.max(1,serverPageNumber+(direction==='older'?1:-1));
+            const after=direction==='older'?serverGenreCurrentRowKeys.at(-1)||'':direction==='newer'?serverGenreHistory[nextPage-1]||'':'';
+            const result=await SLGenreIndex.page(db,indexKey,chosen,{after,current:()=>version===genreFilterVersion});
+            if(version!==genreFilterVersion)return;
+            const ids=result.rows.map(row=>row.id),hasNext=result.hasNext;
+            serverGenreCurrentRowKeys=result.rows.map(row=>row.key);
+            if(direction==='first')serverGenreHistory=[];
+            serverGenreHistory[nextPage-1]=after;
             const master=await fetchSongsByIds(ids);if(version!==genreFilterVersion)return;
             serverPageNumber=nextPage;serverPageHasOlder=hasNext;loadRowsIntoApp(serverSearchMasterToRawRows(master));tableBodyWrapper.scrollTop=0;
         }finally{serverPageBusy=false;serverPageLoadPromise=null;loadingArea.style.display='none';if(version===genreFilterVersion&&genreServerMode&&!masterLoaded)renderTable();}})();
@@ -8162,11 +8156,11 @@ body.sl-redesign{--sl-filter:226px!important}
                 let query = indexRef.orderByKey();
                 if (cursor) query = query.startAfter(cursor);
                 else query = query.startAt(prefix);
-                const snapshot = await query.endAt(prefix + '\uf8ff').limitToFirst(150).once('value');
+                const snapshot = await query.endAt(prefix + '\uf8ff').limitToFirst(100).once('value');
                 if (requestSeq !== serverSearchRequestSeq) return;
                 const entries=[];
                 snapshot.forEach(child=>entries.push([child.key,String(child.val()||'')]));
-                if (entries.length < 150) exhausted = true;
+                if (entries.length < 100) exhausted = true;
                 if (!entries.length) break;
                 // Fetch a bounded number of song records in parallel.
                 for (let start=0; start<entries.length && !hasNext; start+=25) {

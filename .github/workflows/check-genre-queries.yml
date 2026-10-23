@@ -1,0 +1,36 @@
+name: Check production genre query compatibility
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'genre-index-reader.js'
+      - 'scripts/check-genre-index-reader.cjs'
+      - 'scripts/check-genre-live-access.cjs'
+      - 'tests/free-controls/test-genre-query-access.cjs'
+      - '.github/workflows/check-genre-queries.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-genre-index-reader.cjs
+      - run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --prefix tests/free-controls --ignore-scripts --no-audit --no-fund
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Test browser-compatible queries against unchanged production rules locally
+        run: node scripts/check-genre-live-access.cjs
