@@ -1,0 +1,31 @@
+name: Prepare secure master transfer
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/prepare-master-transfer.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-key:
+    if: github.repository == 'kankan1176/KanKan-Music-List'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export only the public encryption key
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          node - <<'JS'
+          const fs=require('fs'),crypto=require('crypto');
+          const credential=JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+          const pem=crypto.createPublicKey(credential.private_key).export({type:'spki',format:'pem'});
+          fs.mkdirSync('transfer-public',{recursive:true});
+          fs.writeFileSync('transfer-public/public.pem',pem);
+          console.log('Public encryption key exported. No credentials or database data exported.');
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: master-transfer-public-key
+          path: transfer-public/public.pem
+          retention-days: 2
