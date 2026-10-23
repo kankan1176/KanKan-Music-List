@@ -37,6 +37,7 @@
   const header=document.createElement('tr');for(const label of ['No.',text.songTitle,text.artist,text.genre,...(showKey?['Key']:[]),...(showParts?[text.partsLabel]:[]),'ChordWiki'])header.append(cell('th',label));el('TableHead').replaceChildren(header);el('Songs').replaceChildren();
   for(const[i,row]of filtered.slice(page*100,(page+1)*100).entries()){
    const tr=document.createElement('tr'),genres=cell('td','','genre-cell');tr.append(cell('td',String(page*100+i+1).padStart(2,'0'),'number'),cell('td',row.title,'song-title'),cell('td',row.artist,'song-artist'));
+   const yearText=[row.release_year?'発売・公開：'+row.release_year+'年':'',row.anime_year?'作品：'+row.anime_year+'年':''].filter(Boolean).join(' / ');if(yearText){const note=cell('small',yearText);note.style.cssText='display:block;opacity:.75;font-size:.8em;line-height:1.5';tr.children[1].append(note);}
    for(const value of SLSongGenres.all(row).length?SLSongGenres.all(row):row.genres)genres.append(cell('span',value,'genre-tag'));tr.append(genres);
    if(showKey)tr.append(cell('td',Number.isInteger(row.key)?(row.key>0?'+':'')+row.key:'—','optional'));
    if(showParts)tr.append(cell('td',Array.isArray(row.parts)?row.parts.join(' / '):'—','optional'));
@@ -55,7 +56,7 @@
   try{const value=(await database.ref('publicListBackgrounds/'+token).once('value')).val();if(serial===imageSerial){if(value?.version!==version||!validImage(value.image))throw new Error('background unavailable');await setImage(value.image);}}catch{if(serial===imageSerial){imageVersion='';window.SLListLoading?.error();}}
  }
  async function legacyGenres(database,version){
-  const missing=rows.filter(row=>(!Object.hasOwn(row,'genre6')||!Object.hasOwn(row,'vocal_synths'))&&!genreCache.has(row.id));let next=0;
+  const missing=rows.filter(row=>(!Object.hasOwn(row,'genre6')||!Object.hasOwn(row,'vocal_synths')||!Object.hasOwn(row,'release_year'))&&!genreCache.has(row.id));let next=0;
   await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,Object.fromEntries(SLSongGenres.metadataFields.map(field=>[field,SLSongGenres.value(master,field)])));}catch{window.SLListLoading?.error();}}}));
   if(version===generation&&data){for(const row of rows)if(genreCache.has(row.id)){Object.assign(row,genreCache.get(row.id));row.genres=core.genres(row);};render();}
  }

@@ -10,3 +10,5 @@
 
 #shareGenreGroups{--border-color:var(--share-border);--card-bg:var(--share-panel);--accent-color:var(--share-accent)}
 #shareGenreGroups .sl-category-tabs button.active{color:var(--share-background)}
+#shareGenreGroups{max-height:none;overflow:visible}
+@media(max-height:600px){#shareGenreGroups{max-height:130px;overflow-y:auto}}

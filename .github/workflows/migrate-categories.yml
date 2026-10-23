@@ -2,7 +2,7 @@ name: Apply category filters and master
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/migrate-categories.yml', 'scripts/migrate-category-master.cjs', 'maintenance/master-categories-20261023.enc.json']
+    paths: ['maintenance/master-categories-20261023.enc.json']
   workflow_dispatch:
 permissions:
   contents: read

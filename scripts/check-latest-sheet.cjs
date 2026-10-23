@@ -1,0 +1,9 @@
+'use strict';
+const assert=require('node:assert/strict'),{columns,validate,plan,CAPTURED}=require('./migrate-latest-sheet.cjs'),g=require('../song-genres.js'),ui=require('../category-filters.js');
+const source={},live={};for(let i=0;i<27346;i++){const id='s'+i;source[id]=Object.fromEntries(columns.map(f=>[f,f==='id'?id:f==='title'?'Title':f==='release_year'?'2010':f==='anime_year'?'2010、2011':'']));live[id]={id,title:'Title',artist:'Old artist',updatedAt:1,keep:'Unrelated'};}
+assert.equal(Object.keys(validate({columns,songs:source})).length,27346);assert.throws(()=>validate({columns:columns.slice(0,15),songs:source}),/19-column/);
+source.s0.release_year='invalid';assert.throws(()=>validate({columns,songs:source}),/Invalid source year/);source.s0.release_year='2010';
+live.liveOnly={title:'Preserve'};live.s1.updatedAt=CAPTURED+1;const p=plan(source,live);assert.equal(p.counts.matched,27346);assert.equal(p.counts.liveOnly,1);assert.equal(p.counts.recentSkipped,1);assert(!Object.keys(p.updates).some(k=>k.startsWith('songs/s1/')));assert(!Object.keys(p.updates).some(k=>k.includes('/keep')||k.includes('/updatedAt')||k.includes('/id')));assert.equal(p.updates['songs/s0/release_year'],'2010');assert.equal(live.s0.keep,'Unrelated');assert.throws(()=>plan(source,{}),/IDs differ/);
+assert(g.matches(source.s0,{release_year:'2010',anime_year:'2011'}));assert(!g.matches(source.s0,{anime_year:'2012'}));assert.deepEqual(ui.options({groups:{release_year:['2000','2010']}},'','release_year'),['2010','2000']);
+const rules=require('./genre-rules.cjs').addGenreRules({rules:{songs:{$s:{'.read':'keep','.write':'admin'}},publicListShares:{$token:{songs:{$song:{'.read':'public'}}}}}});assert(rules.rules.songs.$s.release_year['.validate']);assert.equal(rules.rules.songs.$s['.write'],'admin');
+console.log('PASS 19-column mapping, full-ID guard, live-only and concurrent-edit preservation, bounded changes, release/anime year AND, year ranges and validator grants.');

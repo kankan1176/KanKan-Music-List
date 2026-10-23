@@ -1,7 +1,7 @@
 /* Shared public-song lookups. Personal registrations, keys and parts are never persisted. */
 (() => {
  'use strict';
- const databaseName='share-list-score-mylist-master-v3',storeName='owners',instances=new WeakMap();
+ const databaseName='share-list-score-mylist-master-v4',storeName='owners',instances=new WeakMap();
  const epochKey='sharelistscore_mylist_cache_epoch',uidOK=value=>/^[A-Za-z0-9_-]{1,128}$/.test(value||'');
  async function disk(mode,uid,value,valid=()=>true){
   try{if(!window.indexedDB)return null;}catch{return null;}
@@ -20,7 +20,7 @@
   });
  }
  const safeMaster=value=>value&&typeof value.title==='string';
- const publicMaster=value=>Object.fromEntries(['title','artist','chordwiki','genre','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year','ジャンル','ジャンル2','ジャンル3'].filter(key=>typeof value[key]==='string').map(key=>[key,value[key].slice(0,key==='chordwiki'?2048:1000)]));
+ const publicMaster=value=>Object.fromEntries(['title','artist','chordwiki','genre','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year','ジャンル','ジャンル2','ジャンル3'].filter(key=>typeof value[key]==='string').map(key=>[key,value[key].slice(0,key==='chordwiki'?2048:1000)]));
  function forOwner(database,uid){
   if(!uidOK(uid))throw Error('Invalid owner');
   let owners=instances.get(database);if(!owners){owners=new Map();instances.set(database,owners);}if(owners.has(uid))return owners.get(uid);

@@ -45,6 +45,7 @@ jobs:
         with:
           node-version: '22'
       - run: |
+          node scripts/check-latest-sheet.cjs
           node scripts/check-category-filters.cjs
           node scripts/check-song-row-rendering.cjs
           node scripts/check-app-check.cjs

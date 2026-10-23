@@ -1,0 +1,43 @@
+name: Apply latest 19-column sheet master
+on:
+  push:
+    branches: [main]
+    paths: ['maintenance/master-sheet-20261024.enc.json', '.github/workflows/migrate-latest-sheet.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  migrate:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - run: node scripts/check-latest-sheet.cjs
+      - name: Back up and apply the header-mapped master; keep live-only songs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/migrate-latest-sheet.cjs
+      - name: Rebuild bounded search and metadata indexes
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/build-search-index.mjs
+      - name: Verify master, year filters and search against actual data
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/verify-latest-sheet.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sheet-migration-backup-${{ github.run_id }}
+          path: .sheet-migration/*.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7

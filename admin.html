@@ -21,7 +21,7 @@
 <section data-import-step="review" class="import-pane" hidden><p id="adminMyListSummary" class="import-summary"></p><div class="import-table-wrap" tabindex="0" aria-label="CSV登録内容の確認"><table><thead><tr><th>CSV行</th><th>曲名</th><th>アーティスト</th><th>Key</th><th>判定・登録先</th></tr></thead><tbody id="adminMyListPreviewRows"></tbody></table></div><div class="import-actions"><button type="button" id="adminMyListReviewBack">CSVを選び直す</button><button type="button" id="adminMyListConfirm" disabled>確定</button></div></section>
 <section data-import-step="result" class="import-pane" hidden><h3>登録結果</h3><p id="adminMyListResultSummary" class="import-summary"></p><div id="adminMyListResultRows" class="import-errors"></div><div class="import-actions"><button type="button" id="adminMyListRetry">別のCSV・失敗分を再確認</button><button type="button" id="adminMyListRefresh">マイリストを確認</button></div></section></dialog>
 <dialog id="requestDialog"><h2>申請内容</h2><pre id="requestDetail"></pre><div id="requestActions" class="toolbar-actions"></div><p id="reviewStatus" role="status"></p><form method="dialog"><button>閉じる</button></form></dialog>
-<script src="sort-master.js?v=20261023-master1"></script><script src="song-genres.js?v=20261023-master1"></script><script src="song-change-core.js?v=20261023-category1"></script><script src="admin-request-feed.js?v=20261021-1"></script>
+<script src="sort-master.js?v=20261023-master1"></script><script src="song-genres.js?v=20261024-years1"></script><script src="song-change-core.js?v=20261024-years1"></script><script src="admin-request-feed.js?v=20261021-1"></script>
 <script>'use strict';
 const config={
       apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
@@ -183,7 +183,7 @@ async function exportMasterCsv(){
   const button=$('exportMasterBtn');button.disabled=true;$('masterStatus').textContent='マスタデータを取得しています…';
   try{
     const snap=await db.ref('songs').once('value');const songs=snap.val()||{};
-    const columns=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year','tieup','search','lyrics','composition','arrangement'];
+    const columns=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year','tieup','search','lyrics','composition','arrangement'];
     const lines=[columns.map(csvEscape).join(',')];
     for(const [id,record] of Object.entries(songs)){
       if(!record||typeof record!=='object')continue;
@@ -198,7 +198,7 @@ async function exportMasterCsv(){
 $('exportMasterBtn').addEventListener('click',exportMasterCsv);
 function emptyRow(id,columns,text){const tr=document.createElement('tr'),td=textCell(tr,text);td.colSpan=columns;$(id).append(tr)}
 function textCell(tr,value){const td=document.createElement('td');td.textContent=value??'';tr.append(td);return td}
-const songFields=['title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year','tieup','search','lyrics','composition','arrangement'];
+const songFields=['title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year','tieup','search','lyrics','composition','arrangement'];
 let reviewBusy=false,newsVersion=0,requestsVersion=0;
 const pendingRequest=v=>v.status==='pending';
 function requestEntries(adds,edits,changes){

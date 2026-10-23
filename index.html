@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
-    <script src="sort-master.js?v=20261023-master1"></script><script src="song-genres.js?v=20261023-master1"></script>
-    <script src="category-filters.js?v=20261023-master2"></script>
-    <link rel="stylesheet" href="category-filters.css?v=20261023-category1">
-    <script src="genre-index-reader.js?v=20261023-master1"></script>
-    <script src="song-change-core.js?v=20261023-category1"></script>
+    <script src="sort-master.js?v=20261023-master1"></script><script src="song-genres.js?v=20261024-years1"></script>
+    <script src="category-filters.js?v=20261024-years1"></script>
+    <link rel="stylesheet" href="category-filters.css?v=20261024-years1">
+    <script src="genre-index-reader.js?v=20261024-years1"></script>
+    <script src="song-change-core.js?v=20261024-years1"></script>
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
@@ -3592,7 +3592,8 @@ body.sl-redesign{--sl-filter:134px!important}
 #slFilterbar{align-items:stretch!important;padding-top:6px!important;padding-bottom:6px!important}
 #slGenreHost{overflow-x:hidden!important;overflow-y:auto!important;cursor:default!important}
 #slGenreHost #genreFilters{display:flex!important;flex-direction:column!important;align-items:stretch!important;width:100%!important;min-width:0!important;gap:5px!important}
-@media(max-width:600px){body.sl-redesign{--sl-filter:190px!important}}
+@media(max-width:1100px){body.sl-redesign{--sl-filter:184px!important}}
+@media(max-width:600px){body.sl-redesign{--sl-filter:226px!important}}
 .sl-genre-row>strong{flex:0 0 52px;font-size:12px}.sl-genre-options{display:flex;gap:6px;overflow-x:auto;min-width:0;scrollbar-width:thin;padding-bottom:2px}
 #slGenreHost .genre-btn{min-height:32px!important;font-size:12px!important;padding:4px 10px!important}
 .sl-genre-checks{display:flex;flex-wrap:wrap;gap:10px}.sl-genre-checks label{display:flex!important;align-items:center;gap:5px!important}.sl-genre-checks input{width:18px!important;min-height:18px!important;margin:0!important}
@@ -4504,6 +4505,8 @@ body.sl-redesign{--sl-filter:134px!important}
             <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre3：関連分類（複数選択・任意）</legend><div id="newGenre3" class="sl-genre-checks"></div></fieldset>
             <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre4：アーティスト属性（複数選択・任意）</legend><div id="newGenre4" class="sl-genre-checks"></div></fieldset>
             <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre5：掲載媒体・関連作品（複数選択・任意）</legend><div id="newGenre5" class="sl-genre-checks"></div></fieldset>
+<div class="setting-group sl-add-field"><label for="newReleaseYear">発売・公開年（任意）</label><input id="newReleaseYear" name="release_year" class="setting-input" maxlength="100" pattern="[0-9]{4}(、[0-9]{4})*" placeholder="例：2010"></div>
+<div class="setting-group sl-add-field"><label for="newAnimeYear">アニメ放送・公開年（任意）</label><input id="newAnimeYear" name="anime_year" class="setting-input" maxlength="100" pattern="[0-9]{4}(、[0-9]{4})*" placeholder="年またぎは例：2010、2011"></div>
 <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre6：音楽ジャンル（複数選択・任意）</legend><div id="newGenre6" class="sl-genre-checks"></div></fieldset>
             <div class="setting-group sl-add-field sl-add-field-wide">
               <label for="newTieup">タイアップ <span class="sl-optional">任意</span></label>
@@ -7283,6 +7286,7 @@ body.sl-redesign{--sl-filter:134px!important}
                 type:'newSong', requestedBy:user.uid, title, artist,
                 chordwiki:String(data.codeUrl||'').trim().slice(0,2048), bpm:String(data.bpm||''),
                 genre:String(data.genre1||''),...Object.fromEntries(SLSongGenres.fields.map(field=>[field,String(data[field]||'')])) ,
+                release_year:String(data.release_year||'').trim(),anime_year:String(data.anime_year||'').trim(),
                 tieup:String(data.tieup||'').trim().slice(0,240), search:'', lyrics:'', composition:'', arrangement:'',
                 status:'pending', createdAt:firebase.database.ServerValue.TIMESTAMP
             };
@@ -7750,7 +7754,7 @@ body.sl-redesign{--sl-filter:134px!important}
         if(!masterLoaded&&!myListPartialMode&&!currentRoomId&&!myListMode&&!serverGenreCatalog)void loadServerGenreCatalog().then(()=>renderGenreButtonsFromNames([]));
     }
 
-    const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre1:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',genre4:'ジャンル④',genre5:'ジャンル⑤',genre6:'音楽ジャンル',vocal_synths:'歌唱者',anime_year:'放送・公開年',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
+    const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre1:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',genre4:'ジャンル④',genre5:'ジャンル⑤',genre6:'音楽ジャンル',vocal_synths:'ボカロ別',release_year:'発売・公開年',anime_year:'放送・公開年',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
     function isGoogleSongEditor(){
         const user=auth.currentUser;
         return !!(user && !user.isAnonymous && signedInUser?.uid===user.uid &&
@@ -7845,7 +7849,7 @@ body.sl-redesign{--sl-filter:134px!important}
             obj._updatedAt = Number(obj.__updatedAt) || 0;
             delete obj.__updatedAt;
             // 検索対象文字列はマスター読込時に一度だけ生成（検索ごとの27,000曲再結合を防ぐ）。
-            obj._searchText = ['曲名','アーティスト',genre1Key,genre2Key,'ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','anime_year','タイアップ情報','作詞','作曲','編曲','検索']
+            obj._searchText = ['曲名','アーティスト',genre1Key,genre2Key,'ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','release_year','anime_year','タイアップ情報','作詞','作曲','編曲','検索']
                 .map(k => String(obj[k] || '')).join(' ').toLowerCase();
             return obj;
         });
@@ -7891,8 +7895,8 @@ body.sl-redesign{--sl-filter:134px!important}
     }
 
     function serverSnapshotToRawRows(snapshot) {
-        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','anime_year','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
-        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year','tieup','search','lyrics','composition','arrangement','updatedAt'];
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','release_year','anime_year','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year','tieup','search','lyrics','composition','arrangement','updatedAt'];
         const rows=[headers];
         snapshot.forEach(child=>{
             const id=String(child.key||'');
@@ -8010,8 +8014,8 @@ body.sl-redesign{--sl-filter:134px!important}
     }
 
     function serverSearchMasterToRawRows(master) {
-        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','anime_year','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
-        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year','tieup','search','lyrics','composition','arrangement','updatedAt'];
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','release_year','anime_year','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year','tieup','search','lyrics','composition','arrangement','updatedAt'];
         const rows=[headers];
         for(const [id,song] of Object.entries(master || {})){
             if(!/^[A-Za-z0-9_-]{1,80}$/.test(id)||!song||typeof song!=='object'||Array.isArray(song)||
@@ -8409,8 +8413,8 @@ body.sl-redesign{--sl-filter:134px!important}
         if (!master||typeof master!=='object'||Array.isArray(master)||!Object.keys(master).length)
             throw Error('songs に公開楽曲がありません。移管用JSONとRealtime Databaseルールを確認してください。');
         // updatedAt は画面に列表示しない内部項目。全曲一覧のデフォルト更新履歴順にだけ使用する。
-        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','anime_year','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
-        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year','tieup','search','lyrics','composition','arrangement','updatedAt'];
+        const headers=['楽曲ID','曲名','アーティスト','コードwiki','BPM','ジャンル','ジャンル②','ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','release_year','anime_year','タイアップ情報','検索','作詞','作曲','編曲','__updatedAt'];
+        const fields=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year','tieup','search','lyrics','composition','arrangement','updatedAt'];
         const rows=[headers];
         let skipped=0;
         for(const [id,song] of Object.entries(master)){
@@ -8731,7 +8735,7 @@ body.sl-redesign{--sl-filter:134px!important}
             'ジャンル③': String(song.genre3 || ''),
             'ジャンル④': String(song.genre4 || ''),
             'ジャンル⑤': String(song.genre5 || ''),
-            'ジャンル⑥':String(song.genre6||''),vocal_synths:String(song.vocal_synths||''),anime_year:String(song.anime_year||''),
+            'ジャンル⑥':String(song.genre6||''),vocal_synths:String(song.vocal_synths||''),release_year:String(song.release_year||''),anime_year:String(song.anime_year||''),
             'タイアップ情報': String(song.tieup || ''),
             '検索': String(song.search || ''),
             '作詞': String(song.lyrics || ''),
@@ -9006,7 +9010,7 @@ body.sl-redesign{--sl-filter:134px!important}
         document.getElementById('detailGenre3').textContent = song[genre3Key] || '-';
         document.getElementById('detailGenre4').textContent = SLSongGenres.value(song,'genre4') || '-';
         document.getElementById('detailGenre5').textContent = SLSongGenres.value(song,'genre5') || '-';
-        document.getElementById('detailTieup').textContent = song['タイアップ情報'] || '-';
+        document.getElementById('detailTieup').textContent = [song['タイアップ情報'],song.release_year?'発売・公開：'+song.release_year+'年':'',song.anime_year?'作品：'+song.anime_year+'年':''].filter(Boolean).join(' / ') || '-';
         document.getElementById('detailKeyArea').style.display = chordWikiTitle(song['コードwiki']) ? 'block' : 'none';
         if (chordWikiTitle(song['コードwiki'])) renderPersonalKeyPicker(song);
         renderRoomSongMembers(id);
@@ -9173,6 +9177,8 @@ body.sl-redesign{--sl-filter:134px!important}
                 displayGenre += ` / ${escapeHtml(row['タイアップ情報'])}`;
             }
 
+            const years=[row.release_year?'発売・公開：'+row.release_year+'年':'',row.anime_year?'作品：'+row.anime_year+'年':''].filter(Boolean);
+            const yearHtml=years.length?'<small style="display:block;opacity:.75;font-size:.8em;line-height:1.5">'+escapeHtml(years.join(' / '))+'</small>':'';
             let activeQid = null;
             let activeStatus = null;
             for(let qId in roomQueue) {
@@ -9212,7 +9218,7 @@ body.sl-redesign{--sl-filter:134px!important}
                 tr.innerHTML = `
                     <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                     <td class="col-key nowrap-cell">${displayRoomKey}</td>
-                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
+                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${yearHtml}${commonTag}${memberTag}</td>
                     <td class="col-artist col-main">${artistLinkHtml}</td>
                     <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                     <td class="col-genre col-sub">${displayGenre}</td>`;
@@ -9222,7 +9228,7 @@ body.sl-redesign{--sl-filter:134px!important}
                 tr.innerHTML = `
                     <td class="col-register nowrap-cell">${currentRoomId?'－':myListRegistrationButton(row)}</td>
                     <td class="col-key nowrap-cell">${displayRoomKey}</td>
-                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
+                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${yearHtml}${commonTag}${memberTag}</td>
                     <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}</div></td>
                     <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                     <td class="col-genre col-sub">${displayGenre}</td>
@@ -9231,7 +9237,7 @@ body.sl-redesign{--sl-filter:134px!important}
             } else tr.innerHTML = `
                 <td class="col-register nowrap-cell">${currentRoomId?'－':myListRegistrationButton(row)}</td>
                 <td class="col-key nowrap-cell">${displayRoomKey}</td>
-                <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${commonTag}${memberTag}</td>
+                <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${yearHtml}${commonTag}${memberTag}</td>
                 <td class="col-artist col-main">${artistLinkHtml}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                 <td class="col-genre col-sub">${displayGenre}</td>
@@ -10330,7 +10336,7 @@ body.sl-redesign{--sl-filter:134px!important}
 </script>
 <script src="setlist-share.js?v=20261020-9"></script>
 <script src="room-history.js"></script>
-<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261023-category1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script></body>
+<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261024-years1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script></body>
 </html>
 
 

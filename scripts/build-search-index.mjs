@@ -29,7 +29,7 @@ const db = getDatabase(app);
 
 const SEARCH_FIELDS = [
   'title','artist','tieup','search','lyrics','composition','arrangement',
-  'genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year',
+  'genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year',
 ];
 const GENRE_FIELDS = ['genre','genre2','genre3'];
 
@@ -40,7 +40,7 @@ const WRITE_BATCH_SIZE = 750;
 const WRITE_BATCH_MAX_BYTES = 2 * 1024 * 1024; // ~2 MiB safety margin
 const MAX_ATTEMPTS = 3;
 const MAX_TERM_UTF8_BYTES = 300;
-const INDEX_VERSION = 5;
+const INDEX_VERSION = 6;
 
 function sha256(value, length = 40) {
   return crypto.createHash('sha256').update(value).digest('hex').slice(0, length);

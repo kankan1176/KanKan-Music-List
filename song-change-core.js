@@ -1,7 +1,7 @@
 /* Reviewed master edits: preserve unchanged fields and reject stale proposals. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.SLSongChange=api;})(typeof globalThis!=='undefined'?globalThis:this,()=>{
  'use strict';
- const limits={title:240,artist:240,chordwiki:2048,bpm:30,genre:100,genre1:100,genre2:100,genre3:100,genre4:100,genre5:100,genre6:100,vocal_synths:100,anime_year:100,tieup:240,search:500,lyrics:240,composition:240,arrangement:240};
+ const limits={title:240,artist:240,chordwiki:2048,bpm:30,genre:100,genre1:100,genre2:100,genre3:100,genre4:100,genre5:100,genre6:100,vocal_synths:100,release_year:100,anime_year:100,tieup:240,search:500,lyrics:240,composition:240,arrangement:240};
  const fields=Object.keys(limits),clean=value=>String(value??'').trim();
  function changes(before,after){const out={};for(const key of fields){const value=clean(after[key]),old=clean(before[key]);if(value.length>limits[key]||old.length>10000)throw Error('入力文字数の上限を超えています。');if(key==='title'&&!value)throw Error('曲名は空にできません。');if(value!==old)out[key]={before:old,after:value};}return out;}
  function apply(song,request){
