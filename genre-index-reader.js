@@ -1,5 +1,5 @@
 /* Read field-specific genre intersections using only permitted, bounded queries. */
-(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.SLGenreIndex=api;})(typeof globalThis==='object'?globalThis:this,()=>{
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./sort-master.js'):root.SLSortMaster);if(typeof module==='object'&&module.exports)module.exports=api;else root.SLGenreIndex=api;})(typeof globalThis==='object'?globalThis:this,master=>{
  'use strict';
  const LIMIT=100;
  const encode=value=>Array.from(new TextEncoder().encode(value)).map(n=>n.toString(16).padStart(2,'0')).join('');
@@ -8,7 +8,8 @@
   const choices=Object.entries(selected).filter(([field,value])=>['genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','anime_year'].includes(field)&&typeof value==='string'&&value);
   if(!choices.length)throw Error('No genre selection');
   function check(){if(!current()){const error=Error('Genre selection changed');error.code='genre/cancelled';throw error;}}
-  const streams=choices.map(([field,value])=>({ref:database.ref('songGenreRows/'+indexKey+'/'+encode(field+'::'+value)),rows:[],position:0,last:after,exhausted:false}));
+  // Union aliases within a field, then intersect the selected fields.
+  const groups=choices.map(([field,value])=>(master?.fields.includes(field)?master.aliases(field,value):[value]).map(alias=>({ref:database.ref('songGenreRows/'+indexKey+'/'+encode(field+'::'+alias)),rows:[],position:0,last:after,exhausted:false})));
   async function ensure(stream,target){
    check();
    while(stream.position<stream.rows.length&&stream.rows[stream.position].key<target)stream.position++;
@@ -23,9 +24,14 @@
    if(rows.length)stream.last=rows.at(-1).key;
    return rows[0]||null;
   }
+  async function groupHead(group,target){
+   const heads=(await Promise.all(group.map(stream=>ensure(stream,target)))).filter(Boolean);
+   return heads.reduce((first,head)=>!first||head.key<first.key?head:first,null);
+  }
+  function advance(group,key){for(const stream of group)if(stream.rows[stream.position]?.key===key)stream.position++;}
   const rows=[];let target='';
   for(;;){
-   const heads=await Promise.all(streams.map(stream=>ensure(stream,target)));check();
+   const heads=await Promise.all(groups.map(group=>groupHead(group,target)));check();
    if(heads.some(head=>!head))return{rows,hasNext:false,cursor:rows.at(-1)?.key||after};
    target=heads.reduce((key,head)=>head.key>key?head.key:key,'');
    if(!heads.every(head=>head.key===target))continue;
@@ -34,7 +40,7 @@
     if(rows.length===pageSize)return{rows,hasNext:true,cursor:rows.at(-1).key};
     rows.push({key:target,id});
    }
-   for(const stream of streams)stream.position++;
+   for(const group of groups)advance(group,target);
    target='';
   }
  }

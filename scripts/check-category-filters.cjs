@@ -3,9 +3,14 @@ const assert=require('node:assert/strict'),g=require('../song-genres.js'),ui=req
 const a={genre1:'J-POP',genre2:'ボカロ',genre6:'ロック',vocal_synths:'初音ミク、GUMI'},b={genre1:'J-POP',genre2:'アニソン',genre5:'ジャンプ',genre6:'バラード',anime_year:'2010'},c={genre1:'洋楽',genre2:'',genre6:'ジャズ'};
 assert.deepEqual(g.categories,['J-POP','アニソン','ボカロ','K-POP','洋楽']);
 assert(g.matches(a,{...g.selection('ボカロ'),genre6:'ロック',vocal_synths:'GUMI'}));assert(!g.matches(b,{...g.selection('ボカロ'),genre6:'バラード'}));assert(g.matches(b,{...g.selection('アニソン'),anime_year:'2010',genre5:'ジャンプ'}));assert(!g.matches(b,{anime_year:'2011'}));assert(g.matches(a,g.selection('J-POP'))); // Inclusion policy remains unchanged.
-const catalog={groups:g.catalog([a,b,c]),facets:g.facets([a,b,c])};assert.deepEqual(ui.options(catalog,'ボカロ','genre6'),['ロック']);assert.deepEqual(ui.options(catalog,'アニソン','vocal_synths'),[]);assert.deepEqual(ui.controls('ボカロ').map(c=>c.field),['genre6','vocal_synths']);assert.deepEqual(ui.controls('アニソン').map(c=>c.field),['genre6','anime_year','genre5']);
-const voices=['穂歌ソラ','SOLARIA','可不','初音ミク','足立レイ','星界','GUMI','花隈千冬','未分類歌唱者','重音テト','初音ミク'];
-assert.deepEqual(ui.options({groups:{vocal_synths:voices}},'ボカロ','vocal_synths'),['GUMI','初音ミク','可不','星界','SOLARIA','花隈千冬','重音テト','足立レイ','穂歌ソラ','未分類歌唱者']);
+const catalog={groups:g.catalog([a,b,c]),facets:g.facets([a,b,c])};assert.deepEqual(ui.options(catalog,'ボカロ','genre6'),['ロック','ポップス','ヒップホップ','ラップ','合唱','シティポップ','R&B','ジャズ','EDM','クラシック','サンバ','インスト']);assert.deepEqual(ui.options(catalog,'アニソン','vocal_synths'),[]);assert.deepEqual(ui.controls('ボカロ').map(c=>c.field),['genre6','vocal_synths']);assert.deepEqual(ui.controls('アニソン').map(c=>c.field),['genre6','anime_year','genre5']);
+const master=require('../sort-master.js');assert.equal(master.definitions.length,73);assert.equal(master.canonical('vocal_synths','Megpoid'),'Megpoid');assert.equal(master.canonical('vocal_synths','GUMI'),'GUMI（Megpoid）');
+const voices=ui.options(catalog,'ボカロ','vocal_synths');
+assert.deepEqual(voices.slice(0,9),['初音ミク','GUMI（Megpoid）','鏡音リン','鏡音レン','巡音ルカ','KAITO','MEIKO','神威がくぽ','Flower（v4 flower）']);
+assert.equal(voices.filter(v=>v==='重音テト').length,1);assert.equal(voices.filter(v=>v==='波音リツ').length,1);assert(!voices.includes('VOCALOID'));assert(!voices.includes('VOICEVOX'));
+assert.deepEqual(ui.options(catalog,'アニソン','genre5').slice(0,5),['週刊少年ジャンプ','週刊少年マガジン','週刊少年サンデー','週刊少年チャンピオン','月刊コロコロコミック']);
+assert(g.matches({...a,vocal_synths:'Megpoid'},{vocal_synths:'GUMI（Megpoid）'}));assert(g.matches({...b,genre5:'ジャンプ'},{genre5:'週刊少年ジャンプ'}));assert(g.matches({...a,vocal_synths:'flower'},{vocal_synths:'Flower（v4 flower）'}));
+assert(!g.matches(a,{vocal_synths:'可不（KAFU）'}));assert(!g.matches(a,{genre6:'ジャズ'}));
 assert.deepEqual(ui.options({groups:{anime_year:['2010','2020']}},'アニソン','anime_year'),['2020','2010']);
 const html=require('node:fs').readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
 const start=html.indexOf('    function serverSearchSongText(song) {'),end=html.indexOf('\n    }',start)+6;

@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'sort-master.js'
       - 'index.html'
       - 'genre-index-reader.js'
       - 'scripts/check-genre-index-reader.cjs'
