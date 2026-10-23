@@ -2,7 +2,7 @@ name: Apply latest 19-column sheet master
 on:
   push:
     branches: [main]
-    paths: ['maintenance/master-sheet-20261024.enc.json', '.github/workflows/migrate-latest-sheet.yml']
+    paths: ['maintenance/master-sheet-20261024.enc.json', 'scripts/migrate-latest-sheet.cjs', '.github/workflows/migrate-latest-sheet.yml']
   workflow_dispatch:
 permissions:
   contents: read

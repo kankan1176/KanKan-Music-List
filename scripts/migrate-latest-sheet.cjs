@@ -31,6 +31,14 @@ function plan(source,live){
  if(counts.sourceOnly||counts.matched!==27346)throw Error('Production/source IDs differ; no master writes');
  if(Buffer.byteLength(JSON.stringify(updates))>14*1024*1024)throw Error('Changes exceed atomic budget');return{updates,backup,counts};
 }
+function refreshShare(current,master){
+ // null must reach the server CAS, so a cold transaction can retry with real data.
+ if(current==null)return null;
+ if(current.reserved||!current.songs)return;
+ const core=require('../list-share-core.js');
+ for(const[id,row]of Object.entries(current.songs)){if(!master[id])continue;const next=core.song(master[id],{},{});if(!next)continue;for(const[key,value]of Object.entries(next))row[key]=value;if(!next.url)delete row.url;}
+ return current;
+}
 async function main(){
  const {initializeApp,cert,deleteApp}=require('firebase-admin/app'),{getDatabase}=require('firebase-admin/database'),{addGenreRules}=require('./genre-rules.cjs'),core=require('../list-share-core.js');
  const credential=JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT),source=decode(JSON.parse(fs.readFileSync('maintenance/master-sheet-20261024.enc.json','utf8')),credential.private_key),app=initializeApp({credential:cert(credential),databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app'}),db=getDatabase(app);
@@ -48,12 +56,8 @@ async function main(){
    console.log('PASS latest 19-column source applied: '+JSON.stringify(p.counts));
   }
   const master=(await db.ref('songs').get()).val(),shares=(await db.ref('publicListShares').get()).val()||{};let refreshed=0;
-  for(const token of Object.keys(shares)){const ref=db.ref('publicListShares/'+token);await ref.once('value');await ref.transaction(current=>{
-   if(!current||current.reserved||!current.songs)return;
-   let count=0;for(const[id,row]of Object.entries(current.songs)){if(!master[id])continue;const next=core.song(master[id],{},{});if(!next)continue;for(const[key,value]of Object.entries(next))row[key]=value;if(!next.url)delete row.url;count++;}
-   if(!count)return;refreshed+=count;return current;
-  },undefined,false);}
+  for(const token of Object.keys(shares)){const ref=db.ref('publicListShares/'+token),result=await ref.transaction(current=>refreshShare(current,master),undefined,false);if(result.committed)refreshed+=Object.keys(result.snapshot.val()?.songs||{}).filter(id=>master[id]).length;}
   console.log('PASS public song metadata refreshed; private lists and rooms untouched. Public rows='+refreshed);
  }finally{await deleteApp(app);}
 }
-module.exports={columns,validate,decode,plan,EXPECTED,OP,CAPTURED};if(require.main===module)main().catch(e=>{console.error(e.message);process.exitCode=1;});
+module.exports={columns,validate,decode,plan,refreshShare,EXPECTED,OP,CAPTURED};if(require.main===module)main().catch(e=>{console.error(e.message);process.exitCode=1;});

@@ -10,5 +10,7 @@ const {initializeApp,cert,deleteApp}=require('firebase-admin/app'),{getDatabase}
   for(const r of page.rows)if(!g.matches(live[r.id],{[f]:year}))throw Error('Year index mismatch');
   const key=Buffer.from(year).toString('hex'),words=await db.ref('songSearchRows/'+meta.currentIndexKey).orderByKey().startAt(key).endAt(key+'\uf8ff').limitToFirst(1).get();if(!words.exists())throw Error('No year search index');
  }
- console.log('PASS current 19-column source='+checked+' verified rows; source release_year='+Object.values(source).filter(s=>s.release_year).length+'; anime_year='+Object.values(source).filter(s=>s.anime_year).length+'; year indexes and search agree; liveOnly='+marker.counts.liveOnly+'; recentSkipped='+marker.counts.recentSkipped);
+ const shares=await get('publicListShares')||{},core=require('../list-share-core.js');let publicRows=0;
+ for(const share of Object.values(shares)){if(share.reserved)continue;for(const[id,row]of Object.entries(share.songs||{})){if(!live[id])continue;const projected=core.song(live[id],{},{});if(!projected)continue;for(const[field,value]of Object.entries(projected))if(!(Array.isArray(value)&&!value.length&&row[field]==null)&&JSON.stringify(row[field])!==JSON.stringify(value))throw Error('Shared metadata mismatch '+field);publicRows++;}}
+ console.log('PASS current 19-column source='+checked+' verified rows; source release_year='+Object.values(source).filter(s=>s.release_year).length+'; anime_year='+Object.values(source).filter(s=>s.anime_year).length+'; year indexes and search agree; liveOnly='+marker.counts.liveOnly+'; recentSkipped='+marker.counts.recentSkipped+'; publicRows='+publicRows);
 }finally{await deleteApp(app);}})().catch(e=>{console.error(e.message);process.exitCode=1;});
