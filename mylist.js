@@ -41,7 +41,7 @@
    for(const value of SLSongGenres.all(row).length?SLSongGenres.all(row):row.genres)genres.append(cell('span',value,'genre-tag'));tr.append(genres);
    if(showKey)tr.append(cell('td',Number.isInteger(row.key)?(row.key>0?'+':'')+row.key:'—','optional'));
    if(showParts)tr.append(cell('td',Array.isArray(row.parts)?row.parts.join(' / '):'—','optional'));
-   const action=cell('td',''),url=core.link(row.url,row.key);if(url){const link=cell('a','↗ '+text.wiki,'song-link');link.href=url;link.target='_blank';link.rel='noopener noreferrer';action.append(link);}tr.append(action);el('Songs').append(tr);
+   const action=cell('td',''),url=core.link(row.url,row.key,window.SLChordWikiPreference?.getVersion());if(url){const link=cell('a','↗ '+text.wiki,'song-link');link.href=url;link.target='_blank';link.rel='noopener noreferrer';action.append(link);}tr.append(action);el('Songs').append(tr);
   }
   if(data&&!filtered.length)el('Status').textContent=text.empty;
   for(const suffix of ['', 'Top']){el('Pagination'+suffix).hidden=!data;el('Prev'+suffix).textContent=text.previous;el('Next'+suffix).textContent=text.next;el('Prev'+suffix).disabled=page===0;el('Next'+suffix).disabled=page===pages-1;}
@@ -65,7 +65,7 @@
   const userRoute=fragment.startsWith('user='),uid=userRoute?fragment.slice(5):'';
   if(userRoute?!/^[A-Za-z0-9_-]{1,128}$/.test(uid):!core.tokenOK(fragment)){status='unavailable';render();return;}
   try{
-   const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();let token=fragment;
+   const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();window.SLChordWikiPreference?.connect(app.auth(),database);let token=fragment;
    if(userRoute){
     try{token=(await database.ref('publicListLinks/'+uid).once('value')).val()?.token;}catch(error){if(version!==generation)return;status=/permission.denied/i.test(error?.code||error?.message||'')?'userUnavailable':'loadError';render();return;}
     if(version!==generation)return;
@@ -80,7 +80,7 @@
   status='loading';render();
   async function start(){
    try{
-    const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();let listeners=[],repository=null,repositoryUid='';
+    const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();window.SLChordWikiPreference?.connect(app.auth(),database);let listeners=[],repository=null,repositoryUid='';
     app.auth().onAuthStateChanged(user=>{
      listeners.forEach(fn=>fn());listeners=[];const oldRepository=repository;repository=null;const version=++generation;window.SLListLoading?.reset();imageSerial++;setImage('');data=null;rows=[];status='loading';render();
      if(oldRepository&&repositoryUid!==(!user?.isAnonymous?user?.uid:''))void oldRepository.forget();

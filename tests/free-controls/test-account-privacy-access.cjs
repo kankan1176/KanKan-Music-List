@@ -10,5 +10,11 @@ const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFail
  for(const path of paths.filter(path=>!path.startsWith('adminClientControl/')))await assertFails(get(ref(spoofed,path)));
  await assertSucceeds(get(ref(owner,'users/'+ownerUid+'/profile')));await assertSucceeds(get(ref(owner,'users/'+ownerUid+'/songs')));await assertSucceeds(get(ref(owner,'users/'+ownerUid+'/roomHistory')));await assertSucceeds(get(ref(owner,'userListShares/'+ownerUid)));await assertSucceeds(get(ref(admin,'songEditLogs')));
  await assertFails(set(ref(other,'admins/'+otherUid),true));await assertFails(set(ref(other,'users/'+ownerUid+'/profile/displayName'),'Impersonation'));await assertFails(set(ref(other,'userListShares/'+ownerUid),{token:'e'.repeat(48),enabled:true,showKey:true,showParts:true}));await assertFails(set(ref(other,'userAvatars/'+ownerUid),{image:'data:image/jpeg;base64,/9j/',width:400,height:400,updatedAt:serverTimestamp()}));
+ const wikiPath='users/'+ownerUid+'/preferences/chordwikiVersion';
+ await assertSucceeds(set(ref(owner,wikiPath),'beta'));await assertSucceeds(get(ref(owner,wikiPath)));
+ for(const db of [anonymous,guest,other,spoofed,admin]){await assertFails(get(ref(db,wikiPath)));await assertFails(set(ref(db,wikiPath),'normal'));await assertFails(set(ref(db,wikiPath),null));}
+ for(const value of ['invalid',true,42,{version:'beta'}])await assertFails(set(ref(owner,wikiPath),value));
+ await assertSucceeds(set(ref(owner,wikiPath),'normal'));
+ console.log('PASS: production-derived ChordWiki normal/beta preferences allow only the Google owner; guests, wrong providers, other users and administrators cannot access or change them.');
  console.log('PASS: anonymous/guest/wrong-provider/other-account reads of private profiles, email, personal lists/history, logs and commands denied; owner access retained; admin impersonation and cross-account writes denied. Synthetic data only.');
 }finally{await env.cleanup();}})().catch(()=>{console.error('FAIL: private account access verification. No production account data was read.');process.exitCode=1;});

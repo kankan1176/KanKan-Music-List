@@ -1,0 +1,8 @@
+.chordwiki-version-toggle{position:relative;display:grid;grid-template-columns:1fr 1fr;width:100%;padding:4px;border:1px solid var(--border-color);border-radius:24px;background:var(--bg-color);color:var(--text-color);font:inherit;isolation:isolate;min-height:44px;cursor:pointer}
+.chordwiki-version-toggle::before{content:"";position:absolute;z-index:-1;left:4px;top:4px;bottom:4px;width:calc(50% - 4px);background:var(--primary,#2563eb);border-radius:20px;transition:transform .18s ease}
+.chordwiki-version-toggle[aria-checked="true"]::before{transform:translateX(100%)}
+.chordwiki-version-toggle span{padding:6px;white-space:nowrap}
+.chordwiki-version-toggle[aria-checked="false"] span:first-child,.chordwiki-version-toggle[aria-checked="true"] span:last-child{color:var(--primary-text,#fff);font-weight:700}
+.chordwiki-version-toggle:disabled{opacity:.55;cursor:default}
+.chordwiki-version-toggle:focus-visible{outline:3px solid var(--link-color);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.chordwiki-version-toggle::before{transition:none}}

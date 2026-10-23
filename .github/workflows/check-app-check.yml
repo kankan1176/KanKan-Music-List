@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
     paths:
+      - 'chordwiki-version.js'
+      - 'chordwiki-preference.js'
+      - 'scripts/check-chordwiki-version.cjs'
       - 'sort-master.js'
       - 'scripts/check-song-row-rendering.cjs'
       - 'firebase-app-check.js'
@@ -19,6 +22,9 @@ on:
       - '.github/workflows/check-app-check.yml'
   pull_request:
     paths:
+      - 'chordwiki-version.js'
+      - 'chordwiki-preference.js'
+      - 'scripts/check-chordwiki-version.cjs'
       - 'sort-master.js'
       - 'scripts/check-song-row-rendering.cjs'
       - 'firebase-app-check.js'
@@ -45,6 +51,7 @@ jobs:
         with:
           node-version: '22'
       - run: |
+          node scripts/check-chordwiki-version.cjs
           node scripts/check-latest-sheet.cjs
           node scripts/check-category-filters.cjs
           node scripts/check-song-row-rendering.cjs

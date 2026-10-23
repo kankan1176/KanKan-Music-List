@@ -11,6 +11,15 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  const context=(uid,provider)=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider},auth_time:1700000000}).database();
  const admin=context('admin','google.com'),member=context('member','google.com'),guest=context('guest','anonymous'),fake=context('admin','anonymous'),anon=env.unauthenticatedContext().database();
 
+ const wikiPref='users/member/preferences/chordwikiVersion';
+ await assertSucceeds(set(ref(member,wikiPref),'beta'));
+ await assertSucceeds(get(ref(member,wikiPref)));
+ for(const invalid of ['enterprise','',true,{},'beta'.repeat(30)])await assertFails(set(ref(member,wikiPref),invalid));
+ for(const db of [guest,fake,anon,admin,context('other','google.com')]){await assertFails(get(ref(db,wikiPref)));await assertFails(set(ref(db,wikiPref),'normal'));}
+ await assertFails(set(ref(context('member','anonymous'),wikiPref),'normal'));
+ await assertSucceeds(set(ref(member,wikiPref),'normal'));
+ console.log('PASS: ChordWiki preference is a bounded normal/beta value; owner-only writes and private reads.');
+
  const avatar={image:'data:image/jpeg;base64,/9j/',width:400,height:400,updatedAt:serverTimestamp()};
  await assertSucceeds(set(ref(member,'userAvatars/member'),avatar));
  await assertSucceeds(get(ref(anon,'userAvatars/member')));

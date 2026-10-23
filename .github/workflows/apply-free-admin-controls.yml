@@ -27,6 +27,8 @@ on:
       - 'scripts/check-account-features.cjs'
       - 'tests/free-controls/test-room-account-access.cjs'
       - 'scripts/free-control-rules.cjs'
+      - 'scripts/chordwiki-preference-rules.cjs'
+      - 'scripts/check-chordwiki-version.cjs'
       - 'scripts/list-share-rules.cjs'
       - 'scripts/public-list-links.cjs'
       - 'list-share-core.js'
@@ -70,6 +72,7 @@ jobs:
         run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
       - name: Check free control code and rule preservation
         run: |
+          node scripts/check-chordwiki-version.cjs
           node scripts/check-song-genres.cjs
           node scripts/check-high-priority-security.cjs
           node scripts/check-free-account-controls.cjs

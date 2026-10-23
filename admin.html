@@ -183,11 +183,11 @@ async function exportMasterCsv(){
   const button=$('exportMasterBtn');button.disabled=true;$('masterStatus').textContent='マスタデータを取得しています…';
   try{
     const snap=await db.ref('songs').once('value');const songs=snap.val()||{};
-    const columns=['id','title','artist','chordwiki','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year','tieup','search','lyrics','composition','arrangement'];
+    const columns=['id','title','artist','chordwiki','chordwiki new','bpm','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year','tieup','search','lyrics','composition','arrangement'];
     const lines=[columns.map(csvEscape).join(',')];
     for(const [id,record] of Object.entries(songs)){
       if(!record||typeof record!=='object')continue;
-      lines.push(columns.map(k=>csvEscape(k==='id'?(record.id||id):k==='genre1'?SLSongGenres.value(record,'genre1'):record[k])).join(','));
+      lines.push(columns.map(k=>csvEscape(k==='id'?(record.id||id):k==='chordwiki new'?String(record.chordwiki||'').replace(/^https:\/\/ja\./,'https://beta.'):k==='genre1'?SLSongGenres.value(record,'genre1'):record[k])).join(','));
     }
     const blob=new Blob(['\ufeff',lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
     const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='ShareLiScore_master_'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
