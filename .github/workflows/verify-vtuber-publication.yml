@@ -1,0 +1,37 @@
+name: Verify VTuber publication read-only
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/verify-vtuber-publication.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Read affiliation and search publication state without writes
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          node <<'JS'
+          const {initializeApp,cert,deleteApp}=require('firebase-admin/app'),{getDatabase}=require('firebase-admin/database'),artists=require('./artist-classification.js');
+          (async()=>{
+            const app=initializeApp({credential:cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app'}),db=getDatabase(app);
+            try{
+              const paths=['songs','masterMeta/revision','songSearchMeta','songGenreMeta','maintenanceOperations/vtuber-affiliations-20261024','songIndexCleanup'];
+              const [songs,revision,search,genre,operation,cleanup]=await Promise.all(paths.map(async path=>(await db.ref(path).get()).val()));
+              let matched=0;for(const song of Object.values(songs||{})){const next=artists.enrich(song);if(!Object.keys(next).length)continue;matched++;for(const[field,value]of Object.entries(next))if(song[field]!==value)throw Error('Affiliation missing from production master');}
+              if(matched<150||!operation?.sha256)throw Error('Affiliation operation is not verified');
+              const searchReady=search?.sourceRevision===revision&&genre?.sourceRevision===revision&&search?.currentIndexKey===genre?.currentIndexKey;
+              console.log('VTUBER_PUBLICATION '+JSON.stringify({matched,operation,searchReady,searchRevision:search?.sourceRevision,masterRevision:revision,cleanupQueued:Object.keys(cleanup||{}).length,affiliationOptions:Object.values(genre?.groups?.genre4||{}).map(row=>row.name)}));
+            }finally{await deleteApp(app);}
+          })().catch(error=>{console.error(error.message);process.exitCode=1;});
+          JS
