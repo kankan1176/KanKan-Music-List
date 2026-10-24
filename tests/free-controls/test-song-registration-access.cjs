@@ -11,7 +11,7 @@ const assert=require('node:assert/strict'),{initializeTestEnvironment,assertSucc
   const failed=[];for(const[i,part]of parts.entries()){try{await set(ref(db,'schemaProbes/probe'+i),request);}catch{failed.push({index:i,field:part.match(/child\('([^']+)'\)/)?.[1]||'required fields',kind:part.includes('.matches(')?'pattern':part.includes('.beginsWith(')?'official URL':part.includes('.isString(')?'string':'shape'});}}
   assert.deepEqual(failed,[],'Registration schema compatibility probes');
   await assertSucceeds(set(ref(db,'songAddRequests/registration-owner/valid'),request));
-  for(const field of ['title','artist','chordwiki'])for(const value of ['', '   ',null])await assertFails(set(ref(db,'songAddRequests/registration-owner/invalid-'+field),{...request,[field]:value}));
+  for(const field of ['title','artist','chordwiki'])for(const value of ['', '   ','\t','　',' ',null])await assertFails(set(ref(db,'songAddRequests/registration-owner/invalid-'+field),{...request,[field]:value}));
   await assertFails(set(ref(db,'songAddRequests/registration-owner/unsafe-url'),{...request,chordwiki:'https://evil.test/wiki/Song'}));
   const singers=[...new Set(require('../../song-registration.js').voices.map(row=>row.name))].join('、');
   await assertSucceeds(set(ref(db,'songAddRequests/registration-owner/many'),{...request,vocal_synths:singers}));await assertFails(set(ref(db,'songAddRequests/registration-owner/oversized'),{...request,vocal_synths:'x'.repeat(1001)}));
