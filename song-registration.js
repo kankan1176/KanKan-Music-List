@@ -18,7 +18,12 @@
   const form=document.getElementById('addSongForm');if(form.dataset.registrationMounted)return;
   form.dataset.registrationMounted='true';
   const basicSelect=document.getElementById('newGenre1');basicSelect.replaceChildren(new Option('選択しない',''),...basic.map(value=>new Option(value,value)));
-  function checks(host,name,values){for(const value of values){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.name=name;input.value=value;label.append(input,document.createTextNode(value));host.append(label);}}
+  function checks(host,name,values){for(const value of values){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.name=name;input.value=value;if(name==='vocal_synths'){
+    const text=document.createElement('span'),primary=document.createElement('span'),match=/^(.*?)([（(].*[）)])$/.exec(value);
+    text.className='sl-vocal-choice-text';primary.className='sl-vocal-choice-primary';primary.textContent=match?match[1].trim():value;text.append(primary);
+    if(match){const note=document.createElement('small');note.textContent=match[2];text.append(note);}
+    label.append(input,text);
+   }else label.append(input,document.createTextNode(value));host.append(label);}}
   checks(document.getElementById('newCategoryChoices'),'registrationCategory',categories.map(row=>row[0]));checks(document.getElementById('newGenre6'),'registrationMusic',music);
   const voiceHost=document.getElementById('newVocalChoices');
   for(const group of unique(voices.map(row=>row.group))){const section=document.createElement('section'),heading=document.createElement('h4'),list=document.createElement('div');section.className='sl-registration-group';heading.textContent=group;list.className='sl-genre-checks';list.dataset.voiceGroup=group;checks(list,'vocal_synths',voices.filter(row=>row.group===group).map(row=>row.name));section.append(heading,list);voiceHost.append(section);}
@@ -26,7 +31,7 @@
   voiceHost.addEventListener('change',event=>{if(event.target.name!=='vocal_synths')return;for(const input of voiceHost.querySelectorAll('input'))if(input.value===event.target.value)input.checked=event.target.checked;});
   const publisherSelect=document.getElementById('newPublisher');publisherSelect.replaceChildren(new Option('選択しない',''));
   for(const group of unique(publishers.map(row=>row.group))){const section=document.createElement('optgroup');section.label=group;for(const row of publishers.filter(row=>row.group===group))section.append(new Option(row.name,row.name));publisherSelect.append(section);}
-  function sync(){const selected=[...form.querySelectorAll('[name="registrationCategory"]:checked')].map(input=>input.value);for(const[id,category]of [['newVocalSection','ボカロ'],['newPublisherSection','アニソン']]){const section=document.getElementById(id);section.hidden=!selected.includes(category);section.disabled=section.hidden;}}
+  function sync(){const selected=[...form.querySelectorAll('[name="registrationCategory"]:checked')].map(input=>input.value);for(const[id,category]of [['newVocalSection','ボカロ'],['newAnimeSection','アニソン'],['newPublisherSection','アニソン']]){const section=document.getElementById(id);section.hidden=!selected.includes(category);section.disabled=section.hidden;}}
   document.getElementById('newCategoryChoices').addEventListener('change',sync);form.addEventListener('reset',()=>queueMicrotask(sync));sync();
  }
  function read(form){const values=new FormData(form);return classify({base:values.get('genre1'),categories:values.getAll('registrationCategory'),music:values.getAll('registrationMusic'),voices:values.getAll('vocal_synths'),publisher:values.get('publisher')});}

@@ -195,3 +195,48 @@
   #addSongForm .sl-registration-group,#addSongForm .sl-registration-group:first-child{margin-top:5px}
   #addSongForm .sl-registration-hint{font-size:10px;margin-bottom:4px}
 }
+/* Singer names keep a stable card size; aliases use a smaller second line. */
+#addSongForm .sl-vocal-choice-text{display:block;min-width:0;line-height:1.2}
+#addSongForm .sl-vocal-choice-primary{display:block;white-space:nowrap}
+#addSongForm .sl-vocal-choice-text small{display:block;font-size:.75em;line-height:1.2;white-space:nowrap;color:#bacbed}
+#addSongForm #newVocalChoices .sl-genre-checks label{height:52px;min-height:52px}
+#addSongForm #newVocalChoices .sl-registration-group{margin:20px 0 0}
+#addSongForm #newVocalChoices .sl-registration-group+.sl-registration-group{padding-top:8px;border-top:1px solid var(--sl-border-soft, #29415f)}
+@media(min-width:1281px) and (pointer:fine){
+  #addSongForm #newVocalChoices .sl-registration-group{grid-template-columns:82px minmax(0,1fr);margin:12px 0 0;gap:6px}
+  #addSongForm #newVocalChoices .sl-registration-group:first-child{margin-top:8px}
+  #addSongForm #newVocalChoices h4{white-space:nowrap;font-size:10px;padding-left:5px}
+  #addSongForm #newVocalChoices .sl-genre-checks{grid-template-columns:repeat(auto-fit,minmax(min(100%,102px),1fr))}
+  #addSongForm #newVocalChoices .sl-genre-checks label{height:32px;min-height:32px;padding:3px 5px;font-size:11px!important;gap:5px!important}
+}
+@media(min-width:1281px) and (max-width:1600px) and (pointer:fine){
+  #addSongForm #newVocalChoices .sl-genre-checks{grid-template-columns:repeat(auto-fit,minmax(min(100%,96px),1fr))}
+  #addSongForm #newVocalChoices .sl-genre-checks label{font-size:10px!important}
+}
+@media(max-width:360px){
+  #addSongForm #newVocalChoices .sl-genre-checks{grid-template-columns:minmax(0,1fr)}
+}
+@media(min-width:1281px) and (max-height:740px) and (pointer:fine){
+  #addSongForm #newVocalChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  #addSongForm #newVocalChoices .sl-registration-group,
+  #addSongForm #newVocalChoices .sl-registration-group:first-child{
+    display:block;margin:0;padding:0;border:0;min-width:0;
+  }
+  #addSongForm #newVocalChoices .sl-registration-group:last-child{grid-column:1/-1}
+  #addSongForm #newVocalChoices h4{margin:0 0 5px;font-size:10px}
+  #addSongForm #newVocalChoices .sl-genre-checks{grid-template-columns:repeat(auto-fit,minmax(min(100%,90px),1fr));gap:4px}
+  #addSongForm #newVocalChoices .sl-genre-checks label{height:28px;min-height:28px;padding:2px 4px;font-size:10px!important;gap:4px!important}
+}
+@media(min-width:1281px) and (pointer:fine){
+  #addSongForm #newPublisherSection>label{
+    position:absolute;width:1px;height:1px;min-height:0;
+    padding:0!important;margin:-1px!important;overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+  }
+}
+@media(min-width:1281px) and (max-height:740px) and (pointer:fine){
+  #addSongModal .sl-add-song-heading p{display:none}
+  #addSongModal #addSongForm .sl-registration-details{padding:8px!important}
+  #addSongForm #newVocalChoices .sl-registration-group,
+  #addSongForm #newVocalChoices .sl-registration-group:first-child{margin:0!important;padding:0!important;border:0!important}
+  #addSongForm #newVocalChoices .sl-genre-checks label{height:26px;min-height:26px;padding:1px 4px;font-size:9.5px!important}
+}

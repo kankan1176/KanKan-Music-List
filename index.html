@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="category-filters.css?v=20261024-years1">
     <script src="genre-index-reader.js?v=20261024-years1"></script>
     <script src="song-change-core.js?v=20261024-registration1"></script>
-    <script src="song-registration.js?v=20261024-registration1"></script>
-    <link rel="stylesheet" href="song-registration.css?v=20261024-registration-align5">
+    <script src="song-registration.js?v=20261024-registration-voices6"></script>
+    <link rel="stylesheet" href="song-registration.css?v=20261024-registration-voices6">
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
@@ -4529,6 +4529,10 @@ body.sl-redesign{--sl-filter:134px!important}
 
       <aside class="sl-add-song-card sl-registration-details" aria-label="掲載媒体・関連作品とボカロ別">
         <p class="sl-registration-details-hint">「楽曲の分類」でアニソン・ボカロを選ぶと、対応する項目が表示されます。</p>
+            <fieldset id="newAnimeSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
+              <legend id="newAnimeTitleLegend">アニメ作品名（任意）</legend>
+              <input id="newAnimeTitle" name="tieup" class="setting-input" maxlength="240" aria-labelledby="newAnimeTitleLegend" placeholder="例：けいおん！" autocomplete="off">
+            </fieldset>
             <fieldset id="newPublisherSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
               <legend>掲載媒体・関連作品（単一選択）</legend>
               <label for="newPublisher">アニソンの掲載媒体</label>
