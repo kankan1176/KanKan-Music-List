@@ -112,3 +112,82 @@
   #addSongForm .sl-genre-checks label{padding:10px 8px;font-size:12px!important;gap:8px!important}
 }
 @media(prefers-reduced-motion:reduce){#addSongForm .sl-genre-checks label{transition:none}}
+/* Fit the complete registration form on desktop without shrinking touch targets. */
+@media(min-width:1281px) and (pointer:fine){
+  html body.sl-redesign.sl-add-song-open #addSongModal.sl-add-song-page-overlay{
+    padding:10px 14px!important;
+  }
+  #addSongModal .sl-add-song-heading{padding:0 4px 8px!important}
+  #addSongModal .sl-add-song-heading h2{font-size:clamp(19px,2.6vh,26px)!important}
+  #addSongModal .sl-add-song-heading p{margin-top:4px!important;font-size:11px!important}
+  #addSongModal #addSongForm.sl-registration-layout{gap:8px 12px}
+  #addSongModal #addSongForm .sl-add-song-form-card,
+  #addSongModal #addSongForm .sl-registration-details{padding:12px!important}
+  #addSongForm .sl-add-song-section-title{padding-bottom:8px;margin-bottom:0}
+  #addSongForm .sl-add-song-section-title>span{width:30px;height:30px;flex-basis:30px;font-size:16px}
+  #addSongForm .sl-add-form-grid{padding-top:4px;gap:0 10px}
+  #addSongForm .sl-add-form-grid>.sl-add-field:has(#newGenre1){grid-column:2}
+  #addSongForm .sl-add-field{padding:4px 0!important}
+  #addSongForm .sl-add-field>label{margin-bottom:4px!important;font-size:11px!important}
+  #addSongForm .sl-add-field input:not([type="checkbox"]),
+  #addSongForm .sl-add-field select{
+    min-height:clamp(28px,4vh,36px)!important;
+    padding:5px 9px!important;
+    font-size:12px!important;
+  }
+  #addSongForm .sl-required,#addSongForm .sl-optional{min-height:16px;padding:2px 5px}
+  #newCodeUrlCheck:empty{display:none}
+  #addSongForm fieldset.sl-add-field{margin:6px 0 0!important;padding:8px!important;border-radius:10px}
+  #addSongForm legend{font-size:12px;line-height:1.4}
+  #addSongForm .sl-genre-checks{
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,105px),1fr));
+    gap:5px;
+  }
+  #addSongForm .sl-genre-checks label{
+    min-height:clamp(24px,3.5vh,32px);
+    padding:4px 6px;
+    gap:5px!important;
+    font-size:clamp(10px,1.4vh,12px)!important;
+    line-height:1.3;
+    border-radius:7px;
+  }
+  #addSongForm .sl-genre-checks input[type="checkbox"]{
+    flex-basis:14px;
+    width:14px!important;
+    height:14px!important;
+    min-height:14px!important;
+  }
+  #addSongForm .sl-registration-hint{font-size:11px;line-height:1.4;margin:0 0 8px}
+  #addSongForm .sl-registration-group,
+  #addSongForm .sl-registration-group:first-child{
+    display:grid;
+    grid-template-columns:76px minmax(0,1fr);
+    gap:6px;
+    margin:8px 0 0;
+    align-items:start;
+  }
+  #addSongForm .sl-registration-group h4{font-size:10px;line-height:1.4;padding-left:6px;margin:5px 0 0}
+  #addSongForm .sl-registration-group .sl-genre-checks{
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,91px),1fr));
+    gap:4px;
+  }
+  #addSongForm>.sl-add-submit-area{padding-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  #addSongFeedback{margin:0!important;min-height:0}
+  #addSongForm .sl-add-submit-buttons{flex-shrink:0;margin-left:auto}
+  #addSongForm .sl-add-submit-buttons button{min-height:32px!important;padding:5px 12px!important;font-size:11px!important}
+}
+@media(min-width:1281px) and (max-width:1600px) and (pointer:fine){
+  #addSongModal #addSongForm.sl-registration-layout{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)!important}
+  #addSongForm .sl-registration-group,#addSongForm .sl-registration-group:first-child{grid-template-columns:60px minmax(0,1fr)}
+  #addSongForm .sl-registration-group .sl-genre-checks{grid-template-columns:repeat(auto-fit,minmax(min(100%,100px),1fr))}
+  #addSongForm #newCategoryChoices,#addSongForm #newGenre6{grid-template-columns:repeat(auto-fit,minmax(min(100%,88px),1fr))}
+  #addSongForm #newCategoryChoices label,#addSongForm #newGenre6 label{font-size:10px!important;padding-inline:5px}
+}
+@media(min-width:1281px) and (max-height:740px) and (pointer:fine){
+  html body.sl-redesign.sl-add-song-open #addSongModal.sl-add-song-page-overlay{padding-block:4px!important}
+  #addSongForm .sl-add-field{padding:2px 0!important}
+  #addSongForm fieldset.sl-add-field{padding:6px!important;margin-top:4px!important}
+  #addSongForm .sl-genre-checks label{font-size:10px!important;padding:3px 5px;line-height:1.2}
+  #addSongForm .sl-registration-group,#addSongForm .sl-registration-group:first-child{margin-top:5px}
+  #addSongForm .sl-registration-hint{font-size:10px;margin-bottom:4px}
+}
