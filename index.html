@@ -14,7 +14,7 @@
     <script src="genre-index-reader.js?v=20261024-years1"></script>
     <script src="song-change-core.js?v=20261024-registration1"></script>
     <script src="song-registration.js?v=20261024-registration1"></script>
-    <link rel="stylesheet" href="song-registration.css?v=20261024-registration-compact4">
+    <link rel="stylesheet" href="song-registration.css?v=20261024-registration-align5">
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
@@ -4504,10 +4504,10 @@ body.sl-redesign{--sl-filter:134px!important}
               <input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK">
             </div>
 
-            <div class="setting-group sl-add-field sl-add-field-wide">
-              <label for="newGenre1">① 基本ジャンル（単一選択）</label>
-              <select id="newGenre1" name="genre1"><option value="">選択しない</option></select>
-            </div>
+            <fieldset class="setting-group sl-add-field sl-add-field-wide">
+              <legend id="newGenre1Legend">① 基本ジャンル（単一選択）</legend>
+              <select id="newGenre1" name="genre1" aria-labelledby="newGenre1Legend"><option value="">選択しない</option></select>
+            </fieldset>
             <fieldset class="setting-group sl-add-field sl-add-field-wide">
               <legend>② 楽曲の分類（複数選択可）</legend>
               <div id="newCategoryChoices" class="sl-genre-checks"></div>

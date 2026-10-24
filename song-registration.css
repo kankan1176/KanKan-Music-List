@@ -126,7 +126,6 @@
   #addSongForm .sl-add-song-section-title{padding-bottom:8px;margin-bottom:0}
   #addSongForm .sl-add-song-section-title>span{width:30px;height:30px;flex-basis:30px;font-size:16px}
   #addSongForm .sl-add-form-grid{padding-top:4px;gap:0 10px}
-  #addSongForm .sl-add-form-grid>.sl-add-field:has(#newGenre1){grid-column:2}
   #addSongForm .sl-add-field{padding:4px 0!important}
   #addSongForm .sl-add-field>label{margin-bottom:4px!important;font-size:11px!important}
   #addSongForm .sl-add-field input:not([type="checkbox"]),
@@ -185,8 +184,13 @@
 }
 @media(min-width:1281px) and (max-height:740px) and (pointer:fine){
   html body.sl-redesign.sl-add-song-open #addSongModal.sl-add-song-page-overlay{padding-block:4px!important}
-  #addSongForm .sl-add-field{padding:2px 0!important}
-  #addSongForm fieldset.sl-add-field{padding:6px!important;margin-top:4px!important}
+  #addSongModal #addSongForm .sl-add-song-form-card{padding:8px!important}
+  #addSongForm .sl-add-song-section-title>span{width:24px;height:24px;flex-basis:24px;font-size:14px}
+  #addSongForm .sl-add-song-section-title{padding-bottom:4px}
+  #addSongForm .sl-add-field{padding:0!important}
+  #addSongForm .sl-add-field input:not([type="checkbox"]),
+  #addSongForm .sl-add-field select{min-height:24px!important;padding-block:3px!important}
+  #addSongForm fieldset.sl-add-field{padding:4px!important;margin-top:4px!important}
   #addSongForm .sl-genre-checks label{font-size:10px!important;padding:3px 5px;line-height:1.2}
   #addSongForm .sl-registration-group,#addSongForm .sl-registration-group:first-child{margin-top:5px}
   #addSongForm .sl-registration-hint{font-size:10px;margin-bottom:4px}
