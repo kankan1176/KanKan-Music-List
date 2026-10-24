@@ -1,7 +1,8 @@
 'use strict';
 const assert=require('node:assert/strict'),{initializeTestEnvironment,assertSucceeds,assertFails}=require('@firebase/rules-unit-testing'),{ref,set}=require('firebase/database'),{addGenreRules}=require('../../scripts/genre-rules.cjs');
 (async()=>{
- const source={rules:{'.read':false,'.write':false,songs:{},publicListShares:{$token:{songs:{$song:{}}}},songAddRequests:{$uid:{$requestId:{'.write':'auth != null && auth.uid === $uid'}}}};
+ const source={rules:{'.read':false,'.write':false,songs:{},publicListShares:{$token:{songs:{$song:{}}}}}};
+ source.rules.songAddRequests={$uid:{$requestId:{'.write':'auth != null && auth.uid === $uid'}}};
  const rules=addGenreRules(source),validation=rules.rules.songAddRequests.$uid.$requestId['.validate'];
  const parts=validation.slice('data.exists() || ('.length,-1).split(' && ');rules.rules.schemaProbes={'.write':true};parts.forEach((part,i)=>rules.rules.schemaProbes['probe'+i]={'.validate':part});
  const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:JSON.stringify(rules)}});
