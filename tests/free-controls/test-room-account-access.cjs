@@ -30,7 +30,10 @@ const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFail
  await assertFails(get(ref(wrongProvider,'users/feature-google/songs')));
  await assertFails(set(ref(wrongProvider,'users/feature-google/songs/account-song'),null));
  const request=uid=>({type:'newSong',requestedBy:uid,title:'Synthetic new song',artist:'Synthetic artist',chordwiki:'https://ja.chordwiki.org/wiki/Synthetic',status:'pending',createdAt:serverTimestamp(),genre:'J-POP',genre1:'J-POP',genre2:'アニソン、ゲーム',genre3:'ロック',genre4:'ジャンプ',genre5:''});
- await assertSucceeds(set(ref(google,'songAddRequests/feature-google/account-request'),request('feature-google')));
+ try{await assertSucceeds(set(ref(google,'songAddRequests/feature-google/account-request'),request('feature-google')));}catch(error){
+  const root=JSON.parse(fs.readFileSync(process.env.OBS_RULE_TEST,'utf8')).rules.songAddRequests;const owner=root[Object.keys(root).find(key=>key.startsWith('$'))];const node=owner[Object.keys(owner).find(key=>key.startsWith('$'))];
+  console.error('Synthetic registration validation diagnostics: '+JSON.stringify(Object.fromEntries(['title','artist','chordwiki'].map(key=>[key,node[key]?.['.validate']||null]))));throw error;
+ }
  await assertSucceeds(get(ref(google,'songAddRequests/feature-google')));
  for(const field of ['title','artist','chordwiki']){
   for(const value of ['', '   ',null]){const bad={...request('feature-google'),[field]:value};await assertFails(set(ref(google,'songAddRequests/feature-google/bad-'+field),bad));}
