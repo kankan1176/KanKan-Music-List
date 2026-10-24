@@ -1,4 +1,24 @@
 /* Keep choices separate from the page's full-width text inputs. */
+#addSongModal #addSongForm.sl-registration-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)!important;
+  align-items:start;
+  gap:16px;
+  min-width:0;
+  margin:0;
+}
+#addSongForm .sl-registration-details{min-width:0;padding:20px}
+#addSongForm .sl-registration-details-hint{
+  margin:0;
+  color:var(--sl-muted, #a5b5d0);
+  font-size:13px;
+  line-height:1.8;
+}
+#addSongForm .sl-registration-details:has(fieldset:not([hidden])) .sl-registration-details-hint{display:none}
+#addSongForm > .sl-add-submit-area{
+  grid-column:1/-1;
+  margin-top:0;
+}
 #addSongForm fieldset{
   min-width:0;
   box-sizing:border-box;
@@ -81,8 +101,8 @@
   line-height:1.7;
 }
 #newPublisher,#newGenre1{width:100%;max-width:100%;box-sizing:border-box;font:inherit}
-@media(max-width:1280px){
-  body.sl-redesign.sl-add-song-open #addSongModal.sl-add-song-page-overlay .sl-add-song-grid{
+@media(max-width:1280px), (pointer:coarse){
+  #addSongModal #addSongForm.sl-registration-layout{
     grid-template-columns:minmax(0,1fr)!important;
   }
 }

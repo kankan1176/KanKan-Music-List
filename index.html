@@ -14,7 +14,7 @@
     <script src="genre-index-reader.js?v=20261024-years1"></script>
     <script src="song-change-core.js?v=20261024-registration1"></script>
     <script src="song-registration.js?v=20261024-registration1"></script>
-    <link rel="stylesheet" href="song-registration.css?v=20261024-registration-ui2">
+    <link rel="stylesheet" href="song-registration.css?v=20261024-registration-layout3">
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
@@ -4470,7 +4470,7 @@ body.sl-redesign{--sl-filter:134px!important}
       </div>
     </header>
 
-    <div class="sl-add-song-grid">
+    <form id="addSongForm" class="sl-add-song-grid sl-registration-layout" onsubmit="submitNewSong(event)">
 
       <section class="sl-add-song-card sl-add-song-form-card">
         <div class="sl-add-song-section-title">
@@ -4481,7 +4481,6 @@ body.sl-redesign{--sl-filter:134px!important}
           </div>
         </div>
 
-        <form id="addSongForm" onsubmit="submitNewSong(event)">
           <div class="sl-add-form-grid">
 
             <div class="setting-group sl-add-field sl-add-field-wide">
@@ -4517,16 +4516,6 @@ body.sl-redesign{--sl-filter:134px!important}
               <legend>③ 音楽ジャンル（複数選択可）</legend>
               <div id="newGenre6" class="sl-genre-checks"></div>
             </fieldset>
-            <fieldset id="newVocalSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
-              <legend>ボカロ別（複数選択可）</legend>
-              <p class="sl-registration-hint">同じ名前の歌唱者は、どちらの欄で選んでも同じ選択になります。</p>
-              <div id="newVocalChoices"></div>
-            </fieldset>
-            <fieldset id="newPublisherSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
-              <legend>掲載媒体・関連作品（単一選択）</legend>
-              <label for="newPublisher">アニソンの掲載媒体</label>
-              <select id="newPublisher" name="publisher"><option value="">選択しない</option></select>
-            </fieldset>
           </div>
 
           <!-- Bot対策のハニーポット。通常は非表示 -->
@@ -4535,6 +4524,23 @@ body.sl-redesign{--sl-filter:134px!important}
             <input id="newWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
           </div>
 
+
+      </section>
+
+      <aside class="sl-add-song-card sl-registration-details" aria-label="掲載媒体・関連作品とボカロ別">
+        <p class="sl-registration-details-hint">「楽曲の分類」でアニソン・ボカロを選ぶと、対応する項目が表示されます。</p>
+            <fieldset id="newPublisherSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
+              <legend>掲載媒体・関連作品（単一選択）</legend>
+              <label for="newPublisher">アニソンの掲載媒体</label>
+              <select id="newPublisher" name="publisher"><option value="">選択しない</option></select>
+            </fieldset>
+            <fieldset id="newVocalSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
+              <legend>ボカロ別（複数選択可）</legend>
+              <p class="sl-registration-hint">同じ名前の歌唱者は、どちらの欄で選んでも同じ選択になります。</p>
+              <div id="newVocalChoices"></div>
+            </fieldset>
+      </aside>
+
           <div class="sl-add-submit-area">
             <p id="addSongFeedback" role="status" aria-live="polite"></p>
             <div class="sl-add-submit-buttons">
@@ -4542,69 +4548,7 @@ body.sl-redesign{--sl-filter:134px!important}
               <button type="submit" id="addSongSubmit" class="primary-btn sl-add-submit-btn">📨 管理者へ登録申請</button>
             </div>
           </div>
-        </form>
-      </section>
-
-      <aside class="sl-add-song-card sl-add-song-guide-card">
-        <div class="sl-add-song-section-title">
-          <span>💡</span>
-          <div>
-            <strong>登録申請について</strong>
-            <small>申請前にご確認ください。</small>
-          </div>
-        </div>
-
-        <div class="sl-add-guide-list">
-          <article>
-            <span>🔎</span>
-            <div>
-              <strong>登録済みの曲を確認</strong>
-              <p>同じ曲名・アーティストの組み合わせがすでに登録されている場合は申請できません。</p>
-            </div>
-          </article>
-
-          <article>
-            <span>🔗</span>
-            <div>
-              <strong>ChordWiki URL</strong>
-              <p>原曲ページのURLを入力してください。シェアリスコアのKey変更機能で利用します。</p>
-            </div>
-          </article>
-
-          <article>
-            <span>🛡️</span>
-            <div>
-              <strong>管理者による確認</strong>
-              <p>申請内容はすぐに公開されず、管理者の確認・承認後に全曲一覧へ反映されます。</p>
-            </div>
-          </article>
-
-          <article>
-            <span>✏️</span>
-            <div>
-              <strong>登録後の修正</strong>
-              <p>公開後に誤りを見つけた場合は、Googleログイン中の楽曲編集機能から修正できます。</p>
-            </div>
-          </article>
-        </div>
-
-        <div class="sl-add-flow-box">
-          <strong>登録までの流れ</strong>
-          <div class="sl-add-flow">
-            <span>📝 入力</span><b>→</b>
-            <span>📨 申請</span><b>→</b>
-            <span>🛡️ 確認</span><b>→</b>
-            <span>🎵 公開</span>
-          </div>
-        </div>
-
-        <div class="sl-add-note">
-          <strong>お願い</strong>
-          <p>曲名・アーティスト名は、できるだけ正式な表記で入力してください。</p>
-        </div>
-      </aside>
-
-    </div>
+    </form>
   </div>
 </div>
 
