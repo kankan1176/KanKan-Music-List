@@ -9,6 +9,8 @@ on:
       - 'song-change-core.js'
       - 'song-genres.js'
       - 'scripts/genre-rules.cjs'
+      - 'song-registration.js'
+      - 'scripts/check-song-registration.cjs'
       - 'scripts/check-song-genres.cjs'
       - 'queue-actions.js'
       - 'scripts/check-queue-actions.cjs'
@@ -74,6 +76,7 @@ jobs:
         run: npm ci --prefix functions --ignore-scripts --no-audit --no-fund
       - name: Check free control code and rule preservation
         run: |
+          node scripts/check-song-registration.cjs
           node scripts/check-chordwiki-version.cjs
           node scripts/check-song-genres.cjs
           node scripts/check-high-priority-security.cjs

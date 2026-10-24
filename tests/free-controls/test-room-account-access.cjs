@@ -29,9 +29,17 @@ const fs=require('node:fs'),{initializeTestEnvironment,assertSucceeds,assertFail
  const wrongProvider=env.authenticatedContext('feature-google',{firebase:{sign_in_provider:'anonymous'}}).database();
  await assertFails(get(ref(wrongProvider,'users/feature-google/songs')));
  await assertFails(set(ref(wrongProvider,'users/feature-google/songs/account-song'),null));
- const request=uid=>({type:'newSong',requestedBy:uid,title:'Synthetic new song',artist:'Synthetic artist',status:'pending',createdAt:serverTimestamp(),genre:'J-POP',genre1:'J-POP',genre2:'アニソン、ゲーム',genre3:'ロック',genre4:'ジャンプ',genre5:''});
+ const request=uid=>({type:'newSong',requestedBy:uid,title:'Synthetic new song',artist:'Synthetic artist',chordwiki:'https://ja.chordwiki.org/wiki/Synthetic',status:'pending',createdAt:serverTimestamp(),genre:'J-POP',genre1:'J-POP',genre2:'アニソン、ゲーム',genre3:'ロック',genre4:'ジャンプ',genre5:''});
  await assertSucceeds(set(ref(google,'songAddRequests/feature-google/account-request'),request('feature-google')));
  await assertSucceeds(get(ref(google,'songAddRequests/feature-google')));
+ for(const field of ['title','artist','chordwiki']){
+  for(const value of ['', '   ',null]){const bad={...request('feature-google'),[field]:value};await assertFails(set(ref(google,'songAddRequests/feature-google/bad-'+field),bad));}
+ }
+ await assertFails(set(ref(google,'songAddRequests/feature-google/unsafe-url'),{...request('feature-google'),chordwiki:'https://evil.test/wiki/Song'}));
+ const voices=require('../../song-registration.js').voices.map(row=>row.name);const singers=[...new Set(voices)].join('、');
+ await assertSucceeds(set(ref(google,'songAddRequests/feature-google/many-vocals'),{...request('feature-google'),vocal_synths:singers}));
+ await assertFails(set(ref(google,'songAddRequests/feature-google/oversized-vocals'),{...request('feature-google'),vocal_synths:'x'.repeat(1001)}));
+
  await assertFails(set(ref(google,'songAddRequests/feature-google/oversized-genre'),{...request('feature-google'),genre5:'x'.repeat(101)}));
  await assertFails(set(ref(guest,'songAddRequests/feature-guest/guest-request'),request('feature-guest')));
  await assertFails(get(ref(wrongProvider,'songAddRequests/feature-google')));

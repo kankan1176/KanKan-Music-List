@@ -1242,6 +1242,8 @@
   "enabled": true
  }
 ];
+ // Additional registration category requested on 2026-10-24.
+ definitions.push({id:'publisher_other_kirara',field:'genre5',label:'掲載媒体・関連作品',group:'その他',groupOrder:3,order:1,name:'まんがタイムきらら',aliases:['まんがタイムきらら'],categories:['アニソン'],enabled:true});
  const fields=['genre6','genre5','vocal_synths'];
  const normalize=value=>String(value??'').normalize('NFKC').trim().toLocaleLowerCase('ja');
  const active=field=>definitions.filter(row=>row.enabled&&row.field===field).sort((a,b)=>a.groupOrder-b.groupOrder||a.order-b.order);

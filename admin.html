@@ -21,7 +21,7 @@
 <section data-import-step="review" class="import-pane" hidden><p id="adminMyListSummary" class="import-summary"></p><div class="import-table-wrap" tabindex="0" aria-label="CSV登録内容の確認"><table><thead><tr><th>CSV行</th><th>曲名</th><th>アーティスト</th><th>Key</th><th>判定・登録先</th></tr></thead><tbody id="adminMyListPreviewRows"></tbody></table></div><div class="import-actions"><button type="button" id="adminMyListReviewBack">CSVを選び直す</button><button type="button" id="adminMyListConfirm" disabled>確定</button></div></section>
 <section data-import-step="result" class="import-pane" hidden><h3>登録結果</h3><p id="adminMyListResultSummary" class="import-summary"></p><div id="adminMyListResultRows" class="import-errors"></div><div class="import-actions"><button type="button" id="adminMyListRetry">別のCSV・失敗分を再確認</button><button type="button" id="adminMyListRefresh">マイリストを確認</button></div></section></dialog>
 <dialog id="requestDialog"><h2>申請内容</h2><pre id="requestDetail"></pre><div id="requestActions" class="toolbar-actions"></div><p id="reviewStatus" role="status"></p><form method="dialog"><button>閉じる</button></form></dialog>
-<script src="sort-master.js?v=20261023-master1"></script><script src="song-genres.js?v=20261024-years1"></script><script src="song-change-core.js?v=20261024-years1"></script><script src="admin-request-feed.js?v=20261021-1"></script>
+<script src="sort-master.js?v=20261023-master1"></script><script src="song-genres.js?v=20261024-years1"></script><script src="song-change-core.js?v=20261024-registration1"></script><script src="admin-request-feed.js?v=20261021-1"></script>
 <script>'use strict';
 const config={
       apiKey: "AIzaSyAidXlfliIIHzTFmr06EKDV6Fit-bSThLI",
@@ -240,7 +240,7 @@ async function reviewRequest(v,status){
       const songId=v.id;
       let song;
       if(v.kind==='add'){
-        if(!String(request.title||'').trim()||!String(request.artist||'').trim())throw Error('曲名・アーティストが必要です。');
+        if(!String(request.title||'').trim()||!String(request.artist||'').trim()||!String(request.chordwiki||'').trim())throw Error('曲名・アーティスト名・コードWiki URLが必要です。');
         const existing=await db.ref('songs/'+songId).once('value');
         if(existing.exists())throw Error('同じIDの楽曲が既に存在します。申請とマスターを確認してください。');
         song={id:songId};for(const field of songFields)song[field]=String(request[field]||'').trim();

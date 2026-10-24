@@ -7,6 +7,9 @@ on:
       - 'chordwiki-version.js'
       - 'chordwiki-preference.js'
       - 'scripts/check-chordwiki-version.cjs'
+      - 'song-registration.js'
+      - 'song-registration.css'
+      - 'scripts/check-song-registration.cjs'
       - 'sort-master.js'
       - 'scripts/check-song-row-rendering.cjs'
       - 'firebase-app-check.js'
@@ -25,6 +28,9 @@ on:
       - 'chordwiki-version.js'
       - 'chordwiki-preference.js'
       - 'scripts/check-chordwiki-version.cjs'
+      - 'song-registration.js'
+      - 'song-registration.css'
+      - 'scripts/check-song-registration.cjs'
       - 'sort-master.js'
       - 'scripts/check-song-row-rendering.cjs'
       - 'firebase-app-check.js'
@@ -51,6 +57,7 @@ jobs:
         with:
           node-version: '22'
       - run: |
+          node scripts/check-song-registration.cjs
           node scripts/check-chordwiki-version.cjs
           node scripts/check-latest-sheet.cjs
           node scripts/check-category-filters.cjs

@@ -4,7 +4,7 @@ const a={genre1:'J-POP',genre2:'ボカロ',genre6:'ロック',vocal_synths:'初�
 assert.deepEqual(g.categories,['J-POP','アニソン','ボカロ','K-POP','洋楽']);
 assert(g.matches(a,{...g.selection('ボカロ'),genre6:'ロック',vocal_synths:'GUMI'}));assert(!g.matches(b,{...g.selection('ボカロ'),genre6:'バラード'}));assert(g.matches(b,{...g.selection('アニソン'),anime_year:'2010',genre5:'ジャンプ'}));assert(!g.matches(b,{anime_year:'2011'}));assert(g.matches(a,g.selection('J-POP'))); // Inclusion policy remains unchanged.
 const catalog={groups:g.catalog([a,b,c]),facets:g.facets([a,b,c])};assert.deepEqual(ui.options(catalog,'ボカロ','genre6'),['ロック','ポップス','ヒップホップ','ラップ','合唱','シティポップ','R&B','ジャズ','EDM','クラシック','サンバ','インスト']);assert.deepEqual(ui.options(catalog,'アニソン','vocal_synths'),[]);assert.deepEqual(ui.controls('ボカロ').map(c=>c.field),['genre6','release_year','vocal_synths']);assert.deepEqual(ui.controls('アニソン').map(c=>c.field),['genre6','release_year','anime_year','genre5']);
-const master=require('../sort-master.js');assert.equal(master.definitions.length,73);assert.equal(master.canonical('vocal_synths','Megpoid'),'Megpoid');assert.equal(master.canonical('vocal_synths','GUMI'),'GUMI（Megpoid）');
+const master=require('../sort-master.js');assert.equal(master.definitions.length,74);assert.equal(master.canonical('vocal_synths','Megpoid'),'Megpoid');assert.equal(master.canonical('vocal_synths','GUMI'),'GUMI（Megpoid）');
 const voices=ui.options(catalog,'ボカロ','vocal_synths');
 assert.deepEqual(voices.slice(0,9),['初音ミク','GUMI（Megpoid）','鏡音リン','鏡音レン','巡音ルカ','KAITO','MEIKO','神威がくぽ','Flower（v4 flower）']);
 assert.equal(voices.filter(v=>v==='重音テト').length,1);assert.equal(voices.filter(v=>v==='波音リツ').length,1);assert(!voices.includes('VOCALOID'));assert(!voices.includes('VOICEVOX'));

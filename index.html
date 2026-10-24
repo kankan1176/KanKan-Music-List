@@ -8,11 +8,13 @@
     <script src="chordwiki-version.js?v=20261024-wiki1"></script>
     <script src="chordwiki-preference.js?v=20261024-wiki1"></script>
     <link rel="stylesheet" href="chordwiki-preference.css?v=20261024-wiki1">
-    <script src="sort-master.js?v=20261023-master1"></script><script src="song-genres.js?v=20261024-years1"></script>
+    <script src="sort-master.js?v=20261024-registration1"></script><script src="song-genres.js?v=20261024-years1"></script>
     <script src="category-filters.js?v=20261024-years1"></script>
     <link rel="stylesheet" href="category-filters.css?v=20261024-years1">
     <script src="genre-index-reader.js?v=20261024-years1"></script>
-    <script src="song-change-core.js?v=20261024-years1"></script>
+    <script src="song-change-core.js?v=20261024-registration1"></script>
+    <script src="song-registration.js?v=20261024-registration1"></script>
+    <link rel="stylesheet" href="song-registration.css?v=20261024-registration1">
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
@@ -4503,19 +4505,28 @@ body.sl-redesign{--sl-filter:134px!important}
               <input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK">
             </div>
 
-            <div class="setting-group sl-add-field sl-add-field-wide"><label for="newGenre1">genre1（単一選択・任意）</label><select id="newGenre1" name="genre1"><option value="">選択しない</option></select></div>
-            <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre2（複数選択・任意）</legend><div id="newGenre2" class="sl-genre-checks"></div></fieldset>
-            <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre3：関連分類（複数選択・任意）</legend><div id="newGenre3" class="sl-genre-checks"></div></fieldset>
-            <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre4：アーティスト属性（複数選択・任意）</legend><div id="newGenre4" class="sl-genre-checks"></div></fieldset>
-            <fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre5：掲載媒体・関連作品（複数選択・任意）</legend><div id="newGenre5" class="sl-genre-checks"></div></fieldset>
-<div class="setting-group sl-add-field"><label for="newReleaseYear">発売・公開年（任意）</label><input id="newReleaseYear" name="release_year" class="setting-input" maxlength="100" pattern="[0-9]{4}(、[0-9]{4})*" placeholder="例：2010"></div>
-<div class="setting-group sl-add-field"><label for="newAnimeYear">アニメ放送・公開年（任意）</label><input id="newAnimeYear" name="anime_year" class="setting-input" maxlength="100" pattern="[0-9]{4}(、[0-9]{4})*" placeholder="年またぎは例：2010、2011"></div>
-<fieldset class="setting-group sl-add-field sl-add-field-wide"><legend>genre6：音楽ジャンル（複数選択・任意）</legend><div id="newGenre6" class="sl-genre-checks"></div></fieldset>
             <div class="setting-group sl-add-field sl-add-field-wide">
-              <label for="newTieup">タイアップ <span class="sl-optional">任意</span></label>
-              <input class="setting-input" id="newTieup" name="tieup" maxlength="240" placeholder="アニメ・ゲーム・ドラマ・番組・作品名など">
+              <label for="newGenre1">① 基本ジャンル（単一選択）</label>
+              <select id="newGenre1" name="genre1"><option value="">選択しない</option></select>
             </div>
-
+            <fieldset class="setting-group sl-add-field sl-add-field-wide">
+              <legend>② 楽曲の分類（複数選択可）</legend>
+              <div id="newCategoryChoices" class="sl-genre-checks"></div>
+            </fieldset>
+            <fieldset class="setting-group sl-add-field sl-add-field-wide">
+              <legend>③ 音楽ジャンル（複数選択可）</legend>
+              <div id="newGenre6" class="sl-genre-checks"></div>
+            </fieldset>
+            <fieldset id="newVocalSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
+              <legend>ボカロ別（複数選択可）</legend>
+              <p class="sl-registration-hint">同じ名前の歌唱者は、どちらの欄で選んでも同じ選択になります。</p>
+              <div id="newVocalChoices"></div>
+            </fieldset>
+            <fieldset id="newPublisherSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
+              <legend>掲載媒体・関連作品（単一選択）</legend>
+              <label for="newPublisher">アニソンの掲載媒体</label>
+              <select id="newPublisher" name="publisher"><option value="">選択しない</option></select>
+            </fieldset>
           </div>
 
           <!-- Bot対策のハニーポット。通常は非表示 -->
@@ -7049,6 +7060,7 @@ body.sl-redesign{--sl-filter:134px!important}
     function validateNewChordWikiUrl(rawUrl) {
         const parsed = parseChordWikiUrl(rawUrl, true);
         if (!parsed) return 'ChordWikiの原曲楽曲ページURLを入力してください（タグ・検索ページ・移調済みURLは登録できません）。';
+        if(new URL(parsed.originalUrl).href.length>2048)return 'ChordWiki URLが長すぎます。楽曲ページのURLを確認してください。';
         return '';
     }
     function personalSongKey(song) {
@@ -7226,6 +7238,7 @@ body.sl-redesign{--sl-filter:134px!important}
         const modal = document.getElementById('addSongModal');
         const feedback = document.getElementById('addSongFeedback');
         const button = document.getElementById('addSongSubmit');
+        SLSongRegistration.mount(document);
         const first = document.getElementById('newGenre1');
         const isCurrent = () => requestVersion === slAddSongOpenVersion && auth.currentUser?.uid === entryUser.uid && !auth.currentUser.isAnonymous && modal.style.display !== 'none';
         // 読み込み前にフォームを表示し、画面同期が遷移を取り消さないようにする。
@@ -7249,14 +7262,13 @@ body.sl-redesign{--sl-filter:134px!important}
             }
         }
         if (!isCurrent()) return;
-        const catalog=SLSongGenres.catalog(allData);
-        const selected=first.value;first.replaceChildren(new Option('選択しない',''),...catalog.genre1.map(value=>new Option(value,value)));first.value=selected;first.disabled=false;
-        for(let n=2;n<=6;n++){const area=document.getElementById('newGenre'+n),chosen=new Set([...area.querySelectorAll('input:checked')].map(input=>input.value));area.replaceChildren();for(const value of catalog['genre'+n]){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.name='genre'+n;input.value=value;input.checked=chosen.has(value);label.append(input,document.createTextNode(value));area.append(label);}}
+        first.disabled=false;
         newCodeUrlInput.setCustomValidity('');newCodeUrlInput.dispatchEvent(new Event('input'));if(!newSongSubmitting)feedback.textContent='';
         button.disabled = newSongSubmitting;
     }
 
     // 入力中も形式を確認。サーバー側でも同じ条件で検証する。
+    for(const id of ['newTitle','newArtist'])document.getElementById(id).addEventListener('input',event=>event.target.setCustomValidity(''));
     const newCodeUrlInput = document.getElementById('newCodeUrl');
     newCodeUrlInput.addEventListener('input', () => {
         const value = newCodeUrlInput.value.trim();
@@ -7278,10 +7290,15 @@ body.sl-redesign{--sl-filter:134px!important}
         const urlError = validateNewChordWikiUrl(newCodeUrlInput.value);
         newCodeUrlInput.setCustomValidity(urlError);
         document.getElementById('newCodeUrlCheck').textContent = urlError;
+        for(const [id,label] of [['newTitle','曲名'],['newArtist','アーティスト名']]){
+            const input=document.getElementById(id);
+            input.setCustomValidity(input.value.trim()?'':label+'を入力してください。');
+        }
         if (!form.reportValidity()) return;
         const formData=new FormData(form),data=Object.fromEntries(formData.entries());
-        for(let n=2;n<=6;n++)data['genre'+n]=formData.getAll('genre'+n).join('、');
-        for(const field of SLSongGenres.fields)if(SLSongGenres.split(data[field]).some(value=>!SLSongGenres.catalog(allData)[field].includes(value))){feedback.textContent='ジャンルを一覧から選択してください。';return;}
+        let classification;
+        try { classification=SLSongRegistration.read(form); }
+        catch(error){feedback.textContent=error.message;return;}
         const title = String(data.title || '').trim();
         const artist = String(data.artist || '').trim();
         if (allData.some(row => String(row['曲名']||'').trim() === title && String(row['アーティスト']||'').trim() === artist)) {
@@ -7293,8 +7310,8 @@ body.sl-redesign{--sl-filter:134px!important}
             if(!isCurrent())return;
             const payload = {
                 type:'newSong', requestedBy:user.uid, title, artist,
-                chordwiki:SLChordWiki.url(data.codeUrl,'normal').slice(0,2048), bpm:String(data.bpm||''),
-                genre:String(data.genre1||''),...Object.fromEntries(SLSongGenres.fields.map(field=>[field,String(data[field]||'')])) ,
+                chordwiki:new URL(SLChordWiki.url(data.codeUrl,'normal')).href, bpm:String(data.bpm||''),
+                genre:classification.genre1,...classification,
                 release_year:String(data.release_year||'').trim(),anime_year:String(data.anime_year||'').trim(),
                 tieup:String(data.tieup||'').trim().slice(0,240), search:'', lyrics:'', composition:'', arrangement:'',
                 status:'pending', createdAt:firebase.database.ServerValue.TIMESTAMP
