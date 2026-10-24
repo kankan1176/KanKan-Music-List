@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict'),a=require('../artist-classification.js'),r=require('../song-registration.js'),{updateSong,refreshShare}=require('./sync-vtuber-affiliations.cjs'),master=require('../data/reference-masters/vtubers.json');
+for(const row of master.entries)assert.deepEqual(a.match(row.name).groups,[row.group]);
+assert.deepEqual(a.match('  ＭＯＲＩ　ＣＡＬＬＩＯＰＥ ').groups,['ホロライブ']);
+assert.deepEqual(a.match('星街すいせい、町田ちま').groups,['ホロライブ','にじさんじ']);
+assert.deepEqual(a.match('星街すいせい風カバー').matches,[]);assert.deepEqual(a.match('Unknown artist').matches,[]);assert.deepEqual(a.match('').matches,[]);
+assert.equal(a.appendTags('アイドル、ホロライブ',['ホロライブ','にじさんじ','にじさんじ']),'アイドル、ホロライブ、にじさんじ');
+const source={id:'synthetic',artist:'星街すいせい',genre2:'ゲーム',genre4:'アイドル',updatedAt:123,title:'Synthetic song',key:3,parts:['Dr']},copy=structuredClone(source),next=updateSong(source);
+assert.deepEqual(source,copy);assert.deepEqual(next,{...source,genre2:'ゲーム、Vtuber',genre4:'アイドル、ホロライブ'});assert.equal(updateSong(next),undefined);assert.equal(updateSong(null),null);
+const concurrentlyEdited={...source,title:'Concurrently edited title',genre4:'Other group',updatedAt:456};assert.equal(updateSong(concurrentlyEdited).title,'Concurrently edited title');assert.equal(updateSong(concurrentlyEdited).genre4,'Other group、ホロライブ');
+assert.equal(updateSong({...source,artist:'Unknown artist'}),undefined);
+const shared={title:'Personal list',songs:{synthetic:{artist:source.artist,key:5,parts:['Ba'],genre2:'',genre4:''},unrelated:{title:'Other',genre4:'untouched'}}};const refreshed=refreshShare(shared,{synthetic:next});assert.equal(refreshed.songs.synthetic.genre4,'アイドル、ホロライブ');assert.equal(refreshed.songs.synthetic.key,5);assert.deepEqual(refreshed.songs.synthetic.parts,['Ba']);assert.equal(refreshed.songs.unrelated.genre4,'untouched');assert.equal(refreshShare(refreshed,{synthetic:next}),undefined);assert.equal(refreshShare(null,{}),null);
+const classified=r.classify({artist:'星街すいせい',categories:['アイドル','アニソン']});assert.equal(classified.genre2,'アニソン、Vtuber');assert.equal(classified.genre4,'アイドル、ホロライブ');assert.equal(r.classify({artist:'Unknown',categories:['Vtuber']}).genre4,'');
+console.log('PASS: all VTuber aliases, exact matching, compound credits, false-positive rejection, agency append/deduplication, registration classification and concurrent-safe metadata-only migration.');

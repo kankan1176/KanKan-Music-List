@@ -1,0 +1,44 @@
+name: Sync VTuber affiliations from reference master
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/reference-masters/vtubers.json'
+      - 'artist-classification.js'
+      - 'scripts/sync-vtuber-affiliations.cjs'
+      - '.github/workflows/sync-vtuber-affiliations.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/build-reference-masters.cjs --check
+      - run: node scripts/check-artist-classification.cjs
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Append agency metadata using per-song transactions
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/sync-vtuber-affiliations.cjs
+      - name: Refresh search and genre indexes
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/build-search-index.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vtuber-affiliation-backup-${{ github.run_id }}
+          path: .vtuber-affiliation-backup/*.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7

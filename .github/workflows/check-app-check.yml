@@ -7,6 +7,11 @@ on:
       - 'chordwiki-version.js'
       - 'chordwiki-preference.js'
       - 'scripts/check-chordwiki-version.cjs'
+      - 'artist-classification.js'
+      - 'vtuber-master.js'
+      - 'data/reference-masters/**'
+      - 'scripts/build-reference-masters.cjs'
+      - 'scripts/check-artist-classification.cjs'
       - 'song-registration.js'
       - 'song-registration.css'
       - 'scripts/check-song-registration.cjs'
@@ -28,6 +33,11 @@ on:
       - 'chordwiki-version.js'
       - 'chordwiki-preference.js'
       - 'scripts/check-chordwiki-version.cjs'
+      - 'artist-classification.js'
+      - 'vtuber-master.js'
+      - 'data/reference-masters/**'
+      - 'scripts/build-reference-masters.cjs'
+      - 'scripts/check-artist-classification.cjs'
       - 'song-registration.js'
       - 'song-registration.css'
       - 'scripts/check-song-registration.cjs'
@@ -57,6 +67,8 @@ jobs:
         with:
           node-version: '22'
       - run: |
+          node scripts/build-reference-masters.cjs --check
+          node scripts/check-artist-classification.cjs
           node scripts/check-song-registration.cjs
           node scripts/check-chordwiki-version.cjs
           node scripts/check-latest-sheet.cjs

@@ -13,8 +13,10 @@
     <link rel="stylesheet" href="category-filters.css?v=20261024-years1">
     <script src="genre-index-reader.js?v=20261024-years1"></script>
     <script src="song-change-core.js?v=20261024-registration1"></script>
-    <script src="song-registration.js?v=20261024-registration-voices6"></script>
-    <link rel="stylesheet" href="song-registration.css?v=20261024-registration-voices6">
+    <script src="vtuber-master.js?v=20261024-vtuber1"></script>
+    <script src="artist-classification.js?v=20261024-vtuber1"></script>
+    <script src="song-registration.js?v=20261024-vtuber1"></script>
+    <link rel="stylesheet" href="song-registration.css?v=20261024-vtuber1">
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
     
@@ -4491,6 +4493,7 @@ body.sl-redesign{--sl-filter:134px!important}
             <div class="setting-group sl-add-field sl-add-field-wide">
               <label for="newArtist">アーティスト名 <span class="sl-required">必須</span></label>
               <input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off" placeholder="例：Official髭男dism">
+              <p id="newArtistClassification" class="sl-registration-detection" role="status" aria-live="polite" hidden></p>
             </div>
 
             <div class="setting-group sl-add-field sl-add-field-wide">

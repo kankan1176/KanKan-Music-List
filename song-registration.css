@@ -240,3 +240,8 @@
   #addSongForm #newVocalChoices .sl-registration-group:first-child{margin:0!important;padding:0!important;border:0!important}
   #addSongForm #newVocalChoices .sl-genre-checks label{height:26px;min-height:26px;padding:1px 4px;font-size:9.5px!important}
 }
+
+#addSongForm .sl-registration-detection{margin:3px 0 0!important;font-size:11px;line-height:1.4;color:#8ce3c2}
+#addSongForm .sl-registration-detection[hidden]{display:none}
+#addSongForm .sl-genre-checks label:has(input:disabled){cursor:default}
+@media(min-width:1281px) and (pointer:fine){#addSongForm .sl-registration-detection{font-size:10px;line-height:1.3}}
