@@ -17,6 +17,7 @@ on:
       - 'tests/free-controls/test-high-priority-access.cjs'
       - 'tests/free-controls/test-account-privacy-access.cjs'
       - 'scripts/check-obs-live-access.cjs'
+      - 'tests/free-controls/test-song-registration-access.cjs'
       - 'tests/free-controls/test-obs-live-access.cjs'
       - 'scripts/obs-scene-rules.cjs'
       - 'obs-scene-core.js'
