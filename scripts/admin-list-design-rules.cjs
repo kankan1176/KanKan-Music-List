@@ -13,6 +13,9 @@ function addAdminListDesignRules(document){
  const finalConfig="newData.parent().parent().child('userListShares').child($uid)";
  privateImage['.write']=grant(privateImage['.write'],`${target} && ((!newData.exists() && !${finalConfig}.hasChild('backgroundVersion')) || (newData.exists() && newData.child('version').val() === ${finalConfig}.child('backgroundVersion').val()))`);
  const share=r.publicListShares.$token;
+ // The owner rules reuse this schema object for private and public appearance.
+ // Detach it before adding a token-scoped public write grant.
+ share.appearance=structuredClone(share.appearance);
  const shareAdmin=`(${ADMIN}) && data.exists() && newData.exists() && newData.child('uid').val() === data.child('uid').val()`;
  share['.validate']=`newData.hasChildren(['uid','name','updatedAt']) && (newData.child('uid').val() === auth.uid || (${shareAdmin}))`;
  share.uid['.validate']=`newData.isString() && (newData.val() === auth.uid || ((${ADMIN}) && newData.val() === data.val()))`;
