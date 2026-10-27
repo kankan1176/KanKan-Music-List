@@ -1,0 +1,84 @@
+name: Deploy ShareLiScore to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare public website files
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import shutil, subprocess
+          target = Path("_site")
+          target.mkdir()
+          extensions = {".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp", ".woff", ".woff2"}
+          for name in subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0"):
+              if not name:
+                  continue
+              source = Path(name)
+              public = (len(source.parts) == 1 and (source.suffix.lower() in extensions or name == "CNAME"))
+              public = public or name.startswith("assets/") or name.startswith("data/reference-masters/")
+              if public:
+                  assert source.is_file() and not source.is_symlink(), name
+                  destination = target / source
+                  destination.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copy2(source, destination)
+          (target / ".nojekyll").touch()
+          for name in ["index.html", "mylist.html", "obs.html", "admin.html", "firebase-app-check.js", "vtuber-master.js", "artist-classification.js", "sort-master.js"]:
+              assert (target / name).is_file(), "Missing website file: " + name
+          for name in [".github", ".git", "maintenance", "scripts", "tests", "functions", "Code.gs"]:
+              assert not (target / name).exists(), "Non-public file in artifact: " + name
+          print("Public website artifact prepared.")
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify published entry pages
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          python3 <<'PY'
+          import os, time, urllib.request
+          base = os.environ["SITE_URL"].rstrip("/") + "/"
+          for page, marker in [("", "シェアリスコア"), ("mylist.html", "mylist"), ("obs.html", "obs-scene")]:
+              for attempt in range(6):
+                  try:
+                      request = urllib.request.Request(base + page + "?deployment=" + os.environ["GITHUB_SHA"], headers={"Cache-Control": "no-cache"})
+                      with urllib.request.urlopen(request, timeout=25) as response:
+                          content = response.read().decode("utf-8")
+                          assert response.status == 200 and marker in content, "Unexpected page content"
+                      print("PASS:", base + page)
+                      break
+                  except Exception:
+                      if attempt == 5:
+                          raise
+                      time.sleep(10)
+          PY
