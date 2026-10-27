@@ -22,7 +22,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertSucceeds(update(ref(admin),{'userListShares/member/backgroundVersion':version,'userListBackgrounds/member':{version,image},['publicListShares/'+token+'/backgroundVersion']:version,['publicListBackgrounds/'+token]:{uid:'member',version,image}}));
  assert.equal((await get(ref(member,'userListShares/member'))).val().backgroundVersion,version);
  assert.equal((await get(ref(anon,'publicListBackgrounds/'+token))).val().image,image);
- for(const field of ['token','enabled','showKey','showParts'])await assertFails(set(ref(admin,'userListShares/member/'+field),field==='token'?'d'.repeat(48):false));
+ for(const field of ['token','showKey','showParts'])await assertFails(set(ref(admin,'userListShares/member/'+field),field==='token'?'d'.repeat(48):false));
  await assertFails(set(ref(admin,'userListShares/member'),null));
  await assertFails(set(ref(admin,'publicListShares/'+token+'/songs/song/title'),'Changed song'));
  await assertFails(set(ref(admin,'publicListShares/'+token+'/name'),'Changed name'));
@@ -35,15 +35,36 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  const paused={...config,enabled:false};
  await env.withSecurityRulesDisabled(async ctx=>{await set(ref(ctx.database(),'userListShares/member'),paused);await set(ref(ctx.database(),'publicListShares/'+token),{uid:'member',name:'[paused]',reserved:true,updatedAt:1});await set(ref(ctx.database(),'publicListLinks/member'),null);});
  await assertSucceeds(set(ref(admin,'userListShares/member/appearance'),appearance));
- await assertFails(set(ref(admin,'userListShares/member/enabled'),true));
+ await assertFails(set(ref(admin,'userListShares/member/enabled'),'true'));
  await assertFails(set(ref(admin,'publicListShares/'+token+'/appearance'),appearance));
  await assertFails(set(ref(admin,'publicListLinks/member'),{token}));
  await assertFails(get(ref(anon,'publicListShares/'+token)));
  await assertSucceeds(set(ref(admin,'userListShares/fresh'),{token:'e'.repeat(48),enabled:false,showKey:false,showParts:false,appearance}));
  await assertFails(set(ref(admin,'userListShares/missing'),{token:'f'.repeat(48),enabled:false,showKey:false,showParts:false,appearance}));
  await assertFails(set(ref(admin,'userListShares/other'),{token:otherToken,enabled:false,showKey:false,showParts:false,appearance}));
+ // Atomic resume/stop preserves the URL, private background, saved songs and disclosure choices.
+ await env.withSecurityRulesDisabled(async ctx=>{await update(ref(ctx.database()),{'userListShares/member/backgroundVersion':version,'userListBackgrounds/member':{version,image}});});
+ for(const db of [other,fake,guest,anon])await assertFails(set(ref(db,'userListShares/member/enabled'),true));
+ await assertSucceeds(get(ref(admin,'publicListShares/'+token)));
+ await assertFails(get(ref(other,'publicListShares/'+token)));
+ await assertSucceeds(update(ref(admin),{'userListShares/member/enabled':true,['publicListShares/'+token]:{...share,appearance,backgroundVersion:version,updatedAt:serverTimestamp()},['publicListLinks/member']:{token},['publicListBackgrounds/'+token]:{uid:'member',version,image}}));
+ assert.equal((await get(ref(anon,'publicListShares/'+token))).val().songs.song.key,2);
+ assert.equal((await get(ref(anon,'publicListLinks/member'))).val().token,token);
+ assert.equal((await get(ref(anon,'publicListBackgrounds/'+token))).val().image,image);
+ await assertFails(update(ref(admin),{['publicListShares/'+token+'/songs/song/key']:3}));
+ await assertFails(set(ref(admin,'publicListShares/'+otherToken),{...share,uid:'member',updatedAt:serverTimestamp()}));
+ await assertSucceeds(update(ref(admin),{'userListShares/member/enabled':false,['publicListShares/'+token]:{uid:'member',name:'[paused]',reserved:true,updatedAt:serverTimestamp()},['publicListLinks/member']:null,['publicListBackgrounds/'+token]:null}));
+ await assertFails(get(ref(anon,'publicListShares/'+token)));await assertFails(get(ref(anon,'publicListBackgrounds/'+token)));assert.equal((await assertSucceeds(get(ref(anon,'publicListLinks/member')))).exists(),false);
+ const kept=(await get(ref(admin,'userListShares/member'))).val();assert.equal(kept.token,token);assert.equal(kept.showKey,true);assert.equal(kept.showParts,true);assert.equal(kept.backgroundVersion,version);assert.equal((await get(ref(admin,'userListBackgrounds/member'))).val().image,image);
+ const freshToken='e'.repeat(48);
+ await assertFails(update(ref(admin),{'userListShares/fresh/enabled':true,['publicListShares/'+freshToken]:{uid:'fresh',name:'Fresh',updatedAt:serverTimestamp(),songs:{song:{title:'Song',artist:'Artist',key:2}}},'publicListLinks/fresh':{token:freshToken}}));
+ await assertFails(update(ref(admin),{'userListShares/fresh/enabled':true,['publicListShares/'+freshToken]:{uid:'fresh',name:'Fresh',updatedAt:serverTimestamp(),songs:{song:{title:'Song',artist:'Artist',parts:['Guitar']}}},'publicListLinks/fresh':{token:freshToken}}));
+ await assertFails(update(ref(admin),{'userListShares/fresh/enabled':true,['publicListShares/'+freshToken]:{uid:'fresh',name:'Fresh',email:'private@example.test',updatedAt:serverTimestamp()},'publicListLinks/fresh':{token:freshToken}}));
+ await assertSucceeds(update(ref(admin),{'userListShares/fresh/enabled':true,['publicListShares/'+freshToken]:{uid:'fresh',name:'Fresh',updatedAt:serverTimestamp()},'publicListLinks/fresh':{token:freshToken}}));
+ await assertFails(set(ref(admin,'publicListShares/'+freshToken+'/songs/song'),{title:'Not opted in',artist:'Artist',key:2}));
+ await assertFails(set(ref(admin,'userListShares/fresh/token'),token));
  await assertSucceeds(set(ref(member,'userListShares/member/appearance'),design.normalize({title:'Owner edit'})));
  await env.withSecurityRulesDisabled(async ctx=>{const db=ctx.database();assert.deepEqual((await get(ref(db,'users/member/songs/song'))).val(),{registered:true,key:2,part:'Guitar',liked:true});assert.equal((await get(ref(db,'userListShares/member'))).val().enabled,false);assert.equal((await get(ref(db,'publicListLinks/member'))).exists(),false);});
- console.log('PASS: admin design and atomic background edits, owner compatibility, paused/unpublished privacy, no song/token/publication/disclosure/account escalation.');
+ console.log('PASS: admin design and atomic background edits, owner compatibility, paused/unpublished privacy, admin-only publish/stop/resume, stable URL and disclosure, no private song/token/account escalation.');
  }finally{await env.cleanup();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

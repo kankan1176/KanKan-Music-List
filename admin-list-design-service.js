@@ -1,4 +1,4 @@
-/* Administrator design edits. Publication choices and saved songs are never written. */
+/* Administrator appearance and publication controls. Saved songs and disclosure choices are preserved. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory;else root.SLAdminListDesignService=factory;})(typeof globalThis!=='undefined'?globalThis:this,(database,target,isCurrent,core,design)=>{
  'use strict';
  if(!/^[A-Za-z0-9_-]{1,128}$/.test(target.uid))throw Error('対象ユーザーIDが不正です。');
@@ -49,5 +49,35 @@
   }
   check();await database.ref().update(updates);check();baseline=next;background=image;return{config:baseline,background};
  }
- return{load,preview,save};
+ async function setPublished(published){
+  check();if(!ready||typeof published!=='boolean')throw Error('公開設定を読み込み直してください。');
+  const [latest,latestImage]=await Promise.all([read('userListShares/'+uid),read('userListBackgrounds/'+uid)]);check();
+  if(!same(latest,baseline)||!same(latestImage,background))throw Error('本人または別の管理者が設定を更新しました。「再読み込み」で最新の内容を確認してください。');
+  if((!!latest&&latest.enabled!==false)===published)return{config:baseline,background};
+  const next={...(latest||{token:random(24),showKey:false,showParts:false,appearance:design.normalize()}),enabled:published};
+  const updates=latest?{['userListShares/'+uid+'/enabled']:published}:{['userListShares/'+uid]:next};
+  if(published){
+   const [latestSongs,profile]=await Promise.all([read('users/'+uid+'/songs'),read('publicProfiles/'+uid)]);check();
+   saved=latestSongs||{};
+   const payload=await preview(next.appearance);
+   payload.name=String(profile?.displayName||target.name||'ユーザー').trim().slice(0,40)||'ユーザー';
+   payload.updatedAt=firebase.database.ServerValue.TIMESTAMP;
+   if(next.backgroundVersion){
+    if(latestImage?.version!==next.backgroundVersion)throw Error('背景画像の保存状態が一致しません。再読み込みして確認してください。');
+    payload.backgroundVersion=next.backgroundVersion;
+    updates['publicListBackgrounds/'+next.token]={uid,...latestImage};
+   }else updates['publicListBackgrounds/'+next.token]=null;
+   // Recheck long-running collection before publishing, without changing private songs.
+   const [finalConfig,finalImage,finalSongs]=await Promise.all([read('userListShares/'+uid),read('userListBackgrounds/'+uid),read('users/'+uid+'/songs')]);check();
+   if(!same(finalConfig,latest)||!same(finalImage,latestImage)||!same(finalSongs,latestSongs))throw Error('公開準備中に設定または楽曲が更新されました。再読み込みして、もう一度公開してください。');
+   updates['publicListShares/'+next.token]=payload;
+   updates['publicListLinks/'+uid]={token:next.token};
+  }else{
+   updates['publicListShares/'+next.token]={uid,name:'[paused]',reserved:true,updatedAt:firebase.database.ServerValue.TIMESTAMP};
+   updates['publicListBackgrounds/'+next.token]=null;
+   updates['publicListLinks/'+uid]=null;
+  }
+  check();await database.ref().update(updates);check();baseline=next;background=latestImage;return{config:baseline,background};
+ }
+ return{load,preview,save,setPublished};
 });
