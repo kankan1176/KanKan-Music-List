@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>シェアリスコア-Share List Score-</title>
     <!-- ルーム招待URLだけは従来どおり直接入室。それ以外はホームを最初に表示する。 -->
@@ -3638,7 +3639,7 @@ body.sl-redesign{--sl-filter:134px!important}
   </nav>
 
   
-<div class="sl-sidebar-legal" aria-label="利用規約・プライバシー">
+<div class="sl-sidebar-legal notranslate" translate="no" data-sl-ui-translation aria-label="利用規約・プライバシー">
   <button type="button" onclick="slNavigate('terms')">利用規約と免責事項</button>
   <button type="button" onclick="slNavigate('privacy')">プライバシーポリシー</button>
   <div class="sl-sidebar-copyright">Copyright © 2026 シェアリスコア.<br>All Rights Reserved.</div>
@@ -3960,7 +3961,7 @@ body.sl-redesign{--sl-filter:134px!important}
 </div>
 
 <!-- 利用規約と免責事項 -->
-<div class="modal-overlay" id="slTermsModal" onclick="closeModal(event,'slTermsModal')">
+<div class="modal-overlay notranslate" id="slTermsModal" translate="no" data-sl-ui-translation onclick="closeModal(event,'slTermsModal')">
   <div class="modal sl-legal-modal" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="slTermsTitle">
     <span class="modal-close" onclick="closeModal(null,'slTermsModal')">&times;</span>
     <h2 id="slTermsTitle">利用規約と免責事項</h2>
@@ -4049,7 +4050,7 @@ body.sl-redesign{--sl-filter:134px!important}
 </div>
 
 <!-- プライバシーポリシー -->
-<div class="modal-overlay" id="slPrivacyModal" onclick="closeModal(event,'slPrivacyModal')">
+<div class="modal-overlay notranslate" id="slPrivacyModal" translate="no" data-sl-ui-translation onclick="closeModal(event,'slPrivacyModal')">
   <div class="modal sl-legal-modal" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="slPrivacyTitle">
     <span class="modal-close" onclick="closeModal(null,'slPrivacyModal')">&times;</span>
     <h2 id="slPrivacyTitle">プライバシーポリシー</h2>
@@ -4973,7 +4974,10 @@ body.sl-redesign{--sl-filter:134px!important}
     }
     function shouldSkipI18n(el) {
         if (!el || !el.closest) return true;
-        if(el.closest('[translate="no"],.sl-dock-title,.sl-dock-artist,.friend-name,.sl-history-user-name,.clipboard-source-data'))return true;
+        // Protect legal copy from browser translation while retaining our language switch.
+        const browserTranslationBlock=el.closest('[translate="no"]');
+        if(browserTranslationBlock&&!browserTranslationBlock.hasAttribute('data-sl-ui-translation'))return true;
+        if(el.closest('.sl-dock-title,.sl-dock-artist,.friend-name,.sl-history-user-name,.clipboard-source-data'))return true;
         if (el.closest('script,style,code,textarea,#tableBody .col-title,#tableBody .col-artist,#detailTitle,#detailArtist,#detailLyricist,#detailComposer,#detailArranger,#confirmArtistName,#myListRemovalSongName,#roomMembersList,#friendsList .friend-name,#incomingFriendRequests .friend-name,#outgoingFriendRequests .friend-name,#myFriendCode,#loginStatus.logged-in,#mobileIdentity.mobile-person-name')) return true;
         return false;
     }
