@@ -42,6 +42,11 @@ on:
       - 'list-share-service.js'
       - 'scripts/check-list-share.cjs'
       - 'scripts/admin-mylist-rules.cjs'
+      - 'scripts/admin-list-design-rules.cjs'
+      - 'scripts/check-admin-list-design.cjs'
+      - 'admin-list-design-service.js'
+      - 'admin-list-design-ui.js'
+      - 'tests/free-controls/test-admin-list-design.cjs'
       - 'scripts/account-name-rules.cjs'
       - 'scripts/check-account-name.cjs'
       - 'account-display-name.js'
@@ -85,6 +90,7 @@ jobs:
           node scripts/check-account-features.cjs
           node scripts/check-queue-actions.cjs
           node scripts/check-admin-mylist.cjs
+          node scripts/check-admin-list-design.cjs
           node scripts/check-account-name.cjs
           node scripts/check-list-share.cjs
           node scripts/check-obs-scene.cjs
@@ -95,7 +101,7 @@ jobs:
       - name: Install local-only rule test dependencies
         run: npm ci --prefix tests/free-controls --ignore-scripts --no-audit --no-fund
       - name: Verify access control using a local demo database emulator
-        run: tests/free-controls/node_modules/.bin/firebase emulators:exec --project demo-free-controls --only database --config tests/free-controls/firebase.json 'node tests/free-controls/test-rules.cjs'
+        run: tests/free-controls/node_modules/.bin/firebase emulators:exec --project demo-free-controls --only database --config tests/free-controls/firebase.json 'node tests/free-controls/test-rules.cjs && node tests/free-controls/test-admin-list-design.cjs'
       - name: Authenticate using the existing database administrator
         uses: google-github-actions/auth@v2
         with:

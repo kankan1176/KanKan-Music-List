@@ -41,6 +41,7 @@
       const actions = document.createElement('div'); actions.className = 'control-actions';
       
       if (item.kind === 'account') {
+        actions.append(button('マイリストUI編集', () => window.dispatchEvent(new CustomEvent('sl-admin-list-design', {detail:{uid:item.uid,name:item.name}}))));
         const logout = button('アプリからログアウト', () => run({action:'forceLogout', uid:item.uid}, item.name + ' にログアウト指示を送信しますか？ 未保存の変更が失われる場合があります。', 'ログアウト指示を送信しました。Google認証トークン自体は失効しません。'), item.uid === current()?.uid);
         logout.className = 'danger';
         if (item.uid === current()?.uid) logout.title = '操作中の管理者自身には実行できません';

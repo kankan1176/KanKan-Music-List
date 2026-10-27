@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="admin-ui.css?v=20261020-9">
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-check-compat.js"></script>
-<script src="firebase-app-check.js?v=20261021-2"></script><script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script></head><body><main>
+<script src="firebase-app-check.js?v=20261021-2"></script><script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script><link rel="stylesheet" href="list-share-editor.css?v=20261027-admin1"></head><body><main>
 <header class="page-header"><div><a class="site-back" href="/">← シェアリスコアへ戻る</a><div class="eyebrow">SHARELISCORE / ADMIN</div><h1>管理ダッシュボード</h1></div><div class="header-actions"><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" hidden>ログアウト</button></div></header>
 <p id="message" class="system-status" role="status">ログイン状態を確認中…</p>
 <section id="panel" hidden><div class="layout"><nav class="sidebar" aria-label="管理者メニュー"><span class="nav-label">管理メニュー</span><button data-go="home">概要</button><button data-go="requests">楽曲申請</button><button data-go="controls">ユーザー操作</button><button data-go="users">公開プロフィール</button><button data-go="rooms">ルーム管理</button><button data-go="master">楽曲マスタ</button><p class="sidebar-note">管理者専用<br>保存済みのマイリストは、キャッシュ削除の対象外です。</p></nav><div class="content">
@@ -321,7 +321,7 @@ async function loadUsers(){
   }catch(e){$('usersStatus').textContent='ユーザー情報を取得できません: '+e.message}
 }
 showView('home');
-</script><script src="admin-control-api.js?v=20261017-name1"></script><script src="admin-mylist-core.js?v=20261017-proxy1"></script><script src="admin-mylist-service.js?v=20261017-proxy1"></script><script src="admin-mylist-ui.js?v=20261017-proxy1"></script><script src="admin-account-controls.js?v=20261017-name1"></script></body></html>
+</script><script src="admin-control-api.js?v=20261017-name1"></script><script src="admin-mylist-core.js?v=20261017-proxy1"></script><script src="admin-mylist-service.js?v=20261017-proxy1"></script><script src="admin-mylist-ui.js?v=20261017-proxy1"></script><script src="admin-account-controls.js?v=20261027-admin1"></script><script src="list-share-design.js?v=20261027-admin1"></script><script src="list-share-core.js?v=20261027-admin1"></script><script src="admin-list-design-service.js?v=20261027-admin1"></script><script src="admin-list-design-ui.js?v=20261027-admin1"></script></body></html>
 
 
 

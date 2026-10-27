@@ -1,0 +1,49 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {initializeTestEnvironment,assertFails,assertSucceeds}=require('@firebase/rules-unit-testing');
+const {ref,set,get,update,serverTimestamp}=require('firebase/database');
+const {mergeFreeRules}=require('../../scripts/free-control-rules.cjs');
+const design=require('../../list-share-design.js');
+const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicProfiles:{'.read':true},admins:{$uid:{'.read':'auth != null && auth.uid === $uid'}},users:{$uid:{'.read':'auth != null && auth.uid === $uid','.write':'auth != null && auth.uid === $uid'}}}};
+(async()=>{
+ const env=await initializeTestEnvironment({projectId:'demo-free-controls',database:{host:'127.0.0.1',port:9000,rules:JSON.stringify(mergeFreeRules(original))}});
+ try{
+ const token='a'.repeat(48),otherToken='b'.repeat(48),image='data:image/jpeg;base64,/9j/',version='c'.repeat(32);
+ const config={token,enabled:true,showKey:true,showParts:true,appearance:design.normalize({title:'Original'})};
+ const share={uid:'member',name:'Member',updatedAt:1,appearance:config.appearance,songs:{song:{title:'Song',artist:'Artist',key:2,parts:['Guitar']}}};
+ await env.withSecurityRulesDisabled(async ctx=>{const db=ctx.database();await set(ref(db),{admins:{admin:true},publicProfiles:{member:{displayName:'Member'},fresh:{displayName:'Fresh'},other:{displayName:'Other'}},users:{member:{songs:{song:{registered:true,key:2,part:'Guitar',liked:true}},profile:{private:'keep'},preferences:{private:'keep'}}},userListShares:{member:config,other:{...config,token:otherToken}},publicListShares:{[token]:share,[otherToken]:{...share,uid:'other'}},publicListLinks:{member:{token}}});});
+ const context=(uid,provider='google.com')=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider}}).database();
+ const admin=context('admin'),member=context('member'),other=context('other'),fake=context('admin','anonymous'),guest=context('guest','anonymous'),anon=env.unauthenticatedContext().database();
+ for(const db of [other,fake,guest,anon]){await assertFails(get(ref(db,'userListShares/member')));await assertFails(get(ref(db,'userListBackgrounds/member')));await assertFails(set(ref(db,'userListShares/member/appearance'),design.normalize({title:'Forbidden'})));}
+ await assertSucceeds(get(ref(admin,'userListShares/member')));await assertSucceeds(get(ref(admin,'userListBackgrounds/member')));
+ await assertFails(get(ref(admin,'userListShares')));await assertFails(get(ref(admin,'users/member/profile')));await assertFails(get(ref(admin,'users/member/preferences')));
+ const appearance=design.normalize({title:'Admin design',preset:'light'});
+ await assertSucceeds(update(ref(admin),{'userListShares/member/appearance':appearance,['publicListShares/'+token+'/appearance']:appearance,['publicListShares/'+token+'/updatedAt']:serverTimestamp()}));
+ await assertSucceeds(update(ref(admin),{'userListShares/member/backgroundVersion':version,'userListBackgrounds/member':{version,image},['publicListShares/'+token+'/backgroundVersion']:version,['publicListBackgrounds/'+token]:{uid:'member',version,image}}));
+ assert.equal((await get(ref(member,'userListShares/member'))).val().backgroundVersion,version);
+ assert.equal((await get(ref(anon,'publicListBackgrounds/'+token))).val().image,image);
+ for(const field of ['token','enabled','showKey','showParts'])await assertFails(set(ref(admin,'userListShares/member/'+field),field==='token'?'d'.repeat(48):false));
+ await assertFails(set(ref(admin,'userListShares/member'),null));
+ await assertFails(set(ref(admin,'publicListShares/'+token+'/songs/song/title'),'Changed song'));
+ await assertFails(set(ref(admin,'publicListShares/'+token+'/name'),'Changed name'));
+ await assertFails(set(ref(admin,'publicListShares/'+token+'/uid'),'admin'));
+ await assertFails(set(ref(admin,'publicListShares/'+token),{...share,appearance}));
+ await assertFails(set(ref(admin,'publicListBackgrounds/'+otherToken),{uid:'member',version,image}));
+ await assertFails(set(ref(admin,'userListBackgrounds/member'),{version:'d'.repeat(32),image}));
+ await assertFails(update(ref(admin),{'userListShares/member/appearance':{...appearance,unknown:true},['publicListShares/'+token+'/appearance']:appearance}));
+ await assertSucceeds(update(ref(admin),{'userListShares/member/backgroundVersion':null,'userListBackgrounds/member':null,['publicListShares/'+token+'/backgroundVersion']:null,['publicListBackgrounds/'+token]:null}));
+ const paused={...config,enabled:false};
+ await env.withSecurityRulesDisabled(async ctx=>{await set(ref(ctx.database(),'userListShares/member'),paused);await set(ref(ctx.database(),'publicListShares/'+token),{uid:'member',name:'[paused]',reserved:true,updatedAt:1});await set(ref(ctx.database(),'publicListLinks/member'),null);});
+ await assertSucceeds(set(ref(admin,'userListShares/member/appearance'),appearance));
+ await assertFails(set(ref(admin,'userListShares/member/enabled'),true));
+ await assertFails(set(ref(admin,'publicListShares/'+token+'/appearance'),appearance));
+ await assertFails(set(ref(admin,'publicListLinks/member'),{token}));
+ await assertFails(get(ref(anon,'publicListShares/'+token)));
+ await assertSucceeds(set(ref(admin,'userListShares/fresh'),{token:'e'.repeat(48),enabled:false,showKey:false,showParts:false,appearance}));
+ await assertFails(set(ref(admin,'userListShares/missing'),{token:'f'.repeat(48),enabled:false,showKey:false,showParts:false,appearance}));
+ await assertFails(set(ref(admin,'userListShares/other'),{token:otherToken,enabled:false,showKey:false,showParts:false,appearance}));
+ await assertSucceeds(set(ref(member,'userListShares/member/appearance'),design.normalize({title:'Owner edit'})));
+ await env.withSecurityRulesDisabled(async ctx=>{const db=ctx.database();assert.deepEqual((await get(ref(db,'users/member/songs/song'))).val(),{registered:true,key:2,part:'Guitar',liked:true});assert.equal((await get(ref(db,'userListShares/member'))).val().enabled,false);assert.equal((await get(ref(db,'publicListLinks/member'))).exists(),false);});
+ console.log('PASS: admin design and atomic background edits, owner compatibility, paused/unpublished privacy, no song/token/publication/disclosure/account escalation.');
+ }finally{await env.cleanup();}
+})().catch(error=>{console.error(error);process.exitCode=1;});
