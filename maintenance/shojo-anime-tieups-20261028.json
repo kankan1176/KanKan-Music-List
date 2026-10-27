@@ -1,0 +1,415 @@
+{
+  "operation": "shojo-anime-tieups-20261028",
+  "entries": [
+    {
+      "id": "45a4dd4e-b89a-5762-adcd-d2a1973748a3",
+      "title": "ぶーりん あ・ら・もーど",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%B6%E3%83%BC%E3%82%8A%E3%82%93+%E3%81%82%E3%83%BB%E3%82%89%E3%83%BB%E3%82%82%E3%83%BC%E3%81%A9",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "ちゃお",
+        "tieup": "愛と勇気のピッグガール とんでぶーりん"
+      }
+    },
+    {
+      "id": "abad9398-2da0-55cb-b68e-7f00d3de735e",
+      "title": "バラライカ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%90%E3%83%A9%E3%83%A9%E3%82%A4%E3%82%AB",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "ちゃお",
+        "tieup": "きらりん☆レボリューション"
+      }
+    },
+    {
+      "id": "c65bd415-282e-5253-9020-0eac57405bb2",
+      "title": "チャンス!",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%81%E3%83%A3%E3%83%B3%E3%82%B9%21",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "ちゃお",
+        "tieup": "きらりん☆レボリューション"
+      }
+    },
+    {
+      "id": "0eb23df0-03b0-5ea9-a36d-6762f616e5ce",
+      "title": "アナタボシ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%A2%E3%83%8A%E3%82%BF%E3%83%9C%E3%82%B7",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "ちゃお",
+        "tieup": "きらりん☆レボリューション STAGE3"
+      }
+    },
+    {
+      "id": "041a61c4-2d28-5050-82e1-aa770b6a9cab",
+      "title": "Sweet Sensation",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Sweet+Sensation",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "ちゃお",
+        "tieup": "12歳。〜ちっちゃなムネのトキメキ〜"
+      }
+    },
+    {
+      "id": "65c36133-a5b7-56d8-8865-a5dbfdc22776",
+      "title": "リボンの騎士",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AA%E3%83%9C%E3%83%B3%E3%81%AE%E9%A8%8E%E5%A3%AB",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "リボンの騎士"
+      }
+    },
+    {
+      "id": "90a43457-5533-52c6-96f9-4aa1244fbb47",
+      "title": "キャンディ・キャンディ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%AD%E3%83%A3%E3%83%B3%E3%83%87%E3%82%A3%E3%83%BB%E3%82%AD%E3%83%A3%E3%83%B3%E3%83%87%E3%82%A3",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "キャンディ・キャンディ"
+      }
+    },
+    {
+      "id": "9ac54094-ac73-543a-ba86-90c269327ec9",
+      "title": "あしたがすき",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%82%E3%81%97%E3%81%9F%E3%81%8C%E3%81%99%E3%81%8D",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "キャンディ・キャンディ"
+      }
+    },
+    {
+      "id": "4b21fde1-9df3-579e-b404-7cbffd428720",
+      "title": "ムーンライト伝説",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%A0%E3%83%BC%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%88%E4%BC%9D%E8%AA%AC",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "美少女戦士セーラームーン"
+      }
+    },
+    {
+      "id": "21466218-0af5-56a7-a652-2bc4961dcbc2",
+      "title": "乙女のポリシー",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E4%B9%99%E5%A5%B3%E3%81%AE%E3%83%9D%E3%83%AA%E3%82%B7%E3%83%BC",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "美少女戦士セーラームーンR"
+      }
+    },
+    {
+      "id": "16fcd407-c2f2-5048-8ee6-b2bbdd98dce7",
+      "title": "タキシード・ミラージュ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%BF%E3%82%AD%E3%82%B7%E3%83%BC%E3%83%89%E3%83%BB%E3%83%9F%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A5",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "美少女戦士セーラームーンS"
+      }
+    },
+    {
+      "id": "82755dd1-fe3b-526f-8674-2cc751a1955a",
+      "title": "セーラースターソング",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%BB%E3%83%BC%E3%83%A9%E3%83%BC%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BD%E3%83%B3%E3%82%B0",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "美少女戦士セーラームーン セーラースターズ"
+      }
+    },
+    {
+      "id": "33af0c64-85b5-5603-91e9-ca050dc0ceff",
+      "title": "わぴこ元気予報！",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%8F%E3%81%B4%E3%81%93%E5%85%83%E6%B0%97%E4%BA%88%E5%A0%B1%EF%BC%81",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "きんぎょ注意報！"
+      }
+    },
+    {
+      "id": "ef47fcb9-587c-5646-b375-8e4b75afceb1",
+      "title": "ゆずれない願い",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%86%E3%81%9A%E3%82%8C%E3%81%AA%E3%81%84%E9%A1%98%E3%81%84",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "魔法騎士レイアース"
+      }
+    },
+    {
+      "id": "62534611-20b8-5a82-8641-0605828080ec",
+      "title": "明日への勇気",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%98%8E%E6%97%A5%E3%81%B8%E3%81%AE%E5%8B%87%E6%B0%97",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "魔法騎士レイアース"
+      }
+    },
+    {
+      "id": "6d725807-b811-47ee-ae20-029989e6fef4",
+      "title": "時を越えて",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%99%82%E3%82%92%E8%B6%8A%E3%81%88%E3%81%A6%EF%BC%88%E6%9D%BE%E9%9B%AA%E6%B3%B0%E5%AD%90%EF%BC%89",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "怪盗セイント・テール"
+      }
+    },
+    {
+      "id": "dd42e418-0442-5070-bbc7-ef0cf7da0351",
+      "title": "Catch you catch me",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Catch+you+catch+me",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "カードキャプターさくら"
+      }
+    },
+    {
+      "id": "6531cc06-5939-5086-8c25-0905f48d491e",
+      "title": "プラチナ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%97%E3%83%A9%E3%83%81%E3%83%8A",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "カードキャプターさくら"
+      }
+    },
+    {
+      "id": "2fdf9ff2-5e1d-4f62-8fb0-52b5203e88f2",
+      "title": "プラチナ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%97%E3%83%A9%E3%83%81%E3%83%8A%28%E6%BC%94%E5%A5%8F%E7%94%A8%29",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "カードキャプターさくら"
+      }
+    },
+    {
+      "id": "3c4b66fe-3c69-5914-9421-6cff1a048f5b",
+      "title": "Groovy!",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Groovy%21",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "カードキャプターさくら"
+      }
+    },
+    {
+      "id": "4f3f440f-df65-4b9a-ae1a-fba7487db058",
+      "title": "CLEAR",
+      "chordwiki": "https://ja.chordwiki.org/wiki/CLEAR%EF%BC%88%E5%9D%82%E6%9C%AC%E7%9C%9F%E7%B6%BE%EF%BC%89",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "カードキャプターさくら クリアカード編"
+      }
+    },
+    {
+      "id": "a0d0ff63-620e-4484-8b6a-b3f6e440008c",
+      "title": "my sweet heart",
+      "chordwiki": "https://ja.chordwiki.org/wiki/my+sweet+heart",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "なかよし",
+        "tieup": "東京ミュウミュウ"
+      }
+    },
+    {
+      "id": "041bbd7c-6621-5577-be58-9cae013dcd61",
+      "title": "魔法のマンボ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%AD%94%E6%B3%95%E3%81%AE%E3%83%9E%E3%83%B3%E3%83%9C",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "魔法使いサリー"
+      }
+    },
+    {
+      "id": "20321fcb-c0cd-5645-bc20-427429a75210",
+      "title": "いたずらのうた",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%84%E3%81%9F%E3%81%99%E3%82%99%E3%82%89%E3%81%AE%E3%81%86%E3%81%9F",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "魔法使いサリー"
+      }
+    },
+    {
+      "id": "c6593051-d8f7-5c89-9803-7af264801835",
+      "title": "パパパのチョイナ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%91%E3%83%91%E3%83%91%E3%81%AE%E3%83%81%E3%83%A7%E3%82%A4%E3%83%8A",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "魔法使いサリー"
+      }
+    },
+    {
+      "id": "0f64b5e4-e2e0-5cd1-8592-42784277828d",
+      "title": "ひみつのアッコちゃん",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%B2%E3%81%BF%E3%81%A4%E3%81%AE%E3%82%A2%E3%83%83%E3%82%B3%E3%81%A1%E3%82%83%E3%82%93",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "ひみつのアッコちゃん"
+      }
+    },
+    {
+      "id": "24f119b8-c3a9-52fe-93e6-5e191d12ed1a",
+      "title": "すきすきソング",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%99%E3%81%8D%E3%81%99%E3%81%8D%E3%82%BD%E3%83%B3%E3%82%B0",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "ひみつのアッコちゃん"
+      }
+    },
+    {
+      "id": "a3388711-31fd-5991-9e53-3c579d64b19e",
+      "title": "ときめきトゥナイト",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%A8%E3%81%8D%E3%82%81%E3%81%8D%E3%83%88%E3%82%A5%E3%83%8A%E3%82%A4%E3%83%88",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "ときめきトゥナイト"
+      }
+    },
+    {
+      "id": "f608e37a-26ce-54d3-9bf4-92bc02d8d29e",
+      "title": "Super Love Lotion",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Super+Love+Lotion",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "ときめきトゥナイト"
+      }
+    },
+    {
+      "id": "755d88e4-362a-57d0-98db-68c17bc1a8f0",
+      "title": "笑顔のゲンキ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%AC%91%E9%A1%94%E3%81%AE%E3%82%B2%E3%83%B3%E3%82%AD",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "姫ちゃんのリボン"
+      }
+    },
+    {
+      "id": "f492277f-4be3-5dbc-b229-e01ae94462e0",
+      "title": "ブラブラさせて",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%96%E3%83%A9%E3%83%96%E3%83%A9%E3%81%95%E3%81%9B%E3%81%A6",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "姫ちゃんのリボン"
+      }
+    },
+    {
+      "id": "30912eab-6738-5f38-914b-7b04214d4b44",
+      "title": "君は君だよ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%90%9B%E3%81%AF%E5%90%9B%E3%81%A0%E3%82%88",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "姫ちゃんのリボン"
+      }
+    },
+    {
+      "id": "28f0c4c9-5752-5b26-85f5-320863637551",
+      "title": "君色思い",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%90%9B%E8%89%B2%E6%80%9D%E3%81%84",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "赤ずきんチャチャ"
+      }
+    },
+    {
+      "id": "6830a992-57b4-5625-9a5d-ff4b01699496",
+      "title": "恋をするたびに傷つきやすく",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%81%8B%E3%82%92%E3%81%99%E3%82%8B%E3%81%9F%E3%81%B3%E3%81%AB%E5%82%B7%E3%81%A4%E3%81%8D%E3%82%84%E3%81%99%E3%81%8F",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "ナースエンジェルりりかSOS"
+      }
+    },
+    {
+      "id": "28043f01-9284-526f-b336-e4a8a76bfd31",
+      "title": "19時のニュース",
+      "chordwiki": "https://ja.chordwiki.org/wiki/19%E6%99%82%E3%81%AE%E3%83%8B%E3%83%A5%E3%83%BC%E3%82%B9",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "こどものおもちゃ"
+      }
+    },
+    {
+      "id": "895f7e26-c7e9-5e18-9d25-ee65569f9be2",
+      "title": "ウルトラリラックス",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%A6%E3%83%AB%E3%83%88%E3%83%A9%E3%83%AA%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "こどものおもちゃ"
+      }
+    },
+    {
+      "id": "43525f71-6803-567e-8701-2c1fb0d81549",
+      "title": "I♥U",
+      "chordwiki": "https://ja.chordwiki.org/wiki/I%E2%99%A5U",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "満月をさがして"
+      }
+    },
+    {
+      "id": "3b05500f-bcaf-5945-9ef0-09f2f2f42ec0",
+      "title": "ETERNAL SNOW",
+      "chordwiki": "https://ja.chordwiki.org/wiki/ETERNAL+SNOW",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "満月をさがして"
+      }
+    },
+    {
+      "id": "4954077d-2fb8-550d-a752-e53373ece0f7",
+      "title": "夢にエール!パティシエール♪",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%A4%A2%E3%81%AB%E3%82%A8%E3%83%BC%E3%83%AB%21%E3%83%91%E3%83%86%E3%82%A3%E3%82%B7%E3%82%A8%E3%83%BC%E3%83%AB%E2%99%AA",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "夢色パティシエール"
+      }
+    },
+    {
+      "id": "53685e77-22ad-5d0b-bf1e-aa4a60d80910",
+      "title": "魔法使いサリー",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%AD%94%E6%B3%95%E4%BD%BF%E3%81%84%E3%82%B5%E3%83%AA%E3%83%BC",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "魔法使いサリー"
+      }
+    },
+    {
+      "id": "97f76191-1023-5dac-b376-f187d77331d7",
+      "title": "鏡の中",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%8F%A1%E3%81%AE%E4%B8%AD",
+      "append": {
+        "genre2": "アニソン",
+        "genre5": "りぼん",
+        "tieup": "ウルトラマニアック"
+      }
+    }
+  ]
+}

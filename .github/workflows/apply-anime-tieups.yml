@@ -1,0 +1,43 @@
+name: Apply verified shojo anime tieups
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maintenance/shojo-anime-tieups-20261028.json'
+      - 'scripts/apply-anime-tieups.cjs'
+      - 'scripts/check-anime-tieups.cjs'
+      - '.github/workflows/apply-anime-tieups.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  apply:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-anime-tieups.cjs
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Merge only verified genre2, genre5 and tieup tags on existing song IDs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/apply-anime-tieups.cjs
+      - name: Rebuild search and genre indexes from the updated master
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/build-search-index.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: anime-tieup-backup-${{ github.run_id }}
+          path: .anime-tieup-backup/*.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
