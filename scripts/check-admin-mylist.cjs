@@ -16,6 +16,15 @@ preview=core.analyze(rows,master,saved,{6:'amb2'});assert.equal(preview[4].songI
 assert.equal(core.analyze(core.parseCsv('ライラック,mrs green apple'),master,{})[0].key,0);
 assert.equal(core.analyze(core.parseCsv('ライラック,Mrs. GREEN APPLE,－５'),master,{})[0].key,-5);
 assert.equal(core.analyze(core.parseCsv('ライラック,Mrs. GREEN APPLE'),master,{apple:{registered:false}})[0].status,'duplicate');
+// Explicit IDs disambiguate duplicate master rows and allow a missing master artist.
+const idMaster={...master,blank:{title:'歌手未設定の曲',artist:''}};
+const byId=core.parseCsv('曲名,アーティスト,Key,楽曲ID\nSong,YUI,,amb1\n歌手未設定の曲,,0,blank');
+assert.deepEqual(core.analyze(byId,idMaster,{}).map(r=>[r.status,r.songId,r.key]),[['ready','amb1',0],['ready','blank',0]]);
+for(const source of ['Song,YUI,0,missing','別の曲,YUI,0,amb1','Song,別人,0,amb1','Song,YUI,0,../amb1','歌手未設定の曲,,,'])assert.equal(core.analyze(core.parseCsv(source),idMaster,{})[0].status,'excluded');
+assert.equal(core.analyze(byId,idMaster,{amb1:{registered:true,key:4}})[0].status,'duplicate');
+assert.deepEqual(core.analyze(core.parseCsv('Song,YUI,0,amb1\nSong,YUI,0,amb1'),idMaster,{}).map(r=>r.status),['ready','duplicate']);
+assert.throws(()=>core.parseCsv('曲名,アーティスト,Key,楽曲ID,extra\nSong,YUI,0,amb1,x'),/見出し/);
+assert.equal(core.analyze(core.parseCsv('歌手未設定の曲,'),idMaster,{})[0].status,'excluded');
 assert.equal(core.decode(new TextEncoder().encode('曲名,アーティスト,Key')),'曲名,アーティスト,Key');
 const original={rules:{'.read':false,'.write':false,users:{$uid:{'.read':'auth.uid === $uid','.write':'auth.uid === $uid'}},rooms:{'.read':false}}};
 const merged=mergeFreeRules(original);assert.deepEqual(mergeFreeRules(merged),merged);assert.equal(merged.rules.users.$uid['.write'],original.rules.users.$uid['.write']);assert.equal(merged.rules.users.$uid.songs['.write'],undefined);assert.equal(merged.rules.users.$uid.songs.$songId['.write'].includes("root.child('songs')"),true);assert.deepEqual(Object.keys(merged.rules.users.$uid.profile),['displayName']);assert.equal(merged.rules.users.$uid.profile['.write'],undefined);

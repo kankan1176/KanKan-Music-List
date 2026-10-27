@@ -29,7 +29,7 @@
     const first = rows[0]?.cells.map(normalize);
     const hasHeader = first && ['曲名','タイトル','title'].includes(first[0]) && ['アーティスト','アーティスト名','artist'].includes(first[1]);
     if (hasHeader) {
-      if (first.length > 3 || (first[2] && !['key','キー'].includes(first[2]))) throw Error('見出しは「曲名,アーティスト,Key」の順にしてください。');
+      if (first.length > 4 || (first[2] && !['key','キー'].includes(first[2])) || (first[3] && !['楽曲id','id','songid'].includes(first[3]))) throw Error('見出しは「曲名,アーティスト,Key,楽曲ID」の順にしてください。楽曲ID列は省略できます。');
       rows.shift();
     }
     if (!rows.length) throw Error('曲のデータ行がありません。見出しの下に曲名・アーティストを入力してください。');
@@ -49,20 +49,26 @@
     return {index, byId};
   }
   function analyze(rows, master, saved, choices = {}) {
-    const {index} = buildIndex(master), seen = new Set();
+    const {index,byId} = buildIndex(master), seen = new Set();
     return rows.map(row => {
       const title = String(row.cells[0] || '').trim(), artist = String(row.cells[1] || '').trim();
       const rawKey = String(row.cells[2] || '').normalize('NFKC').trim();
+      const explicitId = String(row.cells[3] || '').trim();
       const result = {line:row.line, title, artist, rawKey, key:0, status:'excluded', reason:'', candidates:[], songId:null};
-      if (row.cells.length > 3 || !title || !artist) return {...result, reason:'曲名・アーティストが必要です。列は3列以内にしてください。'};
+      if (row.cells.length > 4 || !title || (!artist && !explicitId)) return {...result, reason:'曲名・アーティストが必要です。楽曲IDを指定する場合のみアーティスト空欄に対応します。列は4列以内にしてください。'};
       if (rawKey && (!/^[+-]?\d+$/.test(rawKey) || Number(rawKey) < -5 || Number(rawKey) > 6)) return {...result, reason:'Keyは-5〜+6の整数で入力してください。'};
       result.key = rawKey ? Number(rawKey) : 0;
-      result.candidates = index.get(normalize(title) + '\0' + normalize(artist)) || [];
+      if (explicitId) {
+        const song = /^[A-Za-z0-9_-]{1,80}$/.test(explicitId) ? byId.get(explicitId) : null;
+        if (!song) return {...result, reason:'指定した楽曲IDがマスターに存在しません。'};
+        if (normalize(song.title) !== normalize(title) || (artist && normalize(song.artist) !== normalize(artist))) return {...result, reason:'指定した楽曲IDと曲名・アーティストが一致しません。最新マスターを確認してください。'};
+        result.candidates = [song];
+      } else result.candidates = index.get(normalize(title) + '\0' + normalize(artist)) || [];
       if (!result.candidates.length) return {...result, reason:'マスターに一致する楽曲がありません。'};
       const selected = choices[row.line];
       if (selected === 'skip') return {...result, reason:'この行は登録しません。'};
       if (result.candidates.length > 1 && !result.candidates.some(c => c.id === selected)) return {...result, status:'candidate', reason:'候補が複数あります。登録先を選択しない場合は除外します。'};
-      const song = result.candidates.find(c => c.id === selected) || result.candidates[0]; result.songId = song.id;
+      const song = result.candidates.find(c => c.id === selected) || result.candidates[0]; result.songId = song.id; result.masterTitle = song.title; result.masterArtist = song.artist;
       if (Object.prototype.hasOwnProperty.call(saved || {}, song.id)) return {...result, status:'duplicate', reason:'既存マイリストにデータがあるため除外します。Keyなどは変更しません。'};
       if (seen.has(song.id)) return {...result, status:'duplicate', reason:'CSV内で同じ楽曲が重複しているため除外します。'};
       seen.add(song.id);

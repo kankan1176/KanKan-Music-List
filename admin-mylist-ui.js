@@ -49,7 +49,7 @@
       const row = document.createElement('tr');
       row.append(node('td',item.line),node('td',item.title),node('td',item.artist),node('td',item.rawKey || '0'));
       const state = node('td', {ready:'追記',duplicate:'重複・除外',candidate:'候補選択',excluded:'除外'}[item.status]); state.className = 'import-' + item.status;
-      state.append(node('small',item.reason)); row.append(state);
+      state.append(node('small',item.reason)); if(item.songId)state.append(node('small','登録先：'+item.masterTitle+' / '+(item.masterArtist||'アーティスト未設定')+' ['+item.songId+']')); row.append(state);
       if (item.candidates.length > 1) {
         const select = document.createElement('select'); select.setAttribute('aria-label',item.line+'行目の登録先');
         select.append(new Option('未選択のまま除外',''),new Option('この行は登録しない','skip'));
@@ -108,7 +108,7 @@
     finally { if(request===version)setBusy(false); }
   }
   el('adminMyListReload').onclick=()=>{if(target&&!busy)void open(target);};
-  el('adminMyListStart').onclick=()=>{if(!busy){show('upload');note('曲名,アーティスト,Key（任意）の順でCSVを選択してください。');}};
+  el('adminMyListStart').onclick=()=>{if(!busy){show('upload');note('曲名,アーティスト,Key（任意）,楽曲ID（任意）の順でCSVを選択してください。');}};
   el('adminMyListAnalyze').onclick=analyzeFile;
   el('adminMyListConfirm').onclick=confirm;
   el('adminMyListSearch').oninput=renderSaved;
