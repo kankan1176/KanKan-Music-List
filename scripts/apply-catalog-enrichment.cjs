@@ -16,6 +16,22 @@ function loadPatch() {
     assert.equal(crypto.createHash('sha256').update(content).digest('hex'), part.sha256, 'Part checksum');
     const entries = JSON.parse(content); assert(Array.isArray(entries)); return entries;
   });
+  validatePatch(patch);
+  // A replay of the original migration must not reintroduce subsequently withdrawn year candidates.
+  const holdPath = 'maintenance/held-anime-years-20261028.json';
+  if (fs.existsSync(holdPath)) {
+    const hold = JSON.parse(fs.readFileSync(holdPath, 'utf8'));
+    assert.equal(hold.operation, 'hold-unverified-anime-years-20261028');
+    assert.equal(hold.entries.length, 256);
+    const heldIds = new Set(hold.entries.map(entry => entry.id));
+    patch.entries = patch.entries.filter(entry => {
+      if (heldIds.has(entry.id)) delete entry.set.anime_year;
+      return Object.keys(entry.set).length > 0;
+    });
+    patch.songCount = patch.entries.length;
+    patch.cellCount = patch.entries.reduce((n,entry) => n + Object.keys(entry.set).length, 0);
+    patch.entriesSha256 = crypto.createHash('sha256').update(JSON.stringify(patch.entries)).digest('hex');
+  }
   return validatePatch(patch);
 }
 function validatePatch(patch) {

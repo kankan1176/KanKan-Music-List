@@ -5,9 +5,6 @@ on:
     paths:
       - 'maintenance/catalog-enrichment-20261028.json'
       - 'maintenance/catalog-enrichment-20261028/**'
-      - 'scripts/apply-catalog-enrichment.cjs'
-      - 'scripts/check-catalog-enrichment.cjs'
-      - '.github/workflows/apply-catalog-enrichment.yml'
   workflow_dispatch:
 permissions:
   contents: read

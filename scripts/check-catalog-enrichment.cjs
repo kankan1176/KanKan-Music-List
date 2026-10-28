@@ -4,6 +4,10 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { ALLOWED, empty, loadPatch, validatePatch, identityMatches, fieldValue, updateSong, verifyResult } = require('./apply-catalog-enrichment.cjs');
 const patch = loadPatch();
+if (fs.existsSync('maintenance/held-anime-years-20261028.json')) {
+  assert.equal(patch.songCount, 9906); assert.equal(patch.cellCount, 24670);
+  assert(patch.entries.every(entry => !Object.hasOwn(entry.set, 'anime_year')), 'Withdrawn years must not be replayed');
+}
 const copy = x => JSON.parse(JSON.stringify(x));
 const withHash = p => { p.entriesSha256 = crypto.createHash('sha256').update(JSON.stringify(p.entries)).digest('hex'); return p; };
 for (const entry of patch.entries) {
