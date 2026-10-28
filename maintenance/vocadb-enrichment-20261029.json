@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "operation": "vocadb-enrichment-20261029",
+  "songCount": 36,
+  "cellCount": 80,
+  "entries": [
+    {
+      "id": "868af0b7-cdab-56f4-8fc4-438c43c8f9c9",
+      "title": "愛言葉",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%84%9B%E8%A8%80%E8%91%89",
+      "set": {
+        "genre6": "ロック、ポップス",
+        "bpm": "137"
+      }
+    },
+    {
+      "id": "de88131e-7c54-453a-a4d7-a5969d0150ec",
+      "title": "ゴーストルール",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%B4%E3%83%BC%E3%82%B9%E3%83%88%E3%83%AB%E3%83%BC%E3%83%AB",
+      "set": {
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "9b99e671-b5fa-587b-a0eb-e1b92d0a8351",
+      "title": "アンノウン・マザーグース",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%A2%E3%83%B3%E3%83%8E%E3%82%A6%E3%83%B3%E3%83%BB%E3%83%9E%E3%82%B6%E3%83%BC%E3%82%B0%E3%83%BC%E3%82%B9",
+      "set": {
+        "genre6": "ロック、ポップス"
+      }
+    },
+    {
+      "id": "ce3d3cba-bb26-4bb9-9ac1-9a44e25c80ee",
+      "title": "ECHO",
+      "chordwiki": "https://ja.chordwiki.org/wiki/ECHO+%28Crusher-P%29",
+      "set": {
+        "release_year": "2014",
+        "genre6": "EDM"
+      }
+    },
+    {
+      "id": "2d7bdb7c-1a6f-5967-b865-c5ea606065a7",
+      "title": "ラグトレイン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%A9%E3%82%B0%E3%83%88%E3%83%AC%E3%82%A4%E3%83%B3",
+      "set": {
+        "release_year": "2020",
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "52a4fa44-5d26-4619-a407-b6d37ac31ef5",
+      "title": "炉心融解",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%82%89%E5%BF%83%E8%9E%8D%E8%A7%A3",
+      "set": {
+        "release_year": "2008",
+        "genre6": "EDM"
+      }
+    },
+    {
+      "id": "6f5d0aea-ab33-4591-99f2-b5707407fd57",
+      "title": "東京テディベア",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%9D%B1%E4%BA%AC%E3%83%86%E3%83%87%E3%82%A3%E3%83%99%E3%82%A2",
+      "set": {
+        "release_year": "2011",
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "7a6377d0-6053-40b5-ab84-5af3b10ea818",
+      "title": "ロストワンの号哭",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AD%E3%82%B9%E3%83%88%E3%83%AF%E3%83%B3%E3%81%AE%E5%8F%B7%E5%93%AD",
+      "set": {
+        "release_year": "2013",
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "ac1b493e-bde4-5310-8c2b-4f94a244f6a8",
+      "title": "おひめさまになりたいのッ！",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%8A%E3%81%B2%E3%82%81%E3%81%95%E3%81%BE%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%9F%E3%81%84%E3%81%AE%E3%83%83%EF%BC%81",
+      "set": {
+        "release_year": "2010",
+        "genre6": "サンバ",
+        "bpm": "135"
+      }
+    },
+    {
+      "id": "f5e3825e-3d72-5445-a082-e7c10edc9da6",
+      "title": "ボーナスステージ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%9C%E3%83%BC%E3%83%8A%E3%82%B9%E3%82%B9%E3%83%86%E3%83%BC%E3%82%B8",
+      "set": {
+        "release_year": "2011",
+        "bpm": "132"
+      }
+    },
+    {
+      "id": "ebb9d491-922d-5419-b832-5156126f6601",
+      "title": "ルカルカ★ナイトフィーバー",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AB%E3%82%AB%E3%83%AB%E3%82%AB%E2%98%85%E3%83%8A%E3%82%A4%E3%83%88%E3%83%95%E3%82%A3%E3%83%BC%E3%83%90%E3%83%BC",
+      "set": {
+        "release_year": "2009",
+        "genre6": "EDM"
+      }
+    },
+    {
+      "id": "297f72c2-d6a4-5841-8b54-548a817e3c80",
+      "title": "ANTI THE∞HOLiC",
+      "chordwiki": "https://ja.chordwiki.org/wiki/ANTI+THE%E2%88%9EHOLiC",
+      "set": {
+        "release_year": "2009",
+        "genre6": "ポップス、ロック",
+        "bpm": "172",
+        "composition": "cosMo@暴走P"
+      }
+    },
+    {
+      "id": "029deb6b-6e74-5131-ac51-f717bcf15b92",
+      "title": "タイムマシン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%BF%E3%82%A4%E3%83%A0%E3%83%9E%E3%82%B7%E3%83%B3",
+      "set": {
+        "release_year": "2010",
+        "bpm": "126",
+        "arrangement": "1640mP"
+      }
+    },
+    {
+      "id": "f5047c5e-a4fb-4fd8-bc7b-5fca33859875",
+      "title": "ロミオとシンデレラ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AD%E3%83%9F%E3%82%AA%E3%81%A8%E3%82%B7%E3%83%B3%E3%83%87%E3%83%AC%E3%83%A9",
+      "set": {
+        "release_year": "2009",
+        "genre6": "ロック、ポップス"
+      }
+    },
+    {
+      "id": "8ec94b7e-92a8-5441-be5a-80e9e34212ba",
+      "title": "アイラビューアイニジュー",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%A2%E3%82%A4%E3%83%A9%E3%83%93%E3%83%A5%E3%83%BC%E3%82%A2%E3%82%A4%E3%83%8B%E3%82%B8%E3%83%A5%E3%83%BC",
+      "set": {
+        "release_year": "2011",
+        "genre6": "ポップス、ロック"
+      }
+    },
+    {
+      "id": "e5d24854-4cf9-41e7-b9a5-6ddcb1f6fe95",
+      "title": "ピエロ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%94%E3%82%A8%E3%83%AD%EF%BC%88%EF%BC%AB%EF%BC%A5%EF%BC%A9%EF%BC%89",
+      "set": {
+        "release_year": "2010",
+        "bpm": "172"
+      }
+    },
+    {
+      "id": "c64ac627-af2b-5fca-9811-db03b601ea33",
+      "title": "ミラクルペイント",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%9F%E3%83%A9%E3%82%AF%E3%83%AB%E3%83%9A%E3%82%A4%E3%83%B3%E3%83%88",
+      "set": {
+        "release_year": "2007",
+        "genre6": "ジャズ",
+        "bpm": "107"
+      }
+    },
+    {
+      "id": "2922c762-bac7-4c89-8e03-e899cc2c9154",
+      "title": "アンハッピーリフレイン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%A2%E3%83%B3%E3%83%8F%E3%83%83%E3%83%94%E3%83%BC%E3%83%AA%E3%83%95%E3%83%AC%E3%82%A4%E3%83%B3",
+      "set": {
+        "release_year": "2011",
+        "genre6": "ロック、ポップス"
+      }
+    },
+    {
+      "id": "7294ee84-abb2-4c2f-8eac-ba4e3160c04b",
+      "title": "ローリンガール",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AD%E3%83%BC%E3%83%AA%E3%83%B3%E3%82%AC%E3%83%BC%E3%83%AB",
+      "set": {
+        "release_year": "2010",
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "a75ed54f-145e-4a87-84cc-6ae357c94551",
+      "title": "裏表ラバーズ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E8%A3%8F%E8%A1%A8%E3%83%A9%E3%83%90%E3%83%BC%E3%82%BA",
+      "set": {
+        "release_year": "2009",
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "57864c1d-3c70-5219-ac54-f814652c0d90",
+      "title": "僕をそんな目で見ないで",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%83%95%E3%82%92%E3%81%9D%E3%82%93%E3%81%AA%E7%9B%AE%E3%81%A7%E8%A6%8B%E3%81%AA%E3%81%84%E3%81%A7",
+      "set": {
+        "release_year": "2011"
+      }
+    },
+    {
+      "id": "0f311291-213a-50ae-b56a-ec89cf5bce64",
+      "title": "ありふれたせかいせいふく",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%82%E3%82%8A%E3%81%B5%E3%82%8C%E3%81%9F%E3%81%9B%E3%81%8B%E3%81%84%E3%81%9B%E3%81%84%E3%81%B5%E3%81%8F",
+      "set": {
+        "release_year": "2012",
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "4975e512-e291-5555-ab2a-16801f1049c2",
+      "title": "腐れ外道とチョコレゐト",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E8%85%90%E3%82%8C%E5%A4%96%E9%81%93%E3%81%A8%E3%83%81%E3%83%A7%E3%82%B3%E3%83%AC%E3%82%90%E3%83%88",
+      "set": {
+        "release_year": "2011",
+        "genre6": "ロック",
+        "bpm": "260"
+      }
+    },
+    {
+      "id": "872a6670-c8d8-5d94-a581-f63e5bd6864e",
+      "title": "またあした",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%BE%E3%81%9F%E3%81%82%E3%81%97%E3%81%9F",
+      "set": {
+        "release_year": "2010",
+        "bpm": "84"
+      }
+    },
+    {
+      "id": "2c5c24bd-ab52-48a3-8c38-72a1fcedda8d",
+      "title": "小夜子",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%B0%8F%E5%A4%9C%E5%AD%90",
+      "set": {
+        "release_year": "2011"
+      }
+    },
+    {
+      "id": "e22b8f03-e9d9-5509-9dc2-5f1abd631eb6",
+      "title": "Alice",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Alice",
+      "set": {
+        "release_year": "2009",
+        "arrangement": "眉墨LYNUSICO"
+      }
+    },
+    {
+      "id": "14b69cf6-2431-5124-bd16-96d2af7c5bea",
+      "title": "千本桜",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%8D%83%E6%9C%AC%E6%A1%9C",
+      "set": {
+        "release_year": "2011",
+        "genre6": "ロック、ポップス",
+        "bpm": "154"
+      }
+    },
+    {
+      "id": "849f13aa-56ee-4f04-9b24-9e1a6e64a44a",
+      "title": "え？あぁ、そう。",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%88%E3%80%81%E3%81%82%E3%81%81%EF%BC%9F%E3%81%9D%E3%81%86%E3%80%82",
+      "set": {
+        "release_year": "2010"
+      }
+    },
+    {
+      "id": "15df3abb-bb5d-5979-971f-795947f532e3",
+      "title": "ハローストロボ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%8F%E3%83%AD%E3%83%BC%E3%82%B9%E3%83%88%E3%83%AD%E3%83%9C",
+      "set": {
+        "release_year": "2010"
+      }
+    },
+    {
+      "id": "a8b38d35-12ea-482a-853c-a64820ed49a8",
+      "title": "マトリョシカ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%9E%E3%83%88%E3%83%AA%E3%83%A7%E3%82%B7%E3%82%AB",
+      "set": {
+        "release_year": "2010",
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "0195a18c-6c14-4478-9c53-57143a061df2",
+      "title": "ワールズエンド・ダンスホール",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AF%E3%83%BC%E3%83%AB%E3%82%BA%E3%82%A8%E3%83%B3%E3%83%89%E3%83%BB%E3%83%80%E3%83%B3%E3%82%B9%E3%83%9B%E3%83%BC%E3%83%AB",
+      "set": {
+        "release_year": "2010",
+        "genre6": "ロック、ポップス"
+      }
+    },
+    {
+      "id": "2c187ccc-1c06-5bb0-8c9d-8e5468ebc5e8",
+      "title": "リンちゃんなう！",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AA%E3%83%B3%E3%81%A1%E3%82%83%E3%82%93%E3%81%AA%E3%81%86%EF%BC%81",
+      "set": {
+        "release_year": "2011",
+        "bpm": "200"
+      }
+    },
+    {
+      "id": "f376468e-bbb3-414c-93d6-95dcbe8485a9",
+      "title": "from Y to Y",
+      "chordwiki": "https://ja.chordwiki.org/wiki/from+Y+to+Y",
+      "set": {
+        "release_year": "2009"
+      }
+    },
+    {
+      "id": "c742ad8d-de70-4cbc-a905-702de4ed7c38",
+      "title": "ワールドイズマイン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89%E3%82%A4%E3%82%BA%E3%83%9E%E3%82%A4%E3%83%B3",
+      "set": {
+        "release_year": "2008",
+        "vocal_synths": "初音ミク",
+        "genre2": "ボカロ",
+        "genre6": "ポップス、ロック"
+      }
+    },
+    {
+      "id": "91621c38-9ec2-4d2f-b8f3-1e60d8808b3a",
+      "title": "恋は戦争",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%81%8B%E3%81%AF%E6%88%A6%E4%BA%89+",
+      "set": {
+        "release_year": "2008",
+        "vocal_synths": "初音ミク",
+        "genre2": "ボカロ",
+        "genre6": "ロック"
+      }
+    },
+    {
+      "id": "19f1e49e-05a8-5bf8-bc93-d7ae6e373861",
+      "title": "Θ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%CE%98",
+      "set": {
+        "release_year": "2008",
+        "bpm": "105",
+        "artist": "cosMo@暴走P",
+        "lyrics": "cosMo@暴走P",
+        "composition": "cosMo@暴走P",
+        "arrangement": "cosMo@暴走P"
+      }
+    }
+  ],
+  "entriesSha256": "9127baae048c68a885c25ea06f108106997ac82ecfcea6a9b1223a05be397017"
+}
