@@ -1,0 +1,46 @@
+name: Apply verified blank catalog metadata
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maintenance/catalog-enrichment-20261028.json'
+      - 'maintenance/catalog-enrichment-20261028/**'
+      - 'scripts/apply-catalog-enrichment.cjs'
+      - 'scripts/check-catalog-enrichment.cjs'
+      - '.github/workflows/apply-catalog-enrichment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  apply:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-catalog-enrichment.cjs
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Fill only blank metadata on verified existing public songs
+        id: apply
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/apply-catalog-enrichment.cjs
+      - name: Rebuild search and genre indexes from the updated master
+        if: ${{ !cancelled() && (steps.apply.outcome == 'success' || steps.apply.outcome == 'failure') }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/build-search-index.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: catalog-enrichment-verification-${{ github.run_id }}
+          path: .catalog-enrichment-backup/*
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
