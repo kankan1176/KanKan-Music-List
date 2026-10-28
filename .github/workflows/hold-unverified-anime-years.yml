@@ -1,0 +1,52 @@
+name: Hold anime years without confirmed broadcast periods
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maintenance/held-anime-years-20261028.json'
+      - 'scripts/hold-unverified-anime-years.cjs'
+      - 'scripts/check-held-anime-years.cjs'
+      - '.github/workflows/hold-unverified-anime-years.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  hold:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-held-anime-years.cjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-enrichment-verification-40730809922
+          path: .prior-catalog-verification
+          github-token: ${{ github.token }}
+          run-id: 40730809922
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Restore only our unconfirmed anime-year additions with original-blank backup proof
+        id: hold
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/hold-unverified-anime-years.cjs
+      - name: Rebuild search and genre indexes after holding unconfirmed years
+        if: ${{ !cancelled() && (steps.hold.outcome == 'success' || steps.hold.outcome == 'failure') }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/build-search-index.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: anime-year-hold-verification-${{ github.run_id }}
+          path: .anime-year-hold-verification/*
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
