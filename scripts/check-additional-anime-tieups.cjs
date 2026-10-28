@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const {validatePatch,updateSong,verifySong}=require('./apply-additional-anime-tieups.cjs');
+const patch=validatePatch(JSON.parse(fs.readFileSync('maintenance/additional-anime-tieups-20261028.json','utf8'))),entry=patch.entries[0];
+const song={title:entry.title,chordwiki:entry.chordwiki,artist:'歌手を維持',genre2:'Vtuber',genre5:'NHK',tieup:'既存作品',anime_year:'1994、1995',key:3,metadata:{retained:true}};
+const before=structuredClone(song),next=updateSong(song,entry);assert.deepEqual(song,before);verifySong(next,entry);
+for(const field of Object.keys(song))if(!['genre2','genre5','tieup'].includes(field))assert.deepEqual(next[field],song[field]);
+assert(next.genre2.startsWith('Vtuber、'));assert(next.genre2.includes('アニソン'));assert(next.genre5.startsWith('NHK、'));assert(next.tieup.startsWith('既存作品、'));
+assert.equal(updateSong(next,entry),undefined);assert.equal(updateSong(null,entry),null);
+assert.equal(updateSong({...song,title:'別曲'},entry),undefined);assert.equal(updateSong({...song,chordwiki:'https://example.com'},entry),undefined);
+assert.throws(()=>validatePatch({...patch,entries:[...patch.entries.slice(0,140),patch.entries[0]]}));
+assert.throws(()=>validatePatch({...patch,entries:patch.entries.map((e,i)=>i?e:{...e,append:{...e.append,artist:'不正変更'}})}));
+assert.throws(()=>validatePatch({...patch,entries:patch.entries.map((e,i)=>i?e:{...e,append:{...e.append,tieup:['invalid、combined']}})}));
+console.log('PASS scoped anime tieup patch: 141 IDs, merge/idempotence/identity guards, unrelated fields preserved.');

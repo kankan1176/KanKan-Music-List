@@ -1,0 +1,2262 @@
+{
+  "operation": "additional-anime-tieups-20261028",
+  "entries": [
+    {
+      "id": "c4e73af4-077e-5ff8-b2e4-b11140194c9c",
+      "title": "ロッタラロッタラ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AD%E3%83%83%E3%82%BF%E3%83%A9%E3%83%AD%E3%83%83%E3%82%BF%E3%83%A9",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "なかよし"
+        ],
+        "tieup": [
+          "しゅごキャラ！"
+        ]
+      }
+    },
+    {
+      "id": "a13870d3-0b5a-5c55-85ae-7ac436d2aadd",
+      "title": "炎のキン肉マン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%82%8E%E3%81%AE%E3%82%AD%E3%83%B3%E8%82%89%E3%83%9E%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "キン肉マン"
+        ]
+      }
+    },
+    {
+      "id": "980da4b4-08ef-5417-9643-b6361644f096",
+      "title": "愛をとりもどせ!!",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%84%9B%E3%82%92%E3%81%A8%E3%82%8A%E3%82%82%E3%81%A9%E3%81%9B%21%21",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "北斗の拳"
+        ]
+      }
+    },
+    {
+      "id": "217c551c-ceda-5a5c-a6b1-df95a2388448",
+      "title": "SILENT SURVIVOR",
+      "chordwiki": "https://ja.chordwiki.org/wiki/SILENT+SURVIVOR",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "北斗の拳"
+        ]
+      }
+    },
+    {
+      "id": "8da3969c-b117-5a1a-a47f-e019668de5fe",
+      "title": "TOUGH BOY",
+      "chordwiki": "https://ja.chordwiki.org/wiki/TOUGH+BOY",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "北斗の拳"
+        ]
+      }
+    },
+    {
+      "id": "4e039b04-c31e-4e82-a8c1-a0710f6a805f",
+      "title": "LOVE SONG",
+      "chordwiki": "https://ja.chordwiki.org/wiki/LOVE+SONG+%28TOM%E2%98%85CAT%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "北斗の拳"
+        ]
+      }
+    },
+    {
+      "id": "845ecdf2-e170-5461-8852-3bbb18884e63",
+      "title": "CHA-LA HEAD-CHA-LA",
+      "chordwiki": "https://ja.chordwiki.org/wiki/CHA-LA+HEAD-CHA-LA",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ドラゴンボール"
+        ]
+      }
+    },
+    {
+      "id": "7e6a4aab-b28a-55aa-b337-6a655f515b39",
+      "title": "ロマンティックあげるよ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AD%E3%83%9E%E3%83%B3%E3%83%86%E3%82%A3%E3%83%83%E3%82%AF%E3%81%82%E3%81%92%E3%82%8B%E3%82%88",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ドラゴンボール"
+        ]
+      }
+    },
+    {
+      "id": "9ddf241d-e7ab-5d80-ae50-81181ec43c07",
+      "title": "でてこいとびきりZENKAIパワー！",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%A7%E3%81%A6%E3%81%93%E3%81%84%E3%81%A8%E3%81%B3%E3%81%8D%E3%82%8AZENKAI%E3%83%91%E3%83%AF%E3%83%BC%EF%BC%81",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ドラゴンボール"
+        ]
+      }
+    },
+    {
+      "id": "87786861-ef5e-567a-b104-4b14b1070b40",
+      "title": "僕達は天使だった",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%83%95%E9%81%94%E3%81%AF%E5%A4%A9%E4%BD%BF%E3%81%A0%E3%81%A3%E3%81%9F",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ドラゴンボール"
+        ]
+      }
+    },
+    {
+      "id": "ac4b8f55-5ed1-5714-b018-c825d2a1bb5e",
+      "title": "聖闘士神話~ソルジャー・ドリーム~",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E8%81%96%E9%97%98%E5%A3%AB%E7%A5%9E%E8%A9%B1%7E%E3%82%BD%E3%83%AB%E3%82%B8%E3%83%A3%E3%83%BC%E3%83%BB%E3%83%89%E3%83%AA%E3%83%BC%E3%83%A0%7E",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "聖闘士星矢"
+        ]
+      }
+    },
+    {
+      "id": "174106a7-b8e0-5752-92f2-2c163314fc4d",
+      "title": "CITY HUNTER 〜愛よ消えないで〜",
+      "chordwiki": "https://ja.chordwiki.org/wiki/CITY+HUNTER+%E3%80%9C%E6%84%9B%E3%82%88%E6%B6%88%E3%81%88%E3%81%AA%E3%81%84%E3%81%A7%E3%80%9C",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "シティーハンター"
+        ]
+      }
+    },
+    {
+      "id": "9bacb97e-5932-52be-bf80-35bb3f008a92",
+      "title": "Angel Night～天使のいる場所～",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Angel+Night%EF%BD%9E%E5%A4%A9%E4%BD%BF%E3%81%AE%E3%81%84%E3%82%8B%E5%A0%B4%E6%89%80%EF%BD%9E",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "シティーハンター"
+        ]
+      }
+    },
+    {
+      "id": "406825ee-cc7a-5f4a-84bf-bbb27daaa2a1",
+      "title": "Get Wild",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Get+Wild",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "シティーハンター"
+        ]
+      }
+    },
+    {
+      "id": "7b099a00-3a0c-5ec4-bb77-14c9d6dfad26",
+      "title": "SUPER GIRL",
+      "chordwiki": "https://ja.chordwiki.org/wiki/SUPER+GIRL",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "シティーハンター"
+        ]
+      }
+    },
+    {
+      "id": "24cbc148-a1fb-5abf-aaa1-ceff1ff5f3f0",
+      "title": "STILL LOVE HER (失われた風景)",
+      "chordwiki": "https://ja.chordwiki.org/wiki/STILL+LOVE+HER+%28%E5%A4%B1%E3%82%8F%E3%82%8C%E3%81%9F%E9%A2%A8%E6%99%AF%29+",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "シティーハンター"
+        ]
+      }
+    },
+    {
+      "id": "96583ff5-f5fa-50ce-925c-45ba4dde0896",
+      "title": "RUNNING TO HORIZON",
+      "chordwiki": "https://ja.chordwiki.org/wiki/RUNNING+TO+HORIZON",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "シティーハンター"
+        ]
+      }
+    },
+    {
+      "id": "f4a19caf-e596-5605-a645-3fe083c6862e",
+      "title": "君が好きだと叫びたい",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%90%9B%E3%81%8C%E5%A5%BD%E3%81%8D%E3%81%A0%E3%81%A8%E5%8F%AB%E3%81%B3%E3%81%9F%E3%81%84",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "SLAM DUNK"
+        ]
+      }
+    },
+    {
+      "id": "f6c718e5-9993-5049-8982-d08709761f54",
+      "title": "あなただけ見つめてる",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%82%E3%81%AA%E3%81%9F%E3%81%A0%E3%81%91%E8%A6%8B%E3%81%A4%E3%82%81%E3%81%A6%E3%82%8B",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "SLAM DUNK"
+        ]
+      }
+    },
+    {
+      "id": "a87d604a-da89-4592-afb0-15602296216d",
+      "title": "マイフレンド",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%9E%E3%82%A4%E3%83%95%E3%83%AC%E3%83%B3%E3%83%89%EF%BC%88ZARD%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "SLAM DUNK"
+        ]
+      }
+    },
+    {
+      "id": "d70a5149-709b-5bcb-a9ef-3eef70cd2ddd",
+      "title": "微笑みの爆弾",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%BE%AE%E7%AC%91%E3%81%BF%E3%81%AE%E7%88%86%E5%BC%BE",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "幽☆遊☆白書"
+        ]
+      }
+    },
+    {
+      "id": "09224c28-1533-5175-946f-4ddef7ec0c8d",
+      "title": "ホームワークが終わらない",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%9B%E3%83%BC%E3%83%A0%E3%83%AF%E3%83%BC%E3%82%AF%E3%81%8C%E7%B5%82%E3%82%8F%E3%82%89%E3%81%AA%E3%81%84",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "幽☆遊☆白書"
+        ]
+      }
+    },
+    {
+      "id": "c988348a-d8b4-5e80-83e9-3e3faae151d2",
+      "title": "さよなら byebye",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%95%E3%82%88%E3%81%AA%E3%82%89+byebye",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "幽☆遊☆白書"
+        ]
+      }
+    },
+    {
+      "id": "db8d40ac-e609-5450-89ef-49c39076e8ec",
+      "title": "アンバランスなKissをして",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%A2%E3%83%B3%E3%83%90%E3%83%A9%E3%83%B3%E3%82%B9%E3%81%AAKiss%E3%82%92%E3%81%97%E3%81%A6",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "幽☆遊☆白書"
+        ]
+      }
+    },
+    {
+      "id": "a02c1189-acb8-5d97-a451-001d14e90481",
+      "title": "太陽がまた輝くとき",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%A4%AA%E9%99%BD%E3%81%8C%E3%81%BE%E3%81%9F%E8%BC%9D%E3%81%8F%E3%81%A8%E3%81%8D",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "幽☆遊☆白書"
+        ]
+      }
+    },
+    {
+      "id": "a1ffe95f-e8ba-5b83-82f1-5a94d07706eb",
+      "title": "デイドリームジェネレーション",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%87%E3%82%A4%E3%83%89%E3%83%AA%E3%83%BC%E3%83%A0%E3%82%B8%E3%82%A7%E3%83%8D%E3%83%AC%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "幽☆遊☆白書"
+        ]
+      }
+    },
+    {
+      "id": "bc5282be-94e2-5a45-b172-7af2670de5c6",
+      "title": "そばかす",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%9D%E3%81%B0%E3%81%8B%E3%81%99",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "るろうに剣心"
+        ]
+      }
+    },
+    {
+      "id": "5faf5dcd-3ce3-4bc4-a6af-0d3751fd5323",
+      "title": "１／２",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%EF%BC%91%EF%BC%8F%EF%BC%92",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "るろうに剣心"
+        ]
+      }
+    },
+    {
+      "id": "69e71c17-d9fe-558b-94b2-5012a3448042",
+      "title": "君に触れるだけで",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%90%9B%E3%81%AB%E8%A7%A6%E3%82%8C%E3%82%8B%E3%81%A0%E3%81%91%E3%81%A7",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "るろうに剣心"
+        ]
+      }
+    },
+    {
+      "id": "d36a6379-f235-58a8-a36c-ab77a6f64541",
+      "title": "Tactics",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Tactics",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "るろうに剣心"
+        ]
+      }
+    },
+    {
+      "id": "b0848b59-3e7c-5288-9ba6-de271f17120a",
+      "title": "おはよう。",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%8A%E3%81%AF%E3%82%88%E3%81%86%E3%80%82",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "HUNTER×HUNTER"
+        ]
+      }
+    },
+    {
+      "id": "2e8c31c4-f338-437f-875a-39c40b008199",
+      "title": "departure!",
+      "chordwiki": "https://ja.chordwiki.org/wiki/departure%21%EF%BC%88%E5%B0%8F%E9%87%8E%E6%AD%A3%E5%88%A9%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "HUNTER×HUNTER"
+        ]
+      }
+    },
+    {
+      "id": "901edbbc-84bd-591f-8b3d-148d77d2df5e",
+      "title": "departure!",
+      "chordwiki": "https://ja.chordwiki.org/wiki/departure%21",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "HUNTER×HUNTER"
+        ]
+      }
+    },
+    {
+      "id": "b2e547fb-37b6-5ebc-97ed-e7283977e11d",
+      "title": "風のうた",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%A2%A8%E3%81%AE%E3%81%86%E3%81%9F",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "HUNTER×HUNTER"
+        ]
+      }
+    },
+    {
+      "id": "b6ec4bc1-eaca-5137-8cc5-9d8e7d76c182",
+      "title": "Just Awake",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Just+Awake",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "HUNTER×HUNTER"
+        ]
+      }
+    },
+    {
+      "id": "87bc1768-060b-58e5-986d-1f660aeef059",
+      "title": "REASON",
+      "chordwiki": "https://ja.chordwiki.org/wiki/REASON",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "HUNTER×HUNTER"
+        ]
+      }
+    },
+    {
+      "id": "41130923-a92d-41ef-89fc-1dd078be8463",
+      "title": "表裏一体",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E8%A1%A8%E8%A3%8F%E4%B8%80%E4%BD%93%EF%BC%88%E3%82%86%E3%81%9A%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "HUNTER×HUNTER"
+        ]
+      }
+    },
+    {
+      "id": "41678069-61ef-5ffd-b6be-dd8eb39063a8",
+      "title": "ウィーアー！",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%A6%E3%82%A3%E3%83%BC%E3%82%A2%E3%83%BC%EF%BC%81",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "d27d7b4b-54c3-5e5c-8866-817080f59cca",
+      "title": "ヒカリへ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%92%E3%82%AB%E3%83%AA%E3%81%B8",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "2e7b5244-b625-4fdc-b260-6894173cd5e2",
+      "title": "Crazy Rainbow",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Crazy+Rainbow+%28%E3%82%BF%E3%83%83%E3%82%AD%E3%83%BC%EF%BC%86%E7%BF%BC%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "dc736353-b79a-4654-a5da-ff01ad2be8bd",
+      "title": "Jungle P",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Jungle+P+%285050%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "415e4d82-e0f4-4af0-a2a7-f07a86bf6244",
+      "title": "Share The World",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Share+The+World+%28%E6%9D%B1%E6%96%B9%E7%A5%9E%E8%B5%B7%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "e8c13c69-bf2d-4fda-838d-114fa15acc82",
+      "title": "One day",
+      "chordwiki": "https://ja.chordwiki.org/wiki/One+day+%28The+ROOTLESS%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "08795b61-7a78-4fbe-944d-fe96fff791d1",
+      "title": "memories",
+      "chordwiki": "https://ja.chordwiki.org/wiki/memories+%28%E5%A4%A7%E6%A7%BB%E7%9C%9F%E5%B8%8C%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "29bae22b-1201-551f-8b3d-f2cff0a12176",
+      "title": "RUN! RUN! RUN!",
+      "chordwiki": "https://ja.chordwiki.org/wiki/RUN%21+RUN%21+RUN%21",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "f310c25f-47c8-5718-afbe-9e0c00f610e4",
+      "title": "BEFORE DAWN",
+      "chordwiki": "https://ja.chordwiki.org/wiki/BEFORE+DAWN",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ONE PIECE"
+        ]
+      }
+    },
+    {
+      "id": "c6d97f5d-ea10-54d8-a3a2-9ea9fd67334f",
+      "title": "悲しみをやさしさに",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%82%B2%E3%81%97%E3%81%BF%E3%82%92%E3%82%84%E3%81%95%E3%81%97%E3%81%95%E3%81%AB",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "NARUTO"
+        ]
+      }
+    },
+    {
+      "id": "7220863a-4317-460e-bc07-daccdbe14053",
+      "title": "青春狂騒曲",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%9D%92%E6%98%A5%E7%8B%82%E9%A8%92%E6%9B%B2%EF%BC%88%E3%82%B5%E3%83%B3%E3%83%9C%E3%83%9E%E3%82%B9%E3%82%BF%E3%83%BC%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "NARUTO"
+        ]
+      }
+    },
+    {
+      "id": "786c58bc-8416-416f-bdbd-b9df24944bf0",
+      "title": "Sign",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Sign%EF%BC%88FLOW%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "NARUTO"
+        ]
+      }
+    },
+    {
+      "id": "4a89bd2a-8b90-4384-b06f-8d264c5f2a62",
+      "title": "Wind",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Wind+%28Akeboshi%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "NARUTO"
+        ]
+      }
+    },
+    {
+      "id": "1a905278-d52f-5738-b13b-ef59329a8368",
+      "title": "ハルモニア",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%8F%E3%83%AB%E3%83%A2%E3%83%8B%E3%82%A2",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "NARUTO"
+        ]
+      }
+    },
+    {
+      "id": "6a744b83-fd1a-462d-8894-96c2c78550bb",
+      "title": "ALIVE",
+      "chordwiki": "https://ja.chordwiki.org/wiki/ALIVE%EF%BC%88%E9%9B%B7%E9%BC%93%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "NARUTO"
+        ]
+      }
+    },
+    {
+      "id": "2b70d978-9fdd-5cec-bac1-1f7aa4fa0c9d",
+      "title": "少女S",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%B0%91%E5%A5%B3S",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "BLEACH"
+        ]
+      }
+    },
+    {
+      "id": "aa8ca213-448f-483b-b12c-d56f025a45df",
+      "title": "サンキュー！！",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%B5%E3%83%B3%E3%82%AD%E3%83%A5%E3%83%BC%EF%BC%81%EF%BC%81%EF%BC%88HOME+MADE+%E5%AE%B6%E6%97%8F%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "BLEACH"
+        ]
+      }
+    },
+    {
+      "id": "ca7c9729-51bf-5f5c-aa80-65da8b5800c5",
+      "title": "ほうき星",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%BB%E3%81%86%E3%81%8D%E6%98%9F",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "BLEACH"
+        ]
+      }
+    },
+    {
+      "id": "a3dfd9dc-cfdc-50f0-ae8e-df9b761f969f",
+      "title": "マイペース",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%9E%E3%82%A4%E3%83%9A%E3%83%BC%E3%82%B9",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "BLEACH"
+        ]
+      }
+    },
+    {
+      "id": "aece4c84-dd03-484e-923f-37022ad0a076",
+      "title": "桜ロック",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%A1%9C%E3%83%AD%E3%83%83%E3%82%AF%EF%BC%88CHERRYBLOSSOM%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "家庭教師ヒットマンREBORN!"
+        ]
+      }
+    },
+    {
+      "id": "a88d23ef-c142-5ca3-93e9-ac5a10ff2ab6",
+      "title": "遠い匂い",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%81%A0%E3%81%84%E5%8C%82%E3%81%84",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "f3173d2f-c66d-57bd-887e-ad537d61fb03",
+      "title": "銀色の空",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%8A%80%E8%89%B2%E3%81%AE%E7%A9%BA",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "12b06f2c-e933-5d9f-b72d-c82f7e4f1445",
+      "title": "曇天",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%9B%87%E5%A4%A9",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "25c215ba-b957-5bb2-a34d-6224517ad4d5",
+      "title": "Stairway Generation",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Stairway+Generation",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "500c2aed-b906-5327-8646-49d6e6dd32a3",
+      "title": "桃源郷エイリアン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%A1%83%E6%BA%90%E9%83%B7%E3%82%A8%E3%82%A4%E3%83%AA%E3%82%A2%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "e4c7b455-717e-49da-82dd-5a8836eaf128",
+      "title": "ジレンマ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%B8%E3%83%AC%E3%83%B3%E3%83%9E%EF%BC%88ecosystem%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "2b390aa7-c1b0-4f1a-a381-8dcd09da4e38",
+      "title": "プライド革命",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%97%E3%83%A9%E3%82%A4%E3%83%89%E9%9D%A9%E5%91%BD",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "e1170566-8e4c-5560-bf1f-371418cff811",
+      "title": "雪のツバサ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%9B%AA%E3%81%AE%E3%83%84%E3%83%90%E3%82%B5",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "457c96bb-070e-5325-bc40-fef00da388f9",
+      "title": "修羅",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E4%BF%AE%E7%BE%85",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "ca7a7fbf-8e76-5423-b269-bb1eed573040",
+      "title": "Speed of flow",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Speed+of+flow",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "銀魂"
+        ]
+      }
+    },
+    {
+      "id": "5bffe314-0c59-5e17-9b7a-5ed651f6876b",
+      "title": "Can do",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Can+do",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "黒子のバスケ"
+        ]
+      }
+    },
+    {
+      "id": "8d8ababf-d11a-5cf5-b132-81d17200e2b5",
+      "title": "Start it right away",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Start+it+right+away",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "黒子のバスケ"
+        ]
+      }
+    },
+    {
+      "id": "8a8f78f9-7230-56d0-9749-45cdd0b4c37a",
+      "title": "イマジネーション",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%A4%E3%83%9E%E3%82%B8%E3%83%8D%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ハイキュー!!"
+        ]
+      }
+    },
+    {
+      "id": "e1385877-169d-5130-9f4b-427a6a96de2f",
+      "title": "FLY HIGH!!",
+      "chordwiki": "https://ja.chordwiki.org/wiki/FLY+HIGH%21%21",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ハイキュー!!"
+        ]
+      }
+    },
+    {
+      "id": "e938605e-4596-454b-993d-2ad439290f00",
+      "title": "天地ガエシ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%A4%A9%E5%9C%B0%E3%82%AC%E3%82%A8%E3%82%B7",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ハイキュー!!"
+        ]
+      }
+    },
+    {
+      "id": "c1a029f2-3ca8-49ef-8a71-093165db89f1",
+      "title": "LEO",
+      "chordwiki": "https://ja.chordwiki.org/wiki/LEO%28tacica%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ハイキュー!!"
+        ]
+      }
+    },
+    {
+      "id": "1313e0f0-d202-5415-a767-616055e5bb4b",
+      "title": "発熱",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%99%BA%E7%86%B1",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ハイキュー!!"
+        ]
+      }
+    },
+    {
+      "id": "33d3437a-6b33-4dc8-94ef-8c6b633a8f08",
+      "title": "決戦スピリット",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%B1%BA%E6%88%A6%E3%82%B9%E3%83%94%E3%83%AA%E3%83%83%E3%83%88",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ハイキュー!!"
+        ]
+      }
+    },
+    {
+      "id": "dfb3d092-a11e-5c1c-b9dd-e5b9842e1764",
+      "title": "THE DAY",
+      "chordwiki": "https://ja.chordwiki.org/wiki/THE+DAY",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "11a3ec3d-e5ff-5193-9637-e11880ba0c23",
+      "title": "ピースサイン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%94%E3%83%BC%E3%82%B9%E3%82%B5%E3%82%A4%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "092b9908-f5e4-57d2-a60e-a47f24be0897",
+      "title": "空に歌えば",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%A9%BA%E3%81%AB%E6%AD%8C%E3%81%88%E3%81%B0",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "af698c8f-0965-5338-891d-9bfbb0a2ca52",
+      "title": "スターマーカー",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%9E%E3%83%BC%E3%82%AB%E3%83%BC",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "51c21b6b-7bc7-489a-bfa6-4a8af2fa0dce",
+      "title": "ひたむき",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%B2%E3%81%9F%E3%82%80%E3%81%8D%EF%BC%88SUPER+BEAVER%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "b9704d9c-47f6-5365-ac89-025c2ebcb13a",
+      "title": "HEROES",
+      "chordwiki": "https://ja.chordwiki.org/wiki/HEROES",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "c99bb351-3988-5689-a843-1420f1836f6d",
+      "title": "ロングホープ・フィリア",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AD%E3%83%B3%E3%82%B0%E3%83%9B%E3%83%BC%E3%83%97%E3%83%BB%E3%83%95%E3%82%A3%E3%83%AA%E3%82%A2",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "e881c29d-0595-4292-95a7-6aece3da25af",
+      "title": "Shout Baby",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Shout+Baby+%28%E7%B7%91%E9%BB%84%E8%89%B2%E7%A4%BE%E4%BC%9A%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "9d32947c-386b-42ed-91f0-8eb89ae6eeee",
+      "title": "嘘じゃない",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%98%98%E3%81%98%E3%82%83%E3%81%AA%E3%81%84%EF%BC%88%E5%B4%8E%E5%B1%B1%E8%92%BC%E5%BF%97%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "05c2194c-b246-5579-afbc-66da6175870a",
+      "title": "朝が来る",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%9C%9D%E3%81%8C%E6%9D%A5%E3%82%8B",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "鬼滅の刃"
+        ]
+      }
+    },
+    {
+      "id": "ca706faa-e23b-426b-b9c6-18ef151c82ec",
+      "title": "廻廻奇譚",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%BB%BB%E5%BB%BB%E5%A5%87%E8%AD%9A+%28Eve%29",
+      "append": {
+        "genre2": [
+          "ボカロ",
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "呪術廻戦"
+        ]
+      }
+    },
+    {
+      "id": "9a3f021a-410b-4f31-a3fb-3dba35db8450",
+      "title": "青のすみか",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%9D%92%E3%81%AE%E3%81%99%E3%81%BF%E3%81%8B%EF%BC%88%E3%82%AD%E3%82%BF%E3%83%8B%E3%82%BF%E3%83%84%E3%83%A4%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "呪術廻戦"
+        ]
+      }
+    },
+    {
+      "id": "91a0cb57-8502-4775-9d2c-9a1bba9e5753",
+      "title": "SPECIALZ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/SPECIALZ%EF%BC%88King+Gnu%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "呪術廻戦"
+        ]
+      }
+    },
+    {
+      "id": "6f8362e8-d008-47d4-9fb0-37bf25720747",
+      "title": "燈",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%87%88%EF%BC%88%E5%B4%8E%E5%B1%B1%E8%92%BC%E5%BF%97%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "呪術廻戦"
+        ]
+      }
+    },
+    {
+      "id": "5f0109e2-5314-4c9f-8476-d13d3888572e",
+      "title": "more than words",
+      "chordwiki": "https://ja.chordwiki.org/wiki/more+than+words%EF%BC%88%E7%BE%8A%E6%96%87%E5%AD%A6%EF%BC%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "呪術廻戦"
+        ]
+      }
+    },
+    {
+      "id": "70e0992c-3f17-5fe1-b9de-3cb6babaee61",
+      "title": "CORE PRIDE",
+      "chordwiki": "https://ja.chordwiki.org/wiki/CORE+PRIDE",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "ジャンプSQ."
+        ],
+        "tieup": [
+          "青の祓魔師"
+        ]
+      }
+    },
+    {
+      "id": "5232bdae-a41e-5d19-a310-15d0375d9e1a",
+      "title": "IN MY WORLD",
+      "chordwiki": "https://ja.chordwiki.org/wiki/IN+MY+WORLD",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "ジャンプSQ."
+        ],
+        "tieup": [
+          "青の祓魔師"
+        ]
+      }
+    },
+    {
+      "id": "beeaebdb-210d-59a2-9b07-78acd1c2788e",
+      "title": "天才バカボン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%A4%A9%E6%89%8D%E3%83%90%E3%82%AB%E3%83%9C%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "天才バカボン"
+        ]
+      }
+    },
+    {
+      "id": "8e62d687-e00d-5b6e-b160-bd08e8c90d35",
+      "title": "元祖天才バカボンの春",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%85%83%E7%A5%96%E5%A4%A9%E6%89%8D%E3%83%90%E3%82%AB%E3%83%9C%E3%83%B3%E3%81%AE%E6%98%A5",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "天才バカボン"
+        ]
+      }
+    },
+    {
+      "id": "8b0962ab-43ee-5987-a5ef-9bd0532b11cc",
+      "title": "傷だらけの栄光",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%82%B7%E3%81%A0%E3%82%89%E3%81%91%E3%81%AE%E6%A0%84%E5%85%89",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "あしたのジョー"
+        ]
+      }
+    },
+    {
+      "id": "6387bdb9-f79c-5fde-8db2-3803d6104651",
+      "title": "今日もどこかでデビルマン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E4%BB%8A%E6%97%A5%E3%82%82%E3%81%A9%E3%81%93%E3%81%8B%E3%81%A7%E3%83%87%E3%83%93%E3%83%AB%E3%83%9E%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "デビルマン"
+        ]
+      }
+    },
+    {
+      "id": "f4e2e010-8bcd-46fc-9cd6-76795f4f21b1",
+      "title": "Meet Again",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Meet+Again+%28Laputa%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "金田一少年の事件簿"
+        ]
+      }
+    },
+    {
+      "id": "c9b99ea2-9a5f-5dff-be0d-a6584d6dd06e",
+      "title": "MORE THAN LiKE",
+      "chordwiki": "https://ja.chordwiki.org/wiki/MORE+THAN+LiKE",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "FAIRY TAIL"
+        ]
+      }
+    },
+    {
+      "id": "6592985f-a297-55b1-bc1a-ffa916adfa24",
+      "title": "熱情のスペクトラム",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%86%B1%E6%83%85%E3%81%AE%E3%82%B9%E3%83%9A%E3%82%AF%E3%83%88%E3%83%A9%E3%83%A0",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "七つの大罪"
+        ]
+      }
+    },
+    {
+      "id": "4be7c3b9-d30f-5e18-af83-0732b9d7a431",
+      "title": "五等分の気持ち",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E4%BA%94%E7%AD%89%E5%88%86%E3%81%AE%E6%B0%97%E6%8C%81%E3%81%A1",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "五等分の花嫁"
+        ]
+      }
+    },
+    {
+      "id": "4f4b38a6-e7e5-4f61-97e1-ba5d31b8d33d",
+      "title": "Sign",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Sign%28%E5%86%85%E7%94%B0%E5%BD%A9%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "五等分の花嫁"
+        ]
+      }
+    },
+    {
+      "id": "0d5e2477-a5f9-4fca-aa97-63012633bb20",
+      "title": "Cry Baby",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Cry+Baby",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "東京リベンジャーズ"
+        ]
+      }
+    },
+    {
+      "id": "ef8ad6fe-42f5-468d-9249-dcd819fc4cef",
+      "title": "ホワイトノイズ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%9B%E3%83%AF%E3%82%A4%E3%83%88%E3%83%8E%E3%82%A4%E3%82%BA",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "東京リベンジャーズ"
+        ]
+      }
+    },
+    {
+      "id": "53df777a-e493-514b-93b6-4fcd2d92a1ab",
+      "title": "Numbness like a ginger",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Numbness+like+a+ginger",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "ブルーロック"
+        ]
+      }
+    },
+    {
+      "id": "be782eb9-4f0a-5bd8-b448-fb3bb07e8c44",
+      "title": "ラムのラブソング",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%A9%E3%83%A0%E3%81%AE%E3%83%A9%E3%83%96%E3%82%BD%E3%83%B3%E3%82%B0",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "うる星やつら"
+        ]
+      }
+    },
+    {
+      "id": "43101c98-1702-5d52-88b4-ac0a40b339b2",
+      "title": "Dancing Star",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Dancing+Star",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "うる星やつら"
+        ]
+      }
+    },
+    {
+      "id": "4f97ec0b-6d17-59c5-a297-b5811f8f5271",
+      "title": "宇宙は大ヘンだ！",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%AE%87%E5%AE%99%E3%81%AF%E5%A4%A7%E3%83%98%E3%83%B3%E3%81%A0%EF%BC%81",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "うる星やつら"
+        ]
+      }
+    },
+    {
+      "id": "d0eac6b7-3169-5107-97e7-ab3c954d06fb",
+      "title": "心細いな",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%BF%83%E7%B4%B0%E3%81%84%E3%81%AA",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "うる星やつら"
+        ]
+      }
+    },
+    {
+      "id": "5b6ae4e8-d040-513b-9a0e-8e371ab8a834",
+      "title": "トウキョウ・シャンディ・ランデヴ feat 花譜, ツミキ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%88%E3%82%A6%E3%82%AD%E3%83%A7%E3%82%A6%E3%83%BB%E3%82%B7%E3%83%A3%E3%83%B3%E3%83%87%E3%82%A3%E3%83%BB%E3%83%A9%E3%83%B3%E3%83%87%E3%83%B4+feat+%E8%8A%B1%E8%AD%9C%2C+%E3%83%84%E3%83%9F%E3%82%AD",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "うる星やつら"
+        ]
+      }
+    },
+    {
+      "id": "7eba750a-d0bf-5015-8bb1-953b9370a10e",
+      "title": "タッチ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%BF%E3%83%83%E3%83%81",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "タッチ"
+        ]
+      }
+    },
+    {
+      "id": "d4478f25-a93e-5bb5-977e-03d64fd7f7c3",
+      "title": "愛がひとりぼっち",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%84%9B%E3%81%8C%E3%81%B2%E3%81%A8%E3%82%8A%E3%81%BC%E3%81%A3%E3%81%A1",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "タッチ"
+        ]
+      }
+    },
+    {
+      "id": "994a0ee1-b198-5035-9b0d-a055c1f558d0",
+      "title": "じゃじゃ馬にさせないで",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%98%E3%82%83%E3%81%98%E3%82%83%E9%A6%AC%E3%81%AB%E3%81%95%E3%81%9B%E3%81%AA%E3%81%84%E3%81%A7",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "らんま1/2"
+        ]
+      }
+    },
+    {
+      "id": "c1f596d5-f8b8-5727-ba66-d42b799e210a",
+      "title": "胸がドキドキ",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E8%83%B8%E3%81%8C%E3%83%89%E3%82%AD%E3%83%89%E3%82%AD",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "サンデー"
+        ],
+        "tieup": [
+          "名探偵コナン"
+        ]
+      }
+    },
+    {
+      "id": "b0f86fa8-c130-5372-ac28-6a52f0007645",
+      "title": "運命のルーレット廻して",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E9%81%8B%E5%91%BD%E3%81%AE%E3%83%AB%E3%83%BC%E3%83%AC%E3%83%83%E3%83%88%E5%BB%BB%E3%81%97%E3%81%A6",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "名探偵コナン"
+        ]
+      }
+    },
+    {
+      "id": "060bed28-6ab8-5f7e-b10d-302f44d37624",
+      "title": "Mysterious Eyes",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Mysterious+Eyes",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "名探偵コナン"
+        ]
+      }
+    },
+    {
+      "id": "61c86180-78d8-5584-84bb-812df8d48c6c",
+      "title": "光と影のロマン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%85%89%E3%81%A8%E5%BD%B1%E3%81%AE%E3%83%AD%E3%83%9E%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "名探偵コナン"
+        ]
+      }
+    },
+    {
+      "id": "d360a880-2aee-5b1d-9b62-958772284c66",
+      "title": "君がいない夏",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%90%9B%E3%81%8C%E3%81%84%E3%81%AA%E3%81%84%E5%A4%8F",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "名探偵コナン"
+        ]
+      }
+    },
+    {
+      "id": "4a3d8672-e03b-467f-b672-c3aad420ec1c",
+      "title": "CHANGE THE WORLD",
+      "chordwiki": "https://ja.chordwiki.org/wiki/CHANGE+THE+WORLD+%28V6%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "犬夜叉"
+        ]
+      }
+    },
+    {
+      "id": "9a9d9e60-c58b-422e-998e-0041d9a662a2",
+      "title": "I am",
+      "chordwiki": "https://ja.chordwiki.org/wiki/I+am+%28hitomi%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "犬夜叉"
+        ]
+      }
+    },
+    {
+      "id": "20280e5b-bac7-53a4-86c2-0e52092253f4",
+      "title": "ANGELUS-アンジェラス-",
+      "chordwiki": "https://ja.chordwiki.org/wiki/ANGELUS-%E3%82%A2%E3%83%B3%E3%82%B8%E3%82%A7%E3%83%A9%E3%82%B9-",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "犬夜叉"
+        ]
+      }
+    },
+    {
+      "id": "e0b4bbbb-8165-4099-931c-5d1b490b55b1",
+      "title": "深い森",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%B7%B1%E3%81%84%E6%A3%AE+%28Do+As+Infinity%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "犬夜叉"
+        ]
+      }
+    },
+    {
+      "id": "ff685a6b-1e79-5352-ab46-18254f4745cd",
+      "title": "真実の詩",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%9C%9F%E5%AE%9F%E3%81%AE%E8%A9%A9",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "犬夜叉"
+        ]
+      }
+    },
+    {
+      "id": "824ad4f6-57d9-58f8-b081-d596ace215bf",
+      "title": "君にこの声が 届きますように",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%90%9B%E3%81%AB%E3%81%93%E3%81%AE%E5%A3%B0%E3%81%8C+%E5%B1%8A%E3%81%8D%E3%81%BE%E3%81%99%E3%82%88%E3%81%86%E3%81%AB",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "金色のガッシュベル!!"
+        ]
+      }
+    },
+    {
+      "id": "0a1d354b-0d51-5d66-bf20-93e9416988e5",
+      "title": "VIP",
+      "chordwiki": "https://ja.chordwiki.org/wiki/VIP",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "マギ"
+        ]
+      }
+    },
+    {
+      "id": "11786ea5-bd37-5b86-87bb-37aa8d836342",
+      "title": "瞬く星の下で",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%9E%AC%E3%81%8F%E6%98%9F%E3%81%AE%E4%B8%8B%E3%81%A7",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "マギ"
+        ]
+      }
+    },
+    {
+      "id": "7964b979-2f53-5465-a3b8-8b739d24318b",
+      "title": "The Bravery",
+      "chordwiki": "https://ja.chordwiki.org/wiki/The+Bravery",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "マギ"
+        ]
+      }
+    },
+    {
+      "id": "ddc4fde8-e648-5445-bbdd-0125a07b4cb7",
+      "title": "Anytime Anywhere",
+      "chordwiki": "https://ja.chordwiki.org/wiki/Anytime+Anywhere",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "葬送のフリーレン"
+        ]
+      }
+    },
+    {
+      "id": "0ef99821-b894-5ea3-af10-c5b6618b0537",
+      "title": "がんばれドカベン",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%81%8C%E3%82%93%E3%81%B0%E3%82%8C%E3%83%89%E3%82%AB%E3%83%99%E3%83%B3",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年チャンピオン"
+        ],
+        "tieup": [
+          "ドカベン"
+        ]
+      }
+    },
+    {
+      "id": "995ca1c3-6402-504d-8223-20de119d2989",
+      "title": "リクライム",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%AA%E3%82%AF%E3%83%A9%E3%82%A4%E3%83%A0",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年チャンピオン"
+        ],
+        "tieup": [
+          "弱虫ペダル"
+        ]
+      }
+    },
+    {
+      "id": "9083cbb6-63fd-521e-857b-eadeec425708",
+      "title": "弱虫な炎",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%BC%B1%E8%99%AB%E3%81%AA%E7%82%8E",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年チャンピオン"
+        ],
+        "tieup": [
+          "弱虫ペダル"
+        ]
+      }
+    },
+    {
+      "id": "5954174a-2706-4df4-a46d-b2e8eb43d237",
+      "title": "斜陽",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%96%9C%E9%99%BD+-+%E3%83%A8%E3%83%AB%E3%82%B7%E3%82%AB",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年チャンピオン"
+        ],
+        "tieup": [
+          "僕の心のヤバイやつ"
+        ]
+      }
+    },
+    {
+      "id": "80e5e879-5e47-5f53-9bec-1327effbd49e",
+      "title": "キン肉マン Go Fight!",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%82%AD%E3%83%B3%E8%82%89%E3%83%9E%E3%83%B3+Go+Fight%21",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "キン肉マン"
+        ]
+      }
+    },
+    {
+      "id": "78e1a3e0-babe-53f3-8cda-317c7a451f29",
+      "title": "ユリア…永遠に",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%A6%E3%83%AA%E3%82%A2%E2%80%A6%E6%B0%B8%E9%81%A0%E3%81%AB",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "北斗の拳"
+        ]
+      }
+    },
+    {
+      "id": "5106fe9c-8f56-5270-9841-e4dc140c4c79",
+      "title": "WE GOTTA POWER",
+      "chordwiki": "https://ja.chordwiki.org/wiki/WE+GOTTA+POWER",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "ドラゴンボール"
+        ]
+      }
+    },
+    {
+      "id": "83da2dad-161c-4808-a50b-233c6d094675",
+      "title": "聖闘士神話~ソルジャー・ドリーム~",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E8%81%96%E9%97%98%E5%A3%AB%E7%A5%9E%E8%A9%B1%7E%E3%82%BD%E3%83%AB%E3%82%B8%E3%83%A3%E3%83%BC%E3%83%BB%E3%83%89%E3%83%AA%E3%83%BC%E3%83%A0%7E%28ROOT+FIVE%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "聖闘士星矢 黄金魂 -soul of gold-"
+        ]
+      }
+    },
+    {
+      "id": "aaca9a89-33ea-4b60-857e-70f90840470a",
+      "title": "空に歌えば",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%A9%BA%E3%81%AB%E6%AD%8C%E3%81%88%E3%81%B0+%28%E7%B7%91%E9%BB%84%E8%89%B2%E7%A4%BE%E4%BC%9Aver%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "僕のヒーローアカデミア"
+        ]
+      }
+    },
+    {
+      "id": "e41cebe3-1b93-45fa-8ecc-63efc43b9fd0",
+      "title": "夏の幻",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E5%A4%8F%E3%81%AE%E5%B9%BB%28secret+arrange+ver%29",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年サンデー"
+        ],
+        "tieup": [
+          "名探偵コナン"
+        ]
+      }
+    },
+    {
+      "id": "f006b256-45b0-5c63-9add-8c19594ac485",
+      "title": "デビルマンのうた",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E3%83%87%E3%83%93%E3%83%AB%E3%83%9E%E3%83%B3%E3%81%AE%E3%81%86%E3%81%9F",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "デビルマン"
+        ]
+      }
+    },
+    {
+      "id": "23e1db30-f721-5186-bc92-0a08d20f94d4",
+      "title": "煌めく瞬間に捕われて",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%85%8C%E3%82%81%E3%81%8F%E7%9E%AC%E9%96%93%E3%81%AB%E6%8D%95%E3%82%8F%E3%82%8C%E3%81%A6",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "SLAM DUNK"
+        ]
+      }
+    },
+    {
+      "id": "39fb92fa-d63f-5932-9b03-0acfe187ed0a",
+      "title": "絆の奇跡",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E7%B5%86%E3%81%AE%E5%A5%87%E8%B7%A1",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年ジャンプ"
+        ],
+        "tieup": [
+          "鬼滅の刃"
+        ]
+      }
+    },
+    {
+      "id": "9fa198d8-932d-5ba9-927e-740a6669a5f8",
+      "title": "果てしない闇の彼方に",
+      "chordwiki": "https://ja.chordwiki.org/wiki/%E6%9E%9C%E3%81%A6%E3%81%97%E3%81%AA%E3%81%84%E9%97%87%E3%81%AE%E5%BD%BC%E6%96%B9%E3%81%AB",
+      "append": {
+        "genre2": [
+          "アニソン"
+        ],
+        "genre5": [
+          "週刊少年マガジン"
+        ],
+        "tieup": [
+          "あしたのジョー"
+        ]
+      }
+    }
+  ]
+}
