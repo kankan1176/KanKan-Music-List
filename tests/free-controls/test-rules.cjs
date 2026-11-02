@@ -179,7 +179,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertFails(get(ref(admin,'users/member')));
  await assertFails(get(ref(admin,'users/member/profile')));
  await assertFails(set(ref(admin,'users/member/profile/private'),{changed:true}));
- await assertFails(set(ref(admin,'users/member/songs/existing'),payload));
+ await assertSucceeds(set(ref(admin,'users/member/songs/existing'),payload));
  await assertFails(set(ref(admin,'users/member/songs/existing'),null));
  await assertFails(set(ref(admin,'users/member/songs'),{}));
  await assertFails(set(ref(admin,'users/member/songs/not-master'),payload));
@@ -197,7 +197,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  assert.equal(both.reduce((n,r)=>n+r.added.length,0),1);assert.equal(both.reduce((n,r)=>n+r.duplicate.length,0),1);
  assert.equal((await get(ref(member,'users/member/songs/existing/key'))).val(),5);
  assert.equal((await get(ref(member,'users/member/profile/private/keep'))).val(),'private');
- console.log('PASS: administrator-only list reading and insert-only writes; existing songs/profile/private data preserved; missing master and invalid keys denied; competing imports add exactly once.');
+ console.log('PASS: administrator-only list reading, insert and bounded existing-song edits; existing songs/profile/private data preserved; missing master and invalid keys denied; competing imports add exactly once.');
  console.log('PASS: emulator confirms admin-only commands, own-only private reads and reports, anonymous/global cache access, Google/guest kind enforcement, guest-only rename, schema/timestamp constraints, and unchanged personal list isolation.');
  }finally{await env.cleanup()}
 })().catch(e=>{console.error(e);process.exitCode=1});

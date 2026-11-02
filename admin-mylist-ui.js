@@ -10,6 +10,32 @@
   const note = value => { el('adminMyListStatus').textContent = value; };
   const node = (tag, value, className) => { const n = document.createElement(tag); n.textContent = value; if (className) n.className = className; return n; };
   const read = async path => (await db.ref(path).once('value')).val() || {};
+  const editDialog=document.createElement('dialog');editDialog.className='admin-edit-dialog';editDialog.setAttribute('aria-labelledby','adminSavedEditTitle');
+  editDialog.innerHTML='<form><h2 id="adminSavedEditTitle">マイリスト情報を編集</h2><p id="adminSavedEditSong"></p><div class="admin-edit-fields"><label>Key<select name="key"></select></label><label><span>登録状態</span><span><input type="checkbox" name="registered"> マイリストに登録する</span></label><label><span>お気に入り</span><span><input type="checkbox" name="liked"> お気に入りにする</span></label></div><fieldset><legend>担当パート（複数選択）</legend><div class="admin-edit-parts"></div></fieldset><p role="status" id="adminSavedEditStatus"></p><div class="admin-edit-actions"><button type="button" data-close>閉じる</button><button type="submit">変更を保存</button></div></form>';document.body.append(editDialog);
+  const editForm=editDialog.querySelector('form');let selectedEdit=null;
+  for(let i=-5;i<=6;i++)editForm.elements.key.append(new Option(i===0?'0（原曲）':(i>0?'+':'')+i,String(i)));
+  function openSavedEditor(v){
+    if(busy||!authorized())return;
+    selectedEdit={id:v.id,baseline:structuredClone(v.item),uid:target.uid,request:version};
+    el('adminSavedEditSong').textContent=(v.song?.title||v.id)+' ／ '+(v.song?.artist||'未設定');
+    editForm.elements.key.value=String(Number.isInteger(v.item.key)?v.item.key:0);editForm.elements.registered.checked=core.active(v.item);editForm.elements.liked.checked=!!v.item.liked;
+    const selected=Array.isArray(v.item.parts)?v.item.parts:v.item.part?[v.item.part]:[],parts=editDialog.querySelector('.admin-edit-parts');parts.replaceChildren();
+    for(const part of new Set(['🎤','🎸','🥁','🎹','🎺','🎻','🪈',...selected])){const label=node('label',''),input=document.createElement('input');input.type='checkbox';input.name='part';input.value=part;input.checked=selected.includes(part);label.append(input,document.createTextNode(part));parts.append(label);}
+    el('adminSavedEditStatus').textContent='本人または別の管理者が更新した場合は保存を停止します。登録解除はチェックを外して保存してください。';editDialog.showModal();
+  }
+  editForm.onsubmit=async event=>{
+    event.preventDefault();if(busy||!selectedEdit||!authorized())return;const selected=selectedEdit;
+    setBusy(true);editDialog.querySelectorAll('button,input,select').forEach(n=>n.disabled=true);el('adminSavedEditStatus').textContent='保存しています…';
+    try{const values={key:Number(editForm.elements.key.value),registered:editForm.elements.registered.checked,liked:editForm.elements.liked.checked,parts:[...editDialog.querySelectorAll('[name=part]:checked')].map(input=>input.value)};
+      const isCurrent=()=>selected.request===version&&authorized()&&target?.uid===selected.uid;
+      const result=await service.edit({database:db,uid:selected.uid,songId:selected.id,baseline:selected.baseline,values,isAuthorized:isCurrent});
+      saved[selected.id]=result;let warning='';
+      try{await service.syncPublic({database:db,uid:selected.uid,songId:selected.id,isAuthorized:isCurrent,shareCore:window.SLListShare});}catch{warning=' 公開ページへの同期はできませんでした。「公開UI・公開設定」から再公開すると同期できます。';}
+      if(!isCurrent())return;editDialog.close();renderSaved();note('マイリストを変更しました。本人の画面は再読み込みすると反映されます。'+warning);
+    }catch(e){el('adminSavedEditStatus').textContent='保存できません：'+e.message;}
+    finally{setBusy(false);editDialog.querySelectorAll('button,input,select').forEach(n=>n.disabled=false);}
+  };
+  editDialog.querySelector('[data-close]').onclick=()=>{if(!busy)editDialog.close();};editDialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});editDialog.addEventListener('close',()=>{selectedEdit=null;});
   function show(step) {
     dialog.querySelectorAll('[data-import-step]').forEach(section => { section.hidden = section.dataset.importStep !== step; });
     el('adminMyListStep').textContent = {browse:'保存済みマイリスト',upload:'CSVアップロード',review:'登録内容の確認',result:'登録結果'}[step];
@@ -23,22 +49,23 @@
   function clear() {
     version++; target = actor = null; master = {}; saved = {}; parsed = []; analysis = []; choices = {}; masterPromise = null; loaded = false;
     el('adminMyListSavedRows').replaceChildren(); el('adminMyListPreviewRows').replaceChildren(); el('adminMyListResultRows').replaceChildren();
-    el('adminMyListFile').value = ''; el('adminMyListSearch').value = ''; el('adminMyListUser').textContent = ''; el('adminMyListUid').textContent = ''; note('');
+    el('adminMyListShowInactive').checked = false; el('adminMyListFile').value = ''; el('adminMyListSearch').value = ''; el('adminMyListUser').textContent = ''; el('adminMyListUid').textContent = ''; note('');
   }
   function renderSaved() {
     const filter = el('adminMyListSearch').value.trim().toLocaleLowerCase();
     const songs = core.buildIndex(master).byId;
-    const entries = Object.entries(saved).filter(([,item]) => core.active(item));
+    const entries = Object.entries(saved).filter(([,item]) => core.active(item)||el('adminMyListShowInactive').checked);
     const list = entries.map(([id,item]) => ({id,item,song:songs.get(id)})).filter(v => (v.song?.title + ' ' + v.song?.artist + ' ' + v.id).toLocaleLowerCase().includes(filter));
     list.sort((a,b) => (a.song?.title || a.id).localeCompare(b.song?.title || b.id, 'ja'));
     el('adminMyListCount').textContent = '保存済み ' + entries.length + '曲 / 表示 ' + list.length + '曲';
     const rows = el('adminMyListSavedRows'); rows.replaceChildren();
     for (const v of list) {
       const row = document.createElement('tr');
-      row.append(node('td',v.song?.title || 'マスターに存在しない楽曲：' + v.id),node('td',v.song?.artist || '—'),node('td',Number.isInteger(v.item.key)?(v.item.key>0?'+':'')+v.item.key:'0'));
+      row.append(node('td',v.song?.title || 'マスターに存在しない楽曲：' + v.id),node('td',v.song?.artist || '—'),node('td',Number.isInteger(v.item.key)?(v.item.key>0?'+':'')+v.item.key:'0'),node('td',(Array.isArray(v.item.parts)?v.item.parts:v.item.part?[v.item.part]:[]).join(' ')),node('td',core.active(v.item)?(v.item.liked?'お気に入り':'登録済み'):'登録解除済み'));
+      const actions=node('td',''),button=node('button','編集');button.type='button';button.className='admin-mylist-edit';button.disabled=busy;button.onclick=()=>openSavedEditor(v);actions.append(button);row.append(actions);
       rows.append(row);
     }
-    if (!list.length) { const row = document.createElement('tr'), cell = node('td', entries.length ? '条件に一致する曲はありません。' : '保存済みの楽曲はありません。'); cell.colSpan=3; row.append(cell); rows.append(row); }
+    if (!list.length) { const row = document.createElement('tr'), cell = node('td', entries.length ? '条件に一致する曲はありません。' : '保存済みの楽曲はありません。'); cell.colSpan=6; row.append(cell); rows.append(row); }
   }
   function renderReview() {
     analysis = core.analyze(parsed, master, saved, choices);
@@ -73,7 +100,7 @@
     try {
       const result=await Promise.all([read(`users/${target.uid}/songs`),getMaster()]);
       if(request!==version||!authorized())return;
-      [saved,master]=result;loaded=true;renderSaved();note('参照専用です。既存曲の変更・削除は行いません。');
+      [saved,master]=result;loaded=true;renderSaved();note('「編集」からKey・担当パート・お気に入り・登録状態を変更できます。');
     } catch(error) { if(request===version)note('マイリストを取得できませんでした。'+error.message+' 権限ルール適用の完了を確認し、開き直してください。'); }
     finally { if(request===version)setBusy(false); }
   }
@@ -112,6 +139,7 @@
   el('adminMyListAnalyze').onclick=analyzeFile;
   el('adminMyListConfirm').onclick=confirm;
   el('adminMyListSearch').oninput=renderSaved;
+  el('adminMyListShowInactive').onchange=renderSaved;
   el('adminMyListUploadBack').onclick=()=>{if(!busy)show('browse');};
   el('adminMyListReviewBack').onclick=()=>{if(!busy)show('upload');};
   el('adminMyListRefresh').onclick=()=>{if(target&&!busy)void open(target);};
@@ -120,5 +148,5 @@
   dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
   dialog.addEventListener('close',()=>{if(!busy)clear();});
   window.addEventListener('sl-admin-mylist',event=>void open(event.detail));
-  auth.onAuthStateChanged(()=>{if(actor&&!authorized()){version++;busy=false;dialog.close();clear();}});
+  auth.onAuthStateChanged(()=>{if(actor&&!authorized()){version++;busy=false;editDialog.close();dialog.close();clear();}});
 })();

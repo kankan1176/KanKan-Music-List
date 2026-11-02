@@ -5584,6 +5584,8 @@ body.sl-redesign{--sl-filter:134px!important}
         stagePersonalSong(songId,{registered:false,part:'',parts:[],liked:false,key:0,excluded:true});
     }
     function renderDetailPersonalControls(song) {
+        const editButton=document.getElementById('detailSongEditBtn');
+        if(editButton){editButton.disabled=!isGoogleSongEditor();editButton.title=editButton.disabled?'楽曲情報の編集にはGoogleログインが必要です。':'';}
         const wrapper=document.getElementById('detailPersonalEdit');
         wrapper.style.display=signedInUser ? 'block':'none';
         if (!signedInUser) return;
@@ -7766,7 +7768,7 @@ body.sl-redesign{--sl-filter:134px!important}
         try{
             const changes=SLSongChange.changes(before,after);
             if(!Object.keys(changes).length){msg.textContent='変更箇所がありません。';return;}
-            const payload={songId:song._id,requestedBy:user.uid,title:String(before.title).slice(0,240),artist:String(before.artist).slice(0,240),changes,status:'pending',createdAt:firebase.database.ServerValue.TIMESTAMP};
+            const payload={songId:song._id,requestedBy:user.uid,editorName:String(user.displayName||user.uid).slice(0,80),title:String(before.title).slice(0,240),artist:String(before.artist).slice(0,240),changes,status:'pending',createdAt:firebase.database.ServerValue.TIMESTAMP};
             if(auth.currentUser?.uid!==user.uid)throw Error('ログイン状態が変更されました。');
             const result=await db.ref('songChangeRequests/'+song._id+'/'+user.uid).transaction(current=>{if(auth.currentUser?.uid!==user.uid||current?.status==='pending')return;return payload;},undefined,false);
             if(auth.currentUser?.uid!==user.uid)return;

@@ -24,7 +24,8 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  assert.equal((await get(ref(anon,'publicListBackgrounds/'+token))).val().image,image);
  for(const field of ['token','showKey','showParts'])await assertFails(set(ref(admin,'userListShares/member/'+field),field==='token'?'d'.repeat(48):false));
  await assertFails(set(ref(admin,'userListShares/member'),null));
- await assertFails(set(ref(admin,'publicListShares/'+token+'/songs/song/title'),'Changed song'));
+ await assertSucceeds(set(ref(admin,'publicListShares/'+token+'/songs/song/title'),'Changed song'));
+ for(const actor of [other,fake,guest,anon])await assertFails(set(ref(actor,'publicListShares/'+token+'/songs/song/title'),'Forbidden'));
  await assertFails(set(ref(admin,'publicListShares/'+token+'/name'),'Changed name'));
  await assertFails(set(ref(admin,'publicListShares/'+token+'/uid'),'admin'));
  await assertFails(set(ref(admin,'publicListShares/'+token),{...share,appearance}));
@@ -37,6 +38,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertSucceeds(set(ref(admin,'userListShares/member/appearance'),appearance));
  await assertFails(set(ref(admin,'userListShares/member/enabled'),'true'));
  await assertFails(set(ref(admin,'publicListShares/'+token+'/appearance'),appearance));
+ await assertFails(set(ref(admin,'publicListShares/'+token+'/songs/song'),{title:'Private must stay private',artist:'Artist'}));
  await assertFails(set(ref(admin,'publicListLinks/member'),{token}));
  await assertFails(get(ref(anon,'publicListShares/'+token)));
  await assertSucceeds(set(ref(admin,'userListShares/fresh'),{token:'e'.repeat(48),enabled:false,showKey:false,showParts:false,appearance}));
@@ -51,7 +53,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  assert.equal((await get(ref(anon,'publicListShares/'+token))).val().songs.song.key,2);
  assert.equal((await get(ref(anon,'publicListLinks/member'))).val().token,token);
  assert.equal((await get(ref(anon,'publicListBackgrounds/'+token))).val().image,image);
- await assertFails(update(ref(admin),{['publicListShares/'+token+'/songs/song/key']:3}));
+ await assertSucceeds(update(ref(admin),{['publicListShares/'+token+'/songs/song/key']:3}));
  await assertFails(set(ref(admin,'publicListShares/'+otherToken),{...share,uid:'member',updatedAt:serverTimestamp()}));
  await assertSucceeds(update(ref(admin),{'userListShares/member/enabled':false,['publicListShares/'+token]:{uid:'member',name:'[paused]',reserved:true,updatedAt:serverTimestamp()},['publicListLinks/member']:null,['publicListBackgrounds/'+token]:null}));
  await assertFails(get(ref(anon,'publicListShares/'+token)));await assertFails(get(ref(anon,'publicListBackgrounds/'+token)));assert.equal((await assertSucceeds(get(ref(anon,'publicListLinks/member')))).exists(),false);

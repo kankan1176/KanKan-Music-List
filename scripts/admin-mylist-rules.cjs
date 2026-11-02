@@ -13,9 +13,10 @@ function addMyListRules(document) {
   const songs = users.$uid.songs ||= {};
   songs['.read'] = grant(songs['.read'], ADMIN);
   const entry = songs.$songId ||= {};
-  // This only adds a per-song insert grant. It never grants a parent write,
-  // so another user's existing record cannot be edited or deleted by an admin.
+  // Grant only a per-song scope; never allow an administrator to delete a saved record or replace a whole user.
   entry['.write'] = grant(entry['.write'], INSERT);
+  const edit = `(${ADMIN}) && data.exists() && newData.exists() && (root.child('publicProfiles').child($uid).exists() || root.child('adminClientControl/clients').child($uid).child('kind').val() === 'account') && newData.child('registered').isBoolean() && newData.child('liked').isBoolean() && newData.child('key').isNumber() && newData.child('key').val() >= -5 && newData.child('key').val() <= 6 && newData.child('key').val() % 1 === 0 && newData.child('part').isString() && newData.child('part').val().length <= 40`;
+  entry['.write'] = grant(entry['.write'], edit);
   return document;
 }
 module.exports = {addMyListRules};

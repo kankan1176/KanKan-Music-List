@@ -32,6 +32,8 @@ function addAdminListDesignRules(document){
  const configForOwner=`root.child('userListShares').child(${owner})`;
  const edit=`(${ADMIN}) && ${account(owner)} && data.parent().exists() && data.parent().child('reserved').val() !== true && ${configForOwner}.child('token').val() === $token && ${configForOwner}.child('enabled').val() !== false`;
  for(const field of ['appearance','backgroundVersion','updatedAt'])share[field]['.write']=grant(share[field]['.write'],edit);
+ const listOwner="data.parent().parent().child('uid').val()",listConfig=`root.child('userListShares').child(${listOwner})`;
+ share.songs.$song['.write']=grant(share.songs.$song['.write'],`(${ADMIN}) && ${account(listOwner)} && data.parent().parent().child('reserved').val() !== true && ${listConfig}.child('token').val() === $token && ${listConfig}.child('enabled').val() !== false`);
  const background=r.publicListBackgrounds.$token;
  const uid="newData.child('uid').val()";
  const finalRoot="newData.parent().parent()",finalShareConfig=`${finalRoot}.child('userListShares').child(${uid})`;

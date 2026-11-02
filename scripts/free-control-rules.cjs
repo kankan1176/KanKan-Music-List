@@ -1,3 +1,4 @@
+const {addSongHistoryRules}=require('./song-history-rules.cjs');
 const {addChordWikiPreferenceRules}=require('./chordwiki-preference-rules.cjs');
 const {addAdminListDesignRules}=require('./admin-list-design-rules.cjs');
 const {addGenreRules}=require('./genre-rules.cjs');
@@ -66,7 +67,7 @@ function mergeFreeRules(original) {
   if (Object.keys(result.rules).some(key => key.startsWith('$'))) throw Error('ルートのワイルドカードを確認する必要があります。自動適用を停止しました。');
   // Preserve existing grants and add only the administrator song-list read/insert permissions.
   result.rules.adminClientControl = freeRules();
-  return addAdminListDesignRules(addChordWikiPreferenceRules(addGenreRules(addAccountFeatureRules(addHighPriorityRules(addObsSceneRules(addAvatarRules(addListShareRules(addAccountNameRules(addMyListRules(result))))))))));
+  return addSongHistoryRules(addAdminListDesignRules(addChordWikiPreferenceRules(addGenreRules(addAccountFeatureRules(addHighPriorityRules(addObsSceneRules(addAvatarRules(addListShareRules(addAccountNameRules(addMyListRules(result)))))))))));
 }
 module.exports = { freeRules, mergeFreeRules };
 
