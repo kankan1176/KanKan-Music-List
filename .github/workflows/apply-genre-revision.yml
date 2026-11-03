@@ -1,0 +1,41 @@
+name: Apply verified master genre revision
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/genre-classification-policy.cjs', 'maintenance/classification-country-evidence-20261104.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  apply:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-genre-revision.cjs
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Apply verified public song field changes with concurrent edit checks
+        id: apply
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/apply-genre-revision.cjs
+      - name: Rebuild search and category choices from the updated master
+        if: ${{ !cancelled() && (steps.apply.outcome == 'success' || steps.apply.outcome == 'failure') }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/build-search-index.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: genre-revision-verification-${{ github.run_id }}
+          path: .genre-revision-backup/*
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),g=require('../song-genres.js'),ui=require('../category-filters.js'),{plan}=require('./migrate-category-master.cjs');
 const a={genre1:'J-POP',genre2:'ボカロ',genre6:'ロック',vocal_synths:'初音ミク、GUMI'},b={genre1:'J-POP',genre2:'アニソン',genre5:'ジャンプ',genre6:'バラード',anime_year:'2010'},c={genre1:'洋楽',genre2:'',genre6:'ジャズ'};
-assert.deepEqual(g.categories,['J-POP','アニソン','ボカロ','K-POP','洋楽']);
+assert.deepEqual(g.categories,['J-POP','アニソン','ボカロ','Vtuber','K-POP','台湾音楽','洋楽']);
 assert(g.matches(a,{...g.selection('ボカロ'),genre6:'ロック',vocal_synths:'GUMI'}));assert(!g.matches(b,{...g.selection('ボカロ'),genre6:'バラード'}));assert(g.matches(b,{...g.selection('アニソン'),anime_year:'2010',genre5:'ジャンプ'}));assert(!g.matches(b,{anime_year:'2011'}));assert(g.matches(a,g.selection('J-POP'))); // Inclusion policy remains unchanged.
 const catalog={groups:g.catalog([a,b,c]),facets:g.facets([a,b,c])};assert.deepEqual(ui.options(catalog,'ボカロ','genre6'),['ロック','ポップス','ヒップホップ','ラップ','合唱','シティポップ','R&B','ジャズ','EDM','クラシック','サンバ','インスト']);assert.deepEqual(ui.options(catalog,'アニソン','vocal_synths'),[]);assert.deepEqual(ui.controls('ボカロ').map(c=>c.field),['genre6','release_year','vocal_synths']);assert.deepEqual(ui.controls('アニソン').map(c=>c.field),['genre6','release_year','anime_year','genre5']);
 const master=require('../sort-master.js');assert.equal(master.definitions.length,74);assert.equal(master.canonical('vocal_synths','Megpoid'),'Megpoid');assert.equal(master.canonical('vocal_synths','GUMI'),'GUMI（Megpoid）');
@@ -21,3 +21,7 @@ for(const[field,value]of Object.entries(searchable))assert(searchText({[field]:v
 assert.equal(ui.controls('ボカロ')[2].label,'ボカロ別');
 const source={},live={};for(let i=0;i<27346;i++){source['s'+i]={id:'s'+i,...Object.fromEntries(g.metadataFields.map(f=>[f,a[f]||'']))};live['s'+i]={title:'Preserved',genre:'Old',updatedAt:1};}live.liveOnly={title:'Keep'};const result=plan(source,live);assert.equal(result.counts.matched,27346);assert.equal(result.counts.liveOnly,1);assert(Object.keys(result.updates).every(path=>/^songs\/s\d+\/(?:genre[1-6]?|vocal_synths|anime_year)$/.test(path)));assert.equal(live.s0.title,'Preserved');assert.throws(()=>plan(source,{}),/IDs differ/);live.s0.updatedAt=Date.parse('2026-10-24T00:00:00Z');assert.equal(plan(source,live).counts.recentSkipped,1);
 console.log('PASS five category navigation, category-dependent choices, synth/year/publisher AND, J-POP inclusion retained, classification-only ID-safe migration.');
+
+const vt={genre1:'',genre2:'Vtuber',genre4:'ホロライブ',genre6:'ポップス'},tw={genre1:'台湾音楽'};
+assert(g.matches(vt,g.selection('Vtuber')));assert(!g.matches(a,g.selection('Vtuber')));assert.equal(g.categoryOf(g.selection('Vtuber')),'Vtuber');assert.equal(g.categoryOf(g.selection('台湾音楽')),'台湾音楽');assert(g.matches(tw,g.selection('台湾音楽')));assert.deepEqual(ui.controls('Vtuber').map(c=>c.field),['genre6','release_year','genre4']);assert.deepEqual(ui.options({groups:{genre4:['ホロライブ','にじさんじ']}},'Vtuber','genre4'),['にじさんじ','ホロライブ']);assert(ui.options(catalog,'Vtuber','genre6').includes('ロック'));assert(ui.options(catalog,'台湾音楽','genre6').includes('ポップス'));assert(g.facets([vt,tw]).Vtuber.genre4.includes('ホロライブ'));
+console.log('PASS Vtuber and Taiwan categories, agency AND filter, shared facets and music style choices.');

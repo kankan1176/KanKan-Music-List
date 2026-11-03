@@ -2,7 +2,7 @@
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./song-genres.js'):root.SLSongGenres,typeof module==='object'&&module.exports?require('./sort-master.js'):root.SLSortMaster);if(typeof module==='object'&&module.exports)module.exports=api;else root.SLCategoryFilters=api;})(typeof globalThis==='object'?globalThis:this,(genres,master)=>{
  'use strict';
  master=master||{fields:[]}; // Compatibility with an older cached HTML entry page.
- function controls(category){return [{field:'genre6',label:'音楽ジャンル'},{field:'release_year',label:'発売・公開年'},...(category==='ボカロ'?[{field:'vocal_synths',label:'ボカロ別'}]:[]),...(category==='アニソン'?[{field:'anime_year',label:'放送・公開年'},{field:'genre5',label:'掲載媒体・関連作品'}]:[])];}
+ function controls(category){return [{field:'genre6',label:'音楽ジャンル'},{field:'release_year',label:'発売・公開年'},...(category==='ボカロ'?[{field:'vocal_synths',label:'ボカロ別'}]:[]),...(category==='Vtuber'?[{field:'genre4',label:'所属・関連グループ'}]:[]),...(category==='アニソン'?[{field:'anime_year',label:'放送・公開年'},{field:'genre5',label:'掲載媒体・関連作品'}]:[])];}
  function options(catalog,category,field){if(master.fields.includes(field))return master.choices(field,category);return [...new Set((catalog.facets?.[category]?(catalog.facets[category][field]||[]):(catalog.groups?.[field]||[])).filter(Boolean))].sort((a,b)=>/^(release_year|anime_year)$/.test(field)?Number(b)-Number(a):a.localeCompare(b,'ja'));}
  function render(host,selected,catalog,onChange){
   const category=genres.categoryOf(selected),fragment=document.createDocumentFragment(),tabs=document.createElement('div');tabs.className='sl-category-tabs';tabs.setAttribute('role','group');tabs.setAttribute('aria-label','楽曲カテゴリ');

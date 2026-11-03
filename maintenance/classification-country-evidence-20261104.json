@@ -1,0 +1,512 @@
+{
+  "Van Halen": {
+    "source": "https://musicbrainz.org/artist/b665b768-0d83-4363-950c-31ed39317c15",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Donny Hathaway": {
+    "source": "https://musicbrainz.org/artist/3f6ae36d-ffdb-40cf-98e6-8023cb1c41c9",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Yes": {
+    "source": "https://musicbrainz.org/artist/c1d4f2ba-cf39-460c-9528-6b827d3417a1",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Eagles": {
+    "source": "https://musicbrainz.org/artist/f46bd570-5768-462e-b84c-c7c993bbf47e",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Taylor Swift": {
+    "source": "https://musicbrainz.org/artist/20244d07-534f-4eff-b4d4-930878889970",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Sheryl Crow": {
+    "source": "https://musicbrainz.org/artist/80ccfede-c258-4575-a7ad-c982e9932e0f",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Oasis": {
+    "source": "https://musicbrainz.org/artist/fba7a629-8490-4760-82a8-18ce1090b263",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Bananarama": {
+    "source": "https://musicbrainz.org/artist/84d06499-0643-46b8-9e1f-45f743a53f5e",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Alcatrazz": {
+    "source": "https://musicbrainz.org/artist/ef32e381-8413-40a0-b7ad-1ca7bf514ee8",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Asia": {
+    "source": "https://musicbrainz.org/artist/8f695099-c714-4ad0-8888-36eca37fee84",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Black Sabbath": {
+    "source": "https://musicbrainz.org/artist/5182c1d9-c7d2-4dad-afa0-ccfeada921a8",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Daft Punk": {
+    "source": "https://musicbrainz.org/artist/056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+    "area": "France",
+    "classification": "洋楽"
+  },
+  "Culture Club": {
+    "source": "https://musicbrainz.org/artist/81435053-e1a2-48a4-adfd-e89f310c7b38",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Dolly Parton": {
+    "source": "https://musicbrainz.org/artist/1d543e07-d0d2-4834-a8db-d65c50c2a856",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Sade": {
+    "source": "https://musicbrainz.org/artist/67930b3e-e00b-469f-8c74-fd69f20522ec",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Ozzy Osbourne": {
+    "source": "https://musicbrainz.org/artist/8aa5b65a-5b3c-4029-92bf-47a544356934",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Aerosmith": {
+    "source": "https://musicbrainz.org/artist/3d2b98e5-556f-4451-a3ff-c50ea18d57cb",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Al Jarreau": {
+    "source": "https://musicbrainz.org/artist/3e54ba8b-f4cc-4192-9813-890d570e2b7a",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Boz Scaggs": {
+    "source": "https://musicbrainz.org/artist/18a33653-bbaf-4aa7-884c-73f02a7a4515",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Christopher Cross": {
+    "source": "https://musicbrainz.org/artist/883e4ba4-8ccc-47ed-81df-df51e41792a9",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Carly Simon": {
+    "source": "https://musicbrainz.org/artist/c4df30f5-5487-4806-9189-b69c9f27532c",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Bryan Adams": {
+    "source": "https://musicbrainz.org/artist/4dbf5678-7a31-406a-abbe-232f8ac2cd63",
+    "area": "Canada",
+    "classification": "洋楽"
+  },
+  "Duran Duran": {
+    "source": "https://musicbrainz.org/artist/1a1cd7f3-e5df-4eca-bae2-2757c9e656b5",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "CHIC": {
+    "source": "https://musicbrainz.org/artist/a4ed036b-5f18-439c-b1e1-96d205bab255",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Eurythmics": {
+    "source": "https://musicbrainz.org/artist/b4d32cff-f19e-455f-86c4-f347d824ca61",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Frank Sinatra": {
+    "source": "https://musicbrainz.org/artist/197450cd-0124-4164-b723-3c22dd16494d",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Europe": {
+    "source": "https://musicbrainz.org/artist/ccfe7a3c-1a45-4984-a8d0-644549cefe61",
+    "area": "Sweden",
+    "classification": "洋楽"
+  },
+  "Laufey": {
+    "source": "https://musicbrainz.org/artist/21a89505-10a9-4ac0-8388-833bc07b9f86",
+    "area": "Iceland",
+    "classification": "洋楽"
+  },
+  "Kenny Loggins": {
+    "source": "https://musicbrainz.org/artist/15042d2b-2d4c-4451-a96a-6f547642de13",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "John Lennon": {
+    "source": "https://musicbrainz.org/artist/4d5447d7-c61c-4120-ba1b-d7f471d385b9",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Electric Light Orchestra": {
+    "source": "https://musicbrainz.org/artist/0c502791-4ee9-4c5f-9696-0602b721ff3b",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Led Zeppelin": {
+    "source": "https://musicbrainz.org/artist/678d88b2-87b0-403b-b63d-5da7465aecc3",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Fleetwood Mac": {
+    "source": "https://musicbrainz.org/artist/bd13909f-1c29-4c27-a874-d4aaf27c5b1a",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Elvis Presley": {
+    "source": "https://musicbrainz.org/artist/01809552-4f87-45b0-afff-2c6f0730a3be",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "KC and the Sunshine Band": {
+    "source": "https://musicbrainz.org/artist/76a5a114-ed6a-4eb6-8a81-ad5768d4b41c",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "John Mayer": {
+    "source": "https://musicbrainz.org/artist/144ef525-85e9-40c3-8335-02c32d0861f3",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Kajagoogoo": {
+    "source": "https://musicbrainz.org/artist/7bc51021-6a84-4a04-ada3-0541615a97bc",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Mariah Carey": {
+    "source": "https://musicbrainz.org/artist/494e8d09-f85b-4543-892f-a5096aed1cd4",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "KNOWER": {
+    "source": "https://musicbrainz.org/artist/b6014a14-a511-4004-b17a-636450edabec",
+    "area": "Los Angeles, California, United States",
+    "classification": "洋楽"
+  },
+  "Level 42": {
+    "source": "https://musicbrainz.org/artist/d69ee229-2f36-494c-b104-9ae0d8be506b",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Sex Pistols": {
+    "source": "https://musicbrainz.org/artist/e5db18cb-4b1f-496d-a308-548b611090d3",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Simple Plan": {
+    "source": "https://musicbrainz.org/artist/b345af35-205e-4eca-8006-029e5c20127e",
+    "area": "Canada",
+    "classification": "洋楽"
+  },
+  "Thundercat": {
+    "source": "https://musicbrainz.org/artist/044fd265-79dd-43eb-afc4-8b20becf7e17",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "The Pretty Reckless": {
+    "source": "https://musicbrainz.org/artist/54f8c12e-571c-4c5a-9f79-5336b39e84b0",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Incognito": {
+    "source": "https://musicbrainz.org/artist/68fb131b-858d-4b7f-93b8-5b1924908421",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Jason Mraz": {
+    "source": "https://musicbrainz.org/artist/82eb8936-7bf6-4577-8320-a2639465206d",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "The Human League": {
+    "source": "https://musicbrainz.org/artist/7adaabfb-acfb-47bc-8c7c-59471c2f0db8",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Avril Lavigne": {
+    "source": "https://musicbrainz.org/artist/0103c1cc-4a09-4a5d-a344-56ad99a77193",
+    "area": "Canada",
+    "classification": "洋楽"
+  },
+  "Cheap Trick": {
+    "source": "https://musicbrainz.org/artist/9f870653-72b0-4c6d-8c59-439a95963e09",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Bee Gees": {
+    "source": "https://musicbrainz.org/artist/bf0f7e29-dfe1-416c-b5c6-f9ebc19ea810",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Roberta Flack": {
+    "source": "https://musicbrainz.org/artist/5298bbcb-7330-49bf-a780-2d757f10a20a",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Skid Row": {
+    "source": "https://musicbrainz.org/artist/6da0515e-a27d-449d-84cc-00713c38a140",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "The Beach Boys": {
+    "source": "https://musicbrainz.org/artist/ebfc1398-8d96-47e3-82c3-f782abcdb13d",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "David Bowie": {
+    "source": "https://musicbrainz.org/artist/5441c29d-3602-4898-b1a1-b77fa23b8e50",
+    "area": "England, United Kingdom",
+    "classification": "洋楽"
+  },
+  "Peter Gabriel": {
+    "source": "https://musicbrainz.org/artist/8e66ea2b-b57b-47d9-8df0-df4630aeb8e5",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Sam Cooke": {
+    "source": "https://musicbrainz.org/artist/6c8fd0be-d961-454c-aee0-4366a6dbc993",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Mr. Big": {
+    "source": "https://musicbrainz.org/artist/bd1180c4-4252-461f-94dc-543906c02522",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Robert Palmer": {
+    "source": "https://musicbrainz.org/artist/96b1d906-0fda-406d-beb6-19c6758998df",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Michael McDonald": {
+    "source": "https://musicbrainz.org/artist/cacbe57b-02d0-4d21-be86-c8a3a5ea6e1e",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Madonna": {
+    "source": "https://musicbrainz.org/artist/79239441-bfd5-4981-a70c-55c3f15c1287",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "The Buggles": {
+    "source": "https://musicbrainz.org/artist/20278bbd-271a-4a1c-b6fd-43a13d43203d",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Thompson Twins": {
+    "source": "https://musicbrainz.org/artist/228af6b5-f691-4ed2-a63b-10cc6fcc1144",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Andy Williams": {
+    "source": "https://musicbrainz.org/artist/57cb4257-9855-4a42-b1be-bfba1d9b520d",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Aretha Franklin": {
+    "source": "https://musicbrainz.org/artist/2f9ecbed-27be-40e6-abca-6de49d50299e",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Guns N' Roses": {
+    "source": "https://musicbrainz.org/artist/eeb1195b-f213-4ce1-b28c-8565211f8e43",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Howard Jones": {
+    "source": "https://musicbrainz.org/artist/23b2cc78-7595-4630-bebb-a349a4f25262",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "George Michael": {
+    "source": "https://musicbrainz.org/artist/ccb8f30e-4d71-40c4-8b1d-846dafe73e2c",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Phil Collins": {
+    "source": "https://musicbrainz.org/artist/401c3991-b76b-499d-8082-9f2df958ef78",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Ray Charles": {
+    "source": "https://musicbrainz.org/artist/2ce02909-598b-44ef-a456-151ba0a3bd70",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Peter Allen": {
+    "source": "https://musicbrainz.org/artist/606a2d8e-2ac3-494d-bf6c-f903a37fc7ca",
+    "area": "Australia",
+    "classification": "洋楽"
+  },
+  "Steely Dan": {
+    "source": "https://musicbrainz.org/artist/e01c3376-15fa-40d7-b747-5f219bdefdd7",
+    "area": "New York, New York, United States",
+    "classification": "洋楽"
+  },
+  "Carole King": {
+    "source": "https://musicbrainz.org/artist/bf6c29f5-b69f-4842-9031-37f9645d365d",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Nirvana": {
+    "source": "https://musicbrainz.org/artist/5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Adele": {
+    "source": "https://musicbrainz.org/artist/cc2c9c3c-b7bc-4b8b-84d8-4fbd8779e493",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Elton John": {
+    "source": "https://musicbrainz.org/artist/b83bc61f-8451-4a5d-8b8e-7e9ed295e822",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "The Isley Brothers": {
+    "source": "https://musicbrainz.org/artist/4a76400d-283f-492e-9754-18ef41755f81",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "The Doobie Brothers": {
+    "source": "https://musicbrainz.org/artist/588dea29-eea3-456b-a815-3ee04f75c8e7",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Paul McCartney": {
+    "source": "https://musicbrainz.org/artist/ba550d0e-adac-4864-b88b-407cab5e76af",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Norah Jones": {
+    "source": "https://musicbrainz.org/artist/985c709c-7771-4de3-9024-7bda29ebe3f9",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Marvin Gaye": {
+    "source": "https://musicbrainz.org/artist/afdb7919-059d-43c1-b668-ba1d265e7e42",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Neil Sedaka": {
+    "source": "https://musicbrainz.org/artist/577d92bd-32ac-48b6-86df-4db6b0b52fbf",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Red Hot Chili Peppers": {
+    "source": "https://musicbrainz.org/artist/8bfac288-ccc5-448d-9573-c33ea2aa5c30",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Deep Purple": {
+    "source": "https://musicbrainz.org/artist/79491354-3d83-40e3-9d8e-7592d58d790a",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Rush": {
+    "source": "https://musicbrainz.org/artist/534ee493-bfac-4575-a44a-0ae41e2c3fe4",
+    "area": "Canada",
+    "classification": "洋楽"
+  },
+  "Heart": {
+    "source": "https://musicbrainz.org/artist/bdbd48f5-abf3-4a4f-9a21-4551dbc3fde9",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Dream Theater": {
+    "source": "https://musicbrainz.org/artist/28503ab7-8bf2-4666-a7bd-2644bfc7cb1d",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Wham!": {
+    "source": "https://musicbrainz.org/artist/d570bb31-b9ca-45a4-a2d9-11b186d9c159",
+    "area": "United Kingdom",
+    "classification": "洋楽"
+  },
+  "Tower of Power": {
+    "source": "https://musicbrainz.org/artist/6c4d81f8-8a34-4cda-9a4b-538c539b50f4",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "Prince": {
+    "source": "https://musicbrainz.org/artist/070d193a-845c-479f-980e-bef15710653e",
+    "area": "United States",
+    "classification": "洋楽"
+  },
+  "BoA": {
+    "source": "https://musicbrainz.org/artist/a16d1433-ba89-4f72-a47b-a370add0bb55",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "東方神起": {
+    "source": "https://musicbrainz.org/artist/05cbaf37-6dc2-4f71-a0ce-d633447d90c3",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "少女時代": {
+    "source": "https://musicbrainz.org/artist/b7442f18-d9be-4185-8b51-482510046156",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "IVE": {
+    "source": "https://musicbrainz.org/artist/b2f2216a-d7a9-4ce0-8b8f-f494d9a8c196",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "SHINee": {
+    "source": "https://musicbrainz.org/artist/70e5098b-c4ae-4cd7-9799-3c1b9b57c753",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "BTS": {
+    "source": "https://musicbrainz.org/artist/0d79fe8e-ba27-4859-bb8c-2f255f346853",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "BTS(防弾少年団)": {
+    "source": "https://musicbrainz.org/artist/0d79fe8e-ba27-4859-bb8c-2f255f346853",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "NewJeans": {
+    "source": "https://musicbrainz.org/artist/49204a7a-ed85-407a-828f-6fd46f1d8126",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "JYJ": {
+    "source": "https://musicbrainz.org/artist/6988aba7-676f-4122-b3c5-f85c863c3ddb",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "IU": {
+    "source": "https://musicbrainz.org/artist/b9545342-1e6d-4dae-84ac-013374ad8d7c",
+    "area": "South Korea",
+    "classification": "K-POP"
+  },
+  "テレサ・テン": {
+    "source": "https://musicbrainz.org/artist/5c5cb762-d95e-47af-a7bf-35171eeab8e6",
+    "area": "Taiwan",
+    "classification": "台湾音楽"
+  },
+  "テレサテン": {
+    "source": "https://musicbrainz.org/artist/5c5cb762-d95e-47af-a7bf-35171eeab8e6",
+    "area": "Taiwan",
+    "classification": "台湾音楽"
+  },
+  "欧陽菲菲": {
+    "source": "https://andss.jp/artist/%E6%AC%A7%E9%99%BD%E8%8F%B2%E8%8F%B2/",
+    "area": "台湾・台北市",
+    "classification": "台湾音楽"
+  }
+}

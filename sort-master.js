@@ -17,7 +17,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -37,7 +39,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -57,7 +61,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -77,7 +83,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -97,7 +105,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -118,7 +128,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -138,7 +150,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -158,7 +172,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -178,7 +194,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -198,7 +216,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -218,7 +238,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
@@ -238,7 +260,9 @@
    "J-POP",
    "アニソン",
    "ボカロ",
+   "Vtuber",
    "K-POP",
+   "台湾音楽",
    "洋楽"
   ],
   "enabled": true
