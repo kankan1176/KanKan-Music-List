@@ -36,6 +36,11 @@ const {mergeFreeRules}=require('../../scripts/free-control-rules.cjs'),service=r
   const captured=(await get(ref(admin,'songEditLogs/google-direct'))).val();assert.equal(captured.editorUid,'member');assert.equal(captured.action,'edit');
   current=(await get(ref(admin,'songs/song'))).val();const rollback=prepare(current,service.inverse(current,captured),'google-undo',{action:'undo',sourceLogId:'google-direct',editor:actor});await assertSucceeds(update(ref(admin),rollback.updates));
   current=(await get(ref(admin,'songs/song'))).val();
+  for(const bad of ['', '   ', '　', '\u00a0']){
+   const emptyTitle=prepare(current,{title:{before:current.title,after:'Valid'}},'blank-title',{actor:{uid:'member'},editor:{uid:'member'},action:'edit'}).updates;
+   emptyTitle['songs/song/title']=bad;emptyTitle['songEditLogs/blank-title'].changes.title.after=bad;emptyTitle['songEditLogs/blank-title'].songTitleAfter=bad;
+   await assertFails(update(ref(member),emptyTitle));
+  }
   const unsafe=prepare(current,{chordwiki:{before:current.chordwiki,after:'javascript:alert(1)'}},'unsafe-url',{actor:{uid:'member'},editor:{uid:'member'},action:'edit'});await assertFails(update(ref(member),unsafe.updates));
   const request={songId:'song',requestedBy:'member',editorName:'Member',title:'Original',artist:'Another',status:'pending',createdAt:serverTimestamp(),changes:{artist:{before:'Another',after:'Proposed'}}};
   await assertSucceeds(set(ref(member,'songChangeRequests/song/member'),request));await assertFails(set(ref(context('guest','anonymous'),'songChangeRequests/song/guest'),{...request,requestedBy:'guest'}));

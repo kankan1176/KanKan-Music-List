@@ -22,6 +22,10 @@ function addGoogleSongEditRules(document){
   if(field.startsWith('$'))continue;
   const old=`${oldSong}.child('${field}')`,before=field==='genre1'?`(${old}.exists() ? ${old}.val() + '' : (${oldSong}.child('genre').exists() ? ${oldSong}.child('genre').val() + '' : ''))`:`(${old}.exists() ? ${old}.val() + '' : '')`;
   let binding=`newData.child('before').val() === ${before} && newData.child('after').val() === ${afterSong}.child('${field}').val()`;
+  if(field==='title'){
+   const stripped=[9,10,11,12,13,32,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279].reduce((v,code)=>v+'.replace('+JSON.stringify(String.fromCharCode(code)).replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029')+",'')","newData.child('after').val()");
+   binding += ' && '+stripped+'.length > 0';
+  }
   if(field==='chordwiki')binding += " && (newData.child('after').val() === '' || newData.child('after').val().matches(/^https:\\/\\/(ja|beta)\\.chordwiki\\.org\\/(wiki\\/.+|wiki\\.cgi\\?.+)$/))";
   if(!String(node['.validate']).includes(binding))node['.validate']='('+node['.validate']+') && ('+binding+')';
  }
