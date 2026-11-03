@@ -7742,6 +7742,7 @@ body.sl-redesign{--sl-filter:134px!important}
     }
 
     const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre1:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',genre4:'ジャンル④',genre5:'ジャンル⑤',genre6:'音楽ジャンル',vocal_synths:'ボカロ別',release_year:'発売・公開年',anime_year:'放送・公開年',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
+    let songEditBaseline=null;
     function isGoogleSongEditor(){
         const user=auth.currentUser;
         return !!(user && !user.isAnonymous && signedInUser?.uid===user.uid &&
@@ -7751,8 +7752,9 @@ body.sl-redesign{--sl-filter:134px!important}
         const song=allData.find(row=>row._id===currentDetailSongId);
         if(!song)return;
         if(!isGoogleSongEditor()){alert('楽曲情報の編集にはGoogleログインが必要です。');return;}
-        const form=document.getElementById('songEditRequestForm');
-        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS))form.elements[field].value=String(SLSongGenres.metadataFields.includes(field)?SLSongGenres.value(song,field):song[col]??'');
+        const form=document.getElementById('songEditRequestForm'),values={};
+        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){values[field]=String(SLSongGenres.metadataFields.includes(field)?SLSongGenres.value(song,field):song[col]??'');form.elements[field].value=values[field];}
+        songEditBaseline={id:song._id,uid:auth.currentUser.uid,values};
         document.getElementById('songEditRequestFeedback').textContent='';
         openModal('songEditRequestModal');
     }
@@ -7760,10 +7762,10 @@ body.sl-redesign{--sl-filter:134px!important}
         event.preventDefault();
         const song=allData.find(row=>row._id===currentDetailSongId),user=auth.currentUser;
         const msg=document.getElementById('songEditRequestFeedback'),button=document.getElementById('songEditRequestSubmit');
-        if(!song||!user||!isGoogleSongEditor()){msg.textContent='Googleログインを確認してください。';return;}
+        if(!song||!user||!isGoogleSongEditor()||songEditBaseline?.id!==song._id||songEditBaseline.uid!==user.uid){msg.textContent='Googleログインを確認し、編集画面を開き直してください。';return;}
         if(button.disabled)return;
-        const form=document.getElementById('songEditRequestForm'),before={},after={};
-        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){before[field]=SLSongGenres.metadataFields.includes(field)?SLSongGenres.value(song,field):song[col]??'';after[field]=String(form.elements[field].value||'').trim();}
+        const form=document.getElementById('songEditRequestForm'),before={...songEditBaseline.values},after={};
+        for(const field of Object.keys(REQUEST_EDIT_FIELDS))after[field]=String(form.elements[field].value||'').trim();
         button.disabled=true;msg.textContent='変更を保存しています…';
         try{
             const changes=SLSongChange.changes(before,after);
@@ -7773,6 +7775,7 @@ body.sl-redesign{--sl-filter:134px!important}
             for(const [field,value] of Object.entries(result.log.changes)){const col=REQUEST_EDIT_FIELDS[field];if(col)song[col]=value.after;song[field]=value.after;if(field==='genre1')song[genre1Key]=value.after;}
             song._searchText=SLSongSearch.text(song);song._updatedAt=Date.now();
             renderTable();showSongDetails(song._id);
+            for(const[field,value]of Object.entries(result.log.changes))if(Object.hasOwn(songEditBaseline.values,field))songEditBaseline.values[field]=value.after;
             msg.textContent='保存しました。楽曲情報に即時反映し、編集履歴へ記録しました。';
         }catch(error){console.warn('楽曲情報を保存できませんでした。');msg.textContent='保存できませんでした：'+error.message+' 最新の情報を開き直して確認してください。';}
         finally{button.disabled=false;}
