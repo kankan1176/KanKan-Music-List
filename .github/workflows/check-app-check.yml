@@ -12,6 +12,9 @@ on:
       - 'data/reference-masters/**'
       - 'scripts/build-reference-masters.cjs'
       - 'scripts/check-artist-classification.cjs'
+      - 'song-choice-controls.js'
+      - 'song-choice-forms.css'
+      - 'scripts/check-song-choices.cjs'
       - 'song-registration.js'
       - 'song-registration.css'
       - 'scripts/check-song-registration.cjs'
@@ -39,6 +42,9 @@ on:
       - 'data/reference-masters/**'
       - 'scripts/build-reference-masters.cjs'
       - 'scripts/check-artist-classification.cjs'
+      - 'song-choice-controls.js'
+      - 'song-choice-forms.css'
+      - 'scripts/check-song-choices.cjs'
       - 'song-registration.js'
       - 'song-registration.css'
       - 'scripts/check-song-registration.cjs'
@@ -69,6 +75,7 @@ jobs:
         with:
           node-version: '22'
       - run: |
+          node scripts/check-song-choices.cjs
           node scripts/build-reference-masters.cjs --check
           node scripts/check-artist-classification.cjs
           node scripts/check-song-registration.cjs

@@ -35,13 +35,13 @@
  async function openEditor(songId){
   if(busy||!currentUser)return;const actor=currentUser;if(!/^[A-Za-z0-9_-]{1,80}$/.test(songId||'')){status('楽曲IDを入力してください。');showView('history');return;}
   try{const snap=await db.ref('songs/'+songId).once('value');if(!authorized(actor))return;const song=snap.val();if(!song)throw Error('楽曲が見つかりません。');editing={songId,song,actor};
-   el('adminSongEditIdentity').textContent=song.title+' ／ '+(song.artist||'未設定')+' ['+songId+']';for(const input of fields.querySelectorAll('[name]'))input.value=String(input.name==='genre1'?SLSongGenres.value(song,'genre1'):song[input.name]??'');el('adminSongEditStatus').textContent='保存すると管理者の編集として履歴に記録します。';dialog.showModal();
+   el('adminSongEditIdentity').textContent=song.title+' ／ '+(song.artist||'未設定')+' ['+songId+']';for(const input of fields.querySelectorAll('[name]'))input.value=String(input.name==='genre1'?SLSongGenres.value(song,'genre1'):song[input.name]??'');SLMasterChoices.attach(dialog.querySelector('form'),null);dialog.showModal();dialog.querySelector('[type=submit]').disabled=true;el('adminSongEditStatus').textContent='マスターの選択肢を取得しています…';const chosen=editing;const options=await SLMasterChoices.load(db);if(editing!==chosen||!authorized(actor))return;SLMasterChoices.attach(dialog.querySelector('form'),options);dialog.querySelector('[type=submit]').disabled=false;el('adminSongEditStatus').textContent='保存すると管理者の編集として履歴に記録します。';
   }catch(e){showView('history');status('編集画面を開けません：'+e.message);}
  }
  dialog.querySelector('form').onsubmit=async event=>{
   event.preventDefault();if(busy||!editing||!authorized(editing.actor))return;const selected=editing,after={...selected.song};for(const input of fields.querySelectorAll('[name]'))after[input.name]=input.value;
   busy=true;dialog.querySelectorAll('button').forEach(b=>b.disabled=true);el('adminSongEditStatus').textContent='保存しています…';
-  try{const baseline={...selected.song,genre1:SLSongGenres.value(selected.song,'genre1')};const changes=SLSongChange.changes(baseline,after);await api.save({database:db,songId:selected.songId,changes,actor:selected.actor,isAuthorized:()=>authorized(selected.actor)});dialog.close();busy=false;showView('history');await load(true);status('楽曲情報を保存し、編集履歴に記録しました。検索・絞り込みは定期更新後に反映されます。');void loadNews();}
+  try{const baseline={...selected.song,genre1:SLSongGenres.value(selected.song,'genre1')};SLMasterChoices.check(dialog.querySelector('form'),after);const changes=SLSongChange.changes(baseline,after);await api.save({database:db,songId:selected.songId,changes,actor:selected.actor,isAuthorized:()=>authorized(selected.actor)});dialog.close();busy=false;showView('history');await load(true);status('楽曲情報を保存し、編集履歴に記録しました。検索・絞り込みは定期更新後に反映されます。');void loadNews();}
   catch(e){el('adminSongEditStatus').textContent='保存できません：'+e.message+' 競合の場合は閉じて最新の内容を開き直してください。';}
   finally{busy=false;dialog.querySelectorAll('button').forEach(b=>b.disabled=false);render();}
  };

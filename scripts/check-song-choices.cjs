@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict'),choices=require('../song-choice-controls.js'),fs=require('node:fs');
+const catalog=choices.catalog({groups:{genre1:{jp:{name:'J-POP'},en:{name:'洋楽'}},genre2:[{name:'アニソン'},{name:'ボカロ'}],genre4:{new:{name:'マスターに追加された所属'}},genre6:['ロック','ジャズ','ロック'],vocal_synths:{a:{name:'初音ミク'}},release_year:{y:{name:'2026'}}}});
+assert.deepEqual(catalog.genre1,['J-POP','洋楽']);assert.deepEqual(catalog.genre4,['マスターに追加された所属']);assert.deepEqual(catalog.genre6,['ロック','ジャズ']);assert.deepEqual(choices.split('アニソン、ゲーム,ボカロ'),['アニソン','ゲーム','ボカロ']);
+choices.validate({genre1:'J-POP',genre2:'アニソン、ボカロ',vocal_synths:'初音ミク'},catalog);
+assert.throws(()=>choices.validate({genre6:'勝手な新分類'},catalog),/一覧から/);assert.throws(()=>choices.validate({genre6:'ロック、TYPO'},catalog),/一覧から/);
+choices.validate({genre6:'以前の分類'},catalog,{genre6:'以前の分類'});choices.validate({genre6:'以前の分類、ロック'},catalog,{genre6:'以前の分類'});choices.validate({genre6:''},catalog,{genre6:'以前の分類'});
+assert.throws(()=>choices.validate({genre6:'以前の分類、別の未知分類'},catalog,{genre6:'以前の分類'}));
+const html=fs.readFileSync('index.html','utf8');assert(html.includes('SLMasterChoices.check(form,after)'));assert(html.includes('SLMasterChoices.registrationCatalog'));assert(html.includes('data-choice-form="register"'));for(const f of choices.fields)assert(html.includes('type="hidden" name="'+f+'"'),'taxonomy must not be a free-text input: '+f);
+assert(fs.readFileSync('admin-song-history.js','utf8').includes('SLMasterChoices.check'));
+console.log('PASS: live master options, deduplication, multi-label serialization, unknown-value rejection, unchanged legacy preservation, clearing, both registration/edit integrations and administrator form validation.');

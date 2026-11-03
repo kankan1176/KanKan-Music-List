@@ -13,10 +13,10 @@
     <script src="category-filters.js?v=20261024-years1"></script>
     <link rel="stylesheet" href="category-filters.css?v=20261024-years1">
     <script src="genre-index-reader.js?v=20261024-years1"></script>
-    <script src="song-search-core.js?v=20261104-1"></script><script src="song-change-core.js?v=20261024-registration1"></script><script src="song-edit-service.js?v=20261104-1"></script>
+    <script src="song-choice-controls.js?v=20261104-1"></script><script src="song-search-core.js?v=20261104-1"></script><script src="song-change-core.js?v=20261024-registration1"></script><script src="song-edit-service.js?v=20261104-1"></script>
     <script src="vtuber-master.js?v=20261024-vtuber1"></script>
     <script src="artist-classification.js?v=20261024-vtuber1"></script>
-    <script src="song-registration.js?v=20261024-vtuber1"></script>
+    <script src="song-registration.js?v=20261104-vtuber1"></script>
     <link rel="stylesheet" href="song-registration.css?v=20261024-vtuber1">
     <script src="queue-actions.js?v=20261022-reorder1"></script>
 <script>if (!new URLSearchParams(location.search).has('room')) document.documentElement.classList.add('entry-home');</script>
@@ -3607,7 +3607,7 @@ body.sl-redesign{--sl-filter:134px!important}
 .sl-genre-checks{display:flex;flex-wrap:wrap;gap:10px}.sl-genre-checks label{display:flex!important;align-items:center;gap:5px!important}.sl-genre-checks input{width:18px!important;min-height:18px!important;margin:0!important}
 @media(max-height:600px){body.sl-redesign{--sl-filter:134px!important}#slGenreHost .genre-btn{min-height:24px!important}}
 </style>
-</head>
+<link rel="stylesheet" href="song-choice-forms.css?v=20261104-1"></head>
 <body class="sl-redesign">
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
 
@@ -4473,90 +4473,7 @@ body.sl-redesign{--sl-filter:134px!important}
       </div>
     </header>
 
-    <form id="addSongForm" class="sl-add-song-grid sl-registration-layout" onsubmit="submitNewSong(event)">
-
-      <section class="sl-add-song-card sl-add-song-form-card">
-        <div class="sl-add-song-section-title">
-          <span>✏️</span>
-          <div>
-            <strong>楽曲情報を入力</strong>
-            <small>必須項目を入力して登録申請を送信してください。</small>
-          </div>
-        </div>
-
-          <div class="sl-add-form-grid">
-
-            <div class="setting-group sl-add-field sl-add-field-wide">
-              <label for="newTitle">曲名 <span class="sl-required">必須</span></label>
-              <input class="setting-input" id="newTitle" name="title" maxlength="150" required autocomplete="off" placeholder="例：Pretender">
-            </div>
-
-            <div class="setting-group sl-add-field sl-add-field-wide">
-              <label for="newArtist">アーティスト名 <span class="sl-required">必須</span></label>
-              <input class="setting-input" id="newArtist" name="artist" maxlength="150" required autocomplete="off" placeholder="例：Official髭男dism">
-              <p id="newArtistClassification" class="sl-registration-detection" role="status" aria-live="polite" hidden></p>
-            </div>
-
-            <div class="setting-group sl-add-field sl-add-field-wide">
-              <label for="newCodeUrl">ChordWiki URL <span class="sl-required">必須</span></label>
-              <input class="setting-input" id="newCodeUrl" name="codeUrl" type="url" placeholder="https://ja.chordwiki.org/wiki/..." maxlength="500" required>
-              <p id="newCodeUrlCheck" role="status" aria-live="polite" class="sl-add-inline-status"></p>
-            </div>
-
-            <div class="setting-group sl-add-field">
-              <label for="newBpm">BPM <span class="sl-optional">任意</span></label>
-              <input class="setting-input" id="newBpm" name="bpm" type="number" min="1" max="400" step="1" placeholder="未入力でもOK">
-            </div>
-
-            <fieldset class="setting-group sl-add-field sl-add-field-wide">
-              <legend id="newGenre1Legend">① 基本ジャンル（単一選択）</legend>
-              <select id="newGenre1" name="genre1" aria-labelledby="newGenre1Legend"><option value="">選択しない</option></select>
-            </fieldset>
-            <fieldset class="setting-group sl-add-field sl-add-field-wide">
-              <legend>② 楽曲の分類（複数選択可）</legend>
-              <div id="newCategoryChoices" class="sl-genre-checks"></div>
-            </fieldset>
-            <fieldset class="setting-group sl-add-field sl-add-field-wide">
-              <legend>③ 音楽ジャンル（複数選択可）</legend>
-              <div id="newGenre6" class="sl-genre-checks"></div>
-            </fieldset>
-          </div>
-
-          <!-- Bot対策のハニーポット。通常は非表示 -->
-          <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;">
-            <label for="newWebsite">Website</label>
-            <input id="newWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
-          </div>
-
-
-      </section>
-
-      <aside class="sl-add-song-card sl-registration-details" aria-label="掲載媒体・関連作品とボカロ別">
-        <p class="sl-registration-details-hint">「楽曲の分類」でアニソン・ボカロを選ぶと、対応する項目が表示されます。</p>
-            <fieldset id="newAnimeSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
-              <legend id="newAnimeTitleLegend">アニメ作品名（任意）</legend>
-              <input id="newAnimeTitle" name="tieup" class="setting-input" maxlength="240" aria-labelledby="newAnimeTitleLegend" placeholder="例：けいおん！" autocomplete="off">
-            </fieldset>
-            <fieldset id="newPublisherSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
-              <legend>掲載媒体・関連作品（単一選択）</legend>
-              <label for="newPublisher">アニソンの掲載媒体</label>
-              <select id="newPublisher" name="publisher"><option value="">選択しない</option></select>
-            </fieldset>
-            <fieldset id="newVocalSection" class="setting-group sl-add-field sl-add-field-wide" hidden disabled>
-              <legend>ボカロ別（複数選択可）</legend>
-              <p class="sl-registration-hint">同じ名前の歌唱者は、どちらの欄で選んでも同じ選択になります。</p>
-              <div id="newVocalChoices"></div>
-            </fieldset>
-      </aside>
-
-          <div class="sl-add-submit-area">
-            <p id="addSongFeedback" role="status" aria-live="polite"></p>
-            <div class="sl-add-submit-buttons">
-              <button type="button" class="sl-add-back-btn" onclick="slCloseAddSongPage()">← 戻る</button>
-              <button type="submit" id="addSongSubmit" class="primary-btn sl-add-submit-btn">📨 管理者へ登録申請</button>
-            </div>
-          </div>
-    </form>
+    <form id="addSongForm" class="sl-song-form" data-choice-form="register" onsubmit="submitNewSong(event)"><div class="sl-form-tabs" role="tablist" aria-label="楽曲情報の項目"><button type="button" role="tab" data-form-tab="basic" aria-controls="newbasic">基本情報</button><button type="button" role="tab" data-form-tab="genre" aria-controls="newgenre">分類</button><button type="button" role="tab" data-form-tab="credits" aria-controls="newcredits">作品・制作</button></div><div class="sl-form-columns"><section class="sl-form-pane" data-form-pane="basic" id="newbasic" aria-label="楽曲の基本情報"><h3>楽曲の基本情報</h3><label class="sl-field"><span>曲名 <small class="sl-required">必須</small></span><input name="title" id="newTitle" type="text" maxlength="150" required autocomplete="off" placeholder="曲名を入力"></label><label class="sl-field"><span>アーティスト <small class="sl-required">必須</small></span><input name="artist" id="newArtist" type="text" maxlength="150" required autocomplete="off" placeholder="アーティスト名を入力"></label><p id="newArtistClassification" class="sl-form-note" role="status" hidden></p><label class="sl-field"><span>ChordWiki URL <small class="sl-required">必須</small></span><input name="codeUrl" id="newCodeUrl" type="url" maxlength="500" required autocomplete="off" placeholder="https://ja.chordwiki.org/wiki/..."></label><p id="newCodeUrlCheck" class="sl-form-note" role="status"></p><label class="sl-field"><span>BPM（任意）</span><input name="bpm" id="newBpm" type="number" min="1" max="400" step="1" maxlength="30" autocomplete="off" placeholder="例：160"></label><label class="sl-field"><span>検索用語（任意）</span><input name="search" type="text" maxlength="500" autocomplete="off" placeholder="別名・読み方など"></label></section><section class="sl-form-pane" data-form-pane="genre" id="newgenre" aria-label="ジャンル・分類"><h3>ジャンル・分類</h3><label class="sl-field"><span>基本ジャンル<small>1つ選択</small></span><input type="hidden" name="genre1" id="newGenre1" maxlength="100"></label><label class="sl-field"><span>楽曲の分類<small>複数選択</small></span><input type="hidden" name="genre2" id="newGenre2" maxlength="100"></label><label class="sl-field"><span>音楽ジャンル<small>複数選択</small></span><input type="hidden" name="genre6" id="newGenre6" maxlength="100"></label><label class="sl-field"><span>主題歌・用途<small>複数選択</small></span><input type="hidden" name="genre3" id="newGenre3" maxlength="100"></label><label class="sl-field"><span>所属・関連グループ<small>複数選択</small></span><input type="hidden" name="genre4" id="newGenre4" maxlength="100"></label><label class="sl-field"><span>掲載媒体・関連作品<small>1つ選択</small></span><input type="hidden" name="genre5" id="newGenre5" maxlength="100"></label></section><section class="sl-form-pane" data-form-pane="credits" id="newcredits" aria-label="作品・歌唱・制作情報"><h3>作品・歌唱・制作情報</h3><label class="sl-field"><span>タイアップ・アニメ作品名（任意）</span><input name="tieup" id="newAnimeTitle" type="text" maxlength="240" autocomplete="off" placeholder="作品名を入力"></label><label class="sl-field"><span>ボカロ別<small>複数選択</small></span><input type="hidden" name="vocal_synths" id="newVocalSynths" maxlength="1000"></label><div class="sl-field-row"><label class="sl-field"><span>発売・公開年<small>1つ選択</small></span><input type="hidden" name="release_year" id="newReleaseYear" maxlength="100"></label><label class="sl-field"><span>アニメ放送・公開年<small>複数選択</small></span><input type="hidden" name="anime_year" id="newAnimeYear" maxlength="100"></label></div><label class="sl-field"><span>作詞（任意）</span><input name="lyrics" type="text" maxlength="240" autocomplete="off" placeholder=""></label><label class="sl-field"><span>作曲（任意）</span><input name="composition" type="text" maxlength="240" autocomplete="off" placeholder=""></label><label class="sl-field"><span>編曲（任意）</span><input name="arrangement" type="text" maxlength="240" autocomplete="off" placeholder=""></label></section></div><div aria-hidden="true" style="position:absolute;left:-10000px"><input id="newWebsite" name="website" tabindex="-1" autocomplete="off"></div><footer class="sl-form-footer"><p id="addSongFeedback" role="status" aria-live="polite">分類は現在のマスターから選択できます。</p><div class="sl-form-buttons"><button type="button" onclick="slCloseAddSongPage()">← 戻る</button><button type="submit" id="addSongSubmit" class="primary-btn">管理者へ登録申請</button></div></footer></form>
   </div>
 </div>
 
@@ -4784,24 +4701,7 @@ body.sl-redesign{--sl-filter:134px!important}
     </div>
 </div>
 
-<div class="modal-overlay" id="songEditRequestModal" onclick="closeModal(event,'songEditRequestModal')" style="z-index:1090;">
- <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
-  <span class="modal-close" onclick="closeModal(null,'songEditRequestModal')">&times;</span>
-  <h2>✏️ 楽曲情報を編集</h2>
-  <p style="font-size:12px;">Googleログインで楽曲情報を編集できます。保存すると公開マスターへ即時反映され、編集履歴に記録されます。</p>
-  <form id="songEditRequestForm" onsubmit="submitSongEditRequest(event)">
-   <div class="setting-group"><label>曲名</label><input name="title" class="setting-input" maxlength="240" required></div>
-   <div class="setting-group"><label>アーティスト</label><input name="artist" class="setting-input" maxlength="240"></div>
-   <div class="setting-group"><label>ChordWiki原曲URL</label><input name="chordwiki" class="setting-input" maxlength="2048"></div>
-   <div class="setting-group"><label>BPM</label><input name="bpm" class="setting-input" maxlength="30"></div>
-   <div class="setting-group"><label>ジャンル① / ジャンル② / ジャンル③</label><input name="genre1" class="setting-input" placeholder="ジャンル①" maxlength="100"><input name="genre2" class="setting-input" placeholder="ジャンル②" maxlength="100"><input name="genre3" class="setting-input" placeholder="genre3" maxlength="100"><input name="genre4" class="setting-input" placeholder="genre4" maxlength="100"><input name="genre5" class="setting-input" placeholder="genre5" maxlength="100"><input name="genre6" class="setting-input" placeholder="音楽ジャンル" maxlength="100"><input name="vocal_synths" class="setting-input" placeholder="歌唱者" maxlength="1000"><input name="release_year" class="setting-input" placeholder="発売・公開年" maxlength="100"><input name="anime_year" class="setting-input" placeholder="放送・公開年" maxlength="100"></div>
-   <div class="setting-group"><label>タイアップ / 検索用語</label><input name="tieup" class="setting-input" placeholder="タイアップ" maxlength="240"><input name="search" class="setting-input" placeholder="検索用語" maxlength="500"></div>
-   <div class="setting-group"><label>作詞 / 作曲 / 編曲</label><input name="lyrics" class="setting-input" placeholder="作詞" maxlength="240"><input name="composition" class="setting-input" placeholder="作曲" maxlength="240"><input name="arrangement" class="setting-input" placeholder="編曲" maxlength="240"></div>
-   <p id="songEditRequestFeedback" aria-live="polite" style="font-size:12px;"></p>
-   <button type="submit" class="primary-btn" id="songEditRequestSubmit">変更を保存</button>
-  </form>
- </div>
-</div>
+<div class="modal-overlay" id="songEditRequestModal" onclick="closeModal(event,'songEditRequestModal')" style="z-index:1090;"><div class="modal sl-song-form" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="songEditHeading"><header class="sl-form-title"><div><h2 id="songEditHeading">楽曲情報を編集</h2><p>保存すると即時反映され、編集履歴に記録されます。</p></div><button type="button" class="modal-close" onclick="closeModal(null,'songEditRequestModal')" aria-label="編集を閉じる">×</button></header><form id="songEditRequestForm" onsubmit="submitSongEditRequest(event)"><div class="sl-form-tabs" role="tablist" aria-label="楽曲情報の項目"><button type="button" role="tab" data-form-tab="basic" aria-controls="editbasic">基本情報</button><button type="button" role="tab" data-form-tab="genre" aria-controls="editgenre">分類</button><button type="button" role="tab" data-form-tab="credits" aria-controls="editcredits">作品・制作</button></div><div class="sl-form-columns"><section class="sl-form-pane" data-form-pane="basic" id="editbasic" aria-label="楽曲の基本情報"><h3>楽曲の基本情報</h3><label class="sl-field"><span>曲名 <small class="sl-required">必須</small></span><input name="title" type="text" maxlength="240" required autocomplete="off" placeholder="曲名を入力"></label><label class="sl-field"><span>アーティスト</span><input name="artist" type="text" maxlength="240" autocomplete="off" placeholder="アーティスト名を入力"></label><label class="sl-field"><span>ChordWiki URL</span><input name="chordwiki" type="text" maxlength="2048" autocomplete="off" placeholder="https://ja.chordwiki.org/wiki/..."></label><label class="sl-field"><span>BPM（任意）</span><input name="bpm" type="text" maxlength="30" autocomplete="off" placeholder="例：160"></label><label class="sl-field"><span>検索用語（任意）</span><input name="search" type="text" maxlength="500" autocomplete="off" placeholder="別名・読み方など"></label></section><section class="sl-form-pane" data-form-pane="genre" id="editgenre" aria-label="ジャンル・分類"><h3>ジャンル・分類</h3><label class="sl-field"><span>基本ジャンル<small>1つ選択</small></span><input type="hidden" name="genre1" id="editChoicegenre1" maxlength="100"></label><label class="sl-field"><span>楽曲の分類<small>複数選択</small></span><input type="hidden" name="genre2" id="editChoicegenre2" maxlength="100"></label><label class="sl-field"><span>音楽ジャンル<small>複数選択</small></span><input type="hidden" name="genre6" id="editChoicegenre6" maxlength="100"></label><label class="sl-field"><span>主題歌・用途<small>複数選択</small></span><input type="hidden" name="genre3" id="editChoicegenre3" maxlength="100"></label><label class="sl-field"><span>所属・関連グループ<small>複数選択</small></span><input type="hidden" name="genre4" id="editChoicegenre4" maxlength="100"></label><label class="sl-field"><span>掲載媒体・関連作品<small>1つ選択</small></span><input type="hidden" name="genre5" id="editChoicegenre5" maxlength="100"></label></section><section class="sl-form-pane" data-form-pane="credits" id="editcredits" aria-label="作品・歌唱・制作情報"><h3>作品・歌唱・制作情報</h3><label class="sl-field"><span>タイアップ・アニメ作品名（任意）</span><input name="tieup" type="text" maxlength="240" autocomplete="off" placeholder="作品名を入力"></label><label class="sl-field"><span>ボカロ別<small>複数選択</small></span><input type="hidden" name="vocal_synths" id="editChoicevocal_synths" maxlength="1000"></label><div class="sl-field-row"><label class="sl-field"><span>発売・公開年<small>1つ選択</small></span><input type="hidden" name="release_year" id="editChoicerelease_year" maxlength="100"></label><label class="sl-field"><span>アニメ放送・公開年<small>複数選択</small></span><input type="hidden" name="anime_year" id="editChoiceanime_year" maxlength="100"></label></div><label class="sl-field"><span>作詞（任意）</span><input name="lyrics" type="text" maxlength="240" autocomplete="off" placeholder=""></label><label class="sl-field"><span>作曲（任意）</span><input name="composition" type="text" maxlength="240" autocomplete="off" placeholder=""></label><label class="sl-field"><span>編曲（任意）</span><input name="arrangement" type="text" maxlength="240" autocomplete="off" placeholder=""></label></section></div><footer class="sl-form-footer"><p id="songEditRequestFeedback" role="status" aria-live="polite"></p><div class="sl-form-buttons"><button type="button" onclick="closeModal(null,'songEditRequestModal')">閉じる</button><button type="submit" class="primary-btn" id="songEditRequestSubmit">変更を保存</button></div></footer></form></div></div>
 <!-- 予約モーダル -->
 <div class="modal-overlay" id="reservedModal" onclick="closeModal(event, 'reservedModal')">
     <div class="modal" onclick="event.stopPropagation()">
@@ -7219,7 +7119,8 @@ body.sl-redesign{--sl-filter:134px!important}
             }
         }
         if (!isCurrent()) return;
-        first.disabled=false;
+        try{await SLMasterChoices.registrationCatalog(document.getElementById('addSongForm'),await songFormChoices(),SLArtistClassification);}catch(error){feedback.textContent=error.message;return;}
+        if(!isCurrent())return;first.disabled=false;
         newCodeUrlInput.setCustomValidity('');newCodeUrlInput.dispatchEvent(new Event('input'));if(!newSongSubmitting)feedback.textContent='';
         button.disabled = newSongSubmitting;
     }
@@ -7270,7 +7171,7 @@ body.sl-redesign{--sl-filter:134px!important}
                 chordwiki:new URL(SLChordWiki.url(data.codeUrl,'normal')).href, bpm:String(data.bpm||''),
                 genre:classification.genre1,...classification,
                 release_year:String(data.release_year||'').trim(),anime_year:String(data.anime_year||'').trim(),
-                tieup:String(data.tieup||'').trim().slice(0,240), search:'', lyrics:'', composition:'', arrangement:'',
+                tieup:String(data.tieup||'').trim().slice(0,240), search:String(data.search||'').trim().slice(0,500), lyrics:String(data.lyrics||'').trim().slice(0,240), composition:String(data.composition||'').trim().slice(0,240), arrangement:String(data.arrangement||'').trim().slice(0,240),
                 status:'pending', createdAt:firebase.database.ServerValue.TIMESTAMP
             };
             await db.ref(`songAddRequests/${user.uid}`).push(payload);
@@ -7742,13 +7643,18 @@ body.sl-redesign{--sl-filter:134px!important}
     }
 
     const REQUEST_EDIT_FIELDS={title:'曲名',artist:'アーティスト',chordwiki:'コードwiki',bpm:'BPM',genre1:'ジャンル',genre2:'ジャンル②',genre3:'ジャンル③',genre4:'ジャンル④',genre5:'ジャンル⑤',genre6:'音楽ジャンル',vocal_synths:'ボカロ別',release_year:'発売・公開年',anime_year:'放送・公開年',tieup:'タイアップ情報',search:'検索',lyrics:'作詞',composition:'作曲',arrangement:'編曲'};
+    async function songFormChoices(){
+        const options=masterLoaded?SLSongGenres.catalog(allData):SLMasterChoices.catalog(await loadServerGenreCatalog());
+        if(!options.genre1?.length)throw Error('マスターの選択肢を読み込めませんでした。画面を開き直してください。');
+        return options;
+    }
     let songEditBaseline=null;
     function isGoogleSongEditor(){
         const user=auth.currentUser;
         return !!(user && !user.isAnonymous && signedInUser?.uid===user.uid &&
             Array.isArray(user.providerData) && user.providerData.some(p=>p?.providerId==='google.com'));
     }
-    function openSongEditRequestModal(){
+    async function openSongEditRequestModal(){
         const song=allData.find(row=>row._id===currentDetailSongId);
         if(!song)return;
         if(!isGoogleSongEditor()){alert('楽曲情報の編集にはGoogleログインが必要です。');return;}
@@ -7756,7 +7662,12 @@ body.sl-redesign{--sl-filter:134px!important}
         for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){values[field]=String(SLSongGenres.metadataFields.includes(field)?SLSongGenres.value(song,field):song[col]??'');form.elements[field].value=values[field];}
         songEditBaseline={id:song._id,uid:auth.currentUser.uid,values};
         document.getElementById('songEditRequestFeedback').textContent='';
+        const baseline=songEditBaseline,saveButton=document.getElementById('songEditRequestSubmit');
+        SLMasterChoices.attach(form,null);saveButton.disabled=true;
+        document.getElementById('songEditRequestFeedback').textContent='マスターの選択肢を取得しています…';
         openModal('songEditRequestModal');
+        try{const options=await songFormChoices();if(songEditBaseline!==baseline||auth.currentUser?.uid!==baseline.uid)return;SLMasterChoices.attach(form,options);saveButton.disabled=false;document.getElementById('songEditRequestFeedback').textContent='分類は一覧から選択してください。';}
+        catch(error){if(songEditBaseline===baseline)document.getElementById('songEditRequestFeedback').textContent=error.message;}
     }
     async function submitSongEditRequest(event){
         event.preventDefault();
@@ -7768,6 +7679,7 @@ body.sl-redesign{--sl-filter:134px!important}
         for(const field of Object.keys(REQUEST_EDIT_FIELDS))after[field]=String(form.elements[field].value||'').trim();
         button.disabled=true;msg.textContent='変更を保存しています…';
         try{
+            SLMasterChoices.check(form,after);
             const changes=SLSongChange.changes(before,after);
             if(!Object.keys(changes).length){msg.textContent='変更箇所がありません。';return;}
             const result=await SLSongEditService.save({database:db,songId:song._id,changes,actor:user,isAuthorized:()=>auth.currentUser?.uid===user.uid&&isGoogleSongEditor()});

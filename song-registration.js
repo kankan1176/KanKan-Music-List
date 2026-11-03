@@ -16,7 +16,7 @@
   return out;
  }
  function mount(document){
-  const form=document.getElementById('addSongForm');if(form.dataset.registrationMounted)return;
+  const form=document.getElementById('addSongForm');if(form.dataset.choiceForm)return globalThis.SLMasterChoices.mountRegistration(document);if(form.dataset.registrationMounted)return;
   form.dataset.registrationMounted='true';
   const basicSelect=document.getElementById('newGenre1');basicSelect.replaceChildren(new Option('選択しない',''),...basic.map(value=>new Option(value,value)));
   function checks(host,name,values){for(const value of values){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.name=name;input.value=value;if(name==='vocal_synths'){
@@ -45,6 +45,6 @@
   document.getElementById('newCategoryChoices').addEventListener('change',()=>{if(!automatic)manualVtuber=vtuber.checked;sync();});
   form.addEventListener('reset',()=>queueMicrotask(()=>{automatic=false;manualVtuber=false;vtuber.disabled=false;syncArtist();sync();}));syncArtist();sync();
  }
- function read(form){const values=new FormData(form);return classify({artist:values.get('artist'),base:values.get('genre1'),categories:values.getAll('registrationCategory'),music:values.getAll('registrationMusic'),voices:values.getAll('vocal_synths'),publisher:values.get('publisher')});}
+ function read(form){if(form.dataset.choiceForm)return globalThis.SLMasterChoices.readRegistration(form,artists);const values=new FormData(form);return classify({artist:values.get('artist'),base:values.get('genre1'),categories:values.getAll('registrationCategory'),music:values.getAll('registrationMusic'),voices:values.getAll('vocal_synths'),publisher:values.get('publisher')});}
  return{basic,categories,music,voices,publishers,classify,mount,read};
 });
