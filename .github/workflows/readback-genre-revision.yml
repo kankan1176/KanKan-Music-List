@@ -1,0 +1,26 @@
+name: Read only genre revision verification
+on:
+  push:
+    branches: [codex/genre-revision-readback-20261104]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Read public catalog and summarize remaining classification work
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          node <<'JS'
+          const policy=require('./scripts/genre-classification-policy.cjs');
+          const {initializeApp,cert,deleteApp}=require('firebase-admin/app'),{getDatabase}=require('firebase-admin/database');
+          (async()=>{const app=initializeApp({credential:cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app'});try{const db=getDatabase(app);const [songs,meta,rev,op]=await Promise.all(['songs','songGenreMeta','masterMeta/revision','maintenanceOperations/genre-revision-20261104'].map(p=>db.ref(p).get()));const data=songs.val(),remaining=policy.plan(data),counts={};for(const s of Object.values(data))counts[policy.value(s,'genre1')]=(counts[policy.value(s,'genre1')]||0)+1;const m=meta.val()||{},report=op.val()||{};console.log('READBACK '+JSON.stringify({checkedAt:Date.now(),songCount:Object.keys(data).length,remainingSongs:remaining.length,remainingCells:remaining.reduce((n,e)=>n+Object.keys(e.changes).length,0),genre1Counts:counts,indexKey:m.currentIndexKey,indexCurrent:m.sourceRevision===rev.val(),facetCategories:Object.keys(m.facets||{}),operation:{updatedSongs:report.updatedSongs,writtenCells:report.writtenCells,conflicts:report.conflicts?.length,failures:report.failures?.length}}));}finally{await deleteApp(app);}})().catch(e=>{console.error(e.message);process.exitCode=1;});
+          JS
