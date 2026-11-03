@@ -13,11 +13,11 @@ assert(g.matches({...a,vocal_synths:'Megpoid'},{vocal_synths:'GUMI（Megpoid）'
 assert(!g.matches(a,{vocal_synths:'可不（KAFU）'}));assert(!g.matches(a,{genre6:'ジャズ'}));
 assert.deepEqual(ui.options({groups:{anime_year:['2010','2020']}},'アニソン','anime_year'),['2020','2010']);
 const html=require('node:fs').readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
-const start=html.indexOf('    function serverSearchSongText(song) {'),end=html.indexOf('\n    }',start)+6;
+const start=html.indexOf('    function serverSearchSongText(song) {'),end=html.indexOf('\n    async function',start);
 assert(start>=0&&end>start);
-const searchText=new Function('SLSongGenres','normalizeServerSearchText',html.slice(start,end)+';return serverSearchSongText;')(g,v=>String(v).normalize('NFKC').toLowerCase());
+const searchText=new Function('SLSongSearch',html.slice(start,end)+';return serverSearchSongText;')(require('../song-search-core.js'));
 const searchable={title:'title',artist:'artist',tieup:'tieup',search:'search',lyrics:'lyrics',composition:'composition',arrangement:'arrangement',genre1:'J-POP',genre2:'ボカロ',genre3:'ゲーム',genre4:'アイドル',genre5:'ジャンプ',genre6:'ジャズ',vocal_synths:'初音ミク',release_year:'2009',anime_year:'2010'};
-for(const[field,value]of Object.entries(searchable))assert(searchText({[field]:value}).includes(value.normalize('NFKC').toLowerCase()),'missing search field '+field);
+for(const[field,value]of Object.entries(searchable))assert(searchText({[field]:value}).includes(require('../song-search-core.js').normalize(value)),'missing search field '+field);
 assert.equal(ui.controls('ボカロ')[2].label,'ボカロ別');
 const source={},live={};for(let i=0;i<27346;i++){source['s'+i]={id:'s'+i,...Object.fromEntries(g.metadataFields.map(f=>[f,a[f]||'']))};live['s'+i]={title:'Preserved',genre:'Old',updatedAt:1};}live.liveOnly={title:'Keep'};const result=plan(source,live);assert.equal(result.counts.matched,27346);assert.equal(result.counts.liveOnly,1);assert(Object.keys(result.updates).every(path=>/^songs\/s\d+\/(?:genre[1-6]?|vocal_synths|anime_year)$/.test(path)));assert.equal(live.s0.title,'Preserved');assert.throws(()=>plan(source,{}),/IDs differ/);live.s0.updatedAt=Date.parse('2026-10-24T00:00:00Z');assert.equal(plan(source,live).counts.recentSkipped,1);
 console.log('PASS five category navigation, category-dependent choices, synth/year/publisher AND, J-POP inclusion retained, classification-only ID-safe migration.');
