@@ -43,7 +43,7 @@
    if(showParts)tr.append(cell('td',Array.isArray(row.parts)?row.parts.join(' / '):'—','optional'));
    const action=cell('td',''),url=core.link(row.url,row.key,window.SLChordWikiPreference?.getVersion());if(url){const link=cell('a','↗ '+text.wiki,'song-link');link.href=url;link.target='_blank';link.rel='noopener noreferrer';action.append(link);}tr.append(action);el('Songs').append(tr);
   }
-  if(data&&!filtered.length)el('Status').textContent=text.empty;
+  if(data&&!filtered.length&&status!=='updating')el('Status').textContent=text.empty;
   for(const suffix of ['', 'Top']){el('Pagination'+suffix).hidden=!data;el('Prev'+suffix).textContent=text.previous;el('Next'+suffix).textContent=text.next;el('Prev'+suffix).disabled=page===0;el('Next'+suffix).disabled=page===pages-1;}
   el('Page').textContent=(page+1)+' / '+pages;el('PageSelect').setAttribute('aria-label',text.page);el('PageSelect').replaceChildren(...Array.from({length:pages},(_,i)=>new Option((i+1)+' / '+pages,String(i))));el('PageSelect').value=String(page);el('ListViewport').setAttribute('aria-label',text.songList);
   window.SLListPageState={ownerUid:data?.uid||'',available:!!data&&!data.reserved,language};window.dispatchEvent(new CustomEvent('sl-list-page-state',{detail:window.SLListPageState}));
@@ -73,7 +73,7 @@
     if(!core.tokenOK(token)){status='userUnavailable';render();return;}
    }
    const ref=database.ref('publicListShares/'+token);let current=true;
-   const listener=async snapshot=>{if(!current||version!==generation)return;const done=window.SLListLoading?.hold()||(()=>{});try{accept(snapshot.val());if(!data&&userRoute){status='userUnavailable';render();}await Promise.all([loadImage(database,token,data?.backgroundVersion),data?legacyGenres(database,version):Promise.resolve()]);}finally{done();}};
+   const listener=async snapshot=>{if(!current||version!==generation)return;const done=window.SLListLoading?.hold()||(()=>{});try{accept(snapshot.val());if(!data&&userRoute){status='userUnavailable';render();}if(data){status='updating';render();void legacyGenres(database,version).finally(()=>{if(current&&version===generation&&data){status='ready';render();}});}await loadImage(database,token,data?.backgroundVersion);}finally{done();}};
    ref.on('value',listener,error=>{if(!current||version!==generation)return;data=null;rows=[];setImage('');imageSerial++;status=/permission.denied/i.test(error?.code||error?.message||'')?(userRoute?'userUnavailable':'unavailable'):'loadError';render();});stop=()=>{current=false;ref.off('value',listener);};
   }catch{if(version===generation){status='loadError';render();}}
  }
