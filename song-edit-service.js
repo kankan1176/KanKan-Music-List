@@ -15,22 +15,22 @@
   if(!/^[A-Za-z0-9_-]{1,80}$/.test(songId)||!actor?.uid||!logId||!revision)throw Error('編集対象またはログイン情報が不正です。');
   if(!['edit','approve','undo'].includes(action))throw Error('編集操作が不正です。');
   const applied=core.apply(before,{changes}),actual={};
-  for(const key of core.fields)if(Object.hasOwn(applied.song,key)&&text(before[key])!==text(applied.song[key]))actual[key]={before:text(key==='genre1'&&!Object.hasOwn(before,key)?before.genre:before[key]),after:text(applied.song[key])};
+  for(const key of core.fields)if(Object.hasOwn(applied.song,key)&&text(before[key])!==text(applied.song[key]))actual[key]={before:String((key==='genre1'&&!Object.hasOwn(before,key)?before.genre:before[key])??''),after:text(applied.song[key])};
   if(!Object.keys(actual).length)throw Error('変更箇所がありません。');
   const version=Number(before._editRevision||0)+1;if(!Number.isSafeInteger(version)||version<1)throw Error('編集バージョンが不正です。');
   const log={songId,songTitleBefore:text(before.title),songTitleAfter:text(applied.song.title),editorUid:editor?.uid||actor.uid,editorName:String(editor?.displayName||editor?.name||editor?.uid||actor.uid).slice(0,80),actorUid:actor.uid,actorName:String(actor.displayName||actor.uid).slice(0,80),action,editedAt:timestamp,revision:version,changes:actual};
   if(sourceLogId)log.sourceLogId=sourceLogId;
   const updates={};for(const[key,v]of Object.entries(actual))updates['songs/'+songId+'/'+key]=v.after;
   updates['songs/'+songId+'/_editRevision']=version;updates['songs/'+songId+'/_lastEditId']=logId;updates['songs/'+songId+'/updatedAt']=timestamp;
-  updates['songEditLogs/'+logId]=log;updates['masterMeta/revision']=revision;
+  updates['songEditLogs/'+logId]=log;updates['masterMeta/revision']=logId;
   return{updates,log};
  }
  async function save({database,songId,changes,actor,isAuthorized,log,action='edit'}){
-  if(!isAuthorized())throw Error('管理者のログイン状態を確認してください。');
+  if(!isAuthorized())throw Error('Googleログイン状態を確認してください。');
   const before=(await database.ref('songs/'+songId).once('value')).val();
   if(!before)throw Error('編集対象の楽曲がありません。');
   const result=prepare({songId,before,changes:log?inverse(before,log):changes,actor,action,sourceLogId:log?.id||'',logId:database.ref('songEditLogs').push().key,revision:database.ref().push().key,timestamp:{'.sv':'timestamp'}});
-  if(!isAuthorized())throw Error('管理者のログイン状態が変わりました。');
+  if(!isAuthorized())throw Error('Googleログイン状態が変わりました。');
   await database.ref().update(result.updates);return result;
  }
  return{labels,inverse,prepare,save};

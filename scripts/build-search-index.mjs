@@ -4,6 +4,7 @@
 
 import crypto from 'node:crypto';
 import genreCore from '../song-genres.js';
+import searchCore from '../song-search-core.js';
 import { initializeApp, cert, deleteApp } from 'firebase-admin/app';
 import { getDatabase } from 'firebase-admin/database';
 
@@ -27,10 +28,7 @@ const app = initializeApp({
 });
 const db = getDatabase(app);
 
-const SEARCH_FIELDS = [
-  'title','artist','tieup','search','lyrics','composition','arrangement',
-  'genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year',
-];
+const SEARCH_FIELDS = searchCore.fields;
 const GENRE_FIELDS = ['genre','genre2','genre3'];
 
 // Realtime Database has a maximum size for a single write.
@@ -40,7 +38,7 @@ const WRITE_BATCH_SIZE = 750;
 const WRITE_BATCH_MAX_BYTES = 2 * 1024 * 1024; // ~2 MiB safety margin
 const MAX_ATTEMPTS = 3;
 const MAX_TERM_UTF8_BYTES = 300;
-const INDEX_VERSION = 6;
+const INDEX_VERSION = 7;
 
 function sha256(value, length = 40) {
   return crypto.createHash('sha256').update(value).digest('hex').slice(0, length);
@@ -59,7 +57,7 @@ function normalizeGenre(value) {
 }
 
 function searchableWords(song) {
-  const text = normalize(SEARCH_FIELDS.map(field => genreCore.fields.includes(field)?genreCore.value(song,field):song?.[field] ?? '').join(' '));
+  const text = searchCore.text(song);
   return text ? text.split(/\s+/u).filter(Boolean) : [];
 }
 

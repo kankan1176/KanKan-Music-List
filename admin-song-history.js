@@ -14,9 +14,9 @@
   const host=el('songHistoryRows'),q=el('songHistorySearch').value.trim().toLocaleLowerCase();host.replaceChildren();
   for(const log of records.filter(v=>[v.songId,v.songTitleAfter,v.songTitleBefore,v.editorUid,v.editorName,v.actorUid,v.actorName].join(' ').toLocaleLowerCase().includes(q))){
    const article=node('article','');article.className='admin-history-item';article.append(node('h3',log.songTitleAfter||log.songTitleBefore||log.songId));
-   const meta=node('p',formatDate(log.editedAt)+' ／ '+({undo:'元に戻す',edit:'管理者による編集',approve:'編集申請の承認'}[log.action]||'楽曲編集'));meta.className='admin-history-meta';
+   const meta=node('p',formatDate(log.editedAt)+' ／ '+({undo:'元に戻す',edit:'楽曲情報の編集',approve:'編集申請の承認'}[log.action]||'楽曲編集'));meta.className='admin-history-meta';
    article.append(meta,node('p',(log.actorUid?'編集ユーザー：':'編集ユーザー（旧記録）：')+(log.editorName||log.editorUid||'未記録')+'（'+(log.editorUid||'未記録')+'）'));
-   if(log.actorUid)article.append(node('p','実行・承認した管理者：'+(log.actorName||log.actorUid)+'（'+log.actorUid+'）'));
+   if(log.actorUid)article.append(node('p',(log.action==='approve'||log.action==='undo'?'実行・承認した管理者：':'保存を実行したユーザー：')+(log.actorName||log.actorUid)+'（'+log.actorUid+'）'));
    article.append(node('small','楽曲ID：'+log.songId));
    const dl=node('dl','');dl.className='admin-history-changes';for(const[key,v]of Object.entries(log.changes||{})){dl.append(node('dt',api.labels[key]||key),node('dd',String(v?.before??'')+' → '+String(v?.after??'')));}article.append(dl);
    const actions=node('div','');actions.className='admin-history-actions';

@@ -6,6 +6,7 @@ on:
     paths:
       - 'song-edit-service.js'
       - 'scripts/song-history-rules.cjs'
+      - 'scripts/google-song-edit-rules.cjs'
       - 'scripts/check-song-history.cjs'
       - 'tests/free-controls/test-song-history.cjs'
       - 'scripts/high-priority-rules.cjs'

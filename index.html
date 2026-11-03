@@ -13,7 +13,7 @@
     <script src="category-filters.js?v=20261024-years1"></script>
     <link rel="stylesheet" href="category-filters.css?v=20261024-years1">
     <script src="genre-index-reader.js?v=20261024-years1"></script>
-    <script src="song-change-core.js?v=20261024-registration1"></script>
+    <script src="song-search-core.js?v=20261104-1"></script><script src="song-change-core.js?v=20261024-registration1"></script><script src="song-edit-service.js?v=20261104-1"></script>
     <script src="vtuber-master.js?v=20261024-vtuber1"></script>
     <script src="artist-classification.js?v=20261024-vtuber1"></script>
     <script src="song-registration.js?v=20261024-vtuber1"></script>
@@ -3662,7 +3662,7 @@ body.sl-redesign{--sl-filter:134px!important}
     <h1 id="slPageTitle">全曲一覧</h1>
     <p id="slPageSubtitle">登録されている楽曲を検索・閲覧できます</p>
   </div>
-  <div id="slSearchHost"><input type="text" id="searchInput" class="search-box" placeholder="曲名、アーティスト、アニメ名などで検索..."><button type="button" id="slFavArtistsShortcut" onclick="openFavoriteArtistsModal()" title="お気に入りアーティスト一覧" aria-label="お気に入りアーティスト一覧を開く">⭐ お気に入りアーティスト</button></div>
+  <div id="slSearchHost"><input type="text" id="searchInput" class="search-box" placeholder="曲名・アーティスト・作詞作曲編曲・作品名などで検索"><button type="button" id="slFavArtistsShortcut" onclick="openFavoriteArtistsModal()" title="お気に入りアーティスト一覧" aria-label="お気に入りアーティスト一覧を開く">⭐ お気に入りアーティスト</button></div>
   <div id="slUserHost"></div>
 </header>
 
@@ -4788,17 +4788,17 @@ body.sl-redesign{--sl-filter:134px!important}
  <div class="modal" onclick="event.stopPropagation()" style="max-width:560px;">
   <span class="modal-close" onclick="closeModal(null,'songEditRequestModal')">&times;</span>
   <h2>✏️ 楽曲情報を編集</h2>
-  <p style="font-size:12px;">Googleログインで編集申請できます。変更は管理者の承認後に公開マスターへ反映されます。</p>
+  <p style="font-size:12px;">Googleログインで楽曲情報を編集できます。保存すると公開マスターへ即時反映され、編集履歴に記録されます。</p>
   <form id="songEditRequestForm" onsubmit="submitSongEditRequest(event)">
    <div class="setting-group"><label>曲名</label><input name="title" class="setting-input" maxlength="240" required></div>
    <div class="setting-group"><label>アーティスト</label><input name="artist" class="setting-input" maxlength="240"></div>
    <div class="setting-group"><label>ChordWiki原曲URL</label><input name="chordwiki" class="setting-input" maxlength="2048"></div>
    <div class="setting-group"><label>BPM</label><input name="bpm" class="setting-input" maxlength="30"></div>
-   <div class="setting-group"><label>ジャンル① / ジャンル② / ジャンル③</label><input name="genre1" class="setting-input" placeholder="ジャンル①" maxlength="100"><input name="genre2" class="setting-input" placeholder="ジャンル②" maxlength="100"><input name="genre3" class="setting-input" placeholder="genre3" maxlength="100"><input name="genre4" class="setting-input" placeholder="genre4" maxlength="100"><input name="genre5" class="setting-input" placeholder="genre5" maxlength="100"><input name="genre6" class="setting-input" placeholder="音楽ジャンル" maxlength="100"><input name="vocal_synths" class="setting-input" placeholder="歌唱者" maxlength="100"><input name="anime_year" class="setting-input" placeholder="放送・公開年" maxlength="100"></div>
+   <div class="setting-group"><label>ジャンル① / ジャンル② / ジャンル③</label><input name="genre1" class="setting-input" placeholder="ジャンル①" maxlength="100"><input name="genre2" class="setting-input" placeholder="ジャンル②" maxlength="100"><input name="genre3" class="setting-input" placeholder="genre3" maxlength="100"><input name="genre4" class="setting-input" placeholder="genre4" maxlength="100"><input name="genre5" class="setting-input" placeholder="genre5" maxlength="100"><input name="genre6" class="setting-input" placeholder="音楽ジャンル" maxlength="100"><input name="vocal_synths" class="setting-input" placeholder="歌唱者" maxlength="1000"><input name="release_year" class="setting-input" placeholder="発売・公開年" maxlength="100"><input name="anime_year" class="setting-input" placeholder="放送・公開年" maxlength="100"></div>
    <div class="setting-group"><label>タイアップ / 検索用語</label><input name="tieup" class="setting-input" placeholder="タイアップ" maxlength="240"><input name="search" class="setting-input" placeholder="検索用語" maxlength="500"></div>
    <div class="setting-group"><label>作詞 / 作曲 / 編曲</label><input name="lyrics" class="setting-input" placeholder="作詞" maxlength="240"><input name="composition" class="setting-input" placeholder="作曲" maxlength="240"><input name="arrangement" class="setting-input" placeholder="編曲" maxlength="240"></div>
    <p id="songEditRequestFeedback" aria-live="polite" style="font-size:12px;"></p>
-   <button type="submit" class="primary-btn" id="songEditRequestSubmit">変更を申請</button>
+   <button type="submit" class="primary-btn" id="songEditRequestSubmit">変更を保存</button>
   </form>
  </div>
 </div>
@@ -4943,7 +4943,7 @@ body.sl-redesign{--sl-filter:134px!important}
             saved.language=activeLanguage;
         }
     }
-    Object.assign(UI_I18N,{"Googleログインで編集申請できます。変更は管理者の承認後に公開マスターへ反映されます。": {"en": "Sign in with Google to propose changes. Changes are published after administrator approval.", "ko": "Google 로그인 후 수정 요청을 보낼 수 있습니다. 관리자 승인 후 공개 마스터에 반영됩니다.", "zh-TW": "使用 Google 登入即可提出修改申請，管理員核准後才會更新公開主資料。"}, "変更を申請": {"en": "Submit changes for review", "ko": "수정 요청 보내기", "zh-TW": "提交修改申請"}, "編集申請を送信しています…": {"en": "Submitting changes for review…", "ko": "수정 요청을 보내는 중…", "zh-TW": "正在提交修改申請…"}, "編集申請を受け付けました。管理者の承認後に反映されます。": {"en": "Your changes were submitted for review and will be published after administrator approval.", "ko": "수정 요청을 보냈습니다. 관리자 승인 후 반영됩니다.", "zh-TW": "修改申請已提交，管理員核准後才會更新。"}, "この曲には承認待ちの編集申請があります。管理者の対応をお待ちください。": {"en": "You already have a pending request for this song. Please wait for administrator review.", "ko": "이 곡에 승인 대기 중인 수정 요청이 있습니다. 관리자 검토를 기다려 주세요.", "zh-TW": "您已有此歌曲的待審修改申請，請等待管理員處理。"}, "編集申請を送信できませんでした。通信状況を確認して再試行してください。": {"en": "Could not submit your changes. Check your connection and try again.", "ko": "수정 요청을 보내지 못했습니다. 연결을 확인하고 다시 시도하세요.", "zh-TW": "無法提交修改申請，請確認連線後重試。"}});
+    Object.assign(UI_I18N,{"Googleログインで楽曲情報を編集できます。保存すると公開マスターへ即時反映され、編集履歴に記録されます。": {"en": "Sign in with Google to propose changes. Changes are published after administrator approval.", "ko": "Google 로그인 후 수정 요청을 보낼 수 있습니다. 관리자 승인 후 공개 마스터에 반영됩니다.", "zh-TW": "使用 Google 登入即可提出修改申請，管理員核准後才會更新公開主資料。"}, "変更を申請": {"en": "Submit changes for review", "ko": "수정 요청 보내기", "zh-TW": "提交修改申請"}, "編集申請を送信しています…": {"en": "Submitting changes for review…", "ko": "수정 요청을 보내는 중…", "zh-TW": "正在提交修改申請…"}, "編集申請を受け付けました。管理者の承認後に反映されます。": {"en": "Your changes were submitted for review and will be published after administrator approval.", "ko": "수정 요청을 보냈습니다. 관리자 승인 후 반영됩니다.", "zh-TW": "修改申請已提交，管理員核准後才會更新。"}, "この曲には承認待ちの編集申請があります。管理者の対応をお待ちください。": {"en": "You already have a pending request for this song. Please wait for administrator review.", "ko": "이 곡에 승인 대기 중인 수정 요청이 있습니다. 관리자 검토를 기다려 주세요.", "zh-TW": "您已有此歌曲的待審修改申請，請等待管理員處理。"}, "編集申請を送信できませんでした。通信状況を確認して再試行してください。": {"en": "Could not submit your changes. Check your connection and try again.", "ko": "수정 요청을 보내지 못했습니다. 연결을 확인하고 다시 시도하세요.", "zh-TW": "無法提交修改申請，請確認連線後重試。"}});
     const translatedAttributes = new WeakMap();
     function uiText(japanese, language=activeLanguage) {
         if (language === 'ja') return japanese;
@@ -7752,7 +7752,7 @@ body.sl-redesign{--sl-filter:134px!important}
         if(!song)return;
         if(!isGoogleSongEditor()){alert('楽曲情報の編集にはGoogleログインが必要です。');return;}
         const form=document.getElementById('songEditRequestForm');
-        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS))form.elements[field].value=String(song[col]??'');
+        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS))form.elements[field].value=String(SLSongGenres.metadataFields.includes(field)?SLSongGenres.value(song,field):song[col]??'');
         document.getElementById('songEditRequestFeedback').textContent='';
         openModal('songEditRequestModal');
     }
@@ -7763,17 +7763,18 @@ body.sl-redesign{--sl-filter:134px!important}
         if(!song||!user||!isGoogleSongEditor()){msg.textContent='Googleログインを確認してください。';return;}
         if(button.disabled)return;
         const form=document.getElementById('songEditRequestForm'),before={},after={};
-        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){before[field]=song[col]??'';after[field]=String(form.elements[field].value||'').trim();}
-        button.disabled=true;msg.textContent='編集申請を送信しています…';
+        for(const [field,col] of Object.entries(REQUEST_EDIT_FIELDS)){before[field]=SLSongGenres.metadataFields.includes(field)?SLSongGenres.value(song,field):song[col]??'';after[field]=String(form.elements[field].value||'').trim();}
+        button.disabled=true;msg.textContent='変更を保存しています…';
         try{
             const changes=SLSongChange.changes(before,after);
             if(!Object.keys(changes).length){msg.textContent='変更箇所がありません。';return;}
-            const payload={songId:song._id,requestedBy:user.uid,editorName:String(user.displayName||user.uid).slice(0,80),title:String(before.title).slice(0,240),artist:String(before.artist).slice(0,240),changes,status:'pending',createdAt:firebase.database.ServerValue.TIMESTAMP};
-            if(auth.currentUser?.uid!==user.uid)throw Error('ログイン状態が変更されました。');
-            const result=await db.ref('songChangeRequests/'+song._id+'/'+user.uid).transaction(current=>{if(auth.currentUser?.uid!==user.uid||current?.status==='pending')return;return payload;},undefined,false);
+            const result=await SLSongEditService.save({database:db,songId:song._id,changes,actor:user,isAuthorized:()=>auth.currentUser?.uid===user.uid&&isGoogleSongEditor()});
             if(auth.currentUser?.uid!==user.uid)return;
-            msg.textContent=result.committed?'編集申請を受け付けました。管理者の承認後に反映されます。':'この曲には承認待ちの編集申請があります。管理者の対応をお待ちください。';
-        }catch(error){console.warn('楽曲編集申請の送信に失敗しました。');msg.textContent='編集申請を送信できませんでした。通信状況を確認して再試行してください。';}
+            for(const [field,value] of Object.entries(result.log.changes)){const col=REQUEST_EDIT_FIELDS[field];if(col)song[col]=value.after;song[field]=value.after;if(field==='genre1')song[genre1Key]=value.after;}
+            song._searchText=SLSongSearch.text(song);song._updatedAt=Date.now();
+            renderTable();showSongDetails(song._id);
+            msg.textContent='保存しました。楽曲情報に即時反映し、編集履歴へ記録しました。';
+        }catch(error){console.warn('楽曲情報を保存できませんでした。');msg.textContent='保存できませんでした：'+error.message+' 最新の情報を開き直して確認してください。';}
         finally{button.disabled=false;}
     }
 
@@ -7836,8 +7837,7 @@ body.sl-redesign{--sl-filter:134px!important}
             obj._updatedAt = Number(obj.__updatedAt) || 0;
             delete obj.__updatedAt;
             // 検索対象文字列はマスター読込時に一度だけ生成（検索ごとの27,000曲再結合を防ぐ）。
-            obj._searchText = ['曲名','アーティスト',genre1Key,genre2Key,'ジャンル③','ジャンル④','ジャンル⑤','ジャンル⑥','vocal_synths','release_year','anime_year','タイアップ情報','作詞','作曲','編曲','検索']
-                .map(k => String(obj[k] || '')).join(' ').toLowerCase();
+            obj._searchText = SLSongSearch.text(obj);
             return obj;
         });
 
@@ -7931,12 +7931,7 @@ body.sl-redesign{--sl-filter:134px!important}
             .join('');
     }
 
-    function serverSearchSongText(song) {
-        return normalizeServerSearchText([
-            song?.title, song?.artist, ...SLSongGenres.metadataFields.map(field=>SLSongGenres.value(song,field)),
-            song?.tieup, song?.search, song?.lyrics, song?.composition, song?.arrangement
-        ].join(' '));
-    }
+    function serverSearchSongText(song) { return SLSongSearch.text(song); }
 
     async function currentServerSearchIndexKey() {
         if (serverSearchIndexKey) return serverSearchIndexKey;
@@ -8730,11 +8725,7 @@ body.sl-redesign{--sl-filter:134px!important}
             '編曲': String(song.arrangement || ''),
             _updatedAt: Number(song.updatedAt) || 0
         };
-        row._searchText = [
-            row['曲名'], row['アーティスト'], row['ジャンル'], row['ジャンル②'],
-            row['ジャンル③'], row['タイアップ情報'], row['作詞'], row['作曲'],
-            row['編曲'], row['検索']
-        ].join(' ').toLowerCase();
+        row._searchText = SLSongSearch.text(row);
         return row;
     }
 
@@ -9102,7 +9093,7 @@ body.sl-redesign{--sl-filter:134px!important}
             tableBodyWrapper.scrollTop = 0;
         }
         tableBody.replaceChildren();
-        const keywords = serverSearchMode ? [] : searchInput.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        const keywords = serverSearchMode ? [] : SLSongSearch.normalize(searchInput.value).split(/\s+/).filter(Boolean);
         
         let filteredData = allData.filter(row => {
             if (currentRoomId && (roomListView === 'common' ? !roomSongMatchesSelectedCommonMembers(row._id) : roomListView !== 'all' && !roomSharedLists[roomListView]?.songs?.[row._id])) return false;

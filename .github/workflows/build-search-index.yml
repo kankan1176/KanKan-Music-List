@@ -1,6 +1,9 @@
 name: Build Firebase song search index
 
 on:
+  push:
+    branches: [main]
+    paths: ['song-search-core.js', 'scripts/build-search-index.mjs']
   schedule:
     - cron: '5,15,25,35,45,55 * * * *'
   workflow_dispatch:

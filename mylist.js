@@ -28,7 +28,7 @@
   SLCategoryFilters.render(area,genreSelection,{groups:catalog,facets:SLSongGenres.facets(rows)},next=>{Object.keys(genreSelection).forEach(key=>delete genreSelection[key]);Object.assign(genreSelection,next);move(0);});
   el('Sort').replaceChildren(new Option(text.titleOrder,'title'),new Option(text.artistOrder,'artist'));el('Sort').value=sort;
   const search=el('Search').value.normalize('NFKC').toLocaleLowerCase().trim();
-  const filtered=rows.filter(row=>SLSongGenres.matches(row,genreSelection)&&(row.title+' '+row.artist).normalize('NFKC').toLocaleLowerCase().includes(search));
+  const filtered=rows.filter(row=>SLSongGenres.matches(row,genreSelection)&&SLSongSearch.matches(row,search));
   filtered.sort((a,b)=>(sort==='artist'?a.artist.localeCompare(b.artist,language):a.title.localeCompare(b.title,language))||a.title.localeCompare(b.title,language));
   const pages=Math.max(1,Math.ceil(filtered.length/100));page=Math.max(0,Math.min(page,pages-1));
   el('Count').textContent=data?rows.length+' '+text.count:'';el('ResultCount').textContent=data?filtered.length+' / '+rows.length+' '+text.count:'';
@@ -55,9 +55,10 @@
   const requested=version?token+':'+version:'';if(requested===imageVersion)return;imageVersion=requested;const serial=++imageSerial;setImage('');if(!version)return;
   try{const value=(await database.ref('publicListBackgrounds/'+token).once('value')).val();if(serial===imageSerial){if(value?.version!==version||!validImage(value.image))throw new Error('background unavailable');await setImage(value.image);}}catch{if(serial===imageSerial){imageVersion='';window.SLListLoading?.error();}}
  }
+ function searchMetadata(master){return {...Object.fromEntries(SLSongGenres.metadataFields.map(field=>[field,SLSongGenres.value(master,field)])),...Object.fromEntries(SLSongSearch.fields.filter(field=>!['id','title','artist','genre','genre1','genre2','genre3','genre4','genre5','genre6','vocal_synths','release_year','anime_year'].includes(field)).map(field=>[field,String(master?.[field]??'')]))};}
  async function legacyGenres(database,version){
-  const missing=rows.filter(row=>(!Object.hasOwn(row,'genre6')||!Object.hasOwn(row,'vocal_synths')||!Object.hasOwn(row,'release_year'))&&!genreCache.has(row.id));let next=0;
-  await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,Object.fromEntries(SLSongGenres.metadataFields.map(field=>[field,SLSongGenres.value(master,field)])));}catch{window.SLListLoading?.error();}}}));
+  const missing=rows.filter(row=>(!Object.hasOwn(row,'genre6')||!Object.hasOwn(row,'vocal_synths')||!Object.hasOwn(row,'release_year')||!Object.hasOwn(row,'composition'))&&!genreCache.has(row.id));let next=0;
+  await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,searchMetadata(master));}catch{window.SLListLoading?.error();}}}));
   if(version===generation&&data){for(const row of rows)if(genreCache.has(row.id)){Object.assign(row,genreCache.get(row.id));row.genres=core.genres(row);};render();}
  }
  async function load(){
@@ -94,10 +95,10 @@
       const current=()=>version===generation&&update===serial&&validSession;
       await cache.warm;if(!current())return;
       if(records.length&&records.every(([id])=>cache.peek(id))){
-       const cached=Object.fromEntries(records.map(([id,item])=>[id,core.song(cache.peek(id),item,{showKey:true,showParts:true})]).filter(([,row])=>row));
+       const cached=Object.fromEntries(records.map(([id,item])=>[id,{...core.song(cache.peek(id),item,{showKey:true,showParts:true}),...searchMetadata(cache.peek(id))}]).filter(([,row])=>row));
        accept({uid:user.uid,name,songs:cached,appearance:settings?.appearance,updatedAt:0});status='updating';render();setImage(validImage(image?.image)?image.image:'');
       }
-      await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length&&current()){const[id,item]=records[next++];try{const master=await cache.get(id);const row=core.song(master,item,{showKey:true,showParts:true});if(row)songs[id]=row;}catch{failed=true;}}}));
+      await Promise.all(Array.from({length:Math.min(8,records.length)},async()=>{while(next<records.length&&current()){const[id,item]=records[next++];try{const master=await cache.get(id);const row=core.song(master,item,{showKey:true,showParts:true});if(row)songs[id]={...row,...searchMetadata(master)};}catch{failed=true;}}}));
       if(!current())return;if(failed){status='refreshError';render();return;}
       accept({uid:user.uid,name,songs,appearance:settings?.appearance,updatedAt:0});setImage(validImage(image?.image)?image.image:'');
      }

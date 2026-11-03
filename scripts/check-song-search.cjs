@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),search=require('../song-search-core.js');
+const song={id:'test-id',title:'曲名',artist:'歌手',lyrics:'作詞者 山田',composition:'作曲者 田中',arrangement:'編曲者 鈴木',tieup:'FINAL FANTASY XIII / アニメ作品',search:'別名と読み方',bpm:'120',genre1:'J-POP',genre4:'所属グループ',genre5:'まんがタイムきらら',genre6:'ジャズ',vocal_synths:'初音ミク',release_year:'2010'};
+for(const query of ['作詞者','田中','鈴木','アニメ作品','ＦＩＮＡＬ ＦＡＮＴＡＳＹ','別名','120','所属グループ','きらら','初音ミク','2010','山田 ジャズ'])assert(search.matches(song,query),query);
+assert(!search.matches(song,'存在しない'));assert(!search.matches({...song,_private:'secret'},'secret'));
+const jp={'曲名':'曲名','アーティスト':'歌手','作詞':'作詞者','作曲':'作曲者','編曲':'編曲者','タイアップ情報':'アニメ作品','検索':'別名'};for(const q of ['作詞者','作曲者','編曲者','アニメ作品','別名'])assert(search.matches(jp,q));
+const html=fs.readFileSync('index.html','utf8');const fields=Object.keys(require('../song-edit-service.js').labels).filter(f=>f!=='genre');for(const key of fields)assert(html.includes('name="'+key+'"'),'Missing edit control '+key);
+assert(html.includes('SLSongEditService.save('));assert(!html.includes("db.ref('songChangeRequests/'+song._id+'/'+user.uid).transaction"));
+assert(fs.readFileSync('scripts/build-search-index.mjs','utf8').includes('searchCore.text(song)'));assert(html.includes('SLSongSearch.text(obj)'));assert(html.includes('SLSongSearch.text(row)'));
+console.log('PASS: all master search columns, Japanese/Latin width and case, multiple terms, private-field exclusion, canonical/local aliases, shared server/client search and complete immediate-edit controls.');

@@ -24,7 +24,7 @@ window.SLListShareText={
     "loading": "読み込み中…",
     "unavailable": "このリストは公開されていないか、URLが変更されています。",
     "loadError": "リストを読み込めませんでした。通信状況を確認して再読み込みしてください。",
-    "search": "曲名・アーティスト名で検索",
+    "search": "曲名・アーティスト・作詞作曲編曲・作品名などで検索",
     "empty": "表示する楽曲がありません。",
     "wiki": "ChordWikiを開く",
     "previous": "前へ",
