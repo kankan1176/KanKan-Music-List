@@ -1266,6 +1266,628 @@
   "enabled": true
  },
  {
+  "id": "media_ext_01",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 20,
+  "name": "月刊少年マガジン",
+  "aliases": [
+   "月刊少年マガジン"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_02",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 21,
+  "name": "ジャンプSQ.",
+  "aliases": [
+   "ジャンプSQ.",
+   "ジャンプスクエア",
+   "Jump SQ."
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_03",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 22,
+  "name": "ジャンプSQ.CROWN",
+  "aliases": [
+   "ジャンプSQ.CROWN"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_04",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 23,
+  "name": "ジャンプSQ.RISE",
+  "aliases": [
+   "ジャンプSQ.RISE"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_05",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 24,
+  "name": "少年ジャンプ＋",
+  "aliases": [
+   "少年ジャンプ＋",
+   "少年ジャンプ+"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_06",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "青年漫画",
+  "groupOrder": 3,
+  "order": 25,
+  "name": "週刊ヤングジャンプ",
+  "aliases": [
+   "週刊ヤングジャンプ",
+   "ヤングジャンプ",
+   "ヤンジャン"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_07",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 26,
+  "name": "別冊少年マガジン",
+  "aliases": [
+   "別冊少年マガジン"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_08",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 27,
+  "name": "ジャンプSQ.19",
+  "aliases": [
+   "ジャンプSQ.19"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_09",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "青年漫画",
+  "groupOrder": 3,
+  "order": 28,
+  "name": "となりのヤングジャンプ",
+  "aliases": [
+   "となりのヤングジャンプ"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_10",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "青年漫画",
+  "groupOrder": 3,
+  "order": 29,
+  "name": "月刊サンデーGX",
+  "aliases": [
+   "月刊サンデーGX",
+   "サンデーGX",
+   "サンデーGENE-X"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_11",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 30,
+  "name": "月刊少年ジャンプ",
+  "aliases": [
+   "月刊少年ジャンプ"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_12",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 31,
+  "name": "裏サンデー",
+  "aliases": [
+   "裏サンデー"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_13",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 32,
+  "name": "マンガワン",
+  "aliases": [
+   "マンガワン"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_14",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 33,
+  "name": "Vジャンプ",
+  "aliases": [
+   "Vジャンプ"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_15",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 34,
+  "name": "マンガクロス",
+  "aliases": [
+   "マンガクロス"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_16",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 35,
+  "name": "チャンピオンクロス",
+  "aliases": [
+   "チャンピオンクロス"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_ext_17",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少年漫画",
+  "groupOrder": 1,
+  "order": 36,
+  "name": "ゲッサン",
+  "aliases": [
+   "ゲッサン",
+   "月刊少年サンデー"
+  ],
+  "categories": [
+   "アニソン"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_01",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 20,
+  "name": "デザート",
+  "aliases": [
+   "デザート"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_02",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 21,
+  "name": "comic POOL",
+  "aliases": [
+   "comic POOL"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_03",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 22,
+  "name": "YOU",
+  "aliases": [
+   "YOU"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_04",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 23,
+  "name": "LaLa DX",
+  "aliases": [
+   "LaLa DX",
+   "LaLaDX",
+   "ララDX"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_05",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 24,
+  "name": "Cheese!",
+  "aliases": [
+   "Cheese!",
+   "Cheese！",
+   "チーズ！"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_06",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 25,
+  "name": "Cookie",
+  "aliases": [
+   "Cookie",
+   "クッキー"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_07",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 26,
+  "name": "別冊マーガレット",
+  "aliases": [
+   "別冊マーガレット",
+   "別マ"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_08",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 27,
+  "name": "ベツコミ",
+  "aliases": [
+   "ベツコミ",
+   "別冊少女コミック"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_09",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 28,
+  "name": "別冊フレンド",
+  "aliases": [
+   "別冊フレンド",
+   "別フレ"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_10",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 29,
+  "name": "Kiss",
+  "aliases": [
+   "Kiss",
+   "KISS"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_11",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 30,
+  "name": "B's-LOG COMIC",
+  "aliases": [
+   "B's-LOG COMIC",
+   "B’s-LOG COMIC",
+   "B's-LOGコミック"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_12",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 31,
+  "name": "BE・LOVE",
+  "aliases": [
+   "BE・LOVE",
+   "BE LOVE",
+   "BE-LOVE"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_13",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 32,
+  "name": "Zipper",
+  "aliases": [
+   "Zipper"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_14",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 33,
+  "name": "CUTiE Comic",
+  "aliases": [
+   "CUTiE Comic"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_15",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 34,
+  "name": "YOUNG YOU",
+  "aliases": [
+   "YOUNG YOU"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_16",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 35,
+  "name": "コーラス",
+  "aliases": [
+   "コーラス",
+   "Chorus"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_17",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 36,
+  "name": "ASUKA",
+  "aliases": [
+   "ASUKA",
+   "Asuka",
+   "月刊ASUKA",
+   "月刊Asuka"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_18",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "少女漫画",
+  "groupOrder": 2,
+  "order": 37,
+  "name": "別冊花とゆめ",
+  "aliases": [
+   "別冊花とゆめ",
+   "別花"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
+  "id": "media_shojo_20261104_19",
+  "field": "genre5",
+  "label": "掲載媒体・関連作品",
+  "group": "女性漫画",
+  "groupOrder": 4,
+  "order": 38,
+  "name": "Cocohana",
+  "aliases": [
+   "Cocohana",
+   "ココハナ"
+  ],
+  "categories": [
+   "アニソン",
+   "J-POP"
+  ],
+  "enabled": true
+ },
+ {
   "id": "publisher_other_kirara",
   "field": "genre5",
   "label": "掲載媒体・関連作品",

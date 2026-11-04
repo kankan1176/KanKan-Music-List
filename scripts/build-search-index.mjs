@@ -121,6 +121,7 @@ async function removeIndex(pathName) {
 }
 
 async function cleanRetiredIndexes() {
+  if(process.env.DEFER_RETIRED_INDEX_CLEANUP==='1'){console.log('Retired index cleanup deferred to the scheduled maintenance run.');return;}
   const [queue,search,genre]=await Promise.all(['songIndexCleanup','songSearchMeta/currentIndexKey','songGenreMeta/currentIndexKey'].map(path=>db.ref(path).get()));
   for(const key of Object.keys(queue.val()||{})){
     if(!/^[a-f0-9]{24}$/.test(key)||key===search.val()||key===genre.val())continue;

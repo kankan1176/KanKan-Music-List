@@ -1,0 +1,49 @@
+name: Publish catalog search and magazine updates
+on:
+  push:
+    branches: [main]
+    paths: ['maintenance/catalog-search-20261104.enc.json', 'scripts/publish-catalog-search.cjs', 'scripts/verify-catalog-search-publication.cjs', '.github/workflows/publish-catalog-search.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/build-reference-masters.cjs --check
+      - run: node scripts/check-sheet-publication.cjs && node scripts/check-catalog-search-publication.cjs
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Apply verified search keywords and publication metadata
+        id: apply
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/publish-catalog-search.cjs
+      - name: Publish search and filter indexes
+        id: index
+        if: ${{ !cancelled() && (steps.apply.outcome == 'success' || steps.apply.outcome == 'failure') }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          DEFER_RETIRED_INDEX_CLEANUP: '1'
+        run: node scripts/build-search-index.mjs
+      - name: Verify production data and actual indexed queries
+        if: ${{ !cancelled() && steps.index.outcome == 'success' }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/verify-catalog-search-publication.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: catalog-search-publication-${{ github.run_id }}
+          path: .catalog-search-publication/*.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
