@@ -1,0 +1,35 @@
+name: Verify published catalog metadata
+on:
+  push:
+    branches: [codex/verify-publication-20261104]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Wait for active index revision
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          node - <<'JS'
+          const {initializeApp,cert,deleteApp}=require('firebase-admin/app'),{getDatabase}=require('firebase-admin/database');
+          (async()=>{const app=initializeApp({credential:cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app'});try{const db=getDatabase(app);for(let i=0;i<60;i++){const a=await Promise.all(['masterMeta/revision','songSearchMeta','songGenreMeta'].map(async p=>(await db.ref(p).get()).val()));if(a[1]?.sourceRevision===a[0]&&a[2]?.sourceRevision===a[0]&&a[1]?.currentIndexKey===a[2]?.currentIndexKey){console.log('INDEX_READY '+a[1].currentIndexKey);return;}await new Promise(r=>setTimeout(r,10000));}throw Error('Index is not current yet');}finally{await deleteApp(app);}})().catch(e=>{console.error(e.message);process.exitCode=1});
+          JS
+      - name: Verify catalog, searches and filters without writes
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/verify-sheet-publication.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: publication-readback
+          path: .metadata-publication/*.json
+          include-hidden-files: true
+          retention-days: 7
