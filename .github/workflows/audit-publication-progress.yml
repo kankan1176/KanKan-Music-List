@@ -1,0 +1,29 @@
+name: Audit catalog publication progress
+on:
+  push:
+    branches: [codex/audit-publication-progress-20261104]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Read public catalog status only
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          node - <<'JS'
+          const fs=require('fs'),m=require('./scripts/publish-sheet-metadata.cjs'),{initializeApp,cert,deleteApp}=require('firebase-admin/app'),{getDatabase}=require('firebase-admin/database');
+          (async()=>{const account=JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT),p=m.decode(JSON.parse(fs.readFileSync('maintenance/master-publication-20261104.enc.json')),account.private_key),app=initializeApp({credential:cert(account),databaseURL:'https://kankan-session-room-default-rtdb.asia-southeast1.firebasedatabase.app'});try{const db=getDatabase(app),songs=(await db.ref('songs').get()).val();let after=0,before=0,conflicts=0,missing=0;const details=[];for(const e of p.entries){const s=songs[e.id];if(!s){missing++;continue;}for(const[f,c]of Object.entries(e.changes)){const v=m.value(s,f);if(v===c.after)after++;else if(v===c.before)before++;else{conflicts++;details.push({id:e.id,field:f,live:s[f],updatedAt:s.updatedAt,title:s.title,chordwiki:s.chordwiki});}}}const report={totalCells:p.cellCount,matchedAfter:after,remainingBefore:before,otherValues:conflicts,missingSongs:missing};console.log('PUBLICATION_PROGRESS '+JSON.stringify(report));fs.mkdirSync('.publication-progress',{recursive:true});fs.writeFileSync('.publication-progress/status.json',JSON.stringify(report));fs.writeFileSync('.publication-progress/details.enc.json',JSON.stringify(m.encryptAudit(details)));}finally{await deleteApp(app);}})().catch(e=>{console.error(e.message);process.exitCode=1});
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: publication-progress
+          path: .publication-progress/*.json
+          include-hidden-files: true
+          retention-days: 7
