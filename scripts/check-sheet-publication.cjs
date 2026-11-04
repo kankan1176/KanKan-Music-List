@@ -1,0 +1,7 @@
+'use strict';
+const assert=require('node:assert/strict'),m=require('./publish-sheet-metadata.cjs');
+const s={title:'Title',artist:'Old',chordwiki:'https://ja.chordwiki.org/wiki/Title',release_year:'',key:3,parts:['guitar'],_editRevision:2,updatedAt:4},e={id:'song',title:s.title,chordwiki:s.chordwiki,changes:{artist:{before:'Old',after:'New'},release_year:{before:'',after:'2000'}}};
+const n=m.updateSong(s,e,99);assert.equal(n.artist,'New');assert.equal(n._editRevision,3);assert.equal(n.updatedAt,4);assert.equal(n.key,3);assert.deepEqual(m.verify(s,n,e).conflicts,[]);assert.equal(m.updateSong(n,e,100),undefined);assert.equal(m.updateSong({...s,title:'User title'},e,100),undefined);assert.equal(m.updateSong(null,e,100),null);
+const concurrent={...s,artist:'User edit'},partial=m.updateSong(concurrent,e,100);assert.equal(partial.artist,'User edit');assert.equal(partial.release_year,'2000');assert.deepEqual(m.verify(concurrent,partial,e).conflicts,['artist']);
+const clear={...e,changes:{artist:{before:'Old',after:''}}};assert.equal(m.updateSong(s,clear,1).artist,'');const t={...s,artist:true},te={...e,changes:{artist:{before:'TRUE',after:'TRUE'}}};assert.equal(m.updateSong(t,te,1).artist,'TRUE');assert.equal(m.updateSong({...t,artist:'TRUE'},te,1),undefined);
+assert.throws(()=>m.decode({operation:m.OP,sha256:'wrong'},'invalid'));console.log('PASS field-level comparison, concurrent edits, replay, text correction, identity protection, unrelated metadata and revision invalidation');

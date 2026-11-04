@@ -1,0 +1,47 @@
+name: Publish verified sheet metadata
+on:
+  push:
+    branches: [main]
+    paths: ['maintenance/master-publication-20261104.enc.json', 'scripts/publish-sheet-metadata.cjs', 'scripts/verify-sheet-publication.cjs', '.github/workflows/publish-sheet-metadata.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'kankan1176/KanKan-Music-List' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-sheet-publication.cjs
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Apply verified metadata and preserve concurrent edits
+        id: apply
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/publish-sheet-metadata.cjs
+      - name: Rebuild search and filter indexes
+        id: index
+        if: ${{ !cancelled() && (steps.apply.outcome == 'success' || steps.apply.outcome == 'failure') }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/build-search-index.mjs
+      - name: Verify production catalog and indexed queries
+        if: ${{ !cancelled() && steps.index.outcome == 'success' }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/verify-sheet-publication.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metadata-publication-verification-${{ github.run_id }}
+          path: .metadata-publication/*.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
