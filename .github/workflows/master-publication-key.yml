@@ -1,0 +1,25 @@
+name: Prepare catalog publication key
+on:
+  push:
+    branches: [codex/master-publication-key-20261104]
+    paths: ['.github/workflows/master-publication-key.yml']
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Export public encryption key only
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          node - <<'JS'
+          const crypto=require('node:crypto');
+          const account=JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+          const publicKey=crypto.createPublicKey(account.private_key).export({type:'spki',format:'pem'});
+          console.log('PUBLIC_ENCRYPTION_KEY '+Buffer.from(publicKey).toString('base64'));
+          console.log('PUBLIC_KEY_SHA256 '+crypto.createHash('sha256').update(publicKey).digest('hex'));
+          JS
