@@ -50,7 +50,12 @@ async function main() {
       missingTerms: missing, affectedSongs: affected.size, indexVersion: meta.indexVersion,
     }));
 
-    const queries = ['RADWIMPS', 'BUMP', 'YOASOBI', '米津玄師', 'Ado', '天体観測', '前前前世', 'スパークル', 'ミスチル', 'ヒゲダン', 'ごちうさ', 'ジャンプスクエア'];
+    const exampleSongs = entries.filter(([, song]) => core.normalize(song.title).replace(/\s+/g, '') === 'sweetbitterbeautysong' && core.text(song).includes('桜高軽音部'));
+    assert(exampleSongs.length > 0, 'Sweet Bitter Beauty Song master example is missing');
+    const exampleQueries = ['けいおん', '平沢唯', '小森茂生', '日笠陽子'];
+    console.log('COMMA_KEYWORD_EXAMPLE ' + JSON.stringify(exampleSongs.map(([id,song]) => ({id, title:song.title, artist:song.artist, search:song.search}))));
+    for (const [id,song] of exampleSongs) for (const query of exampleQueries) assert(core.matches(song,query), 'Example keyword missing in master: '+query+' '+id);
+    const queries = [...exampleQueries, 'RADWIMPS', 'BUMP', 'YOASOBI', '米津玄師', 'Ado', '天体観測', '前前前世', 'スパークル', 'ミスチル', 'ヒゲダン', 'ごちうさ', 'ジャンプスクエア'];
     for (const query of queries) {
       const expected = new Set(entries.filter(([,song]) => core.matches(song, query)).map(([id]) => id));
       assert(expected.size, 'No master example: ' + query);
@@ -71,6 +76,7 @@ async function main() {
         if (count < 100) break;
         assert(pages < 1000, 'Unbounded query');
       }
+      if (exampleQueries.includes(query)) for (const [id] of exampleSongs) assert(found.has(id), 'Example not retrieved: '+query+' '+id);
       const absent = [...expected].filter(id => !found.has(id)).length;
       console.log('LIVE_SEARCH_QUERY ' + JSON.stringify({ query, expected: expected.size, actual: found.size, missing: absent, pages }));
       assert.equal(absent, 0, 'Search mismatch: ' + query);

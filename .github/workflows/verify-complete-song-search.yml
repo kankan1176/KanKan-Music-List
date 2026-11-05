@@ -15,6 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: node scripts/check-comma-search-keywords.cjs
       - run: npm install --no-save --package-lock=false firebase-admin@13
       - name: Audit every public song search term and real paginated queries
         env:
