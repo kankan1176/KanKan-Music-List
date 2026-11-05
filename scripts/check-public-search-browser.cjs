@@ -39,7 +39,7 @@ const { chromium } = require('playwright');
     console.log('BROWSER_FAILED_STAGE ' + stage);
     if (page) {
       await page.screenshot({path: 'public-search-verification.png', fullPage: true}).catch(() => {});
-      console.log('BROWSER_FAILURE_STATE ' + JSON.stringify(await page.evaluate(() => ({
+      const state = await page.evaluate(() => ({
         rows: typeof allData === 'undefined' ? -1 : allData.length,
         masterLoaded: typeof masterLoaded === 'undefined' ? null : masterLoaded,
         busy: typeof serverPageBusy === 'undefined' ? null : serverPageBusy,
@@ -49,7 +49,8 @@ const { chromium } = require('playwright');
         notice: document.querySelector('#masterLoadNotice')?.textContent,
         loading: document.querySelector('#loadingArea')?.textContent,
         table: document.querySelector('#tableBody')?.textContent?.slice(0, 500),
-      }))).catch(() => null)));
+      })).catch(() => null);
+      console.log('BROWSER_FAILURE_STATE ' + JSON.stringify(state));
     }
     throw error;
   } finally { await browser.close(); }
