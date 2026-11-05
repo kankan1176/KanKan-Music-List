@@ -4,6 +4,4 @@ body[data-sidebar-design="line"] .sl-menu-line{display:inline-block}
 body[data-sidebar-design="line"] .sl-sidebar-nav .active{background:rgba(135,155,185,.13)!important;box-shadow:none!important;border-color:transparent!important;color:inherit}
 body[data-sidebar-design="line"] .sl-sidebar-nav .active .sl-menu-line{stroke-width:2.4}
 body[data-sidebar-design="line"] .sl-sidebar-nav button,body[data-sidebar-design="line"] .sl-sidebar-nav a{border-radius:24px;gap:12px}
-body[data-sidebar-design="line"] #slSidebarAccount .sl-account-icon{font-size:0}
-body[data-sidebar-design="line"] #slSidebarAccount .sl-account-icon::after{content:'○';font-size:24px}
 #sidebarDesignSelect{width:100%;min-height:42px}
