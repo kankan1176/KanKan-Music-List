@@ -8305,7 +8305,7 @@ body.sl-redesign{--sl-filter:134px!important}
             Object.keys(cache.master).length>0);
     }
     async function readMasterRevision() {
-        const snap=await db.ref(MASTER_REVISION_PATH).once('value');
+        const snap=await db.ref(MASTER_REVISION_PATH).get();
         const value=snap.val();
         return typeof value==='string'&&value.length>0?value:null;
     }
@@ -8367,15 +8367,14 @@ body.sl-redesign{--sl-filter:134px!important}
         // 発行から長時間たっても追いついていない場合は同期停止とみなし、Firebaseから直接取得する。
         const issuedAt=revisionTimestamp(expectedRevision);
         const age=issuedAt===null?null:Date.now()-issuedAt;
-        if(age!==null&&age>=-600000&&age<=STATIC_LAG_TOLERANCE_MS)
-            return {revision:payload.revision,master:payload.songs,stale:true};
+        // A completed administrator sync must never display an older snapshot.
         throw Error('静的JSONの版がデータと一致しません（未公開または更新途中）');
     }
     async function readConsistentFirebaseMaster(initialRevision) {
         // 大きなCSV取込の途中に変更が入った場合は旧版をキャッシュせず、更新後を取り直す。
         for(let attempt=0;attempt<3;attempt++){
             const before=attempt===0?initialRevision:await readMasterRevision();
-            const snapshot=await db.ref(MASTER_DB_PATH).once('value');
+            const snapshot=await db.ref(MASTER_DB_PATH).get();
             const master=snapshot.val();
             // 不整合の場合はキャッシュに保存する前に停止。
             rowsFromFirebaseMaster(master);
@@ -8467,6 +8466,28 @@ body.sl-redesign{--sl-filter:134px!important}
         })();
         try{await masterLoadPromise;}catch(error){masterLoadPromise=null;throw error;}
     }
+    let observedMasterRevision = null;
+    let masterRefreshSerial = Promise.resolve();
+    db.ref(MASTER_REVISION_PATH).on('value', snapshot => {
+        const revision = snapshot.val();
+        if (typeof revision !== 'string' || !revision) return;
+        const previous = observedMasterRevision;
+        observedMasterRevision = revision;
+        if (!previous || previous === revision) return;
+        masterRefreshSerial = masterRefreshSerial.then(async () => {
+            if (masterLoadPromise) { try { await masterLoadPromise; } catch (_) {} }
+            const shouldReload = masterLoaded;
+            masterLoaded = false;
+            masterLoadPromise = null;
+            if (shouldReload) {
+                await ensureMasterLoaded();
+                renderTable();
+            } else if (searchInput.value.trim() && !myListMode) {
+                await runCatalogSearch(searchInput.value);
+            }
+        }).catch(error => masterLoadNotice('最新版の再取得に失敗しました。再読み込みしてください。'));
+    });
+
     // 一覧画面は同一URLでも履歴を持つ。ブラウザの「戻る」はまずトップへ戻す。
     const APP_HISTORY_KEY = 'shareliscorePage';
     function setAppHistory(view, push=false) {
