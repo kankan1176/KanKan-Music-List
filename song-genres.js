@@ -12,12 +12,12 @@
  function filterGroups(song){return Object.fromEntries(metadataFields.map(field=>[field,split(value(song,field))]));}
  function catalog(songs){const out=Object.fromEntries(metadataFields.map(field=>[field,new Set()]));for(const song of songs)for(const field of metadataFields)for(const tag of split(value(song,field)))out[field].add(tag);return Object.fromEntries(metadataFields.map(field=>[field,[...out[field]].sort((a,b)=>a.localeCompare(b,'ja'))]));}
  function matches(song,selected,mode='and'){const chosen=metadataFields.filter(field=>selected?.[field]);if(!chosen.length)return true;const tests=chosen.map(field=>master?.fields.includes(field)?master.matches(field,split(value(song,field)),selected[field]):split(value(song,field)).includes(selected[field]));return mode==='or'?tests.some(Boolean):tests.every(Boolean);}
- const defaults={"genre1":["J-POP","K-POP","台湾音楽","洋楽"],"genre2":["TV（CM・バラエティ）主題歌","Vtuber","アニソン","ゲーム","ドラマ主題歌","ボカロ","映画主題歌","歌い手"],"genre3":["アイドル","アニメ","インスト","サンバ","シティポップ","ジャズ","フォーク","ポップス","ロック","合唱","童謡"],"genre4":["NHK","サンデー","ジブリ","ジャンプ","ディズニー","マーガレット","マガジン","りぼん"],"genre5":["ジャンプ"]};
+ const defaults={"genre1":["J-POP","K-POP","台湾","洋楽"],"genre2":["TV（CM・バラエティ）主題歌","Vtuber","アニソン","ゲーム","ドラマ主題歌","ボカロ","映画主題歌","歌い手"],"genre3":["アイドル","アニメ","インスト","サンバ","シティポップ","ジャズ","フォーク","ポップス","ロック","合唱","童謡"],"genre4":["NHK","サンデー","ジブリ","ジャンプ","ディズニー","マーガレット","マガジン","りぼん"],"genre5":["ジャンプ"]};
  defaults.genre3=['TV（CM・バラエティ）主題歌','ゲーム','ドラマ主題歌','映画主題歌'];defaults.genre4=['アイドル','アニメ'];defaults.genre5=['NHK','サンデー','ジブリ','ジャンプ','ディズニー','マーガレット','マガジン','りぼん','ちゃお'];defaults.genre6=['ポップス','ロック','バラード','ジャズ','シティポップ','フォーク','サンバ','インスト','合唱','童謡'];defaults.vocal_synths=[];defaults.release_year=[];defaults.anime_year=[];
- const categories=['J-POP','アニソン','ボカロ','Vtuber','K-POP','台湾音楽','洋楽'];
+ const categories=['J-POP','アニソン','ボカロ','Vtuber','K-POP','台湾','洋楽'];
  const secondaryCategories=['アニソン','ボカロ','Vtuber'];
  function selection(category){return category?{[secondaryCategories.includes(category)?'genre2':'genre1']:category}:{};}
- function categoryOf(selected){return secondaryCategories.includes(selected?.genre2)?selected.genre2:['J-POP','K-POP','台湾音楽','洋楽'].includes(selected?.genre1)?selected.genre1:'';}
+ function categoryOf(selected){return secondaryCategories.includes(selected?.genre2)?selected.genre2:['J-POP','K-POP','台湾','洋楽'].includes(selected?.genre1)?selected.genre1:'';}
  function facets(songs){return Object.fromEntries(categories.map(category=>[category,catalog(songs.filter(song=>matches(song,selection(category))))]));}
  return{fields,metadataFields,aliases,split,value,groups,filterGroups,all,catalog,matches,defaults,categories,selection,categoryOf,facets};
 });

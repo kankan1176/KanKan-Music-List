@@ -1,0 +1,42 @@
+name: Sync latest spreadsheet November 5
+on:
+  push:
+    branches: [main]
+    paths: ['maintenance/sheet-20261105.enc.json', '.github/workflows/sync-sheet-20261105.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-song-search-index
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/build-reference-masters.cjs --check
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Apply current sheet values
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/sync-sheet-20261105.cjs
+      - name: Rebuild indexes
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          DEFER_RETIRED_INDEX_CLEANUP: '1'
+        run: node scripts/build-search-index.mjs
+      - name: Verify all sheet fields and public assets
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/sync-sheet-20261105.cjs --verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sheet-sync-${{ github.run_id }}
+          path: .sheet-sync-20261105/*.json
+          include-hidden-files: true
+          retention-days: 7
