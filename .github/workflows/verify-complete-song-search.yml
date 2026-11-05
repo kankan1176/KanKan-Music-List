@@ -1,0 +1,23 @@
+name: Verify complete public song search
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/verify-complete-song-search.cjs', '.github/workflows/verify-complete-song-search.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false firebase-admin@13
+      - name: Audit every public song search term and real paginated queries
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          NODE_OPTIONS: --max-old-space-size=5120
+        run: node scripts/verify-complete-song-search.cjs
