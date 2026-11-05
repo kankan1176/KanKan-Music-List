@@ -3565,6 +3565,7 @@ body.sl-redesign.theme-white #slDockDesignPanel{background:#fff!important;color:
 body.sl-redesign.theme-white #slDockDesignPanel :is(label,strong,small,span,p){color:#101010!important}
 @media (max-width:820px), (pointer:coarse){body.sl-redesign.theme-white #slTopbar,body.sl-redesign.theme-white #slFilterbar{background:#fff!important}}
 
+ #slSearchSubmit{flex:0 0 auto;min-height:40px;padding:8px 16px} #slSearchStatus{font-size:12px;max-width:14em} @media(max-width:700px){#slSearchStatus{display:none}}
 </style>
 <link rel="stylesheet" href="assets/help-manual.css?v=20261013-1">
 <style id="home-release-scroll">
@@ -3665,7 +3666,7 @@ body.sl-redesign{--sl-filter:134px!important}
     <h1 id="slPageTitle">全曲一覧</h1>
     <p id="slPageSubtitle">登録されている楽曲を検索・閲覧できます</p>
   </div>
-  <div id="slSearchHost"><input type="text" id="searchInput" class="search-box" placeholder="曲名・アーティスト・略称・検索用語（search）・作品名などで検索"><button type="button" id="slFavArtistsShortcut" onclick="openFavoriteArtistsModal()" title="お気に入りアーティスト一覧" aria-label="お気に入りアーティスト一覧を開く">⭐ お気に入りアーティスト</button></div>
+  <div id="slSearchHost"><input type="text" id="searchInput" class="search-box" placeholder="曲名・アーティスト・略称・検索用語（search）・作品名などで検索"><button type="button" id="slSearchSubmit" class="primary-btn" aria-label="全曲から検索">検索</button><span id="slSearchStatus" role="status" aria-live="polite"></span><button type="button" id="slFavArtistsShortcut" onclick="openFavoriteArtistsModal()" title="お気に入りアーティスト一覧" aria-label="お気に入りアーティスト一覧を開く">⭐ お気に入りアーティスト</button></div>
   <div id="slUserHost"></div>
 </header>
 
@@ -8111,8 +8112,8 @@ body.sl-redesign{--sl-filter:134px!important}
             serverSearchMode=false;
             serverSearchIndexKey='';
             serverSearchHasNext=false;
-            await promoteServerPageToFullMaster('検索');
-            renderTable();
+            masterLoadNotice('検索に失敗しました。検索ボタンで再試行してください。');
+            throw error;
         } finally {
             if(requestSeq===serverSearchRequestSeq){
                 serverSearchBusy=false;
@@ -8606,13 +8607,38 @@ body.sl-redesign{--sl-filter:134px!important}
                 return;
             }
 
-            if (serverPagedMasterMode && !masterLoaded) {
-                void searchServerIndex(typed);
-                return;
-            }
-
-            renderTable();
+            void runCatalogSearch(typed);
         }, 250);
+    });
+
+    async function runCatalogSearch(typed = searchInput.value) {
+        clearTimeout(searchDebounceTimer);
+        const status = document.getElementById('slSearchStatus');
+        status.textContent = '検索中…';
+        searchInput.setAttribute('aria-busy', 'true');
+        try {
+            // Partial page state must never decide whether the full catalog is searched.
+            if (!masterLoaded && !myListMode) await searchServerIndex(typed);
+            else renderTable();
+            if (searchInput.value === typed) status.textContent = '検索完了';
+        } catch (error) {
+            if (searchInput.value === typed) status.textContent = '検索に失敗しました。検索ボタンで再試行してください。';
+        } finally {
+            if (searchInput.value === typed) searchInput.removeAttribute('aria-busy');
+        }
+    }
+    document.getElementById('slSearchSubmit').addEventListener('click', () => {
+        ++serverSearchRequestSeq;
+        serverSearchBusy = false;
+        void runCatalogSearch();
+    });
+    searchInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.isComposing) {
+            event.preventDefault();
+            ++serverSearchRequestSeq;
+            serverSearchBusy = false;
+            void runCatalogSearch();
+        }
     });
 
     // =========================================
