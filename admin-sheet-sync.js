@@ -28,7 +28,7 @@ function parse(rows){
 if(typeof module==='object'&&module.exports){module.exports={parse};return;}
 const status=document.getElementById('sheetSyncStatus'),read=document.getElementById('sheetSyncRead'),apply=document.getElementById('sheetSyncApply');
 let plan=null,busy=false;
-status.textContent='同期機能 v3：最新版を取得してください。';
+status.textContent='同期機能 v4：最新版を取得してください。';
 const value=(song,f)=>String(song?.[f]??(f==='genre1'?song?.genre:'')??'');
 async function admin(){
  const user=auth.currentUser;
@@ -64,30 +64,25 @@ apply.onclick=async()=>{
   for(const e of plan.changes){
    if(auth.currentUser?.uid!==user.uid)throw Error('ログイン状態が変わりました。');
    const ref=db.ref('songs/'+e.id);
-   const keep=()=>{};
-   ref.on('value',keep);
-   let result;
-   try {
-   await ref.once('value');
-   result=await ref.transaction(current=>{
-    if (!!current !== !!e.before) {reasons.missing++;return;}
-    if (current && Number(current._editRevision||0)!==Number(e.before._editRevision||0)) {reasons.revision++;return;}
-    if (current && Object.keys(e.values).some(f=>value(current,f)!==value(e.before,f))) {reasons.fields++;return;}
-    return {...(current||{}),id:e.id,...e.values,updatedAt:firebase.database.ServerValue.TIMESTAMP,_editRevision:Number(current?._editRevision||0)+1};
-   },undefined,false);
-   if(result.committed){
-    const saved=(await ref.get()).val();
-    if(!saved||Object.entries(e.values).some(([f,v])=>value(saved,f)!==v))throw Error('保存後の照合に失敗しました: '+e.id);
-    updated++;
-   }else conflicts++;
-   } finally {ref.off('value',keep);}
+   const current=(await ref.get()).val();
+   if(!!current!==!!e.before){conflicts++;reasons.missing++;continue;}
+   if(current && Number(current._editRevision||0)!==Number(e.before._editRevision||0)){conflicts++;reasons.revision++;continue;}
+   if(current && Object.keys(e.values).some(f=>value(current,f)!==value(e.before,f))){conflicts++;reasons.fields++;continue;}
+   const changes=Object.fromEntries(Object.entries(e.values).filter(([f,v])=>value(current,f)!==v).map(([f,v])=>[f,{before:value(current,f),after:v}]));
+   const logId=db.ref('songEditLogs').push().key;
+   const prepared=SLSongEditService.prepare({songId:e.id,before:current||{},changes,actor:user,action:'edit',logId,revision:logId,timestamp:firebase.database.ServerValue.TIMESTAMP});
+   if(!current)prepared.updates['songs/'+e.id+'/id']=e.id;
+   if(auth.currentUser?.uid!==user.uid)throw Error('ログイン状態が変わりました。');
+   await db.ref().update(prepared.updates);
+   const saved=(await ref.get()).val();
+   if(!saved||Object.entries(e.values).some(([f,v])=>value(saved,f)!==v))throw Error('保存後の照合に失敗しました: '+e.id);
+   updated++;
    status.textContent='反映中 '+(updated+conflicts)+' / '+plan.changes.length+'曲';
   }
   status.textContent=(updated?'保存・照合済み：'+updated+'曲。':'未反映：保存された曲はありません。')+' 見送り '+conflicts+'曲。'+(conflicts?' 判定内訳（再試行を含む）：データ有無 '+reasons.missing+'／編集番号 '+reasons.revision+'／項目変更 '+reasons.fields+'。最新版を再取得してください。':' サイトを再読み込みしてください。');
   plan=null;
  }catch(e){status.textContent='更新途中で停止しました（保存後の照合済み '+updated+'曲）: '+e.message+' 最新版を再取得すると残りを再実行できます。';}
  finally{
-  if(updated){try{await db.ref('masterMeta/revision').set(db.ref().push().key);}catch(e){status.textContent+=' 更新通知に失敗しました: '+e.message;}}
   busy=false;read.disabled=false;
  }
 };
