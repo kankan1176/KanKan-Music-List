@@ -28,6 +28,7 @@ function parse(rows){
 if(typeof module==='object'&&module.exports){module.exports={parse};return;}
 const status=document.getElementById('sheetSyncStatus'),read=document.getElementById('sheetSyncRead'),apply=document.getElementById('sheetSyncApply');
 let plan=null,busy=false;
+status.textContent='同期機能 v3：最新版を取得してください。';
 const value=(song,f)=>String(song?.[f]??(f==='genre1'?song?.genre:'')??'');
 async function admin(){
  const user=auth.currentUser;
@@ -57,6 +58,7 @@ read.onclick=async()=>{
 apply.onclick=async()=>{
  if(busy||!plan)return;busy=true;read.disabled=true;apply.disabled=true;
  let updated=0,conflicts=0;
+ const reasons={missing:0,revision:0,fields:0};
  try{
   const user=await admin();if(user.uid!==plan.uid)throw Error('アカウントが変わりました。再取得してください。');
   for(const e of plan.changes){
@@ -68,7 +70,9 @@ apply.onclick=async()=>{
    try {
    await ref.once('value');
    result=await ref.transaction(current=>{
-    if (!!current !== !!e.before || (current && (Number(current._editRevision||0)!==Number(e.before._editRevision||0) || Object.keys(e.values).some(f=>value(current,f)!==value(e.before,f))))) return;
+    if (!!current !== !!e.before) {reasons.missing++;return;}
+    if (current && Number(current._editRevision||0)!==Number(e.before._editRevision||0)) {reasons.revision++;return;}
+    if (current && Object.keys(e.values).some(f=>value(current,f)!==value(e.before,f))) {reasons.fields++;return;}
     return {...(current||{}),id:e.id,...e.values,updatedAt:firebase.database.ServerValue.TIMESTAMP,_editRevision:Number(current?._editRevision||0)+1};
    },undefined,false);
    if(result.committed){
@@ -79,7 +83,7 @@ apply.onclick=async()=>{
    } finally {ref.off('value',keep);}
    status.textContent='反映中 '+(updated+conflicts)+' / '+plan.changes.length+'曲';
   }
-  status.textContent='マスター更新完了：'+updated+'曲。競合で見送り：'+conflicts+'曲。検索・分類データの再生成は定期処理で行われます。サイトを再読み込みしてください。';
+  status.textContent=(updated?'保存・照合済み：'+updated+'曲。':'未反映：保存された曲はありません。')+' 見送り '+conflicts+'曲。'+(conflicts?' 判定内訳（再試行を含む）：データ有無 '+reasons.missing+'／編集番号 '+reasons.revision+'／項目変更 '+reasons.fields+'。最新版を再取得してください。':' サイトを再読み込みしてください。');
   plan=null;
  }catch(e){status.textContent='更新途中で停止しました（保存後の照合済み '+updated+'曲）: '+e.message+' 最新版を再取得すると残りを再実行できます。';}
  finally{
