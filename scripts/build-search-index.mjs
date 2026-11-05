@@ -38,7 +38,7 @@ const WRITE_BATCH_SIZE = 750;
 const WRITE_BATCH_MAX_BYTES = 2 * 1024 * 1024; // ~2 MiB safety margin
 const MAX_ATTEMPTS = 3;
 const MAX_TERM_UTF8_BYTES = 300;
-const INDEX_VERSION = 7;
+const INDEX_VERSION = 8;
 
 function sha256(value, length = 40) {
   return crypto.createHash('sha256').update(value).digest('hex').slice(0, length);
@@ -312,7 +312,7 @@ async function main() {
     console.log(
       `Published ${built.indexKey}: songs=${built.songCount}, searchRows=${built.searchRowCount}, genreRows=${built.genreRowCount}, genres=${Object.keys(built.genres).length}`
     );
-    await cleanRetiredIndexes();
+    console.log('Retired index cleanup remains queued for the next scheduled maintenance.');
     return;
   }
 

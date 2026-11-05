@@ -35,8 +35,14 @@ jobs:
 
       - name: Build versioned search index in Firebase
         env:
+          DEFER_RETIRED_INDEX_CLEANUP: ${{ github.event_name == 'push' && '1' || '0' }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node scripts/build-search-index.mjs
+
+      - name: Verify complete BUMP search against production songs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/check-live-bump.cjs
 
       - name: Open an issue when scheduled build fails
         if: failure() && github.event_name == 'schedule'
