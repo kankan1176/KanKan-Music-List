@@ -13,7 +13,7 @@
     <script src="category-filters.js?v=20261104-genres1"></script>
     <link rel="stylesheet" href="category-filters.css?v=20261024-years1">
     <script src="genre-index-reader.js?v=20261024-years1"></script>
-    <script src="song-choice-controls.js?v=20261104-1"></script><script src="song-search-core.js?v=20261104-1"></script><script src="song-change-core.js?v=20261024-registration1"></script><script src="song-edit-service.js?v=20261104-1"></script>
+    <script src="song-choice-controls.js?v=20261104-1"></script><script src="song-search-core.js?v=20261106-1"></script><script src="song-change-core.js?v=20261024-registration1"></script><script src="song-edit-service.js?v=20261104-1"></script>
     <script src="vtuber-master.js?v=20261024-vtuber1"></script>
     <script src="artist-classification.js?v=20261024-vtuber1"></script>
     <script src="song-registration.js?v=20261104-vtuber1"></script>
@@ -3665,7 +3665,7 @@ body.sl-redesign{--sl-filter:134px!important}
     <h1 id="slPageTitle">全曲一覧</h1>
     <p id="slPageSubtitle">登録されている楽曲を検索・閲覧できます</p>
   </div>
-  <div id="slSearchHost"><input type="text" id="searchInput" class="search-box" placeholder="曲名・アーティスト・作詞作曲編曲・作品名などで検索"><button type="button" id="slFavArtistsShortcut" onclick="openFavoriteArtistsModal()" title="お気に入りアーティスト一覧" aria-label="お気に入りアーティスト一覧を開く">⭐ お気に入りアーティスト</button></div>
+  <div id="slSearchHost"><input type="text" id="searchInput" class="search-box" placeholder="曲名・アーティスト・略称・検索用語（search）・作品名などで検索"><button type="button" id="slFavArtistsShortcut" onclick="openFavoriteArtistsModal()" title="お気に入りアーティスト一覧" aria-label="お気に入りアーティスト一覧を開く">⭐ お気に入りアーティスト</button></div>
   <div id="slUserHost"></div>
 </header>
 
@@ -7854,7 +7854,8 @@ body.sl-redesign{--sl-filter:134px!important}
 
     async function currentServerSearchIndexKey() {
 
-        const snapshot = await db.ref('songSearchMeta/currentIndexKey').once('value');
+        // Prefer the server so a previously read index key cannot outlive a rebuild.
+        const snapshot = await db.ref('songSearchMeta/currentIndexKey').get();
         const value = snapshot.val();
         serverSearchIndexKey = typeof value === 'string' ? value : '';
         return serverSearchIndexKey;
