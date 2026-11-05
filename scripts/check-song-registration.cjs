@@ -1,8 +1,8 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),registration=require('../song-registration.js');
 assert.deepEqual(registration.basic,['J-POP','K-POP','洋楽']);assert.deepEqual(registration.categories.map(r=>r[0]),['アニソン','ボカロ','Vtuber','ドラマ主題歌','映画主題歌','ゲーム','アイドル','TV']);
-assert.equal(registration.music.length,12);assert.equal(registration.voices.length,48);assert.equal(registration.publishers.length,14);
-assert.deepEqual([...new Set(registration.voices.map(r=>r.group))],['VOCALOID','CeVIO AI','Synthesizer V','UTAU','VOICEVOX']);assert.equal(registration.publishers.at(-1).name,'まんがタイムきらら');
+assert.equal(registration.music.length,12);assert.equal(registration.voices.length,48);
+assert.deepEqual([...new Set(registration.voices.map(r=>r.group))],['VOCALOID','CeVIO AI','Synthesizer V','UTAU','VOICEVOX']);for(const name of ['週刊少年ジャンプ','ジャンプSQ.','ジャンプSQ.RISE','ちゃお','りぼん','なかよし','まんがタイムきらら']){assert(registration.publishers.some(p=>p.name===name));assert.equal(registration.classify({categories:['アニソン'],publisher:name}).genre5,name);}
 const all=registration.classify({base:'J-POP',categories:registration.categories.map(r=>r[0]),music:registration.music,voices:registration.voices.map(r=>r.name),publisher:'まんがタイムきらら'});
 assert.equal(all.genre2,'アニソン、ボカロ、Vtuber、ゲーム');assert.equal(all.genre3,'ドラマ主題歌、映画主題歌、TV（CM・バラエティ）主題歌');assert.equal(all.genre4,'アイドル');assert.equal(all.genre5,'まんがタイムきらら');assert(all.vocal_synths.length>100&&all.vocal_synths.length<1000);assert.equal(all.vocal_synths.split('、').filter(v=>v==='重音テト').length,1);
 const hidden=registration.classify({base:'洋楽',categories:['アイドル'],voices:['初音ミク'],publisher:'まんがタイムきらら'});assert.equal(hidden.vocal_synths,'');assert.equal(hidden.genre5,'');assert.equal(hidden.genre4,'アイドル');
