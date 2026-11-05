@@ -61,16 +61,27 @@ apply.onclick=async()=>{
   const user=await admin();if(user.uid!==plan.uid)throw Error('アカウントが変わりました。再取得してください。');
   for(const e of plan.changes){
    if(auth.currentUser?.uid!==user.uid)throw Error('ログイン状態が変わりました。');
-   const result=await db.ref('songs/'+e.id).transaction(current=>{
-    if(JSON.stringify(current||null)!==JSON.stringify(e.before))return;
+   const ref=db.ref('songs/'+e.id);
+   const keep=()=>{};
+   ref.on('value',keep);
+   let result;
+   try {
+   await ref.once('value');
+   result=await ref.transaction(current=>{
+    if (!!current !== !!e.before || (current && (Number(current._editRevision||0)!==Number(e.before._editRevision||0) || Object.keys(e.values).some(f=>value(current,f)!==value(e.before,f))))) return;
     return {...(current||{}),id:e.id,...e.values,updatedAt:firebase.database.ServerValue.TIMESTAMP,_editRevision:Number(current?._editRevision||0)+1};
    },undefined,false);
-   if(result.committed)updated++;else conflicts++;
+   if(result.committed){
+    const saved=(await ref.get()).val();
+    if(!saved||Object.entries(e.values).some(([f,v])=>value(saved,f)!==v))throw Error('保存後の照合に失敗しました: '+e.id);
+    updated++;
+   }else conflicts++;
+   } finally {ref.off('value',keep);}
    status.textContent='反映中 '+(updated+conflicts)+' / '+plan.changes.length+'曲';
   }
   status.textContent='マスター更新完了：'+updated+'曲。競合で見送り：'+conflicts+'曲。検索・分類データの再生成は定期処理で行われます。サイトを再読み込みしてください。';
   plan=null;
- }catch(e){status.textContent='更新途中で停止しました（反映済み '+updated+'曲）: '+e.message+' 最新版を再取得すると残りを再実行できます。';}
+ }catch(e){status.textContent='更新途中で停止しました（保存後の照合済み '+updated+'曲）: '+e.message+' 最新版を再取得すると残りを再実行できます。';}
  finally{
   if(updated){try{await db.ref('masterMeta/revision').set(db.ref().push().key);}catch(e){status.textContent+=' 更新通知に失敗しました: '+e.message;}}
   busy=false;read.disabled=false;
