@@ -3607,7 +3607,9 @@ body.sl-redesign{--sl-filter:134px!important}
 .sl-genre-checks{display:flex;flex-wrap:wrap;gap:10px}.sl-genre-checks label{display:flex!important;align-items:center;gap:5px!important}.sl-genre-checks input{width:18px!important;min-height:18px!important;margin:0!important}
 @media(max-height:600px){body.sl-redesign{--sl-filter:134px!important}#slGenreHost .genre-btn{min-height:24px!important}}
 </style>
-<link rel="stylesheet" href="song-choice-forms.css?v=20261104-1"></head>
+<link rel="stylesheet" href="song-choice-forms.css?v=20261104-1"><link rel="stylesheet" href="sidebar-design.css?v=20261106">
+<script defer src="sidebar-design.js?v=20261106"></script>
+</head>
 <body class="sl-redesign">
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
 
@@ -3620,7 +3622,7 @@ body.sl-redesign{--sl-filter:134px!important}
     <div><strong>シェアリスコア</strong><small>ShareLiScore</small></div>
   </div>
 
-  <button type="button" id="slSidebarAccount" onclick="openModal('accountModal')" aria-label="アカウント設定を開く" title="ユーザー名・基本担当パートを設定"><span class="sl-account-icon">👤</span><span id="loginStatus" aria-live="polite">ゲスト利用中</span><span class="sl-account-gear">⚙</span></button>
+  <div id="slSidebarAccount" aria-label="アカウント設定を開く" title="ユーザー名・基本担当パートを設定"><span class="sl-account-icon">👤</span><span id="loginStatus" aria-live="polite">ゲスト利用中</span></div>
   <nav class="sl-sidebar-nav">
     <button type="button" id="slNavHome" class="sl-nav-home" onclick="slNavigate('home')"><span>🏠</span><b>トップ</b></button>
     <button type="button" id="slNavAll" class="sl-nav-all" onclick="slNavigate('all')"><span>📚</span><b>全曲一覧</b></button>
@@ -3634,6 +3636,7 @@ body.sl-redesign{--sl-filter:134px!important}
     <div class="sl-nav-divider"></div>
 
     <button type="button" id="slNavHelp" class="sl-nav-help" onclick="slNavigate('help')"><span>🚨</span><b>ヘルプ</b></button>
+    <button type="button" id="slNavUserSettings" onclick="openModal('accountModal');slToggleSidebar(false)"><span>👤</span><b>ユーザー設定</b></button>
     <button type="button" id="slNavSettings" class="sl-nav-settings" onclick="slNavigate('settings')"><span>⚙️</span><b>設定</b></button>
     <a href="admin.html" id="slAdminLink" class="sl-nav-admin" style="display:none;"><span>🛡️</span><b>管理者メニュー</b></a>
   </nav>
@@ -4594,7 +4597,8 @@ body.sl-redesign{--sl-filter:134px!important}
 <div class="modal-overlay" id="accountModal" onclick="closeModal(event, 'accountModal')">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="accountTitle" onclick="event.stopPropagation()" style="max-width:480px;">
         <span class="modal-close" onclick="closeModal(null, 'accountModal')">&times;</span>
-        <h2 id="accountTitle">👤 アカウント設定</h2>
+        <h2 id="accountTitle">ユーザー設定</h2>
+<div class="setting-group"><label for="sidebarDesignSelect">左メニューのデザイン</label><select id="sidebarDesignSelect"><option value="line">シンプルな線画</option><option value="emoji">絵文字</option></select><p style="font-size:12px;opacity:.8">このブラウザのユーザーごとに保存します。</p></div>
         <p style="font-size:12px;opacity:.8;">ユーザー名・基本担当パート・コードWikiのバージョンを設定します。Googleログイン中はアカウントに保存されます。</p>
         <div class="setting-group" style="margin-bottom: 25px;">
             <label>👤 ユーザー名 (セッション用)</label>
@@ -7849,7 +7853,7 @@ body.sl-redesign{--sl-filter:134px!important}
     function serverSearchSongText(song) { return SLSongSearch.text(song); }
 
     async function currentServerSearchIndexKey() {
-        if (serverSearchIndexKey) return serverSearchIndexKey;
+
         const snapshot = await db.ref('songSearchMeta/currentIndexKey').once('value');
         const value = snapshot.val();
         serverSearchIndexKey = typeof value === 'string' ? value : '';
@@ -7988,6 +7992,8 @@ body.sl-redesign{--sl-filter:134px!important}
     }
 
     async function searchServerIndex(rawQuery, direction='first') {
+        if(serverPageLoadPromise){try{await serverPageLoadPromise;}catch(error){} if(searchInput.value!==rawQuery)return;}
+
         searchInput.disabled = false;
         searchInput.readOnly = false;
         if (masterLoaded) { renderTable(); return; }
@@ -8579,6 +8585,8 @@ body.sl-redesign{--sl-filter:134px!important}
 
     searchInput.addEventListener('input', () => {
         clearTimeout(searchDebounceTimer);
+        ++serverSearchRequestSeq;
+        serverSearchBusy=false;
         const typed = searchInput.value;
         // The main search always starts from the full master, including in a room.
         // The standalone My List search retains its own list scope.
@@ -9008,7 +9016,7 @@ body.sl-redesign{--sl-filter:134px!important}
             tableBodyWrapper.scrollTop = 0;
         }
         tableBody.replaceChildren();
-        const keywords = serverSearchMode ? [] : SLSongSearch.normalize(searchInput.value).split(/\s+/).filter(Boolean);
+        const keywords = SLSongSearch.normalize(searchInput.value).split(/\s+/).filter(Boolean);
         
         let filteredData = allData.filter(row => {
             if (currentRoomId && (roomListView === 'common' ? !roomSongMatchesSelectedCommonMembers(row._id) : roomListView !== 'all' && !roomSharedLists[roomListView]?.songs?.[row._id])) return false;
