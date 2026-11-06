@@ -3643,7 +3643,7 @@ body.sl-redesign{--sl-filter:134px!important}
     <div class="sl-nav-divider"></div>
 
     <button type="button" id="slNavHelp" class="sl-nav-help" onclick="slNavigate('help')"><span><span class="sl-menu-emoji" aria-hidden="true">🚨</span><svg class="sl-menu-line" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M9 8a3 3 0 0 1 6 0c0 2-3 2-3 5M12 17h.01"></path></svg></span><b>ヘルプ</b></button>
-    <button type="button" id="slNavUserSettings" onclick="openModal('accountModal');slToggleSidebar(false)"><span><span class="sl-menu-emoji" aria-hidden="true">👤</span><svg class="sl-menu-line" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21a8 8 0 0 1 16 0M12 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10"></path></svg></span><b>ユーザー設定</b></button>
+    <button type="button" id="slNavUserSettings" onclick="slNavigate('account')"><span><span class="sl-menu-emoji" aria-hidden="true">👤</span><svg class="sl-menu-line" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21a8 8 0 0 1 16 0M12 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10"></path></svg></span><b>ユーザー設定</b></button>
     <button type="button" id="slNavSettings" class="sl-nav-settings" onclick="slNavigate('settings')"><span><span class="sl-menu-emoji" aria-hidden="true">⚙️</span><svg class="sl-menu-line" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18M8 3v6M16 9v6M8 15v6"></path></svg></span><b>設定</b></button>
     <a href="admin.html" id="slAdminLink" class="sl-nav-admin" style="display:none;"><span><span class="sl-menu-emoji" aria-hidden="true">🛡️</span><svg class="sl-menu-line" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 6v6c0 5 9 10 9 10s9-5 9-10V6ZM8 12l3 3 5-6"></path></svg></span><b>管理者メニュー</b></a>
   </nav>
@@ -9230,7 +9230,7 @@ body.sl-redesign{--sl-filter:134px!important}
   let slNavTask=Promise.resolve();
   let slOpenOverlayId=null;
   const slHistoryKey='slViewOverlayStage1';
-  const slHistoryOverlayIds=new Set(['slHelpModal','settingsModal','friendsModal','myPageModal','slTermsModal','slPrivacyModal','addSongModal','roomCreateModal']);
+  const slHistoryOverlayIds=new Set(['accountModal','slHelpModal','settingsModal','friendsModal','myPageModal','slTermsModal','slPrivacyModal','addSongModal','roomCreateModal']);
   let slHistoryRestoring=false;
   let slLastManagedOverlay=null;
   function slTrackOverlay(id){
@@ -9265,7 +9265,7 @@ body.sl-redesign{--sl-filter:134px!important}
   };
 
   const slMenuModalIds=new Set([
-    'slHelpModal','settingsModal','friendsModal','myPageModal',
+    'accountModal','slHelpModal','settingsModal','friendsModal','myPageModal',
     'slTermsModal','slPrivacyModal','addSongModal','roomCreateModal'
   ]);
   function slVisible(id){
@@ -9273,6 +9273,7 @@ body.sl-redesign{--sl-filter:134px!important}
     return !!el && getComputedStyle(el).display!=='none';
   }
   function slResolveCurrentView(){
+    if(slVisible('accountModal'))return 'account';
     if(document.body.classList.contains('sl-add-song-open')&&slVisible('addSongModal'))return 'add';
     if(document.body.classList.contains('sl-room-create-open')&&slVisible('roomCreateModal'))return 'room';
     if(slVisible('slHelpModal'))return 'help';
@@ -9304,7 +9305,7 @@ body.sl-redesign{--sl-filter:134px!important}
     const activeId={
       home:'slNavHome',all:'slNavAll',mylist:'slNavMy',
       room:'slNavRoom',friends:'slNavFriends',
-      add:'slNavAdd',mypage:'slNavPage',help:'slNavHelp',settings:'slNavSettings'
+      add:'slNavAdd',mypage:'slNavPage',help:'slNavHelp',settings:'slNavSettings',account:'slNavUserSettings'
     }[view]||'';
     document.querySelectorAll('#slSidebar .sl-sidebar-nav button').forEach(el=>{
       const active=!!activeId&&el.id===activeId;
@@ -9312,7 +9313,7 @@ body.sl-redesign{--sl-filter:134px!important}
       if(active)el.setAttribute('aria-current','page');
       else el.removeAttribute('aria-current');
     });
-    slOpenOverlayId=['help','settings','friends','mypage','terms','privacy'].includes(view)?view:null;
+    slOpenOverlayId=['account','help','settings','friends','mypage','terms','privacy'].includes(view)?view:null;
   }
   window.slRefreshNavigation=function(){
     slSyncUi();
@@ -9350,6 +9351,9 @@ body.sl-redesign{--sl-filter:134px!important}
         case 'help':
           if(typeof openModal==='function')openModal('slHelpModal');
           break;
+        case 'account':
+          if(typeof openModal==='function')openModal('accountModal');
+          break;
         case 'settings':
           if(typeof openModal==='function')openModal('settingsModal');
           break;
@@ -9361,7 +9365,7 @@ body.sl-redesign{--sl-filter:134px!important}
           break;
       }
       if(serial!==slNavSerial)return;
-      const overlayByRoute={help:'slHelpModal',settings:'settingsModal',friends:'friendsModal',
+      const overlayByRoute={account:'accountModal',help:'slHelpModal',settings:'settingsModal',friends:'friendsModal',
         add:'addSongModal',room:'roomCreateModal',terms:'slTermsModal',privacy:'slPrivacyModal'};
       const overlay=overlayByRoute[destination];
       if(overlay && slVisible(overlay))slTrackOverlay(overlay);
