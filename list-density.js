@@ -1,0 +1,12 @@
+/* Viewport density only: fetch size and page navigation remain at 100 songs. */
+(()=>{'use strict';
+const root=document.documentElement,allowed=[10,15,20,25],prefix='shareliscore_visible_rows_v1_',last=prefix+'last';
+let uid='guest',pending=false;const valid=value=>allowed.includes(Number(value))?Number(value):15;
+function read(key){try{return localStorage.getItem(key)}catch{return null}}
+function apply(value){const n=valid(value);root.dataset.songDensity=String(n);root.style.setProperty('--song-font',({10:15,15:13,20:12,25:11})[n]+'px');root.style.setProperty('--song-title-width',({10:28,15:30,20:31,25:33})[n]+'%');const select=document.getElementById('songDensitySelect');if(select)select.value=String(n);schedule();}
+function measure(){pending=false;const n=valid(root.dataset.songDensity);for(const area of document.querySelectorAll('.table-body-wrapper,#shareListViewport')){const height=area.clientHeight;if(!height)continue;const header=area.id==='shareListViewport'?area.querySelector('thead')?.getBoundingClientRect().height||0:0;const row=Math.max(24,Math.floor((height-header)/n));area.style.setProperty('--song-row-height',row+'px');area.style.setProperty('--song-control-height',Math.max(20,Math.min(34,row-7))+'px');}}
+function schedule(){if(!pending){pending=true;requestAnimationFrame(measure)}}
+apply(read(last));
+function init(){const select=document.getElementById('songDensitySelect');apply(root.dataset.songDensity);select?.addEventListener('change',()=>{const value=valid(select.value);apply(value);let saved=true;try{localStorage.setItem(prefix+uid,String(value));localStorage.setItem(last,String(value))}catch{saved=false}const message=document.getElementById('songDensityStatus');if(message)message.textContent=saved?'このブラウザのユーザーごとに保存しました。':'表示に適用しました。このブラウザでは設定を保存できません。';});const observer=new ResizeObserver(schedule);document.querySelectorAll('.table-body-wrapper,#shareListViewport').forEach(area=>observer.observe(area));try{if(window.firebase?.apps?.length)firebase.auth().onAuthStateChanged(user=>{uid=user?.uid||'guest';apply(read(prefix+uid));try{localStorage.setItem(last,root.dataset.songDensity)}catch{}})}catch{}window.addEventListener('storage',event=>{if(event.key===prefix+uid)apply(event.newValue)});window.addEventListener('resize',schedule,{passive:true});window.visualViewport?.addEventListener('resize',schedule,{passive:true});schedule();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
