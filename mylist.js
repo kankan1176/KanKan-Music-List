@@ -1,6 +1,6 @@
 (() => {
  'use strict';
- const PAGE_SIZE=20;
+ const PAGE_SIZE=100;
  const el=id=>document.getElementById('share'+id),core=SLListShare,design=SLListDesign,preview=location.hash==='#preview'&&window.parent!==window,mine=location.hash==='#mine';
  let data=null,rows=[],page=0,status='loading',stop=()=>{},generation=0,lastImage='',imageVersion='',imageSerial=0;
  const genreCache=new Map(),genreSelection={};

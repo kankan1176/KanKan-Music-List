@@ -55,3 +55,8 @@ body.sl-redesign #tableBody button,body.sl-redesign #tableBody select{min-height
 body.sl-redesign .data-table td.col-title .song-title-link,body.sl-redesign .data-table td.col-artist .artist-filter-button{white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important;line-height:1.35!important;text-overflow:clip}
 body.sl-redesign .data-table td.col-artist .artist-filter-button{padding:0!important;text-align:left}
 body.sl-redesign .sl-category-selects label{color:var(--category-text)}
+
+/* The viewport scrolls through 100 songs; browser zoom determines visible rows. */
+body.sl-redesign.theme-white #slRoomDockHandle{background:#edf4fe!important;color:#24466d!important;border-color:#bdcee5!important;box-shadow:0 2px 8px #244c8a18!important;color-scheme:light}
+body.sl-redesign.theme-white #slRoomDockHandle:hover{background:#dbeafe!important;color:#133b70!important}
+body.sl-redesign.theme-white #slRoomDockHandle:focus-visible{outline:2px solid #2563eb;outline-offset:2px}

@@ -839,7 +839,7 @@ html.entry-home .container {display:none!important;}
 @media (max-height:650px){html.entry-home #homeLanding {justify-content:flex-start;}}
 @media (prefers-reduced-motion:reduce){.home-card{transition:none}.home-card:hover{transform:none}}
 
-/* 楽曲一覧: 20件固定のページ切り替え。テーブルとは別領域に操作を固定する。 */
+/* 楽曲一覧: 100件固定のページ切り替え。テーブルとは別領域に操作を固定する。 */
 #songPagination {display:flex;flex:none;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:48px;padding:7px 12px;box-sizing:border-box;background:var(--panel-bg);border-top:1px solid var(--border-color);color:var(--text-color);font-size:13px;}
 #songPagination button {min-width:94px;min-height:34px;padding:5px 11px;border:1px solid var(--border-color);border-radius:6px;background:var(--btn-bg);color:var(--text-color);font-weight:600;cursor:pointer;}
 #songPagination button:hover:not(:disabled) {background:var(--btn-hover);border-color:var(--primary);}
@@ -3652,7 +3652,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 .sl-home-update-list .sl-update-link:focus-visible{outline:none}
 .sl-home-update-list .sl-update-link:focus-visible::after{outline:3px solid #77b9ff;outline-offset:-3px}
 </style>
-<link rel="stylesheet" href="compact-lists.css?v=20261108-1">
+<link rel="stylesheet" href="compact-lists.css?v=20261108-2">
 </head>
 <body class="sl-redesign"><script>try{if(localStorage.getItem('sharelistscore_last_theme')==='white')document.body.classList.add('theme-white');}catch{}</script>
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
@@ -3786,7 +3786,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 </aside>
 
 <!-- ヘルプ：初心者向け操作マニュアル -->
-<div class="modal-overlay" id="slHelpModal" onclick="closeModal(event,'slHelpModal')"><div class="modal sl-help-modal" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="slHelpTitle"><button type="button" class="modal-close" aria-label="閉じる" onclick="closeModal(null,'slHelpModal')">&times;</button><h2 id="slHelpTitle">ヘルプ</h2><p class="sl-help-intro">知りたい項目を選んでください。</p><div class="sl-help-mobile-chapters"><label for="slHelpChapterSelect">項目</label><select id="slHelpChapterSelect" onchange="slHelpOpen(this.value)"><option value="first">はじめに</option><option value="all">曲を探す</option><option value="my">マイリスト</option><option value="import">一括登録</option><option value="room">ルーム</option><option value="progress">演奏の進行</option><option value="obs">配信・フレンド</option><option value="add">楽曲の追加・編集</option><option value="settings">設定</option><option value="trouble">困ったとき</option></select></div><div class="sl-help-layout"><nav class="sl-help-nav" aria-label="目次"><button type="button" data-help-target="first" class="active" onclick="slHelpOpen('first',this)">はじめに</button><button type="button" data-help-target="all" class="" onclick="slHelpOpen('all',this)">曲を探す</button><button type="button" data-help-target="my" class="" onclick="slHelpOpen('my',this)">マイリスト</button><button type="button" data-help-target="import" class="" onclick="slHelpOpen('import',this)">一括登録</button><button type="button" data-help-target="room" class="" onclick="slHelpOpen('room',this)">ルーム</button><button type="button" data-help-target="progress" class="" onclick="slHelpOpen('progress',this)">演奏の進行</button><button type="button" data-help-target="obs" class="" onclick="slHelpOpen('obs',this)">配信・フレンド</button><button type="button" data-help-target="add" class="" onclick="slHelpOpen('add',this)">楽曲の追加・編集</button><button type="button" data-help-target="settings" class="" onclick="slHelpOpen('settings',this)">設定</button><button type="button" data-help-target="trouble" class="" onclick="slHelpOpen('trouble',this)">困ったとき</button></nav><div class="sl-help-content" tabindex="0" role="region" aria-label="操作手順"><section class="sl-help-section active" data-help="first"><h3>はじめに</h3><p>曲を探し、演奏できる曲をマイリストへ。仲間と使うときはルームを作成・参加します。</p><p>閲覧はログイン不要です。個人のマイリスト保存にはGoogleログインを使います。</p></section><section class="sl-help-section " data-help="all"><h3>曲を探す</h3><p>検索欄に曲名・アーティストの一部を入力すると、その文字を含む曲を検索します。検索ボタンは不要です。</p><p>作品名、作詞・作曲・編曲者、登録済みの略称・関連キーワード（マスターのsearch列）でも探せます。ジャンル・発売年で絞り込み、20曲ずつページを切り替えます。</p></section><section class="sl-help-section " data-help="my"><h3>マイリスト</h3><p>曲の「＋登録」で追加し、Keyと担当パートを設定します。変更は自動保存されます。</p><p>曲名から詳細を開き、選択したKeyでChordWikiを表示できます。共有ページの設定はマイリスト画面から行います。</p></section><section class="sl-help-section " data-help="import"><h3>一括登録</h3><p>マイリストの一括登録から、曲名・アーティストの表を貼り付けます。</p><p>解析結果と候補を確認して登録してください。見つからない曲は「新規楽曲追加」から申請できます。</p></section><section class="sl-help-section " data-help="room"><h3>ルーム</h3><p>「ルーム」から新規作成、またはルームID・共有URLで参加します。</p><p>全曲一覧・参加者のマイリストから曲を探せます。既定の曲順はルームごとのランダム順です。同じルームでは共通の順序となり、列見出しで並び替えもできます。</p></section><section class="sl-help-section " data-help="progress"><h3>演奏の進行</h3><p>演奏候補を予約し、演奏する曲を確定、終わった曲を完了にします。</p><p>ルームのセットリストで進行状況を共有します。曲や参加者の変更は画面内の操作から行います。</p></section><section class="sl-help-section " data-help="obs"><h3>配信・フレンド</h3><p>「OBS配信画面設定」で表示内容を設定し、発行されたURLをOBSのブラウザソースに指定します。</p><p>フレンド機能では相手の公開された曲を確認できます。マイリストの共有URLは閲覧相手へ渡して使います。</p></section><section class="sl-help-section " data-help="add"><h3>楽曲の追加・編集</h3><p>マスターにない曲は「新規楽曲追加」から必要事項を入力して申請します。</p><p>Googleログイン中は、曲の詳細にある「この曲の情報を編集」から編集できます。保存後は即時反映され、履歴に記録されます。分類は選択肢から選びます。</p></section><section class="sl-help-section " data-help="settings"><h3>設定</h3><p>「ユーザー設定」で名前、基本担当パート、ChordWikiの通常／ベータ版、左メニューの線画／絵文字を選べます。</p><p>「設定」では明暗テーマ・言語・フォントを変更できます。基本担当パートは新たに登録する曲へ適用されます。</p></section><section class="sl-help-section " data-help="trouble"><h3>困ったとき</h3><p>検索結果が少ないときは、検索語を短くし、ジャンルなどの絞り込みを解除してください。</p><p>表示が古い場合は「設定」の「最新情報を再読み込み」を使います。ログイン画面が出ない場合はポップアップの許可を確認してください。</p></section></div></div></div></div>
+<div class="modal-overlay" id="slHelpModal" onclick="closeModal(event,'slHelpModal')"><div class="modal sl-help-modal" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="slHelpTitle"><button type="button" class="modal-close" aria-label="閉じる" onclick="closeModal(null,'slHelpModal')">&times;</button><h2 id="slHelpTitle">ヘルプ</h2><p class="sl-help-intro">知りたい項目を選んでください。</p><div class="sl-help-mobile-chapters"><label for="slHelpChapterSelect">項目</label><select id="slHelpChapterSelect" onchange="slHelpOpen(this.value)"><option value="first">はじめに</option><option value="all">曲を探す</option><option value="my">マイリスト</option><option value="import">一括登録</option><option value="room">ルーム</option><option value="progress">演奏の進行</option><option value="obs">配信・フレンド</option><option value="add">楽曲の追加・編集</option><option value="settings">設定</option><option value="trouble">困ったとき</option></select></div><div class="sl-help-layout"><nav class="sl-help-nav" aria-label="目次"><button type="button" data-help-target="first" class="active" onclick="slHelpOpen('first',this)">はじめに</button><button type="button" data-help-target="all" class="" onclick="slHelpOpen('all',this)">曲を探す</button><button type="button" data-help-target="my" class="" onclick="slHelpOpen('my',this)">マイリスト</button><button type="button" data-help-target="import" class="" onclick="slHelpOpen('import',this)">一括登録</button><button type="button" data-help-target="room" class="" onclick="slHelpOpen('room',this)">ルーム</button><button type="button" data-help-target="progress" class="" onclick="slHelpOpen('progress',this)">演奏の進行</button><button type="button" data-help-target="obs" class="" onclick="slHelpOpen('obs',this)">配信・フレンド</button><button type="button" data-help-target="add" class="" onclick="slHelpOpen('add',this)">楽曲の追加・編集</button><button type="button" data-help-target="settings" class="" onclick="slHelpOpen('settings',this)">設定</button><button type="button" data-help-target="trouble" class="" onclick="slHelpOpen('trouble',this)">困ったとき</button></nav><div class="sl-help-content" tabindex="0" role="region" aria-label="操作手順"><section class="sl-help-section active" data-help="first"><h3>はじめに</h3><p>曲を探し、演奏できる曲をマイリストへ。仲間と使うときはルームを作成・参加します。</p><p>閲覧はログイン不要です。個人のマイリスト保存にはGoogleログインを使います。</p></section><section class="sl-help-section " data-help="all"><h3>曲を探す</h3><p>検索欄に曲名・アーティストの一部を入力すると、その文字を含む曲を検索します。検索ボタンは不要です。</p><p>作品名、作詞・作曲・編曲者、登録済みの略称・関連キーワード（マスターのsearch列）でも探せます。ジャンル・発売年で絞り込み、100曲ずつページを切り替えます。</p></section><section class="sl-help-section " data-help="my"><h3>マイリスト</h3><p>曲の「＋登録」で追加し、Keyと担当パートを設定します。変更は自動保存されます。</p><p>曲名から詳細を開き、選択したKeyでChordWikiを表示できます。共有ページの設定はマイリスト画面から行います。</p></section><section class="sl-help-section " data-help="import"><h3>一括登録</h3><p>マイリストの一括登録から、曲名・アーティストの表を貼り付けます。</p><p>解析結果と候補を確認して登録してください。見つからない曲は「新規楽曲追加」から申請できます。</p></section><section class="sl-help-section " data-help="room"><h3>ルーム</h3><p>「ルーム」から新規作成、またはルームID・共有URLで参加します。</p><p>全曲一覧・参加者のマイリストから曲を探せます。既定の曲順はルームごとのランダム順です。同じルームでは共通の順序となり、列見出しで並び替えもできます。</p></section><section class="sl-help-section " data-help="progress"><h3>演奏の進行</h3><p>演奏候補を予約し、演奏する曲を確定、終わった曲を完了にします。</p><p>ルームのセットリストで進行状況を共有します。曲や参加者の変更は画面内の操作から行います。</p></section><section class="sl-help-section " data-help="obs"><h3>配信・フレンド</h3><p>「OBS配信画面設定」で表示内容を設定し、発行されたURLをOBSのブラウザソースに指定します。</p><p>フレンド機能では相手の公開された曲を確認できます。マイリストの共有URLは閲覧相手へ渡して使います。</p></section><section class="sl-help-section " data-help="add"><h3>楽曲の追加・編集</h3><p>マスターにない曲は「新規楽曲追加」から必要事項を入力して申請します。</p><p>Googleログイン中は、曲の詳細にある「この曲の情報を編集」から編集できます。保存後は即時反映され、履歴に記録されます。分類は選択肢から選びます。</p></section><section class="sl-help-section " data-help="settings"><h3>設定</h3><p>「ユーザー設定」で名前、基本担当パート、ChordWikiの通常／ベータ版、左メニューの線画／絵文字を選べます。</p><p>「設定」では明暗テーマ・言語・フォントを変更できます。基本担当パートは新たに登録する曲へ適用されます。</p></section><section class="sl-help-section " data-help="trouble"><h3>困ったとき</h3><p>検索結果が少ないときは、検索語を短くし、ジャンルなどの絞り込みを解除してください。</p><p>表示が古い場合は「設定」の「最新情報を再読み込み」を使います。ログイン画面が出ない場合はポップアップの許可を確認してください。</p></section></div></div></div></div>
 
 <!-- 利用規約と免責事項 -->
 <div class="modal-overlay notranslate" id="slTermsModal" translate="no" data-sl-ui-translation onclick="closeModal(event,'slTermsModal')">
@@ -5182,7 +5182,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             return;
         }
 
-        // マイリスト内だけで使った並び替え・絞り込みを通常20件一覧へ持ち越さない。
+        // マイリスト内だけで使った並び替え・絞り込みを通常100件一覧へ持ち越さない。
         if (wasPartial) {
             currentSortKey = '';
             currentSortOrder = 1;
@@ -5193,7 +5193,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             updateSortIcons();
         }
 
-        // 検索欄に語が残っていれば全曲検索インデックスへ、それ以外は最新20件へ戻す。
+        // 検索欄に語が残っていれば全曲検索インデックスへ、それ以外は最新100件へ戻す。
         if (searchInput.value.trim()) await searchServerIndex(searchInput.value);
         else await loadServerMasterPage('first');
     }
@@ -6339,10 +6339,10 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
     // =========================================
     const MASTER_DB_PATH = "songs";
 
-    // 本番移行: 全曲一覧の初期表示は Firebase から20件ずつ取得する。
+    // 本番移行: 全曲一覧の初期表示は Firebase から100件ずつ取得する。
     // マイリストは users/{uid}/songs の登録IDだけを読み、その楽曲だけ /songs/{id} から取得する。
     // ルーム・公開マイリスト・クリップボード等、まだ全件参照が残る機能だけ従来マスターへ昇格する。
-    const SERVER_MASTER_PAGE_SIZE = 20;
+    const SERVER_MASTER_PAGE_SIZE = 100;
     let serverPagedMasterMode = false;
     let serverPageNumber = 1;
     let serverPageBusy = false;
@@ -6600,7 +6600,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         return [...new Set(problems)];
     }
     // 保存済みの個人データからのみ生成。楽曲マスター(allData)へ依存しないため、
-    // 20件取得中でも自分の公開マイリストを欠損させず同期できる。
+    // 100件取得中でも自分の公開マイリストを欠損させず同期できる。
     // 編集中の pendingSongs / pendingArtists は含めない。
     function buildSavedFriendShare() {
         const songs = {};
@@ -7653,7 +7653,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             return !!(currentSortKey || selectedArtist);
         }
 
-        // 検索中は検索専用インデックスから取得した最大20曲だけで描画できる。
+        // 検索中は検索専用インデックスから取得した最大100曲だけで描画できる。
         // 検索結果内の並び替えもローカルで処理し、全曲取得へ昇格しない。
         if (serverSearchMode) {
             return !!(currentRoomId || myListMode || currentGenre !== 'すべて' || selectedArtist);
@@ -7864,7 +7864,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         genreServerMode = false;
         currentGenre = 'すべて';Object.keys(selectedGenres).forEach(key=>delete selectedGenres[key]);++genreFilterVersion;
         loadingArea.style.display='flex';
-        loadingArea.innerHTML='<div class="spinner"></div><div>検索結果を20曲ずつ取得中...</div>';
+        loadingArea.innerHTML='<div class="spinner"></div><div>検索結果を100曲ずつ取得中...</div>';
         renderCurrentSongPage();
 
         try {
@@ -7929,7 +7929,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             serverSearchActiveQuery=normalized;
             loadRowsIntoApp(serverSearchMasterToRawRows(results));
                 tableBodyWrapper.scrollTop = 0;
-            masterLoadNotice(`✅ 検索結果 ${page}ページ：${Object.keys(results).length}曲を表示（20曲ずつ・全曲マスター未取得）。`);
+            masterLoadNotice(`✅ 検索結果 ${page}ページ：${Object.keys(results).length}曲を表示（100曲ずつ・全曲マスター未取得）。`);
         } catch(error) {
             if (requestSeq !== serverSearchRequestSeq) return;
             console.warn('検索インデックスを利用できないため従来検索へ切り替えます:',error);
@@ -8023,8 +8023,8 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
                 serverPageNumber=previousPage;
                 serverPageHasOlder=previousHasOlder;
                 serverPagedMasterMode=false;
-                console.error('20件取得モードの読み込みに失敗:',error);
-                showCsvLoadError('データから20件を読み込めませんでした: '+String(error?.message||error));
+                console.error('100件取得モードの読み込みに失敗:',error);
+                showCsvLoadError('データから100件を読み込めませんでした: '+String(error?.message||error));
                 throw error;
             }finally{
                 serverPageBusy=false;
@@ -8488,7 +8488,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
     // セッション曲管理機能
     // =========================================
     // キュー内の曲は、現在画面に読み込まれている allData だけに依存しない。
-    // 20件取得・検索・ジャンル絞り込み・マイリスト表示中でも、
+    // 100件取得・検索・ジャンル絞り込み・マイリスト表示中でも、
     // 予約/確定/完了に入っている曲を /songs/{id} から個別取得して保持する。
     const roomQueueSongCache = new Map();
     let roomQueueSongFetchToken = 0;
@@ -8788,8 +8788,8 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         openModal('songDetailsModal');
     }
 
-    // 検索・ソートは全楽曲が対象。DOMへ描画するのは現在のページの20曲だけ。
-    function songPageSize() { return currentRoomId ? 15 : 20; }
+    // 検索・ソートは全楽曲が対象。DOMへ描画するのは現在のページの100曲だけ。
+    function songPageSize() { return 100; }
     let songPageIndex = 0;
     let lastTableQuerySignature = '';
     let cachedFilteredSongRows = [];
@@ -8803,7 +8803,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             tableBody.replaceChildren();
             appendRenderedSongRows(cachedFilteredSongRows.slice(0, songPageSize()), 0);
             songPageStatus.textContent = total
-                ? `検索結果 ${serverSearchPage} ページ（${total.toLocaleString()}曲表示・20曲ずつ）`
+                ? `検索結果 ${serverSearchPage} ページ（${total.toLocaleString()}曲表示・100曲ずつ）`
                 : '検索結果 0曲';
             songPrevPageBtn.disabled = serverSearchBusy || serverSearchPage <= 1;
             songNextPageBtn.disabled = serverSearchBusy || !serverSearchHasNext;
@@ -8830,7 +8830,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         const end = Math.min(start + songPageSize(), total);
         tableBody.replaceChildren();
         appendRenderedSongRows(cachedFilteredSongRows.slice(start, end), start);
-        // 最後のページが20曲未満でも、件数・ページ番号を正確に表示。
+        // 最後のページが100曲未満でも、件数・ページ番号を正確に表示。
         songPageStatus.textContent = total
             ? `${songPageIndex + 1} / ${totalPages} ページ　（${(start + 1).toLocaleString()}～${end.toLocaleString()} / ${total.toLocaleString()}曲）`
             : '0 / 0 曲';
@@ -8937,19 +8937,19 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         const currentModeLabel = currentRoomId
             ? (roomListView==='all' ? '🌐 ルーム：全曲一覧' : roomListView==='common' ? `🤝 ルーム：${roomCommonSelectionLabel()} の共通曲` : `📁 ルーム：${roomListView===signedInUser?.uid?'自分':roomSharedLists[roomListView]?.name||'メンバー'}のマイリスト`)
             : myListMode ? '📁 自分のマイリスト'
-            : (serverSearchMode && serverPagedMasterMode && !masterLoaded ? '🔎 楽曲検索（20件ずつ取得）'
-              : genreServerMode && serverPagedMasterMode && !masterLoaded ? `🎼 ジャンル：${currentGenre}（20件ずつ取得）`
-              : serverPagedMasterMode && !masterLoaded ? '📚 全曲一覧（20件ずつ取得）'
+            : (serverSearchMode && serverPagedMasterMode && !masterLoaded ? '🔎 楽曲検索（100件ずつ取得）'
+              : genreServerMode && serverPagedMasterMode && !masterLoaded ? `🎼 ジャンル：${currentGenre}（100件ずつ取得）`
+              : serverPagedMasterMode && !masterLoaded ? '📚 全曲一覧（100件ずつ取得）'
               : '📚 総登録楽曲数');
         document.getElementById('listModeIndicator').textContent = currentModeLabel;
         songCountDisplay.textContent = (myListPartialMode && myListMode && !masterLoaded && !currentRoomId)
             ? `マイリスト：${filteredData.length} 曲（登録曲だけ取得・全曲マスター未取得）`
             : (serverSearchMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
-                ? `検索結果：${serverSearchPage}ページ目・${filteredData.length}曲表示（20曲ずつ取得）`
+                ? `検索結果：${serverSearchPage}ページ目・${filteredData.length}曲表示（100曲ずつ取得）`
                 : (genreServerMode && serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
-                    ? `${currentGenre}：${filteredData.length} 曲（データベースより最大20件取得）`
+                    ? `${currentGenre}：${filteredData.length} 曲（データベースより最大100件取得）`
                 : (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
-                    ? `表示中：${filteredData.length} 曲（データベースより最大20件取得）`
+                    ? `表示中：${filteredData.length} 曲（データベースより最大100件取得）`
                     : ((!currentRoomId && !myListMode || currentRoomId && roomListView === 'all') ? `総登録楽曲数：${allData.length} 曲（表示中：${filteredData.length} 曲）` : `${currentModeLabel}：${filteredData.length} 曲`);
         lastFilteredMySongIds=myListMode?filteredData.map(song=>song._id):[];
         if (!lastFilteredMySongIds.includes(lastMySelectionAnchorId)) lastMySelectionAnchorId = null;
@@ -10136,7 +10136,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 </script>
 <script src="setlist-share.js?v=20261020-9"></script>
 <script src="room-history.js"></script>
-<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261024-wiki1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script><script src="help-guide.js?v=20261108-1"></script>
+<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261024-wiki1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261020-3"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script><script src="help-guide.js?v=20261108-2"></script>
 <script src="compact-lists.js?v=20261108-1"></script>
 </body>
 </html>
