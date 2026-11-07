@@ -12,3 +12,11 @@
 #shareGenreGroups .sl-category-tabs button.active{color:var(--share-background)}
 #shareGenreGroups{max-height:none;overflow:visible}
 @media(max-height:600px){#shareGenreGroups{max-height:130px;overflow-y:auto}}
+
+
+/* The main app uses theme-white; shared lists supply their own design tokens. */
+body.sl-redesign{--category-surface:#11243c;--category-text:#e6efff;--category-border:#36516d}
+body.sl-redesign.theme-white{--category-surface:#fff;--category-text:#183451;--category-border:#bdcee5}
+body.sl-redesign .sl-category-selects select{background:var(--category-surface);color:var(--category-text);border-color:var(--category-border);color-scheme:dark}
+body.sl-redesign.theme-white .sl-category-selects select{color-scheme:light}
+body.sl-redesign .sl-category-selects option{background:var(--category-surface);color:var(--category-text)}

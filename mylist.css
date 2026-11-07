@@ -29,3 +29,9 @@
 @media(max-height:600px){#shareGenreGroups{max-height:130px}}
 
 @media(max-width:650px),(pointer:coarse){#shareSort{grid-column:1/-1}}
+
+/* Use the available width for titles; keep personal theme colors unchanged. */
+main{gap:8px;padding-top:12px;padding-bottom:8px}.intro{padding:3px 0 8px}.share-tools{gap:7px}.share-page-actions{margin-top:6px}.share-top-nav{min-height:28px}
+#shareListViewport table{font-size:13px}#shareListViewport td,#shareListViewport th{padding:5px 9px;line-height:1.4}#shareListViewport th{padding-top:7px;padding-bottom:7px}
+#shareListViewport .song-title{min-width:180px;max-width:480px;overflow-wrap:break-word;word-break:normal}#shareListViewport .song-artist{min-width:140px;max-width:340px;overflow-wrap:break-word;word-break:normal}#shareListViewport .genre-tag{padding:1px 5px;margin:1px 3px 1px 0;white-space:normal}#shareListViewport .song-link{padding:4px 7px;min-height:28px}
+@media(max-width:650px),(pointer:coarse){#shareListViewport td,#shareListViewport th{padding:6px 7px}#shareListViewport .song-title{min-width:130px}#shareListViewport .song-artist{min-width:100px}#shareListViewport .song-link{min-height:34px}}
