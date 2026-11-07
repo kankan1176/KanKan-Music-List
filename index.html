@@ -5620,6 +5620,11 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
                     if (!roomPresenceConnected || mySessionId !== sessionId) return;
                     await memberRef.set({name: myName, uid: user.uid, guest: !!user.isAnonymous, defaultPart: ownRoomDefaultPart(user),
                         lastSeen: firebase.database.ServerValue.TIMESTAMP});
+                    // Re-publish after membership is restored: onDisconnect removed the room snapshot.
+                    if (roomPresenceConnected && mySessionId === sessionId && auth.currentUser?.uid === user.uid) {
+                        stopRoomOwnSource();
+                        startRoomOwnPublishing();
+                    }
                 } catch(error) { console.warn('ルーム接続状態の再登録に失敗:', error); }
                 finally { roomPresenceRegisterBusy = false; }
             })();
@@ -5799,7 +5804,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         if (roomListView === 'common' && roomCommonSelectedUids.size < 2) {
             roomCommonSelectedUids = new Set(Object.keys(latest));
         }
-        if (roomListView !== 'all' && roomListView !== 'common' && !latest[roomListView]) roomListView = 'all';
+        // Keep the selected member while their share is reconnecting; do not switch views.
         renderRoomListTabs();
         if (allData.length) renderTable();
         if (currentDetailSongId) renderRoomSongMembers(currentDetailSongId);
@@ -5900,6 +5905,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             roomShareWriteQueue=roomShareWriteQueue.catch(()=>{}).then(async()=>{
                 if (version!==roomShareVersion || auth.currentUser?.uid!==uid) return;
                 await out.onDisconnect().remove();
+                if (version!==roomShareVersion || auth.currentUser?.uid!==uid) return;
                 await out.set(payload);
             }).catch(err=>{console.error('ルーム共有リスト同期失敗',err);setRoomShareMessage('共有リストの同期に失敗しました。ルールと接続を確認してください。');});
         };
@@ -8870,6 +8876,14 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             tableBodyWrapper.scrollTop = 0;
         }
         tableBody.replaceChildren();
+        if (currentRoomId && roomListView !== 'all' && roomListView !== 'common' && !roomSharedLists[roomListView]) {
+            const tr=document.createElement('tr'),td=document.createElement('td');
+            td.colSpan=20;td.textContent='マイリストを読み込み中です。対象のユーザーが退出している場合は、全曲一覧か別のユーザーを選択してください。';
+            td.style.padding='24px';tr.append(td);tableBody.append(tr);
+            cachedFilteredSongRows=[];
+            songCountDisplay.textContent='マイリスト読み込み待ち';
+            return;
+        }
         const keywords = SLSongSearch.normalize(searchInput.value).split(/\s+/).filter(Boolean);
         
         let filteredData = allData.filter(row => {
@@ -9327,8 +9341,8 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 
       const myUid=signedInUser.uid;
       if(!roomSharedLists || !roomSharedLists[myUid]){
-        alert('このルームでは、あなたのマイリスト共有がまだ準備できていません。');
-        return;
+        startRoomOwnPublishing();
+        setRoomShareMessage('マイリストを読み込み中です。接続が戻ると自動で表示します。');
       }
 
       slSetRoomListView(myUid);
