@@ -26,3 +26,5 @@ html[data-song-density] body.sl-redesign #tableBody td.col-title .song-title-lin
 html[data-song-density] #shareListViewport td{font-size:var(--song-font,13px)}
 }
 @media(min-width:601px){#accountModal #profileAvatarSetting{grid-row:2 / span 5!important}#accountModal #songDensitySetting{grid-column:2!important;grid-row:auto}}
+
+#songPageSizeToggle{margin-right:auto;min-height:32px;padding:4px 12px;border:1px solid var(--sl-border);border-radius:7px;background:var(--sl-panel2);color:var(--sl-text);cursor:pointer}body.theme-white #songPageSizeToggle{background:#e7f0fb;color:#183451;border-color:#b9cdea}

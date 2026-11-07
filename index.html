@@ -3653,8 +3653,8 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 .sl-home-update-list .sl-update-link:focus-visible::after{outline:3px solid #77b9ff;outline-offset:-3px}
 </style>
 <link rel="stylesheet" href="compact-lists.css?v=20261108-2">
-<link rel="stylesheet" href="list-density.css?v=20261108-2">
-<script src="list-density.js?v=20261108-1"></script>
+<link rel="stylesheet" href="list-density.css?v=20261108-3">
+<script src="list-density.js?v=20261108-3"></script>
 </head>
 <body class="sl-redesign"><script>try{if(localStorage.getItem('sharelistscore_last_theme')==='white')document.body.classList.add('theme-white');}catch{}</script>
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
@@ -4162,7 +4162,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
                 <span id="songPageStatus" role="status" aria-live="polite">0 / 0曲</span>
                 <button id="songNextPageBtn" type="button" onclick="changeSongPage(1)" disabled>次へ ▶</button>
             </div>
-            <div id="slBottomMetaHost" aria-label="楽曲件数"><div class="song-count" id="songCountDisplay">表示中: 0 曲</div></div>
+            <button type="button" id="songPageSizeToggle" aria-pressed="false">10曲表示</button><div id="slBottomMetaHost" aria-label="楽曲件数"><div class="song-count" id="songCountDisplay">表示中: 0 曲</div></div>
         </nav>
     </div>
 </div>
@@ -4420,7 +4420,6 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         <span class="modal-close" onclick="closeModal(null, 'accountModal')">&times;</span>
         <h2 id="accountTitle">ユーザー設定</h2>
 <div class="setting-group"><label for="sidebarDesignSelect">左メニューのデザイン</label><select id="sidebarDesignSelect"><option value="line">シンプルな線画</option><option value="emoji">絵文字</option></select><p style="font-size:12px;opacity:.8">このブラウザのユーザーごとに保存します。</p></div>
-<div class="setting-group" id="songDensitySetting"><label for="songDensitySelect">画面内の表示曲数（目安）</label><select id="songDensitySelect" aria-describedby="songDensityHint songDensityStatus"><option value="10">10曲・大きめ</option><option value="15" selected>15曲・標準</option><option value="20">20曲・コンパクト</option><option value="25">25曲・よりコンパクト</option></select><p id="songDensityHint">行の高さ・文字サイズ・列幅を調整します。1ページは100曲のままです。長い曲名や小さい画面では、読みやすさを優先して表示曲数が変わります。</p><p id="songDensityStatus" role="status" aria-live="polite">このブラウザのユーザーごとに保存します。</p></div>
 
         <p style="font-size:12px;opacity:.8;">ユーザー名・基本担当パート・コードWikiのバージョンを設定します。Googleログイン中はアカウントに保存されます。</p>
         <div class="setting-group" style="margin-bottom: 25px;">
@@ -8793,7 +8792,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
     }
 
     // 検索・ソートは全楽曲が対象。DOMへ描画するのは現在のページの100曲だけ。
-    function songPageSize() { return 100; }
+    function songPageSize() { return window.SLSongPageSize?.get() || 15; }
     let songPageIndex = 0;
     let lastTableQuerySignature = '';
     let cachedFilteredSongRows = [];
