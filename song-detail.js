@@ -1,21 +1,30 @@
 (() => {
  'use strict';
  const el=id=>document.getElementById(id);
- const paths={
- '🎤':['ボーカル','M9 12a4 4 0 1 0 6-6 4 4 0 0 0-6 6ZM10 13 3 20l1 1 7-7M13 5l6 6'],
- '🎸':['ギター','M14 10 20 3l1 1-6 7c2 3 0 5-2 5 0 3-3 5-6 3s-3-6 0-7c0-3 4-4 7-2ZM9 13l2 2'],
- '🥁':['ドラム','M4 8c0-4 16-4 16 0v10c0 4-16 4-16 0V8Zm0 0c0 4 16 4 16 0M7 10v9m10-9v9M3 2l9 5m9-5-9 5'],
- '🎹':['鍵盤','M3 4h18v16H3ZM7 4v16m5-16v16m5-16v16M7 4v8m5-8v8m5-8v8'],
- '🎺':['管楽器','M3 12h9l7-6v14l-7-6H3Zm4 0V8m4 4V8m-4 8v3h6v-4'],
- '🎻':['弦楽器','M12 8V2m-2 6c-6 0-5 5-2 5-5 3-3 8 4 8s9-5 4-8c3 0 4-5-2-5M12 8v10M20 2l-2 19'],
- '🪈':['笛','M17 2 4 20l3 2L20 4ZM14 9l1 1m-4 3 1 1m-4 3 1 1']
+ // Generated instrument illustrations; each SVG frames one instrument from the shared sheet.
+ const instruments={
+  '🎤':['ボーカル','30 230 265 310'], '🎸':['ギター','290 215 300 340'],
+  '🥁':['ドラム','600 250 265 290'], '🎹':['鍵盤','885 285 285 205'],
+  '🎺':['管楽器','1190 290 305 185'], '🎻':['弦楽器','1500 185 260 380'],
+  '🪈':['笛','1765 210 255 350']
  };
  function parts(){
   el('detailPersonalControls')?.querySelectorAll('.detail-part-icons button').forEach(button=>{
-   const value=paths[button.textContent.trim()];if(!value)return;
-   const [label,path]=value;const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
-   const shape=document.createElementNS(svg.namespaceURI,'path');shape.setAttribute('d',path);svg.append(shape);
-   const caption=document.createElement('span');caption.className='sl-part-caption';caption.textContent=label;button.replaceChildren(svg,caption);
+   const value=instruments[button.textContent.trim()];if(!value)return;
+   const [label,viewBox]=value;
+   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+   svg.classList.add('sl-instrument-illustration');
+   svg.setAttribute('viewBox',viewBox);svg.setAttribute('aria-hidden','true');
+   const image=document.createElementNS(svg.namespaceURI,'image');
+   image.setAttribute('href','assets/instrument-icons.webp?v=20261109-1');
+   image.setAttribute('width','2048');image.setAttribute('height','719');
+   const defs=document.createElementNS(svg.namespaceURI,'defs'),clip=document.createElementNS(svg.namespaceURI,'clipPath'),rect=document.createElementNS(svg.namespaceURI,'rect');
+   const clipId='sl-instrument-'+Object.keys(instruments).indexOf(button.textContent.trim());
+   clip.id=clipId;clip.setAttribute('clipPathUnits','userSpaceOnUse');
+   viewBox.split(' ').forEach((v,i)=>rect.setAttribute(['x','y','width','height'][i],v));
+   clip.append(rect);defs.append(clip);image.setAttribute('clip-path','url(#'+clipId+')');svg.append(defs,image);
+   const caption=document.createElement('span');caption.className='sl-part-caption';caption.textContent=label;
+   button.replaceChildren(svg,caption);
   });
  }
  function tab(value){

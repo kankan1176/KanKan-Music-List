@@ -79,3 +79,9 @@ body.sl-redesign:not(.theme-white) #songDetailsModal .modal-close{background:tra
 }
 body.sl-redesign #songDetailsModal .modal-close{font-size:28px!important;line-height:1!important;padding:0!important}
 body.sl-redesign.theme-white #songDetailsModal .sl-detail-tabs button[aria-selected=false]{background:#edf4fe!important;color:#142c4d!important}
+
+/* Generated line illustrations: one cached sheet, adapted to both color themes. */
+#songDetailsModal .detail-part-icons svg.sl-instrument-illustration{width:30px;height:30px;flex:none;stroke:none;overflow:hidden;filter:grayscale(1) contrast(1.5) invert(1);mix-blend-mode:screen}
+#songDetailsModal .detail-part-icons button{gap:3px;padding:4px 2px;opacity:.85}
+#songDetailsModal .detail-part-icons button.active,#songDetailsModal .detail-part-icons button:hover{opacity:1}
+body.sl-redesign.theme-white #songDetailsModal .detail-part-icons svg.sl-instrument-illustration{filter:grayscale(1) contrast(1.5);mix-blend-mode:multiply}
