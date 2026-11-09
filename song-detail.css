@@ -28,7 +28,7 @@ body.sl-redesign #songDetailsModal .sl-detail{width:min(1120px,calc(100% - 32px)
 #songDetailsModal #detailPersonalEdit,#songDetailsModal #detailRoomShared{margin-top:18px;padding-top:16px;border-top:1px solid var(--border-color)}
 #songDetailsModal #detailPersonalControls{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 #songDetailsModal .my-register-btn{min-height:38px;padding:7px 24px;font-size:15px}
-#songDetailsModal .detail-part-icons{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;width:100%}
+#songDetailsModal .detail-part-icons{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;width:100%}
 #songDetailsModal .detail-part-icons button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;margin:0;min-width:0;width:100%;min-height:62px;padding:6px 2px;border:1px solid var(--border-color);border-radius:8px;opacity:.65;background:var(--panel-bg);color:var(--text-color)}
 #songDetailsModal .detail-part-icons button.active{opacity:1;border-color:var(--primary);background:color-mix(in srgb,var(--primary) 22%,var(--panel-bg))}
 #songDetailsModal .detail-part-icons svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -85,3 +85,6 @@ body.sl-redesign.theme-white #songDetailsModal .sl-detail-tabs button[aria-selec
 #songDetailsModal .detail-part-icons button{gap:3px;padding:4px 2px;opacity:.85}
 #songDetailsModal .detail-part-icons button.active,#songDetailsModal .detail-part-icons button:hover{opacity:1}
 body.sl-redesign.theme-white #songDetailsModal .detail-part-icons svg.sl-instrument-illustration{filter:grayscale(1) contrast(1.5);mix-blend-mode:multiply}
+
+
+#songDetailsModal .detail-part-icons button{min-height:54px}

@@ -3,7 +3,7 @@ assert.equal(core.config({theme:'bad',speed:999,font:'url(bad)'}).theme,'dark');
 
 assert.equal(core.config({}).transparentBackground,false);assert.equal(core.config({transparentBackground:true}).transparentBackground,true);assert.equal(core.config({transparentBackground:'true'}).transparentBackground,false);
 
-assert.equal(core.people({one:{uid:'member',defaultPart:'🥁'}})[0].defaultPart,'ドラム・パーカッション');
+assert.equal(core.people({one:{uid:'member',defaultPart:'🥁'}})[0].defaultPart,'ドラム');
 assert.equal(core.people({one:{uid:'guest',guest:true,defaultPart:'🥁'}})[0].defaultPart,'');
 
 const writeRule=addObsSceneRules(original).rules.obsScenes.$room.$uid['.write'];assert.ok(writeRule.includes("auth.token.firebase.sign_in_provider === 'google.com'"));assert.ok(!writeRule.includes('anonymous'));
@@ -12,3 +12,8 @@ const ordered=core.config({members:{b:{name:'B',order:0},a:{name:'A',order:1},ba
 assert.equal(ordered.members.b.order,0);assert.equal(ordered.members.bad.order,undefined);assert.equal(ordered.members.fraction.order,undefined);
 const list=[{uid:'a'},{uid:'new'},{uid:'b'}];assert.deepEqual(core.orderedPeople(list,ordered).map(p=>p.uid),['b','a','new']);assert.deepEqual(list.map(p=>p.uid),['a','new','b']);assert.deepEqual(core.orderedPeople(list,core.config()).map(p=>p.uid),['a','new','b']);assert.deepEqual(core.config(ordered),ordered);
 console.log('PASS: optional member order survives normalization; old scenes keep their order, new members follow ordered members; invalid orders removed.');
+
+
+assert.equal(core.people({one:{uid:'member',defaultPart:'🎸ベース'}})[0].defaultPart,'ベース');
+assert.equal(core.people({one:{uid:'member',defaultPart:'🎵'}})[0].defaultPart,'その他');
+assert.equal(core.people({one:{uid:'member',defaultPart:'🪈'}})[0].defaultPart,'管楽器');

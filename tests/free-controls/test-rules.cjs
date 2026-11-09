@@ -132,6 +132,8 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  await assertFails(set(ref(context('other','google.com'),'userListShares/other'),setting));
  await assertSucceeds(set(ref(member,'userListShares/member'),{...setting,showKey:true,showParts:true}));
  await assertSucceeds(update(ref(member,'publicListShares/'+token+'/songs/fresh'),{key:2,parts:['Guitar']}));
+ await assertSucceeds(update(ref(member,'publicListShares/'+token+'/songs/fresh'),{parts:['🎤','🎸','🎸ベース','🎹','🥁','🎺','🎻','🎵']}));
+ await assertFails(update(ref(member,'publicListShares/'+token+'/songs/fresh'),{parts:['a','b','c','d','e','f','g','h','i']}));
  await assertSucceeds(update(ref(member),{'userListShares/member':{...setting,token:nextToken},['publicListShares/'+token]:held}));
  await assertFails(get(ref(anon,'publicListShares/'+token)));
  await assertFails(set(ref(context('other','google.com'),'userListShares/other'),{...setting,token}));
@@ -201,6 +203,7 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  console.log('PASS: emulator confirms admin-only commands, own-only private reads and reports, anonymous/global cache access, Google/guest kind enforcement, guest-only rename, schema/timestamp constraints, and unchanged personal list isolation.');
  }finally{await env.cleanup()}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
 
 
 

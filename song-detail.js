@@ -3,23 +3,27 @@
  const el=id=>document.getElementById(id);
  // Generated instrument illustrations; each SVG frames one instrument from the shared sheet.
  const instruments={
-  '🎤':['ボーカル','30 230 265 310'], '🎸':['ギター','290 215 300 340'],
-  '🥁':['ドラム','600 250 265 290'], '🎹':['鍵盤','885 285 285 205'],
-  '🎺':['管楽器','1190 290 305 185'], '🎻':['弦楽器','1500 185 260 380'],
-  '🪈':['笛','1765 210 255 350']
+  '🎤':['ボーカル','25 235 185 250'],
+  '🎸':['ギター','250 170 160 355'],
+  '🎸ベース':['ベース','470 170 155 355'],
+  '🎹':['鍵盤','665 295 260 145'],
+  '🥁':['ドラム','930 225 325 275'],
+  '🎺':['管楽器','1265 300 285 130'],
+  '🎻':['弦楽器','1585 195 210 325'],
+  '🎵':['その他','1810 255 230 220']
  };
  function parts(){
   el('detailPersonalControls')?.querySelectorAll('.detail-part-icons button').forEach(button=>{
-   const value=instruments[button.textContent.trim()];if(!value)return;
+   const value=instruments[button.dataset.part||button.textContent.trim()];if(!value)return;
    const [label,viewBox]=value;
    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
    svg.classList.add('sl-instrument-illustration');
    svg.setAttribute('viewBox',viewBox);svg.setAttribute('aria-hidden','true');
    const image=document.createElementNS(svg.namespaceURI,'image');
-   image.setAttribute('href','assets/instrument-icons.webp?v=20261109-1');
-   image.setAttribute('width','2048');image.setAttribute('height','719');
+   image.setAttribute('href','assets/instrument-silhouettes.webp?v=20261109-1');
+   image.setAttribute('width','2048');image.setAttribute('height','683');
    const defs=document.createElementNS(svg.namespaceURI,'defs'),clip=document.createElementNS(svg.namespaceURI,'clipPath'),rect=document.createElementNS(svg.namespaceURI,'rect');
-   const clipId='sl-instrument-'+Object.keys(instruments).indexOf(button.textContent.trim());
+   const clipId='sl-instrument-'+Object.keys(instruments).indexOf(button.dataset.part||button.textContent.trim());
    clip.id=clipId;clip.setAttribute('clipPathUnits','userSpaceOnUse');
    viewBox.split(' ').forEach((v,i)=>rect.setAttribute(['x','y','width','height'][i],v));
    clip.append(rect);defs.append(clip);image.setAttribute('clip-path','url(#'+clipId+')');svg.append(defs,image);
@@ -43,3 +47,4 @@
  window.SLDetailView={render,parts,tab};
  document.addEventListener('keydown',event=>{if(!event.target.closest('#songDetailsModal [role=tab]'))return;if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const play=event.key==='End'||(event.key!=='Home'&&el('songDetailsModal').dataset.detailTab!=='play');tab(play?'play':'info');el(play?'detailPlayTab':'detailInfoTab').focus();});
 })();
+

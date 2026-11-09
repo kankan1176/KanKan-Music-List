@@ -3656,8 +3656,8 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 <link rel="stylesheet" href="compact-lists.css?v=20261108-2">
 <link rel="stylesheet" href="list-density.css?v=20261108-5">
 <script src="list-density.js?v=20261108-6"></script>
-<link rel="stylesheet" href="song-detail.css?v=20261109-2">
-<script src="song-detail.js?v=20261109-2" defer></script>
+<link rel="stylesheet" href="song-detail.css?v=20261109-3">
+<script src="song-detail.js?v=20261109-3" defer></script>
 </head>
 <body class="sl-redesign"><script>try{if(localStorage.getItem('sharelistscore_last_theme')==='white')document.body.classList.add('theme-white');}catch{}</script>
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
@@ -4109,9 +4109,14 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             <button type="button" onclick="selectVisibleMySongs(false)">選択解除</button>
             <select id="bulkPartSelect" aria-label="一括担当パート">
                 <option value="">担当パートを指定</option>
-                <option value="🎤">🎤 ボーカル</option><option value="🎸">🎸 ギター・ベース</option>
-                <option value="🥁">🥁 打楽器</option><option value="🎹">🎹 鍵盤</option>
-                <option value="🎺">🎺 管楽器</option><option value="🎻">🎻 弦楽器</option><option value="🪈">🪈 笛</option>
+                <option value="🎤">ボーカル</option>
+<option value="🎸">ギター</option>
+<option value="🎸ベース">ベース</option>
+<option value="🎹">鍵盤</option>
+<option value="🥁">ドラム</option>
+<option value="🎺">管楽器</option>
+<option value="🎻">弦楽器</option>
+<option value="🎵">その他</option>
             </select>
             <select id="bulkPartAction" aria-label="担当パート一括操作">
                 <option value="on">パートON</option>
@@ -4448,13 +4453,14 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             <div style="display:flex;gap:8px;">
                 <select id="defaultPartSelect" class="setting-input" style="font-size:16px;font-family:inherit;flex:1;">
                     <option value="">未設定</option>
-                    <option value="🎤">🎤 ボーカル</option>
-                    <option value="🎸">🎸 ギター・ベース</option>
-                    <option value="🥁">🥁 ドラム・パーカッション</option>
-                    <option value="🎹">🎹 キーボード・シンセ</option>
-                    <option value="🎺">🎺 木管・金管</option>
-                    <option value="🎻">🎻 バイオリン・チェロなど</option>
-                    <option value="🪈">🪈 リコーダー・尺八など</option>
+                    <option value="🎤">ボーカル</option>
+<option value="🎸">ギター</option>
+<option value="🎸ベース">ベース</option>
+<option value="🎹">鍵盤</option>
+<option value="🥁">ドラム</option>
+<option value="🎺">管楽器</option>
+<option value="🎻">弦楽器</option>
+<option value="🎵">その他</option>
                 </select>
                 <button type="button" onclick="saveDefaultPart()">保存</button>
             </div>
@@ -4832,8 +4838,9 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         return roomAuthInFlight;
     }
     // 個人マイリスト: マスターのUUIDを参照し、編集は登録ボタンまで保留する。
-    const PARTS = ['', '🎤', '🎸', '🥁', '🎹', '🎺', '🎻', '🪈'];
-    const PART_NAMES = { '':'未登録','🎤':'ボーカル','🎸':'ギター・ベース','🥁':'ドラム・パーカッション','🎹':'鍵盤・シンセ','🎺':'木管・金管','🎻':'弦楽器','🪈':'笛・和管楽器' };
+    const PARTS = ['', '🎤', '🎸', '🎸ベース', '🎹', '🥁', '🎺', '🎻', '🎵'];
+    const normalizePart = part => part === '🪈' ? '🎺' : part;
+    const PART_NAMES = { '':'未登録','🎤':'ボーカル','🎸':'ギター','🎸ベース':'ベース','🎹':'鍵盤','🥁':'ドラム','🎺':'管楽器','🎻':'弦楽器','🎵':'その他' };
     let myListMode = false;
     // ルーム作成時の選曲元をルームの共有設定として固定する。
     // マイリストの曲IDのみ共有し、個人のパート・お気に入り情報は共有しない。
@@ -5135,7 +5142,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             }
 
             favoriteArtists = artistsSnapshot.val() || {};
-            defaultPart = PARTS.includes(partSnapshot.val()) ? partSnapshot.val() : '';
+            defaultPart = PARTS.includes(normalizePart(partSnapshot.val())) ? normalizePart(partSnapshot.val()) : '';
             syncOwnRoomDefaultPart();
             sharedListReadyUid = user.uid;
             // 共通曲は自分と友達の両方の「保存済み」公開リストを監視して判定する。
@@ -5232,7 +5239,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
     function getSelectedParts(personal) {
         const raw = Array.isArray(personal?.parts) ? personal.parts :
             (typeof personal?.part === 'string' && personal.part ? [personal.part] : []);
-        return [...new Set(raw.filter(part => part && PARTS.includes(part)))];
+        return [...new Set(raw.map(normalizePart).filter(part => part && PARTS.includes(part)))];
     }
     function setPersonalPart(songId, part) {
         if (!part || !PARTS.includes(part)) return;
@@ -5260,7 +5267,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         const artist=String(song['アーティスト'] || '').trim();
         const selectedParts=getSelectedParts(p);
         const part=`<div class="detail-part-icons" aria-label="担当パートを複数選択">${PARTS.filter(Boolean).map(icon=>
-            `<button type="button" class="${selectedParts.includes(icon)?'active':''}" title="${PART_NAMES[icon]}（クリックで切替）" aria-pressed="${selectedParts.includes(icon)}" onclick="setPersonalPart('${song._id}','${icon}')">${icon}</button>`
+            `<button type="button" class="${selectedParts.includes(icon)?'active':''}" data-part="${icon}" title="${PART_NAMES[icon]}（クリックで切替）" aria-pressed="${selectedParts.includes(icon)}" onclick="setPersonalPart('${song._id}','${icon}')">${icon==='🎸ベース'?'ベース':icon==='🎵'?'その他':icon}</button>`
         ).join('')}</div>`;
         const artistButton=`<button type="button" class="personal-toggle ${favoriteArtistValue(artist)?'selected':''}" title="好きなアーティスト" aria-pressed="${favoriteArtistValue(artist)}" onclick="setFavoriteArtist('${song._id}')">🌟</button>`;
         return {part,artist:artistButton};
@@ -5269,7 +5276,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         const p=effectivePersonalSong(song._id);
         const selectedParts=getSelectedParts(p);
         return `<div class="my-part-icons" aria-label="担当パートを複数選択">${PARTS.filter(Boolean).map(icon=>
-            `<button type="button" class="${selectedParts.includes(icon)?'active':''}" title="${PART_NAMES[icon]}（もう一度押すと解除）" aria-pressed="${selectedParts.includes(icon)}" onclick="setPersonalPart('${song._id}','${icon}')">${icon}</button>`
+            `<button type="button" class="${selectedParts.includes(icon)?'active':''}" data-part="${icon}" title="${PART_NAMES[icon]}（もう一度押すと解除）" aria-pressed="${selectedParts.includes(icon)}" onclick="setPersonalPart('${song._id}','${icon}')">${icon==='🎸ベース'?'ベース':icon==='🎵'?'その他':icon}</button>`
         ).join('')}</div>`;
     }
     // 曲単位の明示的なマイリスト登録。旧データのパート・お気に入り判定にも対応。
@@ -5924,7 +5931,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
                 // The display layer resolves IDs against allData after CSV finishes loading.
                 if (!item || typeof item!=='object' || !/^[A-Za-z0-9_-]{1,80}$/.test(id)) continue;
                 clean[id]={key:Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0,
-                    parts:Array.isArray(item.parts)?item.parts.filter(part=>PARTS.includes(part)&&part).slice(0,7):[]};
+                    parts:getSelectedParts(item).slice(0,8)};
             }
             const payload={uid,name:String(myName||signedInUser.displayName||'メンバー').slice(0,40),songs:clean,updatedAt:firebase.database.ServerValue.TIMESTAMP};
             roomShareWriteQueue=roomShareWriteQueue.catch(()=>{}).then(async()=>{
@@ -10153,10 +10160,11 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 </script>
 <script src="setlist-share.js?v=20261020-9"></script>
 <script src="room-history.js"></script>
-<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261024-wiki1"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261109-1"></script><script src="obs-scene-core.js?v=20261022-order1"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script><script src="help-guide.js?v=20261109-1"></script>
+<script src="admin-control-api.js?v=20261017-free1"></script><script src="guest-name-reset-20261022.js?v=1"></script><script src="admin-client-controls.js?v=20261022-guest-reset1"></script><script src="account-display-name.js?v=20261017-1"></script><script src="list-share-core.js?v=20261109-parts8"></script><script src="list-share-design.js?v=20261019-2"></script><script src="list-share-service.js?v=20261020-1"></script><script src="list-share-i18n.js?v=20261020-10"></script><script src="list-share-owner.js?v=20261020-10"></script><script src="list-share-navigation.js?v=20261020-10"></script><script src="profile-avatar.js?v=20261109-1"></script><script src="obs-scene-core.js?v=20261109-parts8"></script><script src="obs-scene-editor.js?v=20261022-ui-clean1"></script><script src="help-guide.js?v=20261109-1"></script>
 <script src="compact-lists.js?v=20261108-1"></script>
 </body>
 </html>
+
 
 
 

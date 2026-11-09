@@ -27,7 +27,7 @@ function addListShareRules(document){
    artist:{'.validate':'newData.isString() && newData.val().length <= 300'},
    url:{'.validate':"newData.isString() && newData.val().length <= 2048 && newData.val().matches(/^https:\\/\\/(ja\\.)?chordwiki\\.org\\/.*/)"},
    key:{'.validate':"root.child('userListShares').child(auth.uid).child('showKey').val() === true && newData.isNumber() && newData.val() >= -5 && newData.val() <= 6 && newData.val() % 1 === 0"},
-   parts:{'.validate':"root.child('userListShares').child(auth.uid).child('showParts').val() === true",'$part':{'.validate':"$part.matches(/^[0-6]$/) && newData.isString() && newData.val().length <= 40"}},
+   parts:{'.validate':"root.child('userListShares').child(auth.uid).child('showParts').val() === true",'$part':{'.validate':"$part.matches(/^[0-7]$/) && newData.isString() && newData.val().length <= 40"}},
    '$other':{'.validate':false}}},'$other':{'.validate':false}
  }};
  r.publicListLinks={'$uid':{
@@ -44,6 +44,7 @@ function addListShareRules(document){
  return document;
 }
 module.exports={addListShareRules};
+
 
 
 

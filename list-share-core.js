@@ -12,7 +12,7 @@
   const value={genresKnown:true,genres:genres(master),...Object.fromEntries(genreCore.metadataFields.map(field=>[field,genreCore.value(master,field)])),title,artist:String(master?.artist||master?.['アーティスト']||'').slice(0,300)};
   const url=wiki(master?.chordwiki||master?.['コードwiki']);if(url)value.url=url.slice(0,2048);
   if(options.showKey)value.key=Number.isInteger(item.key)&&item.key>=-5&&item.key<=6?item.key:0;
-  if(options.showParts){const parts=Array.isArray(item.parts)?item.parts:item.part?[item.part]:[];value.parts=[...new Set(parts.filter(p=>typeof p==='string'&&p.length<=40))].slice(0,7);if(!value.parts.length)delete value.parts;}
+  if(options.showParts){const parts=Array.isArray(item.parts)?item.parts:item.part?[item.part]:[];value.parts=[...new Set(parts.map(p=>p==='🪈'?'🎺':p).filter(p=>typeof p==='string'&&p.length<=40))].slice(0,8);if(!value.parts.length)delete value.parts;}
   return value;
  }
  const wikiVersions=typeof module==='object'&&module.exports?require('./chordwiki-version.js'):SLChordWiki;
@@ -20,4 +20,5 @@
 
  return {tokenOK,registered,wiki,song,link,genres};
 });
+
 
