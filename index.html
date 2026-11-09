@@ -8813,7 +8813,8 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
     }
 
     // 検索・ソートは全楽曲が対象。DOMへ描画するのは現在のページの100曲だけ。
-    function songPageSize() { return window.SLSongPageSize?.get() || 10; }
+    // Page data contains up to 100 songs; the independent density preference fits 10 or 15 rows in the viewport.
+    function songPageSize() { return 100; }
     let songPageIndex = 0;
     let lastTableQuerySignature = '';
     let cachedFilteredSongRows = [];

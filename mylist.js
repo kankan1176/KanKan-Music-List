@@ -32,13 +32,13 @@
   const search=el('Search').value.normalize('NFKC').toLocaleLowerCase().trim();
   const filtered=rows.filter(row=>SLSongGenres.matches(row,genreSelection)&&SLSongSearch.matches(row,search));
   filtered.sort((a,b)=>(sort==='artist'?a.artist.localeCompare(b.artist,language):a.title.localeCompare(b.title,language))||a.title.localeCompare(b.title,language));
-  const pages=Math.max(1,Math.ceil(filtered.length/(window.SLSongPageSize?.get()||10)));page=Math.max(0,Math.min(page,pages-1));
+  const pages=Math.max(1,Math.ceil(filtered.length/100));page=Math.max(0,Math.min(page,pages-1));
   el('Count').textContent=data?rows.length+' '+text.count:'';el('ResultCount').textContent=data?filtered.length+' / '+rows.length+' '+text.count:'';
   el('Updated').textContent=data?.updatedAt?text.updated+' '+new Date(data.updatedAt).toLocaleString(language):'';
   const showKey=rows.some(row=>Number.isInteger(row.key)),showParts=rows.some(row=>Array.isArray(row.parts)&&row.parts.length);
   const header=document.createElement('tr');for(const label of ['No.',text.songTitle,text.artist,text.genre,...(showKey?['Key']:[]),...(showParts?[text.partsLabel]:[]),'ChordWiki'])header.append(cell('th',label));el('TableHead').replaceChildren(header);el('Songs').replaceChildren();
-  for(const[i,row]of filtered.slice(page*(window.SLSongPageSize?.get()||10),(page+1)*(window.SLSongPageSize?.get()||10)).entries()){
-   const tr=document.createElement('tr'),genres=cell('td','','genre-cell');tr.append(cell('td',String(page*(window.SLSongPageSize?.get()||10)+i+1).padStart(2,'0'),'number'),cell('td',row.title,'song-title'),cell('td',row.artist,'song-artist'));
+  for(const[i,row]of filtered.slice(page*100,(page+1)*100).entries()){
+   const tr=document.createElement('tr'),genres=cell('td','','genre-cell');tr.append(cell('td',String(page*100+i+1).padStart(2,'0'),'number'),cell('td',row.title,'song-title'),cell('td',row.artist,'song-artist'));
    const yearText=[row.release_year?'発売・公開：'+row.release_year+'年':'',row.anime_year?'作品：'+row.anime_year+'年':''].filter(Boolean).join(' / ');if(yearText){const note=cell('small',yearText);note.style.cssText='display:block;opacity:.75;font-size:.8em;line-height:1.5';tr.children[1].append(note);}
    for(const value of SLSongGenres.all(row).length?SLSongGenres.all(row):row.genres)genres.append(cell('span',value,'genre-tag'));tr.append(genres);
    if(showKey)tr.append(cell('td',Number.isInteger(row.key)?(row.key>0?'+':'')+row.key:'—','optional'));
