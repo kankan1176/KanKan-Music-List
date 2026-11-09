@@ -3654,7 +3654,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 .sl-home-update-list .sl-update-link:focus-visible::after{outline:3px solid #77b9ff;outline-offset:-3px}
 </style>
 <link rel="stylesheet" href="compact-lists.css?v=20261108-2">
-<link rel="stylesheet" href="list-density.css?v=20261108-5">
+<link rel="stylesheet" href="list-density.css?v=20261109-titlefix">
 <script src="list-density.js?v=20261108-6"></script>
 <link rel="stylesheet" href="song-detail.css?v=20261109-3">
 <script src="song-detail.js?v=20261109-3" defer></script>
@@ -9039,7 +9039,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
                 tr.innerHTML = `
                     <td class="col-action nowrap-cell">${actionBtnHtml}</td>
                     <td class="col-key nowrap-cell">${displayRoomKey}</td>
-                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${yearHtml}${commonTag}${memberTag}</td>
+                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span><div class="song-row-meta">${commonTag}${yearHtml}${memberTag}</div></td>
                     <td class="col-artist col-main">${artistLinkHtml}</td>
                     <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                     <td class="col-genre col-sub">${displayGenre}</td>`;
@@ -9049,7 +9049,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
                 tr.innerHTML = `
                     <td class="col-register nowrap-cell">${currentRoomId?'－':myListRegistrationButton(row)}</td>
                     <td class="col-key nowrap-cell">${displayRoomKey}</td>
-                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${yearHtml}${commonTag}${memberTag}</td>
+                    <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span><div class="song-row-meta">${commonTag}${yearHtml}${memberTag}</div></td>
                     <td class="col-artist col-main"><div class="my-artist-cell">${artistLinkHtml}</div></td>
                     <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                     <td class="col-genre col-sub">${displayGenre}</td>
@@ -9058,7 +9058,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             } else tr.innerHTML = `
                 <td class="col-register nowrap-cell">${currentRoomId?'－':myListRegistrationButton(row)}</td>
                 <td class="col-key nowrap-cell">${displayRoomKey}</td>
-                <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span>${yearHtml}${commonTag}${memberTag}</td>
+                <td class="col-title col-main"><span class="song-title-link" title="${escapeHtml(row['曲名'] || '-')}" onclick="showSongDetails('${row._id}')">${escapeHtml(row['曲名'] || '-')}</span><div class="song-row-meta">${commonTag}${yearHtml}${memberTag}</div></td>
                 <td class="col-artist col-main">${artistLinkHtml}</td>
                 <td class="col-bpm col-sub nowrap-cell">${escapeHtml(row['BPM'] || '-')}</td>
                 <td class="col-genre col-sub">${displayGenre}</td>
