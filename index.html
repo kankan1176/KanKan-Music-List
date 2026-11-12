@@ -3660,6 +3660,19 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 <script src="song-detail.js?v=20261109-3" defer></script>
 <link rel="stylesheet" href="spreadsheet-settings.css?v=20261112-1">
 <script src="spreadsheet-settings.js?v=20261112-1" defer></script>
+
+<style id="account-settings-spacing">
+body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-template-rows:auto auto}
+#accountModal #accountProfileColumn{grid-row:2!important}
+#accountModal #accountPreferencesColumn{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:16px;min-width:0}
+#accountModal #accountPreferencesColumn>.setting-group{margin:0!important}
+#accountModal .setting-group label{margin-bottom:7px!important}
+#accountModal .setting-group p{margin-top:6px!important;line-height:1.55!important}
+#accountModal #profileAvatarSetting{padding-bottom:16px!important}
+#accountModal #profileAvatarSetting h3{margin-bottom:10px!important}
+#accountModal #profileAvatarSetting .avatar-editor{margin-top:14px;gap:12px}
+@media(max-width:600px){body.sl-redesign #accountModal .modal{gap:16px}#accountModal #accountPreferencesColumn{width:100%;gap:16px}}
+</style>
 </head>
 <body class="sl-redesign"><script>try{if(localStorage.getItem('sharelistscore_last_theme')==='white')document.body.classList.add('theme-white');}catch{}</script>
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
@@ -4442,6 +4455,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         </div>
         </div>
 
+        <div id="accountPreferencesColumn">
         <div class="setting-group" id="chordwikiVersionSetting">
             <label id="chordwikiVersionLabel">🎸 コードWikiのバージョン</label>
             <button type="button" id="chordwikiVersionToggle" class="chordwiki-version-toggle" role="switch" aria-checked="false" aria-labelledby="chordwikiVersionLabel" aria-describedby="chordwikiVersionStatus" disabled>
@@ -4468,6 +4482,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
                 <button type="button" onclick="saveDefaultPart()">保存</button>
             </div>
             <p style="font-size:11px;opacity:.75;">今後新たに登録する曲へ自動適用します。ルーム参加中はOBSの表示パートにも使用します。OBS側で入力したパート名を優先します。</p>
+        </div>
         </div>
     </div>
 </div>
