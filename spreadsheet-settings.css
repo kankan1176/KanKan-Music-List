@@ -13,3 +13,7 @@ body.theme-white #spreadsheetSettingsModal .sl-sheet-warning{color:#b42335!impor
 #spreadsheetSettingsModal [hidden]{display:none!important}
 @media(max-width:600px){body.sl-redesign #spreadsheetSettingsModal .sl-sheet-settings{padding:18px!important}#spreadsheetSettingsModal form{padding:14px}}
 body.sl-redesign #spreadsheetSettingsModal.modal-overlay{z-index:1950!important}
+
+body.sl-redesign #accountModal #spreadsheetLinkButton{background:var(--bg-color)!important;color:var(--text-color)!important;border-color:var(--border-color)!important}
+body.sl-redesign.theme-white #accountModal #spreadsheetLinkButton{background:#fff!important;color:#101010!important;border-color:#bed0e9!important}
+#accountModal #spreadsheetLinkButton:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
