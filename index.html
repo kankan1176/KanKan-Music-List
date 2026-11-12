@@ -3658,8 +3658,8 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 <script src="list-density.js?v=20261108-6"></script>
 <link rel="stylesheet" href="song-detail.css?v=20261109-3">
 <script src="song-detail.js?v=20261109-3" defer></script>
-<link rel="stylesheet" href="spreadsheet-settings.css?v=20261112-2">
-<script src="spreadsheet-settings.js?v=20261112-1" defer></script>
+<link rel="stylesheet" href="spreadsheet-settings.css?v=20261112-3">
+<script src="spreadsheet-settings.js?v=20261112-3" defer></script>
 
 <style id="account-settings-spacing">
 body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-template-rows:auto auto}
@@ -4500,7 +4500,16 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
    <button type="submit" class="primary-btn">URLを保存</button>
    <p id="spreadsheetURLStatus" role="status" aria-live="polite"></p>
   </form>
-  <section class="sl-sheet-overview"><h3>連携の流れ</h3><ol><li>Googleで読み取りを許可</li><li>対象タブ・列を選択し、プレビューを確認</li><li>楽曲の候補と変更内容を確認</li><li>最終確認後にマイリストへ反映</li></ol><p>現在はURLの保存まで利用できます。読み取り・マイリストへの反映は、今後この画面へ追加します。</p></section>
+  <section id="sheetOptionsPanel" class="sl-sheet-overview">
+<h3>読み取り対象のタブ</h3><p>タブ名を入力して追加し、読み取りたいタブにチェックを入れてください。</p>
+<div class="sheet-add-tab"><input id="sheetTabName" class="setting-input" aria-label="追加するタブ名" placeholder="例：J-POP"><button type="button" id="sheetAddTab">タブを追加</button></div>
+<div id="sheetTabList"></div>
+<section class="sheet-option-card"><h3>登録・更新のルール</h3><ul><li>Keyは専用列を優先し、空欄ならChordWiki URLから取得します。</li><li>Keyが不明な場合、登録済み曲は維持し、新規曲は0（原曲）にします。</li><li>候補が複数・情報の食い違いがある曲は、確認してから登録します。</li><li>削除は連携で登録した曲のみ対象にし、反映前に確認します。</li><li>既存曲の担当パートは維持し、新規曲には基本担当パートを適用します。</li></ul></section>
+<div class="sheet-manage-grid"><section class="sheet-option-card"><h3>確定済みの楽曲対応</h3><p id="sheetResolvedCount">まだありません。</p><p>照合で選んだ曲の対応を、ここから確認・変更できるようになります。</p></section><section class="sheet-option-card"><h3>再登録しない曲</h3><p id="sheetExcludedCount">まだありません。</p><p>更新時に「削除したままにする」と選んだ曲を管理します。</p></section></div>
+<p id="sheetLastSync">最終更新：未実施</p>
+<button type="button" class="primary-btn" id="sheetSaveOptions">連携設定を保存</button><p id="sheetOptionsStatus" role="status" aria-live="polite"></p>
+<p class="sheet-stage-note">現在は連携設定の保存まで利用できます。Google接続・自動推定・プレビュー・照合・マイリストへの反映は、順次追加します。</p>
+</section>
  </div>
 </div>
 <div class="modal-overlay" id="settingsModal" onclick="closeModal(event, 'settingsModal')">

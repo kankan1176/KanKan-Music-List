@@ -17,3 +17,16 @@ body.sl-redesign #spreadsheetSettingsModal.modal-overlay{z-index:1950!important}
 body.sl-redesign #accountModal #spreadsheetLinkButton{background:var(--bg-color)!important;color:var(--text-color)!important;border-color:var(--border-color)!important}
 body.sl-redesign.theme-white #accountModal #spreadsheetLinkButton{background:#fff!important;color:#101010!important;border-color:#bed0e9!important}
 #accountModal #spreadsheetLinkButton:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+#sheetOptionsPanel .sheet-add-tab{display:flex;gap:8px;margin-bottom:14px}
+#sheetOptionsPanel .sheet-option-card{border:1px solid var(--border-color);border-radius:10px;padding:16px;margin:14px 0}
+#sheetOptionsPanel .sheet-tab-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+#sheetOptionsPanel .sheet-tab-heading label{display:flex;align-items:center;gap:8px;margin:0;overflow-wrap:anywhere}
+#sheetOptionsPanel input[type=checkbox]{width:18px;height:18px;min-height:18px;flex:none;accent-color:var(--primary)}
+#sheetOptionsPanel .sheet-column-grid{border:0;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#sheetOptionsPanel .sheet-column-grid label{font-size:13px!important;margin:0}
+#sheetOptionsPanel .sheet-column-grid input:not([type=checkbox]){margin-top:6px}
+#sheetOptionsPanel .sheet-carry{grid-column:1/-1;display:flex;align-items:center;gap:8px}
+#sheetOptionsPanel .sheet-manage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#sheetOptionsPanel .sheet-stage-note{font-size:13px!important;opacity:.8}
+@media(max-width:600px){#sheetOptionsPanel .sheet-column-grid,#sheetOptionsPanel .sheet-manage-grid{grid-template-columns:1fr}#sheetOptionsPanel .sheet-add-tab{flex-wrap:wrap}}
