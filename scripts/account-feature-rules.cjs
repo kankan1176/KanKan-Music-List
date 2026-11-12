@@ -11,6 +11,15 @@ function addAccountFeatureRules(document){
  room['.validate']=and(room['.validate'],EXISTING_OR_GOOGLE);
  const settings=room.settings ||= {};settings['.validate']=and(settings['.validate'],EXISTING_OR_GOOGLE);
  for(const name of ['userFavorites','userFavoriteMigrations','friendCodes','friendRequests','friendships','follows','songAddRequests'])privatePermissions(r[name]);
+ r.userSheetSync={'$uid':{
+ '.read':"("+GOOGLE+") && auth.uid === $uid",
+ '.write':"("+GOOGLE+") && auth.uid === $uid && newData.exists()",
+ '.validate':"newData.hasChildren(['revision','state'])",
+ revision:{'.validate':"newData.isNumber() && newData.val() === (data.exists() ? data.val() + 1 : 1)"},
+ state:{'.validate':"newData.isString() && newData.val().length <= 2000000"},
+ '$other':{'.validate':false}
+ }};
  return out;
 }
 module.exports={addAccountFeatureRules};
+

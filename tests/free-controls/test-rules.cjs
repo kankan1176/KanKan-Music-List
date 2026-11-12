@@ -11,6 +11,17 @@ const original={rules:{'.read':false,'.write':false,songs:{'.read':true},publicP
  const context=(uid,provider)=>env.authenticatedContext(uid,{firebase:{sign_in_provider:provider},auth_time:1700000000}).database();
  const admin=context('admin','google.com'),member=context('member','google.com'),guest=context('guest','anonymous'),fake=context('admin','anonymous'),anon=env.unauthenticatedContext().database();
 
+ const sheetPath='userSheetSync/member';
+ await assertSucceeds(set(ref(member,sheetPath),{revision:1,state:JSON.stringify({url:'test',owned:{}})}));
+ await assertSucceeds(get(ref(member,sheetPath)));
+ for(const other of [guest,fake,anon,admin,context('other','google.com')]){
+ await assertFails(get(ref(other,sheetPath)));
+ await assertFails(set(ref(other,sheetPath),{revision:2,state:'{}'}));}
+ await assertFails(set(ref(member,sheetPath),{revision:1,state:'{}'}));
+ await assertSucceeds(set(ref(member,sheetPath),{revision:2,state:'{}'}));
+ await assertFails(set(ref(member,sheetPath),{revision:3,state:'{}',token:'not-allowed'}));
+ await assertFails(set(ref(member,sheetPath),{revision:3,state:'x'.repeat(2000001)}));
+ console.log('PASS: spreadsheet state owner-only access, anonymous denial, revision conflicts, size and field limits');
  const wikiPref='users/member/preferences/chordwikiVersion';
  await assertSucceeds(set(ref(member,wikiPref),'beta'));
  await assertSucceeds(get(ref(member,wikiPref)));

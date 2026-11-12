@@ -17,6 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify spreadsheet matching and synchronization logic
+        run: |
+          node tests/sheet-sync.cjs
+          node --check spreadsheet-settings.js
+          node --check sheet-sync-service.js
       - name: Prepare public website files
         run: |
           python3 <<'PY'
