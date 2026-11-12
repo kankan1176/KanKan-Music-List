@@ -3658,6 +3658,8 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 <script src="list-density.js?v=20261108-6"></script>
 <link rel="stylesheet" href="song-detail.css?v=20261109-3">
 <script src="song-detail.js?v=20261109-3" defer></script>
+<link rel="stylesheet" href="spreadsheet-settings.css?v=20261112-1">
+<script src="spreadsheet-settings.js?v=20261112-1" defer></script>
 </head>
 <body class="sl-redesign"><script>try{if(localStorage.getItem('sharelistscore_last_theme')==='white')document.body.classList.add('theme-white');}catch{}</script>
 <div id="slMySaveNotice" role="alert" aria-live="assertive"><span>マイリストの変更を保存できませんでした。通信状況を確認してください。</span><button type="button" onclick="void saveMyListChanges()">再試行</button></div>
@@ -4448,6 +4450,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
             <p id="chordwikiVersionStatus" role="status" aria-live="polite" style="font-size:12px;opacity:.8;">Googleログイン後に設定できます。</p>
         </div>
 
+        <div class="setting-group" id="spreadsheetLinkSetting"><label>スプレッドシート連携</label><button type="button" id="spreadsheetLinkButton" onclick="slNavigate('spreadsheet')">スプレッドシート連携を設定 →</button><p>自分の楽曲リストとの連携設定を開きます。</p></div>
         <div class="setting-group" id="defaultPartSetting" style="display:none;">
             <label for="defaultPartSelect">🎼 アカウントの基本担当パート</label>
             <div style="display:flex;gap:8px;">
@@ -4469,6 +4472,22 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
     </div>
 </div>
 
+<div class="modal-overlay" id="spreadsheetSettingsModal" onclick="closeModal(event,'spreadsheetSettingsModal')">
+ <div class="modal sl-sheet-settings" role="dialog" aria-modal="true" aria-labelledby="spreadsheetSettingsTitle" onclick="event.stopPropagation()">
+  <button type="button" class="modal-close" aria-label="閉じる" onclick="closeModal(null,'spreadsheetSettingsModal')">×</button>
+  <button type="button" class="sl-sheet-back" onclick="slNavigate('account')">← ユーザー設定へ戻る</button>
+  <h2 id="spreadsheetSettingsTitle">スプレッドシート連携</h2>
+  <p>自分のスプレッドシートを設定し、曲名・アーティスト・ChordWiki URL・Keyを使ってマイリストへ取り込みます。</p>
+  <form id="spreadsheetURLForm"><label for="spreadsheetURLInput">スプレッドシートURL</label>
+   <input id="spreadsheetURLInput" type="url" class="setting-input" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" required aria-describedby="spreadsheetURLHelp spreadsheetURLStatus">
+   <p id="spreadsheetURLHelp">1つのスプレッドシート内で、複数のタブを対象にできます。</p>
+   <p class="sl-sheet-warning" id="spreadsheetURLWarning" hidden>URLの変更後に内容を反映すると、以前のシートから登録した曲が入れ替わります。直接登録した曲は保持されます。</p>
+   <button type="submit" class="primary-btn">URLを保存</button>
+   <p id="spreadsheetURLStatus" role="status" aria-live="polite"></p>
+  </form>
+  <section class="sl-sheet-overview"><h3>連携の流れ</h3><ol><li>Googleで読み取りを許可</li><li>対象タブ・列を選択し、プレビューを確認</li><li>楽曲の候補と変更内容を確認</li><li>最終確認後にマイリストへ反映</li></ol><p>現在はURLの保存まで利用できます。読み取り・マイリストへの反映は、今後この画面へ追加します。</p></section>
+ </div>
+</div>
 <div class="modal-overlay" id="settingsModal" onclick="closeModal(event, 'settingsModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeModal(null, 'settingsModal')">&times;</span>
@@ -9098,7 +9117,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
   let slNavTask=Promise.resolve();
   let slOpenOverlayId=null;
   const slHistoryKey='slViewOverlayStage1';
-  const slHistoryOverlayIds=new Set(['accountModal','slHelpModal','settingsModal','friendsModal','myPageModal','slTermsModal','slPrivacyModal','addSongModal','roomCreateModal']);
+  const slHistoryOverlayIds=new Set(['spreadsheetSettingsModal','accountModal','slHelpModal','settingsModal','friendsModal','myPageModal','slTermsModal','slPrivacyModal','addSongModal','roomCreateModal']);
   let slHistoryRestoring=false;
   let slLastManagedOverlay=null;
   function slTrackOverlay(id){
@@ -9133,7 +9152,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
   };
 
   const slMenuModalIds=new Set([
-    'accountModal','slHelpModal','settingsModal','friendsModal','myPageModal',
+    'spreadsheetSettingsModal','accountModal','slHelpModal','settingsModal','friendsModal','myPageModal',
     'slTermsModal','slPrivacyModal','addSongModal','roomCreateModal'
   ]);
   function slVisible(id){
@@ -9141,6 +9160,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
     return !!el && getComputedStyle(el).display!=='none';
   }
   function slResolveCurrentView(){
+    if(slVisible('spreadsheetSettingsModal'))return 'account';
     if(slVisible('accountModal'))return 'account';
     if(document.body.classList.contains('sl-add-song-open')&&slVisible('addSongModal'))return 'add';
     if(document.body.classList.contains('sl-room-create-open')&&slVisible('roomCreateModal'))return 'room';
@@ -9219,6 +9239,10 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
         case 'help':
           if(typeof openModal==='function')openModal('slHelpModal');
           break;
+        case 'spreadsheet':
+          if(typeof openModal==='function')openModal('spreadsheetSettingsModal');
+          document.getElementById('spreadsheetURLInput')?.focus();
+          break;
         case 'account':
           if(typeof openModal==='function')openModal('accountModal');
           break;
@@ -9233,7 +9257,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
           break;
       }
       if(serial!==slNavSerial)return;
-      const overlayByRoute={account:'accountModal',help:'slHelpModal',settings:'settingsModal',friends:'friendsModal',
+      const overlayByRoute={spreadsheet:'spreadsheetSettingsModal',account:'accountModal',help:'slHelpModal',settings:'settingsModal',friends:'friendsModal',
         add:'addSongModal',room:'roomCreateModal',terms:'slTermsModal',privacy:'slPrivacyModal'};
       const overlay=overlayByRoute[destination];
       if(overlay && slVisible(overlay))slTrackOverlay(overlay);
@@ -10165,6 +10189,7 @@ body.sl-redesign #accountModal .modal{width:min(1080px,100%)!important;max-width
 <script src="compact-lists.js?v=20261108-1"></script>
 </body>
 </html>
+
 
 
 

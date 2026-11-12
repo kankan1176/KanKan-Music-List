@@ -1,0 +1,15 @@
+#spreadsheetLinkButton{width:100%;min-height:44px;text-align:left;font-weight:700}
+body.sl-redesign #spreadsheetSettingsModal .sl-sheet-settings{width:min(860px,100%)!important;max-width:860px!important;padding:28px!important;box-sizing:border-box}
+#spreadsheetSettingsModal .sl-sheet-back{margin-bottom:18px}
+#spreadsheetSettingsModal form{margin-top:24px;padding:20px;border:1px solid var(--border-color);border-radius:12px}
+#spreadsheetSettingsModal label{display:block;font-weight:700;margin-bottom:10px}
+#spreadsheetSettingsModal input{font-family:inherit;font-size:15px;min-height:46px}
+#spreadsheetSettingsModal p{line-height:1.7;overflow-wrap:anywhere}
+#spreadsheetSettingsModal #spreadsheetURLHelp,#spreadsheetSettingsModal #spreadsheetURLStatus{font-size:13px!important}
+#spreadsheetSettingsModal .sl-sheet-overview{margin-top:24px}
+#spreadsheetSettingsModal li{margin-bottom:6px}
+#spreadsheetSettingsModal .sl-sheet-warning{color:#ff9393!important;font-weight:700}
+body.theme-white #spreadsheetSettingsModal .sl-sheet-warning{color:#b42335!important}
+#spreadsheetSettingsModal [hidden]{display:none!important}
+@media(max-width:600px){body.sl-redesign #spreadsheetSettingsModal .sl-sheet-settings{padding:18px!important}#spreadsheetSettingsModal form{padding:14px}}
+body.sl-redesign #spreadsheetSettingsModal.modal-overlay{z-index:1950!important}
