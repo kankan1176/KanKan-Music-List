@@ -7,3 +7,11 @@ const row={source:'s',title:'虹',artist:'菅田将暉',wiki:'虹',key:2,keyOpti
 const owned={...state,owned:{a:{key:0}}};assert.equal(C.plan([],index,owned,{a:{registered:true}}).actions[0].kind,'delete');assert.equal(C.plan([],index,state,{a:{registered:true}}).actions.length,0);assert.equal(C.plan([{...row,source:'bad',title:'No song',wiki:'',artist:''}],index,owned,{a:{registered:true}}).actions[0].kind,'blocked');assert.equal(C.plan([row],index,owned,{}).actions[0].kind,'review');assert.equal(C.plan([row],index,{...owned,excluded:{a:true}},{}).actions[0].kind,'excluded');
 const remembered={...owned,keyChoices:{a:{options:'[2]',key:0}}};assert.equal(C.plan([row],index,remembered,{a:{registered:true,key:0}}).actions[0].kind,'same');assert.equal(C.plan([row],index,remembered,{a:{registered:true,key:3}}).actions[0].kind,'review');
 const mapping={...state,mappings:{s:'b'}};assert.equal(C.plan([row],index,mapping,{}).actions[0].id,'b');console.log('PASS URL formats, embedded links, header inference, artist carry, ambiguous matches, key conflicts, direct-song protection, deletion guard, exclusions, saved choices');
+// A conflicting artist must not auto-register merely because the wiki URL matches.
+assert.equal(C.match({title:'虹',artist:'別の歌手',wiki:'虹',source:'other'},index).id,null);
+// Tab reordering must not invalidate a saved Key decision.
+const duplicate=[{...row,key:2,keyOptions:[2]},{...row,source:'second',key:-2,keyOptions:[-2]}];
+const sortedChoice={...owned,keyChoices:{a:{options:'[-2,2]',key:0}}};
+assert.equal(C.plan(duplicate,index,sortedChoice,{a:{registered:true,key:0}}).actions[0].kind,'same');
+assert.equal(C.plan(duplicate.reverse(),index,sortedChoice,{a:{registered:true,key:0}}).actions[0].kind,'same');
+console.log('PASS conflicting artist and reordered tab Key decisions');

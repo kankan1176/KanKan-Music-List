@@ -20,6 +20,7 @@ jobs:
       - name: Verify spreadsheet matching and synchronization logic
         run: |
           node tests/sheet-sync.cjs
+          node tests/sheet-sync-service.cjs
           node --check spreadsheet-settings.js
           node --check sheet-sync-service.js
       - name: Prepare public website files

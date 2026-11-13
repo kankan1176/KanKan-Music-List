@@ -62,3 +62,17 @@ body.theme-white #sheetSyncApp .sheet-sync-warning{color:#b42335!important}
 #sheetSyncApp .sheet-sync-candidate span{display:flex;flex-direction:column;overflow-wrap:anywhere}
 #sheetSyncApp .sheet-sync-candidate-row:has(input:checked){border-color:var(--primary);background:color-mix(in srgb,var(--primary) 15%,var(--panel-bg))}
 @media(max-width:700px){#sheetSyncApp .sheet-sync-comparison{grid-template-columns:1fr}}
+/* Keep the import workflow readable with the site's table and modal styles. */
+#sheetSyncApp .sheet-sync-steps{display:flex;gap:8px;list-style:none;padding:0;margin:12px 0 20px;flex-wrap:wrap}
+#sheetSyncApp .sheet-sync-steps li{flex:1;min-width:115px;padding:9px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;text-align:center;margin:0}
+#sheetSyncApp .sheet-sync-steps [aria-current=step]{background:var(--primary,#2563eb);color:white;font-weight:700}
+#sheetSyncApp .sheet-sync-actions,#sheetSyncApp .sheet-sync-pager{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:1px solid var(--border-color)}
+#sheetSyncApp .sheet-sync-actions button,#sheetSyncApp .sheet-sync-pager button{margin:0}
+#sheetSyncApp .sheet-sync-progress:not(:empty){padding:10px 14px;border:1px solid var(--border-color);border-radius:8px;line-height:1.6}
+#sheetSyncApp .sheet-sync-candidate input[type=radio]{height:18px;margin:0}
+#sheetSyncApp .sheet-sync-preview table{display:table!important;height:auto!important;min-height:0!important;max-height:none!important}
+#sheetSyncApp .sheet-sync-preview tr{display:table-row!important;height:auto!important;min-height:0!important;max-height:none!important}
+#sheetSyncApp .sheet-sync-preview td,#sheetSyncApp .sheet-sync-preview th{height:auto!important;max-height:none!important;overflow:visible!important;line-height:1.5!important;vertical-align:top}
+#sheetSyncApp input,#sheetSyncApp select{box-sizing:border-box;background:var(--bg-color);color:var(--text-color);border:1px solid var(--border-color);border-radius:6px;padding:8px}
+#sheetSyncApp input[type=checkbox],#sheetSyncApp input[type=radio]{padding:0}
+#sheetSyncApp button:focus-visible,#sheetSyncApp input:focus-visible,#sheetSyncApp select:focus-visible{outline:2px solid var(--primary,#2563eb);outline-offset:2px}
