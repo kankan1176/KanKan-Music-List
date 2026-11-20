@@ -3,6 +3,8 @@
  
  const el=id=>document.getElementById('share'+id),core=SLListShare,design=SLListDesign,preview=location.hash==='#preview'&&window.parent!==window,mine=location.hash==='#mine';
  let data=null,rows=[],page=0,status='loading',stop=()=>{},generation=0,lastImage='',imageVersion='',imageSerial=0;
+ const group=location.hash.startsWith('#compare=');
+ let ownIds=null;
  const genreCache=new Map(),genreSelection={};
  const preferred=navigator.language.toLowerCase();let language=preferred.startsWith('ko')?'ko':preferred.startsWith('zh')?'zh-TW':preferred.startsWith('en')?'en':'ja';el('Language').value=language;
  const t=()=>SLListShareText[language]||SLListShareText.ja;
@@ -21,8 +23,8 @@
   window.SLListLoading?.state(status);
   const text=t(),appearance=design.apply(document.documentElement,data?.appearance);document.documentElement.lang=language;document.documentElement.style.colorScheme=appearance.preset;
   el('BrandName').textContent=text.brand;el('Brand').setAttribute('aria-label',text.brandHome);el('Terms').textContent=text.terms;el('Privacy').textContent=text.privacy;el('Edit').textContent=text.editList;el('Edit').hidden=!mine;el('ReadOnly').textContent=preview?text.designPreview:mine?text.ownView:text.readOnly;
-  const title=appearance.title||(data?String(data.name||'')+text.list:text.title);el('Title').textContent=title;el('Title').title=title;document.title=title+' | '+text.brand;
-  el('Owner').textContent=data&&appearance.title?data.name+text.list:'';
+  const title=group?'自分と選択したフレンドの共通曲':appearance.title||(data?String(data.name||'')+text.list:text.title);el('Title').textContent=title;el('Title').title=title;document.title=title+' | '+text.brand;
+  el('Owner').textContent=group?(data?.name||''):data&&appearance.title?data.name+text.list:'';
   el('Status').textContent=status==='ready'?'':text[status]||text.loadError;
   for(const key of ['Search','Sort'])el(key).hidden=!data;
   el('Search').placeholder=text.search;el('Search').setAttribute('aria-label',text.search);el('Sort').setAttribute('aria-label',text.sort);
@@ -30,7 +32,7 @@
   SLCategoryFilters.render(area,genreSelection,{groups:catalog,facets:SLSongGenres.facets(rows)},next=>{Object.keys(genreSelection).forEach(key=>delete genreSelection[key]);Object.assign(genreSelection,next);move(0);});
   el('Sort').replaceChildren(new Option(text.titleOrder,'title'),new Option(text.artistOrder,'artist'));el('Sort').value=sort;
   const search=el('Search').value.normalize('NFKC').toLocaleLowerCase().trim();
-  const filtered=rows.filter(row=>SLSongGenres.matches(row,genreSelection)&&SLSongSearch.matches(row,search));
+  const filtered=rows.filter(row=>(!el('Overlap').checked||ownIds?.has(row.id))&&SLSongGenres.matches(row,genreSelection)&&SLSongSearch.matches(row,search));
   filtered.sort((a,b)=>(sort==='artist'?a.artist.localeCompare(b.artist,language):a.title.localeCompare(b.title,language))||a.title.localeCompare(b.title,language));
   const pages=Math.max(1,Math.ceil(filtered.length/100));page=Math.max(0,Math.min(page,pages-1));
   el('Count').textContent=data?rows.length+' '+text.count:'';el('ResultCount').textContent=data?filtered.length+' / '+rows.length+' '+text.count:'';
@@ -48,7 +50,7 @@
   if(data&&!filtered.length&&status!=='updating')el('Status').textContent=text.empty;
   for(const suffix of ['', 'Top']){el('Pagination'+suffix).hidden=!data;el('Prev'+suffix).textContent=text.previous;el('Next'+suffix).textContent=text.next;el('Prev'+suffix).disabled=page===0;el('Next'+suffix).disabled=page===pages-1;}
   el('Page').textContent=(page+1)+' / '+pages;el('PageSelect').setAttribute('aria-label',text.page);el('PageSelect').replaceChildren(...Array.from({length:pages},(_,i)=>new Option((i+1)+' / '+pages,String(i))));el('PageSelect').value=String(page);el('ListViewport').setAttribute('aria-label',text.songList);
-  window.SLListPageState={ownerUid:data?.uid||'',available:!!data&&!data.reserved,language};window.dispatchEvent(new CustomEvent('sl-list-page-state',{detail:window.SLListPageState}));
+  window.SLListPageState={ownerUid:data?.uid||'',available:!group&&!!data&&!data.reserved,language};window.dispatchEvent(new CustomEvent('sl-list-page-state',{detail:window.SLListPageState}));
  }
  function accept(value){data=value&&typeof value.name==='string'&&!value.reserved?value:null;rows=data?Object.entries(data.songs||{}).filter(([,r])=>r&&typeof r.title==='string'&&typeof r.artist==='string').map(([id,row])=>({...row,id,...genreCache.get(id),genres:Array.isArray(row.genres)?row.genres:[]})):[];status=data?'ready':'unavailable';render();}
  el('Search').oninput=()=>move(0);el('Sort').onchange=()=>move(0);el('Language').onchange=()=>{language=el('Language').value;render();};for(const suffix of ['', 'Top']){el('Prev'+suffix).onclick=()=>move(page-1);el('Next'+suffix).onclick=()=>move(page+1);}el('PageSelect').onchange=()=>move(Number(el('PageSelect').value));
@@ -63,12 +65,66 @@
   await Promise.all(Array.from({length:Math.min(8,missing.length)},async()=>{while(next<missing.length&&version===generation){const row=missing[next++];try{const master=(await database.ref('songs/'+row.id).once('value')).val();genreCache.set(row.id,searchMetadata(master));}catch{window.SLListLoading?.error();}}}));
   if(version===generation&&data){for(const row of rows)if(genreCache.has(row.id)){Object.assign(row,genreCache.get(row.id));row.genres=core.genres(row);};render();}
  }
+ function watchComparison(app,database,ids){
+  const checkbox=el('Overlap');
+  let listStops=[],session=0;
+  checkbox.onchange=()=>move(0);
+  app.auth().onAuthStateChanged(user=>{
+   const ticket=++session;
+   listStops.forEach(off=>off());listStops=[];ownIds=null;
+   checkbox.checked=false;el('OverlapLabel').hidden=true;
+   if(group){data=null;rows=[];status=user&&!user.isAnonymous?'loading':'login';}
+   render();
+   if(!user||user.isAnonymous)return;
+   const lists=new Map();
+   function update(){
+    if(!group){render();return;}
+    if(!ownIds||lists.size!==ids.length)return;
+    const songs={};
+    for(const id of ownIds){
+     if(ids.every(uid=>Object.hasOwn(lists.get(uid).songs||{},id))){
+      const {key,parts,...info}=lists.get(ids[0]).songs[id];
+      songs[id]=info;
+     }
+    }
+    accept({name:ids.map(uid=>lists.get(uid).name).join('、'),songs});
+   }
+   function fail(){
+    if(session!==ticket)return;
+    session++;listStops.forEach(off=>off());listStops=[];
+    ownIds=null;checkbox.checked=false;el('OverlapLabel').hidden=true;
+    if(group){rows=[];data=null;status='loadError';}render();
+   }
+   function watch(path,receive){
+    const ref=database.ref(path),fn=snap=>{if(session===ticket)receive(snap.val());};
+    listStops.push(()=>ref.off('value',fn));ref.on('value',fn,fail);
+   }
+   watch('users/'+user.uid+'/songs',saved=>{
+    ownIds=new Set(Object.entries(saved||{}).filter(([,item])=>core.registered(item)).map(([id])=>id));
+    el('OverlapLabel').hidden=group;update();
+   });
+   for(const uid of ids){
+    database.ref('publicListLinks/'+uid).once('value').then(link=>{
+     if(session!==ticket)return;
+     const token=link.val()?.token;
+     if(!core.tokenOK(token)){fail();return;}
+     watch('publicListShares/'+token,value=>{
+      if(!value||value.reserved||value.uid!==uid){fail();return;}
+      lists.set(uid,value);update();
+     });
+    }).catch(fail);
+   }
+  });
+ }
  async function load(){
   stop();Object.keys(genreSelection).forEach(key=>delete genreSelection[key]);const version=++generation;data=null;rows=[];page=0;status='loading';imageVersion='';imageSerial++;setImage('');render();const fragment=location.hash.slice(1);
   const userRoute=fragment.startsWith('user='),uid=userRoute?fragment.slice(5):'';
-  if(userRoute?!/^[A-Za-z0-9_-]{1,128}$/.test(uid):!core.tokenOK(fragment)){status='unavailable';render();return;}
+  const ids=group?[...new Set(fragment.slice(8).split(','))]:[];
+  if(group?ids.some(id=>!/^[A-Za-z0-9_-]{1,128}$/.test(id)):userRoute?!/^[A-Za-z0-9_-]{1,128}$/.test(uid):!core.tokenOK(fragment)){status='unavailable';render();return;}
   try{
    const app=firebase.apps?.length?firebase.app():firebase.initializeApp(config);SLAppCheck.activate(app);const database=app.database();window.SLChordWikiPreference?.connect(app.auth(),database);let token=fragment;
+   if(group||userRoute)watchComparison(app,database,ids);
+   if(group)return;
    if(userRoute){
     try{token=(await database.ref('publicListLinks/'+uid).once('value')).val()?.token;}catch(error){if(version!==generation)return;status=/permission.denied/i.test(error?.code||error?.message||'')?'userUnavailable':'loadError';render();return;}
     if(version!==generation)return;

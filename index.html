@@ -2887,6 +2887,8 @@ body.sl-redesign #friendsModal .sl-friends-workspace{
 #friendsModal .sl-friends-field button{flex-shrink:0;white-space:nowrap;padding:9px 13px!important;border-radius:8px!important}
 #friendsModal .sl-friends-compact-list{min-height:0;flex:1;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:5px;padding-right:3px}
 #friendsModal .friend-item{display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0!important;padding:7px 9px!important;border:1px solid #2b486e!important;border-radius:8px!important;background:#1a3152!important;min-height:42px!important}
+#friendsModal .friend-compare-label{display:flex;align-items:center;min-width:0;gap:8px;cursor:pointer}
+#friendsModal .friend-compare-label input{flex:none;width:17px;height:17px}
 #friendsModal .friend-name{font-size:13px!important;font-weight:600!important;color:#edf4ff!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #friendsModal .friend-commands{display:flex!important;flex:0 0 auto;gap:5px!important;flex-wrap:nowrap!important}
 #friendsModal .friend-commands button{font-size:11px!important;padding:5px 7px!important;white-space:nowrap;border-radius:6px!important}
@@ -4256,7 +4258,8 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
   </div>
   <div class="sl-friends-layout">
    <section class="sl-friends-panel sl-friends-main" aria-labelledby="friendsListHeading">
-    <div class="sl-friends-panel-title"><h3 id="friendsListHeading">👥 フレンド（0人）</h3><span class="sl-friends-caption">公開リストを見る・お気に入り解除</span></div>
+    <div class="sl-friends-panel-title"><h3 id="friendsListHeading">👥 フレンド（0人）</h3><span class="sl-friends-caption">比較したいフレンドを選択</span></div>
+    <button type="button" id="compareFriends" disabled onclick="window.open('mylist.html#compare='+Array.from(comparisonFriends).join(','),'_blank','noopener,noreferrer')">自分と選択した全員の共通曲を見る</button>
     <div id="friendsList" class="friends-section sl-friends-compact-list"></div>
    </section>
    <div class="sl-friends-right">
@@ -6502,7 +6505,7 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
     const friendNameCache={};
     function friendUser(){const u=auth.currentUser;return u&&!u.isAnonymous&&signedInUser?.uid===u.uid?u:null;}
     function friendNotice(message,isError=false){const el=document.getElementById('friendFeedback');if(el){el.textContent=message;el.style.color=isError?'#eb7777':'var(--text-color)';}}
-    function stopFriendsFeature(){friendListeners.forEach(([r,fn])=>r.off('value',fn));friendListeners=[];friendFeatureUid='';friendCodeForUser='';friendRefreshSeq++;const e=document.getElementById('myFriendCode');if(e)e.value='';updateFriendCount(null);closeModal(null,'friendsModal');}
+    function stopFriendsFeature(){comparisonFriends.clear();updateComparisonButton();friendListeners.forEach(([r,fn])=>r.off('value',fn));friendListeners=[];friendFeatureUid='';friendCodeForUser='';friendRefreshSeq++;const e=document.getElementById('myFriendCode');if(e)e.value='';updateFriendCount(null);closeModal(null,'friendsModal');}
     function attachFriendListener(path,uid){const r=db.ref(path),fn=()=>{if(friendUser()?.uid===uid)void refreshFriendsPanel();};r.on('value',fn,err=>console.warn('お気に入りユーザー同期',err));friendListeners.push([r,fn]);}
     async function startFriendsFeature(user){
       if(!user||user.isAnonymous||auth.currentUser?.uid!==user.uid||friendFeatureUid===user.uid)return;
@@ -6547,6 +6550,12 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
     function copyMyFriendCode(){if(!friendUser())return friendNotice('Googleログインが必要です。',true);if(!friendCodeForUser)return friendNotice('フレンドコード取得中です。',true);navigator.clipboard.writeText(friendCodeForUser).then(()=>friendNotice('フレンドコードをコピーしました。')).catch(()=>friendNotice('コピーできませんでした。',true));}
     async function getFriendDisplayName(uid){if(friendNameCache[uid])return friendNameCache[uid];try{const v=await db.ref(`publicProfiles/${uid}/displayName`).once('value');return friendNameCache[uid]=String(v.val()||'ユーザー').slice(0,40);}catch{return 'ユーザー';}}
     function friendItem(name,buttons){const row=document.createElement('div');row.className='friend-item';const label=document.createElement('span');label.className='friend-name';label.textContent=name;row.append(label);const actions=document.createElement('div');actions.className='friend-commands';for(const [title,handler,danger] of buttons){const btn=document.createElement('button');btn.type='button';btn.textContent=title;if(danger)btn.className='friend-danger';btn.onclick=handler;actions.append(btn);}row.append(actions);return row;}
+    const comparisonFriends = new Set();
+    function updateComparisonButton(){
+        const button = document.getElementById('compareFriends');
+        button.disabled = !comparisonFriends.size;
+        button.textContent = comparisonFriends.size ? `自分と選択した${comparisonFriends.size}人の共通曲を見る` : '自分と選択した全員の共通曲を見る';
+    }
     function favoriteUserRow(id,profiles,favorites,historyMode=false){
       const u=friendUser();
       const name=String(profiles[id]?.displayName||'ユーザー').slice(0,40);
@@ -6554,6 +6563,22 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
       const actions=[['📁 公開リストを見る',()=>openFriendSharedList(id)]];
       if(u&&id!==u.uid)actions.push([saved?'お気に入り解除':'☆ お気に入り登録',()=>void toggleUserFavorite(id,saved),saved]);
       const row=friendItem(name,actions);
+      if (!historyMode && saved && u && id !== u.uid && profiles === cachedFavoriteProfiles) {
+        const box=document.createElement('input');
+        box.type='checkbox';
+        box.checked=comparisonFriends.has(id);
+        box.setAttribute('aria-label',name+'を共通曲の比較に含める');
+        box.onchange=()=>{
+          if(box.checked) comparisonFriends.add(id);
+          else comparisonFriends.delete(id);
+          updateComparisonButton();
+        };
+        const nameLabel = row.querySelector('.friend-name');
+        const label = document.createElement('label');
+        label.className = 'friend-compare-label';
+        nameLabel.replaceWith(label);
+        label.append(box, nameLabel);
+      }
       if(historyMode){
         row.classList.add('sl-history-user-row');
         const label=row.querySelector('.friend-name');
@@ -6581,6 +6606,8 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
         if(!isLatest())return;
         const profiles=profilesSnap.val()||{},favorites=favSnap?.val()||{},history=historySnap?.val()||{};cachedFavoriteProfiles=profiles;cachedUserFavorites=favorites;
         const ids=Object.keys(favorites).filter(id=>favorites[id]===true&&id!==u?.uid&&profiles[id]);
+        for(const id of comparisonFriends) if(!ids.includes(id)) comparisonFriends.delete(id);
+        updateComparisonButton();
         list.replaceChildren(...ids.map(id=>favoriteUserRow(id,profiles,favorites)));
         if(!ids.length)list.textContent=u?'お気に入り中のユーザーはいません。':'お気に入り登録にはGoogleログインが必要です。';
         updateFriendCount(ids.length);
