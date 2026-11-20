@@ -2887,6 +2887,10 @@ body.sl-redesign #friendsModal .sl-friends-workspace{
 #friendsModal .sl-friends-field button{flex-shrink:0;white-space:nowrap;padding:9px 13px!important;border-radius:8px!important}
 #friendsModal .sl-friends-compact-list{min-height:0;flex:1;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:5px;padding-right:3px}
 #friendsModal .friend-item{display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0!important;padding:7px 9px!important;border:1px solid #2b486e!important;border-radius:8px!important;background:#1a3152!important;min-height:42px!important}
+#friendsModal #compareFriends{display:block;width:100%;min-height:48px;margin:0 0 12px;padding:12px 18px;border:1px solid #93c5fd!important;border-radius:10px;background:linear-gradient(110deg,#2563eb,#6d28d9)!important;color:#fff!important;font-size:15px;font-weight:700;line-height:1.5;box-shadow:0 4px 12px #2563eb40;cursor:pointer;transition:filter .15s,transform .15s}
+#friendsModal #compareFriends:not(:disabled):hover{filter:brightness(1.15);transform:translateY(-1px)}
+#friendsModal #compareFriends:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}
+#friendsModal #compareFriends:disabled{background:#334155!important;border-color:#64748b!important;color:#e2e8f0!important;box-shadow:none;cursor:not-allowed}
 #friendsModal .friend-compare-label{display:flex;align-items:center;min-width:0;gap:8px;cursor:pointer}
 #friendsModal .friend-compare-label input{flex:none;width:17px;height:17px}
 #friendsModal .friend-name{font-size:13px!important;font-weight:600!important;color:#edf4ff!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -4260,7 +4264,7 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
   <div class="sl-friends-layout">
    <section class="sl-friends-panel sl-friends-main" aria-labelledby="friendsListHeading">
     <div class="sl-friends-panel-title"><h3 id="friendsListHeading">👥 フレンド（0人）</h3><span class="sl-friends-caption">比較したいフレンドを選択</span></div>
-    <button type="button" id="compareFriends" disabled onclick="window.open('mylist.html#compare='+Array.from(comparisonFriends).join(','),'_blank','noopener,noreferrer')">自分と選択した全員の共通曲を見る</button>
+    <button type="button" id="compareFriends" disabled onclick="window.open('mylist.html#compare='+Array.from(comparisonFriends).join(','),'_blank','noopener,noreferrer')">フレンドを選択して共通曲を見る →</button>
     <div id="friendsList" class="friends-section sl-friends-compact-list"></div>
    </section>
    <div class="sl-friends-right">
@@ -6555,7 +6559,7 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
     function updateComparisonButton(){
         const button = document.getElementById('compareFriends');
         button.disabled = !comparisonFriends.size;
-        button.textContent = comparisonFriends.size ? `自分と選択した${comparisonFriends.size}人の共通曲を見る` : '自分と選択した全員の共通曲を見る';
+        button.textContent = comparisonFriends.size ? `自分と選択した${comparisonFriends.size}人の共通曲を見る →` : 'フレンドを選択して共通曲を見る →';
     }
     function favoriteUserRow(id,profiles,favorites,historyMode=false){
       const u=friendUser();
