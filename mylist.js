@@ -6,7 +6,7 @@
  const group=location.hash.startsWith('#compare=');
  let ownIds=null;
  const genreCache=new Map(),genreSelection={};
- const preferred=navigator.language.toLowerCase();let language=preferred.startsWith('ko')?'ko':preferred.startsWith('zh')?'zh-TW':preferred.startsWith('en')?'en':'ja';el('Language').value=language;
+ const preferred=navigator.language.toLowerCase();let language=preferred.startsWith('ko')?'ko':preferred.startsWith('zh')?'zh-TW':preferred.startsWith('en')?'en':'ja';try{const saved=localStorage.getItem('sharelistscore_language');if(Object.hasOwn(SLListShareText,saved))language=saved;}catch{}el('Language').value=language;
  const t=()=>SLListShareText[language]||SLListShareText.ja;
  function cell(tag,value,className){const node=document.createElement(tag);node.textContent=value;if(className)node.className=className;return node;}
  function setImage(image){
@@ -23,7 +23,8 @@
   window.SLListLoading?.state(status);
   const text=t(),appearance=design.apply(document.documentElement,data?.appearance);document.documentElement.lang=language;document.documentElement.style.colorScheme=appearance.preset;
   el('BrandName').textContent=text.brand;el('Brand').setAttribute('aria-label',text.brandHome);el('Terms').textContent=text.terms;el('Privacy').textContent=text.privacy;el('Edit').textContent=text.editList;el('Edit').hidden=!mine;el('ReadOnly').textContent=preview?text.designPreview:mine?text.ownView:text.readOnly;
-  const title=group?'自分と選択したフレンドの共通曲':appearance.title||(data?String(data.name||'')+text.list:text.title);el('Title').textContent=title;el('Title').title=title;document.title=title+' | '+text.brand;
+  el('OverlapText').textContent=text.overlap;
+  const title=group?text.groupTitle:appearance.title||(data?String(data.name||'')+text.list:text.title);el('Title').textContent=title;el('Title').title=title;document.title=title+' | '+text.brand;
   el('Owner').textContent=group?(data?.name||''):data&&appearance.title?data.name+text.list:'';
   el('Status').textContent=status==='ready'?'':text[status]||text.loadError;
   for(const key of ['Search','Sort'])el(key).hidden=!data;
@@ -41,7 +42,7 @@
   const header=document.createElement('tr');for(const label of ['No.',text.songTitle,text.artist,text.genre,...(showKey?['Key']:[]),...(showParts?[text.partsLabel]:[]),'ChordWiki'])header.append(cell('th',label));el('TableHead').replaceChildren(header);el('Songs').replaceChildren();
   for(const[i,row]of filtered.slice(page*100,(page+1)*100).entries()){
    const tr=document.createElement('tr'),genres=cell('td','','genre-cell');tr.append(cell('td',String(page*100+i+1).padStart(2,'0'),'number'),cell('td',row.title,'song-title'),cell('td',row.artist,'song-artist'));
-   const yearText=[row.release_year?'発売・公開：'+row.release_year+'年':'',row.anime_year?'作品：'+row.anime_year+'年':''].filter(Boolean).join(' / ');if(yearText){const note=cell('small',yearText);note.style.cssText='display:block;opacity:.75;font-size:.8em;line-height:1.5';tr.children[1].append(note);}
+   const yearText=[row.release_year?text.released+row.release_year+(language==='ja'?'年':''):'',row.anime_year?text.workYear+row.anime_year+(language==='ja'?'年':''):''].filter(Boolean).join(' / ');if(yearText){const note=cell('small',yearText);note.style.cssText='display:block;opacity:.75;font-size:.8em;line-height:1.5';tr.children[1].append(note);}
    for(const value of SLSongGenres.all(row).length?SLSongGenres.all(row):row.genres)genres.append(cell('span',value,'genre-tag'));tr.append(genres);
    if(showKey)tr.append(cell('td',Number.isInteger(row.key)?(row.key>0?'+':'')+row.key:'—','optional'));
    if(showParts)tr.append(cell('td',Array.isArray(row.parts)?row.parts.join(' / '):'—','optional'));

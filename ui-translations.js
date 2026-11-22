@@ -5236,3 +5236,36 @@ window.SL_UI_TRANSLATIONS = {
     "zh-TW": "補充說明等內容的翻譯，並修正演出曲目清單的返回與刪除操作。"
   }
 };
+
+Object.assign(window.SL_UI_TRANSLATIONS, {
+  "フレンドとの共通曲を探す": {
+    "en": "Find songs you have in common",
+    "ko": "친구와 공통곡 찾기",
+    "zh-TW": "尋找與好友共有的歌曲"
+  },
+  "比較したいフレンドを選択": {
+    "en": "Select friends to compare",
+    "ko": "비교할 친구 선택",
+    "zh-TW": "選擇要比較的好友"
+  },
+  "フレンドを選択して共通曲を見る →": {
+    "en": "Select friends to see shared songs →",
+    "ko": "친구를 선택하고 공통곡 보기 →",
+    "zh-TW": "選擇好友以查看共有歌曲 →"
+  },
+  "自分と選択した{count}人の共通曲を見る →": {
+    "en": "See songs shared by you and all selected friends ({count}) →",
+    "ko": "나와 선택한 친구 {count}명의 공통곡 보기 →",
+    "zh-TW": "查看你與所選 {count} 位好友共有的歌曲 →"
+  },
+  "{name}を共通曲の比較に含める": {
+    "en": "Include {name} in the comparison",
+    "ko": "공통곡 비교에 {name} 포함",
+    "zh-TW": "將 {name} 加入比較"
+  },
+  "フレンドの公開リストで「自分との共通曲のみ」を選ぶと、二人とも登録している曲を表示します。フレンド一覧で複数人を選ぶと、自分と選んだ全員に共通する曲をまとめて確認できます。": {
+    "en": "Filter a friend’s public list to see songs you both saved. Select multiple friends to see songs everyone saved.",
+    "ko": "친구의 공개 목록에서 두 사람의 공통곡을 볼 수 있습니다. 여러 친구를 선택하면 모두가 저장한 곡을 확인할 수 있습니다.",
+    "zh-TW": "在好友的公開清單中可篩選雙方都收藏的歌曲。選擇多位好友即可查看所有人都收藏的歌曲。"
+  }
+});

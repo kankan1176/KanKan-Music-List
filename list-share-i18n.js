@@ -388,3 +388,8 @@ window.SLListShareText={
 
 
 for(const [language,values]of Object.entries({ja:{updating:"最新の楽曲情報を確認しています…",refreshError:"最新情報を取得できませんでした。通信状態を確認して再読み込みしてください。"},en:{updating:"Checking for updated song information…",refreshError:"Could not load the latest information. Check your connection and reload."},ko:{updating:"최신 곡 정보를 확인하고 있습니다…",refreshError:"최신 정보를 가져오지 못했습니다. 연결을 확인하고 새로고침하세요."},"zh-TW":{updating:"正在確認最新歌曲資訊…",refreshError:"無法取得最新資訊，請確認連線後重新載入。"}}))Object.assign(window.SLListShareText[language],values);
+
+Object.assign(window.SLListShareText['ja'], {"overlap": "自分との共通曲のみ", "groupTitle": "自分と選択したフレンドの共通曲", "released": "発売・公開：", "workYear": "作品："});
+Object.assign(window.SLListShareText['en'], {"overlap": "Only songs we both saved", "groupTitle": "Songs you and all selected friends saved", "released": "Released: ", "workYear": "Work: "});
+Object.assign(window.SLListShareText['ko'], {"overlap": "나와의 공통곡만", "groupTitle": "나와 선택한 친구 모두의 공통곡", "released": "발매·공개: ", "workYear": "작품: "});
+Object.assign(window.SLListShareText['zh-TW'], {"overlap": "只看雙方共有的歌曲", "groupTitle": "你與所選好友共有的歌曲", "released": "發行：", "workYear": "作品："});
