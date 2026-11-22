@@ -5477,3 +5477,8 @@ Object.assign(window.SL_UI_TRANSLATIONS, {
     "zh-TW": "疑難排解"
   }
 });
+
+Object.assign(window.SL_UI_TRANSLATIONS, {
+  'スクロールでページを移動': {en:'Turn pages with the scroll wheel',ko:'스크롤로 페이지 이동','zh-TW':'捲動以切換頁面'},
+  '一覧の下端で下にスクロールすると次ページへ、上端で上にスクロールすると前ページの末尾へ移動します。': {en:'Scroll down at the bottom for the next page, or up at the top for the end of the previous page.',ko:'목록 끝에서 아래로 스크롤하면 다음 페이지로, 맨 위에서 위로 스크롤하면 이전 페이지 끝으로 이동합니다.','zh-TW':'在清單底部向下捲動即可前往下一頁；在頂部向上捲動即可回到上一頁末尾。'}
+});
