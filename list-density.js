@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const next = document.getElementById(main ? 'songNextPageBtn' : 'shareNext');
     const setting = document.getElementById('wheelPaging');
     let enabled = true;
+    let turns = 0, edgeDirection = 0;
+    const gestureGap = 150, resetGap = 1400;
     function storageKey() {
         return 'shareliscore_wheel_paging_' + (window.firebase?.apps?.length && firebase.auth().currentUser?.uid || 'guest');
     }
@@ -19,10 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.firebase?.apps?.length) firebase.auth().onAuthStateChanged(restore);
     window.addEventListener('storage', restore);
     setting?.addEventListener('change', () => {
+        turns = 0;
         enabled = setting.checked;
         try { localStorage.setItem(storageKey(), enabled ? 'on' : 'off'); } catch {}
     });
-    let busy = false, lastWheel = 0, suppressMomentum = false;
+    let busy = false, lastWheel = -Infinity, suppressMomentum = false;
     function pageNumber() {
         if (!main) return document.getElementById('sharePageSelect').value;
         if (serverPagedMasterMode && !masterLoaded && !currentRoomId && !myListMode)
@@ -32,14 +35,23 @@ document.addEventListener('DOMContentLoaded', () => {
     viewport.addEventListener('wheel', async event => {
         if (!enabled || event.ctrlKey || event.shiftKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
         const now = performance.now();
-        if (now - lastWheel > 150) suppressMomentum = false;
+        const gap = now - lastWheel;
+        if (gap > resetGap) turns = 0;
+        if (gap > gestureGap) suppressMomentum = false;
         lastWheel = now;
         if (busy || suppressMomentum) { event.preventDefault(); return; }
         const down = event.deltaY > 0;
         const button = down ? next : previous;
-        if (!button || button.disabled) return;
-        if (down ? viewport.scrollTop + viewport.clientHeight < viewport.scrollHeight - 1 : viewport.scrollTop > 1) return;
+        const atEdge = down ? viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 1 : viewport.scrollTop <= 1;
+        const direction = down ? 1 : -1;
+        if (direction !== edgeDirection) turns = 0;
+        edgeDirection = direction;
+        if (!button || button.disabled || !atEdge) { turns = 0; return; }
         event.preventDefault();
+        if (gap <= gestureGap) return;
+        turns++;
+        if (turns < 3) return;
+        turns = 0;
         busy = suppressMomentum = true;
         try {
             const before = pageNumber();
