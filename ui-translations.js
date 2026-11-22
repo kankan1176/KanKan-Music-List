@@ -5482,3 +5482,26 @@ Object.assign(window.SL_UI_TRANSLATIONS, {
   'スクロールでページを移動': {en:'Turn pages with the scroll wheel',ko:'스크롤로 페이지 이동','zh-TW':'捲動以切換頁面'},
   '一覧の端で少し間を空けて同じ方向に3回スクロールすると、下端では次ページの先頭、上端では前ページの末尾へ移動します。': {en:'At either end, scroll three times in the same direction with a brief pause between turns to change pages.',ko:'목록 끝에서 잠시 간격을 두고 같은 방향으로 세 번 스크롤하면 페이지가 바뀝니다.','zh-TW':'在清單頂部或底部，稍微間隔並朝同一方向捲動三次即可換頁。'}
 });
+
+Object.assign(window.SL_UI_TRANSLATIONS, {
+  "スクロールで次・前ページへ移動": {
+    "en": "Turn pages with the scroll wheel",
+    "ko": "스크롤로 페이지 이동",
+    "zh-TW": "捲動以切換頁面"
+  },
+  "一覧の端で少し間を空けて同じ方向に3回スクロールするとページを移動します。全曲一覧・マイリスト・ルーム内リストに対応。標準ONで、ユーザー設定からOFFにできます。": {
+    "en": "At either end of a list, scroll three times in the same direction with short pauses to change pages. Available in All Songs, My List and room lists. Enabled by default; turn it off in User Settings.",
+    "ko": "목록 끝에서 간격을 두고 같은 방향으로 세 번 스크롤하면 페이지를 이동합니다. 전체 곡·마이리스트·룸 목록에서 사용할 수 있습니다. 기본 ON이며 사용자 설정에서 끌 수 있습니다.",
+    "zh-TW": "在清單頂部或底部，稍作間隔並朝同一方向捲動三次即可換頁。支援全部歌曲、個人清單與房間清單。預設開啟，可在使用者設定關閉。"
+  },
+  "設定画面・ヘルプの多言語対応を改善": {
+    "en": "Improved translations for settings and help",
+    "ko": "설정과 도움말 다국어 지원 개선",
+    "zh-TW": "改善設定與說明的多語言支援"
+  },
+  "ユーザー設定・左メニューのデザイン設定・ヘルプを英語・韓国語・繁体字中国語に対応。ヘルプ内検索と公開マイリストの言語引き継ぎも改善しました。": {
+    "en": "User settings, sidebar icon choices and help now support English, Korean and Traditional Chinese. Help search and language continuity on public lists have also been improved.",
+    "ko": "사용자 설정, 왼쪽 메뉴 디자인과 도움말을 영어·한국어·번체 중국어로 지원합니다. 도움말 검색과 공개 마이리스트의 언어 유지도 개선했습니다.",
+    "zh-TW": "使用者設定、側邊選單圖示設定與說明支援英文、韓文和繁體中文，並改善說明搜尋及公開清單的語言沿用。"
+  }
+});
