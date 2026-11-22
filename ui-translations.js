@@ -5269,3 +5269,211 @@ Object.assign(window.SL_UI_TRANSLATIONS, {
     "zh-TW": "在好友的公開清單中可篩選雙方都收藏的歌曲。選擇多位好友即可查看所有人都收藏的歌曲。"
   }
 });
+
+Object.assign(window.SL_UI_TRANSLATIONS, {
+  "ユーザー設定": {
+    "en": "User settings",
+    "ko": "사용자 설정",
+    "zh-TW": "使用者設定"
+  },
+  "左メニューのデザイン": {
+    "en": "Sidebar icon style",
+    "ko": "왼쪽 메뉴 아이콘 스타일",
+    "zh-TW": "側邊選單圖示樣式"
+  },
+  "シンプルな線画": {
+    "en": "Line icons",
+    "ko": "선 아이콘",
+    "zh-TW": "線條圖示"
+  },
+  "絵文字": {
+    "en": "Emoji",
+    "ko": "이모지",
+    "zh-TW": "表情符號"
+  },
+  "このブラウザのユーザーごとに保存します。": {
+    "en": "Saved separately for each user in this browser.",
+    "ko": "이 브라우저에서 사용자별로 저장됩니다.",
+    "zh-TW": "在此瀏覽器中依使用者分別儲存。"
+  },
+  "スプレッドシート連携": {
+    "en": "Spreadsheet link",
+    "ko": "스프레드시트 연결",
+    "zh-TW": "試算表連結"
+  },
+  "スプレッドシート連携を設定 →": {
+    "en": "Set up spreadsheet link →",
+    "ko": "스프레드시트 연결 설정 →",
+    "zh-TW": "設定試算表連結 →"
+  },
+  "自分の楽曲リストとの連携設定を開きます。": {
+    "en": "Connect your song list to a spreadsheet.",
+    "ko": "내 곡 목록을 스프레드시트와 연결합니다.",
+    "zh-TW": "將您的歌曲清單連結到試算表。"
+  },
+  "← ユーザー設定へ戻る": {
+    "en": "← Back to user settings",
+    "ko": "← 사용자 설정으로",
+    "zh-TW": "← 返回使用者設定"
+  },
+  "ユーザー名・基本担当パート・コードWikiのバージョンを設定します。Googleログイン中はアカウントに保存されます。": {
+    "en": "Set your username, default part and ChordWiki version. Sign in with Google to save them to your account.",
+    "ko": "사용자 이름, 기본 파트와 ChordWiki 버전을 설정하세요. Google 로그인 중에는 계정에 저장됩니다.",
+    "zh-TW": "設定使用者名稱、預設聲部與 ChordWiki 版本。登入 Google 後會儲存至帳戶。"
+  },
+  "🎸 コードWikiのバージョン": {
+    "en": "🎸 ChordWiki version",
+    "ko": "🎸 ChordWiki 버전",
+    "zh-TW": "🎸 ChordWiki 版本"
+  },
+  "通常": {
+    "en": "Standard",
+    "ko": "일반",
+    "zh-TW": "標準"
+  },
+  "ベータ版": {
+    "en": "Beta",
+    "ko": "베타",
+    "zh-TW": "測試版"
+  },
+  "Googleログイン後に設定できます。": {
+    "en": "Sign in with Google to change this setting.",
+    "ko": "Google 로그인 후 설정할 수 있습니다.",
+    "zh-TW": "登入 Google 後即可設定。"
+  },
+  "使い方ガイド": {
+    "en": "User guide",
+    "ko": "사용 안내",
+    "zh-TW": "使用指南"
+  },
+  "ヘルプ内を検索": {
+    "en": "Search the guide",
+    "ko": "도움말 검색",
+    "zh-TW": "搜尋說明"
+  },
+  "すべてのページから検索し、該当箇所へ移動します。Enterで次へ、Shift＋Enterで前へ。": {
+    "en": "Search all pages. Press Enter for the next match or Shift+Enter for the previous one.",
+    "ko": "전체 페이지에서 검색합니다. Enter로 다음 결과, Shift+Enter로 이전 결과로 이동합니다.",
+    "zh-TW": "搜尋所有頁面。按 Enter 前往下一筆，Shift+Enter 返回上一筆。"
+  },
+  "例：スプレッドシート、Key": {
+    "en": "Example: spreadsheet, key",
+    "ko": "예: 스프레드시트, 키",
+    "zh-TW": "例如：試算表、調性"
+  },
+  "前の検索結果": {
+    "en": "Previous result",
+    "ko": "이전 검색 결과",
+    "zh-TW": "上一筆結果"
+  },
+  "次の検索結果": {
+    "en": "Next result",
+    "ko": "다음 검색 결과",
+    "zh-TW": "下一筆結果"
+  },
+  "↑ 前の一致": {
+    "en": "↑ Previous match",
+    "ko": "↑ 이전 결과",
+    "zh-TW": "↑ 上一筆"
+  },
+  "↓ 次の一致": {
+    "en": "↓ Next match",
+    "ko": "↓ 다음 결과",
+    "zh-TW": "↓ 下一筆"
+  },
+  "全ページから検索": {
+    "en": "Search all pages",
+    "ko": "전체 페이지 검색",
+    "zh-TW": "搜尋所有頁面"
+  },
+  "ヘルプの目次": {
+    "en": "Guide contents",
+    "ko": "도움말 목차",
+    "zh-TW": "說明目錄"
+  },
+  "← 前のページ": {
+    "en": "← Previous page",
+    "ko": "← 이전 페이지",
+    "zh-TW": "← 上一頁"
+  },
+  "次のページ →": {
+    "en": "Next page →",
+    "ko": "다음 페이지 →",
+    "zh-TW": "下一頁 →"
+  },
+  "ページを選んで移動": {
+    "en": "Go to page",
+    "ko": "페이지 선택",
+    "zh-TW": "選擇頁面"
+  },
+  "全{total}ページ中 {page}ページ目": {
+    "en": "Page {page} of {total}",
+    "ko": "{total}페이지 중 {page}페이지",
+    "zh-TW": "第 {page} 頁，共 {total} 頁"
+  },
+  "{page} / {total} 件": {
+    "en": "Match {page} of {total}",
+    "ko": "검색 결과 {page} / {total}",
+    "zh-TW": "第 {page} 筆，共 {total} 筆"
+  },
+  "該当なし": {
+    "en": "No matches",
+    "ko": "검색 결과 없음",
+    "zh-TW": "沒有符合結果"
+  },
+  "最後のページです": {
+    "en": "Last page",
+    "ko": "마지막 페이지입니다",
+    "zh-TW": "已是最後一頁"
+  },
+  "次：{title}": {
+    "en": "Next: {title}",
+    "ko": "다음: {title}",
+    "zh-TW": "下一頁：{title}"
+  },
+  "現在のアプリの画面構成。クリックで拡大できます。ログイン情報・ユーザーデータは含みません。": {
+    "en": "Click to enlarge the example screen.",
+    "ko": "예시 화면을 클릭하면 확대됩니다.",
+    "zh-TW": "點選以放大操作範例。"
+  },
+  "{name}の操作画面（クリックで拡大）": {
+    "en": "{name} screen (click to enlarge)",
+    "ko": "{name} 화면 (클릭하여 확대)",
+    "zh-TW": "{name} 操作畫面（點選放大）"
+  },
+  "はじめに": {
+    "en": "Getting started",
+    "ko": "시작하기",
+    "zh-TW": "開始使用"
+  },
+  "曲を探す": {
+    "en": "Find songs",
+    "ko": "곡 찾기",
+    "zh-TW": "尋找歌曲"
+  },
+  "一括登録": {
+    "en": "Bulk import",
+    "ko": "일괄 등록",
+    "zh-TW": "批次匯入"
+  },
+  "演奏の進行": {
+    "en": "Session progress",
+    "ko": "연주 진행",
+    "zh-TW": "演出進度"
+  },
+  "配信・フレンド": {
+    "en": "Streaming and friends",
+    "ko": "방송 및 친구",
+    "zh-TW": "直播與好友"
+  },
+  "楽曲の追加・編集": {
+    "en": "Add and edit songs",
+    "ko": "곡 추가 및 편집",
+    "zh-TW": "新增與編輯歌曲"
+  },
+  "困ったとき": {
+    "en": "Troubleshooting",
+    "ko": "문제 해결",
+    "zh-TW": "疑難排解"
+  }
+});
