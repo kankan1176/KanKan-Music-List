@@ -3628,6 +3628,10 @@ body.sl-redesign{--sl-filter:134px!important}
 #accountModal .setting-group{margin:0!important;min-width:0}
 #accountModal .setting-group label{margin-bottom:6px}
 #accountModal .setting-group p{margin:5px 0 0!important;line-height:1.4;font-size:11px!important}
+#accountModal .wheel-paging-setting label{display:flex;align-items:center;gap:10px;min-height:44px;margin:0;cursor:pointer}
+#accountModal #wheelPaging{appearance:auto;flex:0 0 16px;width:16px;height:16px;min-height:16px;margin:0;padding:0;accent-color:#3563df;cursor:pointer}
+#accountModal #wheelPaging:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+#accountModal #wheelPagingHint{margin:0;padding-inline-start:26px;line-height:1.55}
 #accountModal input,#accountModal select{min-width:0;width:100%;box-sizing:border-box}
 #accountModal .modal>p{font-size:12px!important}
 #slHelpModal .sl-help-content p{line-height:1.9;max-width:65ch}
@@ -4467,7 +4471,7 @@ body.sl-redesign #accountModal .modal{gap:16px 32px;align-content:start;grid-tem
         </div>
 
         <div id="accountPreferencesColumn">
-        <div class="setting-group"><label><input type="checkbox" id="wheelPaging" checked> スクロールでページを移動</label><p>一覧の端で少し間を空けて同じ方向に3回スクロールすると、下端では次ページの先頭、上端では前ページの末尾へ移動します。</p></div>
+        <div class="setting-group wheel-paging-setting"><label for="wheelPaging"><input type="checkbox" id="wheelPaging" aria-describedby="wheelPagingHint" checked> スクロールでページを移動</label><p id="wheelPagingHint">一覧の端で少し間を空けて同じ方向に3回スクロールすると、下端では次ページの先頭、上端では前ページの末尾へ移動します。</p></div>
         <div class="setting-group" id="chordwikiVersionSetting">
             <label id="chordwikiVersionLabel">🎸 コードWikiのバージョン</label>
             <button type="button" id="chordwikiVersionToggle" class="chordwiki-version-toggle" role="switch" aria-checked="false" aria-labelledby="chordwikiVersionLabel" aria-describedby="chordwikiVersionStatus" disabled>
